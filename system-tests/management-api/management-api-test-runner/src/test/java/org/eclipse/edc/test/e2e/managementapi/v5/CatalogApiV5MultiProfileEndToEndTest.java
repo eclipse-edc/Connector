@@ -225,7 +225,7 @@ public class CatalogApiV5MultiProfileEndToEndTest {
             return context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(requestBody)
-                    .post("/v5beta/participants/%s/catalog/request".formatted(consumerContextId))
+                    .post("/v5/participants/%s/catalog/request".formatted(consumerContextId))
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)

@@ -42,7 +42,7 @@ public class CelExpressionApi {
                 .contentType(JSON)
                 .body(new WithContext<>(expression))
                 .when()
-                .post("/v5beta/celexpressions")
+                .post("/v5/celexpressions")
                 .then()
                 .log().ifValidationFails()
                 .statusCode(200)

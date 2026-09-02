@@ -141,6 +141,6 @@ class DiscoveryApiV5ControllerTest extends RestControllerTestBase {
     }
 
     private String baseUrl() {
-        return "/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/discover";
+        return "/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/discover";
     }
 }

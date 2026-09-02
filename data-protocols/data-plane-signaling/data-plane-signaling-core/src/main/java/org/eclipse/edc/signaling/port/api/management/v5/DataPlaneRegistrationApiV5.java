@@ -32,7 +32,7 @@ import static jakarta.ws.rs.HttpMethod.DELETE;
 import static jakarta.ws.rs.HttpMethod.PUT;
 
 @OpenAPIDefinition(info = @Info(version = "v5"))
-@Tag(name = "Dataplane Signaling Registration v5beta")
+@Tag(name = "Dataplane Signaling Registration v5")
 public interface DataPlaneRegistrationApiV5 {
 
     @Operation(

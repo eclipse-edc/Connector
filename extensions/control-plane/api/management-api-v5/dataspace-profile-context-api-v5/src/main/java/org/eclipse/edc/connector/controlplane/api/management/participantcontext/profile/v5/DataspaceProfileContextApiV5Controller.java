@@ -43,7 +43,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v5beta/participants/{participantContextId}/profiles")
+@Path("/v5/participants/{participantContextId}/profiles")
 public class DataspaceProfileContextApiV5Controller implements DataspaceProfileContextApiV5 {
 
     private final AuthorizationService authorizationService;
@@ -85,7 +85,7 @@ public class DataspaceProfileContextApiV5Controller implements DataspaceProfileC
 
         var context = transformerRegistry.transform(request, AssociateDataspaceProfileContext.class)
                 .orElseThrow(InvalidRequestException::new);
-        
+
         profileResolver.associateProfiles(participantContextId, context.profiles())
                 .orElseThrow((f) -> new InvalidRequestException("Failed to associate profiles to ParticipantContext: %s".formatted(f.getFailureDetail())));
     }

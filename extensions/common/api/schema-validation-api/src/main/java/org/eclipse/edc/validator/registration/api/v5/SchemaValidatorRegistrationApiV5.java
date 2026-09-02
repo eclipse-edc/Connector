@@ -27,10 +27,10 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(version = "v5beta", title = "Schema Validator Registration API",
+@OpenAPIDefinition(info = @Info(version = "v5", title = "Schema Validator Registration API",
         description = "Endpoints to dynamically configure custom JSON schema validation for management API request bodies. " +
                 "The referenced schema must be available to the connector, typically cached as a JSON_SCHEMA document via the document cache."))
-@Tag(name = "Schema Validator Registration v5beta")
+@Tag(name = "Schema Validator Registration v5")
 public interface SchemaValidatorRegistrationApiV5 {
 
     @Operation(description = "Returns all schema validator registrations.",

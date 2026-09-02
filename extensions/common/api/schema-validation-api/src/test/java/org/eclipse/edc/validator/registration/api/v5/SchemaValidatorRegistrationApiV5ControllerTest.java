@@ -64,7 +64,7 @@ class SchemaValidatorRegistrationApiV5ControllerTest extends RestControllerTestB
         baseRequest()
                 .contentType("application/json")
                 .body(requestBody)
-                .post("/v5beta/schemavalidators")
+                .post("/v5/schemavalidators")
                 .then()
                 .statusCode(200)
                 .body("@id", is(registration.getId()));
@@ -79,7 +79,7 @@ class SchemaValidatorRegistrationApiV5ControllerTest extends RestControllerTestB
         baseRequest()
                 .contentType("application/json")
                 .body("{ }")
-                .post("/v5beta/schemavalidators")
+                .post("/v5/schemavalidators")
                 .then()
                 .statusCode(400);
 
@@ -91,7 +91,7 @@ class SchemaValidatorRegistrationApiV5ControllerTest extends RestControllerTestB
         when(service.findById("missing")).thenReturn(null);
 
         baseRequest()
-                .get("/v5beta/schemavalidators/missing")
+                .get("/v5/schemavalidators/missing")
                 .then()
                 .statusCode(404);
     }
@@ -104,7 +104,7 @@ class SchemaValidatorRegistrationApiV5ControllerTest extends RestControllerTestB
                 .thenReturn(Result.success(Json.createObjectBuilder().add("@id", "id1").build()));
 
         baseRequest()
-                .get("/v5beta/schemavalidators")
+                .get("/v5/schemavalidators")
                 .then()
                 .statusCode(200)
                 .body("size()", is(1));
@@ -115,7 +115,7 @@ class SchemaValidatorRegistrationApiV5ControllerTest extends RestControllerTestB
         when(service.deleteById("id1")).thenReturn(ServiceResult.success(registration()));
 
         baseRequest()
-                .delete("/v5beta/schemavalidators/id1")
+                .delete("/v5/schemavalidators/id1")
                 .then()
                 .statusCode(204);
 

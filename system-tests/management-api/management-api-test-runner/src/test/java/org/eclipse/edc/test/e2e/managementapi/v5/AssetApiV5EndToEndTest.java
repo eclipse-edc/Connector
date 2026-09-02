@@ -74,7 +74,7 @@ import static org.hamcrest.Matchers.matchesRegex;
 import static org.hamcrest.Matchers.notNullValue;
 
 /**
- * Asset v5beta endpoints end-to-end tests
+ * Asset v5 endpoints end-to-end tests
  */
 public class AssetApiV5EndToEndTest {
 
@@ -111,7 +111,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().all()
                     .statusCode(204)
@@ -139,7 +139,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().all()
                     .statusCode(204)
@@ -171,7 +171,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().all()
                     .statusCode(403)
@@ -191,7 +191,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(403)
@@ -212,7 +212,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(adminToken)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().all()
                     .statusCode(204)
@@ -231,7 +231,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(context.query(criterion("myProp", "=", "myVal")).toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -259,7 +259,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -273,7 +273,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(query)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -296,7 +296,7 @@ public class AssetApiV5EndToEndTest {
                                     criterion(Asset.PROPERTY_IS_CATALOG, "=", "true"),
                                     criterion("id", "=", id))
                             .toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -331,7 +331,7 @@ public class AssetApiV5EndToEndTest {
             var result = context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(context.query(criterion("quizz", "=", "quazz")).toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -370,7 +370,7 @@ public class AssetApiV5EndToEndTest {
             var result = context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(query)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -405,7 +405,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(query)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
                     .then()
                     .log().ifError()
                     .statusCode(403)
@@ -442,7 +442,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -484,7 +484,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -504,7 +504,7 @@ public class AssetApiV5EndToEndTest {
             assetIndex.create(asset);
 
             var body = context.baseRequest(participantTokenJwt)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -526,7 +526,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifError()
                     .statusCode(400);
@@ -553,7 +553,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -591,14 +591,14 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
                     .body(ID, is(id));
 
             context.baseRequest(participantTokenJwt)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -636,7 +636,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -646,7 +646,7 @@ public class AssetApiV5EndToEndTest {
             assertThat(asset.isCatalog()).isTrue();
 
             context.baseRequest(participantTokenJwt)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -668,7 +668,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(json)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(403)
@@ -686,7 +686,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(json)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(403)
@@ -702,7 +702,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(json)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200);
@@ -717,7 +717,7 @@ public class AssetApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(json)
-                    .post("/v5beta/participants/who-is-this/assets")
+                    .post("/v5/participants/who-is-this/assets")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(404);
@@ -734,7 +734,7 @@ public class AssetApiV5EndToEndTest {
             assetIndex.create(asset);
 
             var body = context.baseRequest(participantTokenJwt)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -760,7 +760,7 @@ public class AssetApiV5EndToEndTest {
 
             var id = "not-exist";
             context.baseRequest(participantTokenJwt)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
                     .then()
                     .statusCode(404);
         }
@@ -781,7 +781,7 @@ public class AssetApiV5EndToEndTest {
 
             var body = context.baseRequest(token)
                     .header("Authorization", "Bearer " + token)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(401)
@@ -800,7 +800,7 @@ public class AssetApiV5EndToEndTest {
 
             var adminToken = authServer.createAdminToken();
             var body = context.baseRequest(adminToken)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -832,7 +832,7 @@ public class AssetApiV5EndToEndTest {
 
             var adminToken = authServer.createAdminToken();
             context.baseRequest(adminToken)
-                    .get("/v5beta/participants/some-other-owner/assets/" + id)
+                    .get("/v5/participants/some-other-owner/assets/" + id)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(404)
@@ -846,7 +846,7 @@ public class AssetApiV5EndToEndTest {
             assetIndex.create(asset);
 
             context.baseRequest(participantTokenJwt)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + asset.getId())
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + asset.getId())
                     .then()
                     .log().ifValidationFails()
                     .statusCode(204);
@@ -856,14 +856,14 @@ public class AssetApiV5EndToEndTest {
 
         @Test
         void deleteAsset_shouldFail_whenReferencedByProviderAgreement(ManagementEndToEndV5TestContext context,
-                                                                     AssetIndex assetIndex,
-                                                                     ContractNegotiationStore negotiationStore) {
+                                                                      AssetIndex assetIndex,
+                                                                      ContractNegotiationStore negotiationStore) {
             var asset = createAsset().build();
             assetIndex.create(asset);
             negotiationStore.save(createNegotiation(PROVIDER, PARTICIPANT_CONTEXT_ID, asset.getId()));
 
             context.baseRequest(participantTokenJwt)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + asset.getId())
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + asset.getId())
                     .then()
                     .log().ifValidationFails()
                     .statusCode(409);
@@ -881,7 +881,7 @@ public class AssetApiV5EndToEndTest {
             negotiationStore.save(createNegotiation(CONSUMER, PARTICIPANT_CONTEXT_ID, asset.getId()));
 
             context.baseRequest(participantTokenJwt)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + asset.getId())
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + asset.getId())
                     .then()
                     .log().ifValidationFails()
                     .statusCode(204);
@@ -891,9 +891,9 @@ public class AssetApiV5EndToEndTest {
 
         @Test
         void deleteAsset_whenProviderAgreementBelongsToAnotherParticipantContext(ManagementEndToEndV5TestContext context,
-                                                                                AssetIndex assetIndex,
-                                                                                ContractNegotiationStore negotiationStore,
-                                                                                ParticipantContextService participantContextService) {
+                                                                                 AssetIndex assetIndex,
+                                                                                 ContractNegotiationStore negotiationStore,
+                                                                                 ParticipantContextService participantContextService) {
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(participantContextService, otherParticipantId);
             var asset = createAsset().build();
@@ -901,7 +901,7 @@ public class AssetApiV5EndToEndTest {
             negotiationStore.save(createNegotiation(PROVIDER, otherParticipantId, asset.getId()));
 
             context.baseRequest(participantTokenJwt)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + asset.getId())
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + asset.getId())
                     .then()
                     .log().ifValidationFails()
                     .statusCode(204);
@@ -914,7 +914,7 @@ public class AssetApiV5EndToEndTest {
         @Test
         void deleteAsset_shouldFail_whenAssetDoesNotExist(ManagementEndToEndV5TestContext context) {
             context.baseRequest(participantTokenJwt)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/not-exist")
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/not-exist")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(404);

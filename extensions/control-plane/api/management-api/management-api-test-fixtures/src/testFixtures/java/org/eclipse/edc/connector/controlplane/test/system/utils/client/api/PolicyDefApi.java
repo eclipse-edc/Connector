@@ -44,7 +44,7 @@ public class PolicyDefApi {
                 .contentType(JSON)
                 .body(new WithContext<>(policyDef))
                 .when()
-                .post("/v5beta/participants/%s/policydefinitions".formatted(participantContextId))
+                .post("/v5/participants/%s/policydefinitions".formatted(participantContextId))
                 .then()
                 .log().ifError()
                 .statusCode(200)

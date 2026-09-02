@@ -41,7 +41,7 @@ public class ParticipantContextConfigApi {
                 .contentType(JSON)
                 .body(new WithContext<>(participantContextDto))
                 .when()
-                .put("/v5beta/participants/%s/config".formatted(participantContextId))
+                .put("/v5/participants/%s/config".formatted(participantContextId))
                 .then()
                 .log().ifError()
                 .statusCode(204);

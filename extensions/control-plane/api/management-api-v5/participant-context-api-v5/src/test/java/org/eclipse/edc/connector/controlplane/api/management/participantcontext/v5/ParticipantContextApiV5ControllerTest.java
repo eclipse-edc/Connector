@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.controlplane.api.management.participantcontext.
 public class ParticipantContextApiV5ControllerTest extends ParticipantContextApiControllerTestBase {
     @Override
     protected String versionPath() {
-        return "v5beta";
+        return "v5";
     }
 
     @Override

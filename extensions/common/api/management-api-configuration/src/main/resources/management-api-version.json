@@ -6,9 +6,9 @@
     "maturity": "stable"
   },
   {
-    "version": "5.0.0-beta",
-    "urlPath": "/v5beta",
-    "lastUpdated": "2026-07-29T16:00:00Z",
-    "maturity": "beta"
+    "version": "5.0.0",
+    "urlPath": "/v5",
+    "lastUpdated": "2026-09-02T16:00:00Z",
+    "maturity": "stable"
   }
 ]

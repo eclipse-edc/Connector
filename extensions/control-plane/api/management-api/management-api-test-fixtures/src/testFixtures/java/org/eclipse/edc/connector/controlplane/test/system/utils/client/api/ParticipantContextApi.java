@@ -37,7 +37,7 @@ public class ParticipantContextApi {
                 .contentType(JSON)
                 .body(new WithContext<>(participantContextDto))
                 .when()
-                .post("/v5beta/participants")
+                .post("/v5/participants")
                 .then()
                 .log().ifError()
                 .statusCode(200);

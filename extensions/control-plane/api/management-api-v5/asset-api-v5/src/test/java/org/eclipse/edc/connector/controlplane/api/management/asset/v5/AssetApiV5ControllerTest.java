@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.controlplane.api.management.asset.AssetApiContr
 public class AssetApiV5ControllerTest extends AssetApiControllerTest {
     @Override
     protected String versionPath() {
-        return "v5beta";
+        return "v5";
     }
 
     @Override

@@ -27,8 +27,8 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(title = "Dataspace Profile Management API", version = "v5beta"))
-@Tag(name = "Dataspace Profile v5beta")
+@OpenAPIDefinition(info = @Info(title = "Dataspace Profile Management API", version = "v5"))
+@Tag(name = "Dataspace Profile v5")
 public interface DataspaceProfileApiV5 {
 
     @Operation(description = "Creates a new dataspace profile. On success the profile is persisted and registered into " +

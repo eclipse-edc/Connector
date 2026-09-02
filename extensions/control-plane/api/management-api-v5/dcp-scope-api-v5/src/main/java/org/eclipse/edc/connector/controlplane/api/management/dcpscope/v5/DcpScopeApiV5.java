@@ -27,8 +27,8 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(title = "DcpScope Management API", version = "v5beta"))
-@Tag(name = "DcpScope v5beta")
+@OpenAPIDefinition(info = @Info(title = "DcpScope Management API", version = "v5"))
+@Tag(name = "DcpScope v5")
 public interface DcpScopeApiV5 {
 
     @Operation(description = "Creates a new DcpScope object.",

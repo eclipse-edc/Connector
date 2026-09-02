@@ -43,7 +43,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v5beta/cacheddocuments")
+@Path("/v5/cacheddocuments")
 public class CachedDocumentApiV5Controller implements CachedDocumentApiV5 {
 
     private final CachedDocumentService service;

@@ -59,7 +59,7 @@ class DataspaceProfileApiV5ControllerTest extends RestControllerTestBase {
     }
 
     private RequestSpecification baseRequest() {
-        return given().baseUri("http://localhost:" + port + "/v5beta").when();
+        return given().baseUri("http://localhost:" + port + "/v5").when();
     }
 
     private String body() {

@@ -28,8 +28,8 @@ import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(version = "v5beta"))
-@Tag(name = "Policy Definition v5beta")
+@OpenAPIDefinition(info = @Info(version = "v5"))
+@Tag(name = "Policy Definition v5")
 public interface PolicyDefinitionApiV5 {
 
     @Operation(description = "Returns all policy definitions according to a query",

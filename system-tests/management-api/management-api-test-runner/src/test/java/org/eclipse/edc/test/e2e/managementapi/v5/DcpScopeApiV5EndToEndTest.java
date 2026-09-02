@@ -52,7 +52,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class DcpScopeApiV5EndToEndTest {
 
-    private static final String DCP_SCOPES_PATH = "/v5beta/dcpscopes";
+    private static final String DCP_SCOPES_PATH = "/v5/dcpscopes";
 
     private static Config dcpConfig() {
         return ConfigFactory.fromMap(Map.of(

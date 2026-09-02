@@ -51,7 +51,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v5beta/participants/{participantContextId}/contractdefinitions")
+@Path("/v5/participants/{participantContextId}/contractdefinitions")
 public class ContractDefinitionApiV5Controller implements ContractDefinitionApiV5 {
 
     private final TypeTransformerRegistry typeTransformerRegistry;
