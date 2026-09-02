@@ -32,12 +32,16 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex.ASSET_NOT_FOUND_TEMPLATE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ENDPOINT_URL_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 
 public class AssetServiceImpl implements AssetService {
 
     private static final String ASSET_ID_QUERY = "contractAgreement.assetId";
+    private static final String NEGOTIATION_TYPE_QUERY = "type";
     private static final String DUPLICATED_KEYS_MESSAGE = "Duplicate keys in properties and private properties are not allowed";
     private final AssetIndex index;
     private final ContractNegotiationStore contractNegotiationStore;
@@ -91,8 +95,16 @@ public class AssetServiceImpl implements AssetService {
     public ServiceResult<Asset> delete(String assetId) {
         return transactionContext.execute(() -> {
 
+            var asset = index.findById(assetId);
+            if (asset == null) {
+                return ServiceResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId));
+            }
+
             var query = QuerySpec.Builder.newInstance()
-                    .filter(List.of(new Criterion(ASSET_ID_QUERY, "=", assetId)))
+                    .filter(List.of(
+                            new Criterion(ASSET_ID_QUERY, "=", assetId),
+                            new Criterion(NEGOTIATION_TYPE_QUERY, "=", PROVIDER.name()),
+                            filterByParticipantContextId(asset.getParticipantContextId())))
                     .build();
 
             try (var negotiationsOnAsset = contractNegotiationStore.queryNegotiations(query)) {

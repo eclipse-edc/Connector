@@ -20,14 +20,20 @@ import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndTestContext;
 import org.eclipse.edc.test.e2e.managementapi.Runtimes;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -41,6 +47,9 @@ import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.map;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -57,6 +66,13 @@ public class AssetApiV4EndToEndTest {
 
     @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
+
+        private static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
+
+        @AfterEach
+        void teardown(ContractNegotiationStore negotiationStore) {
+            negotiationStore.queryNegotiations(QuerySpec.max()).forEach(cn -> negotiationStore.deleteById(cn.getId()));
+        }
 
         @Test
         void getAssetById(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
@@ -274,7 +290,7 @@ public class AssetApiV4EndToEndTest {
                     .id("test-asset")
                     .property("myProp", "myVal")
                     .dataAddress(createDataAddress().build())
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .build());
 
             context.baseRequest()
@@ -335,7 +351,7 @@ public class AssetApiV4EndToEndTest {
                     .property(Asset.PROPERTY_IS_CATALOG, true)
                     .id(id)
                     .dataAddress(createDataAddress().build())
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .build());
 
             var assets = context.baseRequest()
@@ -399,6 +415,101 @@ public class AssetApiV4EndToEndTest {
             assertThat(dbAsset.getParticipantContextId()).isNotNull();
         }
 
+        @Test
+        void deleteAsset(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
+            var asset = createAsset().build();
+            assetIndex.create(asset);
+
+            context.baseRequest()
+                    .delete("/v4/assets/" + asset.getId())
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(204);
+
+            assertThat(assetIndex.findById(asset.getId())).isNull();
+        }
+
+        @Test
+        void deleteAsset_shouldFail_whenReferencedByProviderAgreement(ManagementEndToEndTestContext context,
+                                                                     AssetIndex assetIndex,
+                                                                     ContractNegotiationStore negotiationStore) {
+            var asset = createAsset().build();
+            assetIndex.create(asset);
+            negotiationStore.save(createNegotiation(PROVIDER, PARTICIPANT_CONTEXT_ID, asset.getId()));
+
+            context.baseRequest()
+                    .delete("/v4/assets/" + asset.getId())
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(409);
+
+            assertThat(assetIndex.findById(asset.getId())).isNotNull();
+        }
+
+        @Test
+        void deleteAsset_whenConsumerAgreementReferencesSameAssetId(ManagementEndToEndTestContext context,
+                                                                    AssetIndex assetIndex,
+                                                                    ContractNegotiationStore negotiationStore) {
+            var asset = createAsset().build();
+            assetIndex.create(asset);
+            // the local asset happens to have the same id as a remote one this participant consumes
+            negotiationStore.save(createNegotiation(CONSUMER, PARTICIPANT_CONTEXT_ID, asset.getId()));
+
+            context.baseRequest()
+                    .delete("/v4/assets/" + asset.getId())
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(204);
+
+            assertThat(assetIndex.findById(asset.getId())).isNull();
+        }
+
+        @Test
+        void deleteAsset_whenProviderAgreementBelongsToAnotherParticipantContext(ManagementEndToEndTestContext context,
+                                                                                AssetIndex assetIndex,
+                                                                                ContractNegotiationStore negotiationStore) {
+            var asset = createAsset().build();
+            assetIndex.create(asset);
+            negotiationStore.save(createNegotiation(PROVIDER, "another-participant-context", asset.getId()));
+
+            context.baseRequest()
+                    .delete("/v4/assets/" + asset.getId())
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(204);
+
+            assertThat(assetIndex.findById(asset.getId())).isNull();
+        }
+
+        @Test
+        void deleteAsset_shouldFail_whenAssetDoesNotExist(ManagementEndToEndTestContext context) {
+            context.baseRequest()
+                    .delete("/v4/assets/not-exist")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(404);
+        }
+
+        private ContractNegotiation createNegotiation(ContractNegotiation.Type type, String participantContextId, String assetId) {
+            return ContractNegotiation.Builder.newInstance()
+                    .id(UUID.randomUUID().toString())
+                    .counterPartyId(UUID.randomUUID().toString())
+                    .counterPartyAddress("address")
+                    .protocol("dataspace-protocol-http")
+                    .type(type)
+                    .participantContextId(participantContextId)
+                    .state(FINALIZED.code())
+                    .contractAgreement(ContractAgreement.Builder.newInstance()
+                            .id(UUID.randomUUID().toString())
+                            .assetId(assetId)
+                            .consumerId("consumer")
+                            .providerId("provider")
+                            .policy(Policy.Builder.newInstance().build())
+                            .participantContextId(participantContextId)
+                            .build())
+                    .build();
+        }
+
         private DataAddress.Builder createDataAddress() {
             return DataAddress.Builder.newInstance().type("test-type")
                     .property(EDC_NAMESPACE + "complex", Map.of(
@@ -415,7 +526,7 @@ public class AssetApiV4EndToEndTest {
                     .property(EDC_NAMESPACE + "contenttype", "application/json")
                     .property(EDC_NAMESPACE + "version", "0.4.2")
                     .dataAddress(createDataAddress().build())
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .dataplaneMetadata(DataplaneMetadata.Builder.newInstance()
                             .label("label")
                             .property("property", "value")
