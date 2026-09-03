@@ -31,7 +31,6 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
@@ -150,8 +149,11 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
 
     private CredentialSubject extractSubject(Map<String, ?> subject, String fallback) {
         var builder = CredentialSubject.Builder.newInstance();
-        var id = Objects.requireNonNullElse(subject.remove(ID_PROPERTY), fallback);
-        builder.id(id.toString());
+        // the id is optional, c.f. https://www.w3.org/TR/vc-data-model-2.0/#identifiers
+        ofNullable(subject.remove(ID_PROPERTY))
+                .map(Object::toString)
+                .or(() -> ofNullable(fallback))
+                .ifPresent(builder::id);
         subject.forEach(builder::claim);
         return builder.build();
     }
