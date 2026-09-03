@@ -17,7 +17,7 @@ package org.eclipse.edc.iam.decentralizedclaims.core.validation;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.decentralizedclaims.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
@@ -38,13 +38,17 @@ public class SelfIssueIdTokenValidationAction implements TokenValidationAction {
     private final TokenValidationService tokenValidationService;
     private final TokenValidationRulesRegistry rulesRegistry;
     private final DidPublicKeyResolver didPublicKeyResolver;
-    private final Function<String, String> didResolver;
+    private final Function<String, String> didConfigProvider;
+    private final DidResolverRegistry didResolverRegistry;
 
-    public SelfIssueIdTokenValidationAction(TokenValidationService tokenValidationService, TokenValidationRulesRegistry rulesRegistry, DidPublicKeyResolver didPublicKeyResolver, Function<String, String> didResolver) {
+    public SelfIssueIdTokenValidationAction(TokenValidationService tokenValidationService, TokenValidationRulesRegistry rulesRegistry,
+                                            DidPublicKeyResolver didPublicKeyResolver, Function<String, String> didConfigProvider,
+                                            DidResolverRegistry didResolverRegistry) {
         this.tokenValidationService = tokenValidationService;
         this.rulesRegistry = rulesRegistry;
         this.didPublicKeyResolver = didPublicKeyResolver;
-        this.didResolver = didResolver;
+        this.didConfigProvider = didConfigProvider;
+        this.didResolverRegistry = didResolverRegistry;
     }
 
     @Override
@@ -54,10 +58,11 @@ public class SelfIssueIdTokenValidationAction implements TokenValidationAction {
             var keyId = signedJwt.getHeader().getKeyID();
             var rules = new ArrayList<>(rulesRegistry.getRules(DCP_SELF_ISSUED_TOKEN_CONTEXT));
             rules.add(new IssuerKeyIdValidationRule(keyId));
-            rules.add(new AudienceValidationRule(didResolver.apply(participantContextId)));
+            rules.add(new AudienceValidationRule(didConfigProvider.apply(participantContextId)));
+            rules.add(new CapabilityInvocationValidationRule(keyId, didResolverRegistry));
             return tokenValidationService.validate(tokenRepresentation, didPublicKeyResolver, rules);
         } catch (ParseException e) {
-            throw new EdcException(e);
+            return Result.failure("Error parsing JWT: " + e.getMessage());
         }
     }
 }

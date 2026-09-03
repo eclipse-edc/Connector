@@ -78,7 +78,6 @@ public class CredentialService {
         }
 
         var did = didFor(participantContextId);
-        var credentialServiceUrl = "http://localhost:" + port + "/credentials/" + participantContextId;
 
         var ecKey = generateKey(participantContextId, did);
 
@@ -90,6 +89,8 @@ public class CredentialService {
                 .publicKeyJwk(ecKey.toPublicJWK().toJSONObject())
                 .build());
 
+        var capabilityInvocationKeys = new ArrayList<String>();
+        capabilityInvocationKeys.add(ecKey.getKeyID());
         if (additionalKey != null) {
             verificationMethods.add(VerificationMethod.Builder.newInstance()
                     .id(additionalKey.getKeyID())
@@ -97,22 +98,22 @@ public class CredentialService {
                     .controller(did)
                     .publicKeyJwk(additionalKey.toPublicJWK().toJSONObject())
                     .build());
+            capabilityInvocationKeys.add(additionalKey.getKeyID());
         }
 
+        var credentialService = new Service(
+                UUID.randomUUID().toString(),
+                "CredentialService",
+                "http://localhost:" + port + "/credentials/" + participantContextId);
 
         var didDocument = DidDocument.Builder.newInstance()
                 .id(did)
-                .verificationMethod(
-                        verificationMethods
-                )
-                .service(List.of(new Service(
-                        UUID.randomUUID().toString(),
-                        "CredentialService",
-                        credentialServiceUrl)))
+                .verificationMethod(verificationMethods)
+                .capabilityInvocation(capabilityInvocationKeys)
+                .service(List.of(credentialService))
                 .build();
 
-        var ctx = new ParticipantContext(didDocument, ecKey);
-        participants.put(participantContextId, ctx);
+        participants.put(participantContextId, new ParticipantContext(didDocument, ecKey));
     }
 
     /**

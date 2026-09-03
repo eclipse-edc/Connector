@@ -192,7 +192,7 @@ public class DcpCoreExtension implements ServiceExtension {
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
         var didConfigProvider = new DidConfigProvider(participantContextConfig, context.getMonitor());
-        var validationAction = new SelfIssueIdTokenValidationAction(tokenValidationService, rulesRegistry, didPublicKeyResolver, didConfigProvider);
+        var validationAction = new SelfIssueIdTokenValidationAction(tokenValidationService, rulesRegistry, didPublicKeyResolver, didConfigProvider, didResolverRegistry);
 
         var rules = List.of(
                 new IsInValidityPeriod(clock),

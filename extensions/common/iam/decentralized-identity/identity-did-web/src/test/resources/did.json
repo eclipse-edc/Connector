@@ -28,5 +28,8 @@
   ],
   "authentication": [
     "#my-key-1"
+  ],
+  "capabilityInvocation": [
+    "#my-key-1"
   ]
 }
