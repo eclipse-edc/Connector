@@ -132,6 +132,14 @@ paths:
           description: default response
           content:
             application/json: {}
+  /.well-known/dspace-version:
+    get:
+      operationId: getProtocolVersions
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
   /2025-1/transfers/{id}/termination:
     post:
       operationId: transferProcessTermination
@@ -155,14 +163,6 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/initiateTransferProcess_request"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /.well-known/dspace-version:
-    get:
-      operationId: getProtocolVersions
       responses:
         default:
           description: default response
