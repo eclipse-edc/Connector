@@ -216,7 +216,7 @@ public class TransferProcessorsImpl implements TransferProcessors {
     @Override
     public CompletableFuture<StatusResult<Void>> processStarting(TransferProcess process) {
         return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(futureResult("Dispatch TransferRequestMessage to: " + process.getCounterPartyAddress(), (t, ignored) -> {
+                .doProcess(futureResult("Dispatch TransferStartMessage to: " + process.getCounterPartyAddress(), (t, ignored) -> {
                     var dataAddress = dataAddressStore.resolve(process).orElse(f -> null);
                     var messageBuilder = TransferStartMessage.Builder.newInstance().dataAddress(dataAddress);
                     return dispatch(messageBuilder, t, Object.class);
