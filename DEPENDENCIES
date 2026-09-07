@@ -26,7 +26,6 @@ maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.18.3, Apache-2.
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.19.1, Apache-2.0, approved, #21909
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.19.2, Apache-2.0, approved, #21909
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.21.3, Apache-2.0, approved, #25591
-maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.21.4, Apache-2.0, approved, #25591
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.22.0, Apache-2.0, approved, #28621
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.22.1, Apache-2.0, approved, #28621
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.22.2, Apache-2.0, approved, #28621
@@ -34,7 +33,6 @@ maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.18
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.19.2, Apache-2.0, approved, #21912
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.22.2, Apache-2.0, approved, #28622
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.21.2, Apache-2.0, approved, #26448
-maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.21.4, Apache-2.0, approved, #26448
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.22.0, Apache-2.0, approved, #29009
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.22.2, Apache-2.0, approved, #29009
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.19.2, Apache-2.0, approved, #23299
@@ -120,7 +118,6 @@ maven/mavencentral/io.opentelemetry/opentelemetry-context/1.64.0, Apache-2.0, ap
 maven/mavencentral/io.opentelemetry/opentelemetry-context/1.65.0, Apache-2.0, approved, #30120
 maven/mavencentral/io.rest-assured/json-path/6.0.1, Apache-2.0, approved, #29909
 maven/mavencentral/io.rest-assured/rest-assured-common/6.0.1, Apache-2.0, approved, #29910
-maven/mavencentral/io.rest-assured/rest-assured/5.5.5, Apache-2.0, approved, #15676
 maven/mavencentral/io.rest-assured/rest-assured/6.0.1, Apache-2.0, approved, #29907
 maven/mavencentral/io.rest-assured/xml-path/6.0.1, Apache-2.0, approved, #29908
 maven/mavencentral/io.setl/rdf-urdna/1.1, Apache-2.0, approved, clearlydefined
@@ -194,11 +191,11 @@ maven/mavencentral/org.assertj/assertj-core/3.27.7, Apache-2.0, approved, #17980
 maven/mavencentral/org.awaitility/awaitility/4.2.0, Apache-2.0, approved, #14178
 maven/mavencentral/org.awaitility/awaitility/4.2.2, Apache-2.0, approved, #14178
 maven/mavencentral/org.awaitility/awaitility/4.3.0, Apache-2.0, approved, clearlydefined
-maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.84, MIT, approved, #27142
-maven/mavencentral/org.bouncycastle/bcprov-jdk18on/1.84, MIT AND CC0-1.0, approved, #27143
+maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.85, MIT, approved, #29746
+maven/mavencentral/org.bouncycastle/bcprov-jdk18on/1.85, MIT AND CC0-1.0, approved, #29747
 maven/mavencentral/org.bouncycastle/bcprov-jdk18on/1.85.2, MIT AND CC0-1.0, approved, #30066
 maven/mavencentral/org.bouncycastle/bcprov-lts8on/2.73.10, MIT, approved, #19041
-maven/mavencentral/org.bouncycastle/bcutil-jdk18on/1.84, MIT, approved, #27144
+maven/mavencentral/org.bouncycastle/bcutil-jdk18on/1.85, MIT, approved, #29748
 maven/mavencentral/org.ccil.cowan.tagsoup/tagsoup/1.2.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.checkerframework/checker-qual/3.52.1, MIT, approved, #26057
 maven/mavencentral/org.checkerframework/checker-qual/3.55.1, MIT, approved, #29939
@@ -217,12 +214,12 @@ maven/mavencentral/org.eclipse.dataspacetck.common/core/1.0.0, Apache-2.0, appro
 maven/mavencentral/org.eclipse.dataspacetck.common/core/1.3.0, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.common/tck-runtime/1.0.0, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.common/tck-runtime/1.3.0, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-api/1.0.2, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-api/1.1.0, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-system/1.0.2, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-api/1.2.1, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-system/1.1.0, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-tck/1.0.2, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-testcases/1.0.2, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-system/1.2.1, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-tck/1.2.1, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-testcases/1.2.1, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dps/dps-tck/1.3.0, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-api/1.0.1, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-catalog/1.0.1, Apache-2.0, approved, technology.dataspacetck
@@ -231,8 +228,8 @@ maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-metadata/1.0.1, Apache-2.0, 
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-system/1.0.1, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-tck/1.0.1, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-transfer-process/1.0.1, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.edc/autodoc-processor/0.19.0-SNAPSHOT, Apache-2.0, approved, technology.edc
-maven/mavencentral/org.eclipse.edc/runtime-metamodel/0.19.0-SNAPSHOT, Apache-2.0, approved, technology.edc
+maven/mavencentral/org.eclipse.edc/autodoc-processor/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.edc
+maven/mavencentral/org.eclipse.edc/runtime-metamodel/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.jetty.ee10/jetty-ee10-bom/12.0.30, EPL-2.0 OR Apache-2.0, approved, rt.jetty
 maven/mavencentral/org.eclipse.jetty.ee10/jetty-ee10-servlet/12.0.30, EPL-2.0 OR Apache-2.0, approved, rt.jetty
 maven/mavencentral/org.eclipse.jetty.ee10/jetty-ee10-servlet/12.1.12, EPL-2.0 OR Apache-2.0, approved, rt.jetty
