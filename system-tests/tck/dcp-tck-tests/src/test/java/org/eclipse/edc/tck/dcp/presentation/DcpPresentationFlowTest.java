@@ -73,13 +73,12 @@ import static org.mockito.Mockito.when;
  */
 @TckTest
 public class DcpPresentationFlowTest {
+    static final int DID_SERVER_PORT = getFreePort();
+    static final String VERIFIER_DID = "did:web:localhost%%3A%s:verifier".formatted(DID_SERVER_PORT);
     private static final int CALLBACK_PORT = getFreePort();
-
     private static final String PROTOCOL_API_PATH = "/api/protocol";
     private static final String PROTOCOL_API_PORT = String.valueOf(getFreePort());
     private static final SecureTokenService STS_MOCK = mock();
-    private static final int DID_SERVER_PORT = getFreePort();
-    private static final String VERIFIER_DID = "did:web:localhost%%3A%s:verifier".formatted(DID_SERVER_PORT);
     @RegisterExtension
     static final RuntimePerClassExtension EDC_RUNTIME_EXTENSIONS = new RuntimePerClassExtension(
             new EmbeddedRuntime("Connector-under-test", ":dist:bom:controlplane-dcp-bom")
@@ -104,7 +103,6 @@ public class DcpPresentationFlowTest {
                             "edc.iam.dcp.scopes.membership.value", "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read"
                     )))
     );
-
     @RegisterExtension
     static WireMockExtension server = WireMockExtension.newInstance()
             .options(wireMockConfig().port(DID_SERVER_PORT))
@@ -155,15 +153,15 @@ public class DcpPresentationFlowTest {
         var baseCallbackUrl = "http://localhost:%s".formatted(CALLBACK_PORT);
         var baseCallbackUri = URI.create(baseCallbackUrl);
         var result = TckRuntime.Builder.newInstance()
-                .properties(Map.of(
-                        "dataspacetck.callback.address", baseCallbackUrl,
-                        "dataspacetck.host", baseCallbackUri.getHost(),
-                        "dataspacetck.port", String.valueOf(baseCallbackUri.getPort()),
-                        "dataspacetck.launcher", "org.eclipse.dataspacetck.dcp.system.DcpSystemLauncher",
-                        "dataspacetck.did.verifier", VERIFIER_DID,
-                        "dataspacetck.did.holder", holderDid,
-                        "dataspacetck.did.thirdparty", thirdPartyDid,
-                        "dataspacetck.vpp.trigger.endpoint", "http://localhost:%s%s".formatted(PROTOCOL_API_PORT, triggerPath)
+                .properties(Map.ofEntries(
+                        Map.entry("dataspacetck.callback.address", baseCallbackUrl),
+                        Map.entry("dataspacetck.host", baseCallbackUri.getHost()),
+                        Map.entry("dataspacetck.port", String.valueOf(baseCallbackUri.getPort())),
+                        Map.entry("dataspacetck.launcher", "org.eclipse.dataspacetck.dcp.system.DcpSystemLauncher"),
+                        Map.entry("dataspacetck.did.verifier", VERIFIER_DID),
+                        Map.entry("dataspacetck.did.holder", holderDid),
+                        Map.entry("dataspacetck.did.thirdparty", thirdPartyDid),
+                        Map.entry("dataspacetck.vpp.trigger.endpoint", "http://localhost:%s%s".formatted(PROTOCOL_API_PORT, triggerPath))
                 ))
                 .monitor(monitor)
                 .addPackage("org.eclipse.dataspacetck.dcp.verification.presentation.verifier")
@@ -190,6 +188,7 @@ public class DcpPresentationFlowTest {
                                 .id(verifierKey.getKeyID())
                                 .build()
                 ))
+                .capabilityInvocation(List.of(verifierKey.getKeyID()))
                 .service(List.of(new Service(UUID.randomUUID().toString(), "CredentialService", "https://example.com/credentialservice")))
                 .build();
         try {
