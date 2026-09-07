@@ -76,13 +76,12 @@ import static org.mockito.Mockito.when;
 @TckTest
 @Testcontainers
 public class DcpPresentationFlowWithDockerTest {
+    static final int DID_SERVER_PORT = getFreePort();
+    static final String VERIFIER_DID = "did:web:host.docker.internal%%3A%s:verifier".formatted(DID_SERVER_PORT);
     private static final int CALLBACK_PORT = getFreePort();
-
     private static final String PROTOCOL_API_PATH = "/api/protocol";
     private static final String PROTOCOL_API_PORT = String.valueOf(getFreePort());
     private static final SecureTokenService STS_MOCK = mock();
-    private static final int DID_SERVER_PORT = getFreePort();
-    private static final String VERIFIER_DID = "did:web:host.docker.internal%%3A%s:verifier".formatted(DID_SERVER_PORT);
     @RegisterExtension
     static final RuntimePerClassExtension EDC_RUNTIME_EXTENSIONS = new RuntimePerClassExtension(
             new EmbeddedRuntime("Connector-under-test", ":dist:bom:controlplane-dcp-bom")
@@ -106,7 +105,6 @@ public class DcpPresentationFlowWithDockerTest {
                             "edc.iam.dcp.scopes.membership.value", "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read"
                     )))
     );
-
     @RegisterExtension
     static WireMockExtension server = WireMockExtension.newInstance()
             .options(wireMockConfig().port(DID_SERVER_PORT))
@@ -156,6 +154,7 @@ public class DcpPresentationFlowWithDockerTest {
                                 .id(verifierKey.getKeyID())
                                 .build()
                 ))
+                .capabilityInvocation(List.of(verifierKey.getKeyID()))
                 .service(List.of(new Service(UUID.randomUUID().toString(), "CredentialService", "https://example.com/credentialservice")))
                 .build();
         try {
@@ -176,7 +175,7 @@ public class DcpPresentationFlowWithDockerTest {
         var baseCallbackUrl = "http://0.0.0.0:%s".formatted(CALLBACK_PORT);
         var baseCallbackUri = URI.create(baseCallbackUrl);
 
-        try (var tckContainer = new GenericContainer<>("eclipsedataspacetck/dcp-tck-runtime:1.0.0-RC6")
+        try (var tckContainer = new GenericContainer<>("eclipsedataspacetck/dcp-tck-runtime:1.2.1")
                 .withExtraHost("host.docker.internal", "host-gateway")
                 .withExposedPorts(CALLBACK_PORT)
                 .withEnv(Map.of(
