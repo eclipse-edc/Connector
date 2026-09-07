@@ -8,6 +8,11 @@ changelog:
     - title: Breaking changes
       labels:
         - breaking-change
+    # must come before Bugfixes/New Features: PRs land in the first matching
+    # category, and security-relevant PRs usually also carry "bug" or "enhancement"
+    - title: Security
+      labels:
+        - security
     - title: Bugfixes
       labels:
         - bug
