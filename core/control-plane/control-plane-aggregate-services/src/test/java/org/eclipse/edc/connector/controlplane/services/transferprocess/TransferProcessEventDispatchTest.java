@@ -89,6 +89,8 @@ public class TransferProcessEventDispatchTest {
 
     public static final Duration TIMEOUT = Duration.ofSeconds(30);
     private static final ProtocolRemoteMessageDispatcher DSP_DISPATCHER = mock();
+    private static final DataAddressStore DATA_ADDRESS_STORE = mock();
+
     @RegisterExtension
     static final RuntimeExtension RUNTIME = new RuntimePerClassExtension()
             .setConfiguration(Map.of(
@@ -102,7 +104,7 @@ public class TransferProcessEventDispatchTest {
             .registerServiceMock(ContractNegotiationStore.class, mock())
             .registerServiceMock(ParticipantAgentService.class, mock())
             .registerServiceMock(DataFlowController.class, mock())
-            .registerServiceMock(DataAddressStore.class, mock())
+            .registerServiceMock(DataAddressStore.class, DATA_ADDRESS_STORE)
             .registerServiceMock(ProtocolWebhookResolver.class, mock())
             .registerServiceMock(ProtocolRemoteMessageDispatcher.class, DSP_DISPATCHER);
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
@@ -157,6 +159,8 @@ public class TransferProcessEventDispatchTest {
         when(negotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(agreement);
         when(agentService.createFor(eq(token), any())).thenReturn(agent);
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
+        var dataAddress = DataAddress.Builder.newInstance().type("test").build();
+        when(DATA_ADDRESS_STORE.resolve(any())).thenReturn(StoreResult.success(dataAddress));
 
         var initiateResult = service.initiateTransfer(participantContext, transferRequest);
 
@@ -166,7 +170,6 @@ public class TransferProcessEventDispatchTest {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessRequested.class)));
         });
 
-        var dataAddress = DataAddress.Builder.newInstance().type("test").build();
         var startMessage = TransferStartMessage.Builder.newInstance()
                 .processId(initiateResult.getContent().getId())
                 .protocol("any")

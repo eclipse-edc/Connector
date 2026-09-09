@@ -59,6 +59,5 @@ public class NotifyPreparedCommandHandler extends EntityCommandHandler<NotifyPre
     @Override
     public void postActions(TransferProcess entity, NotifyPreparedCommand command) {
         observable.invokeForEach(l -> l.prepared(entity));
-        observable.invokeForEach(l -> l.provisioned(entity));
     }
 }

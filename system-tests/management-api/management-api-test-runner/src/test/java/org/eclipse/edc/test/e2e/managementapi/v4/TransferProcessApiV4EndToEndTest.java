@@ -32,7 +32,6 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndTestContext;
@@ -288,9 +287,6 @@ public class TransferProcessApiV4EndToEndTest {
                     .id(id)
                     .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("http://any").events(emptySet()).build()))
                     .correlationId(UUID.randomUUID().toString())
-                    .dataDestination(DataAddress.Builder.newInstance()
-                            .type("type")
-                            .build())
                     .protocol(DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .assetId("asset-id")
                     .contractId("contractId")

@@ -57,29 +57,6 @@ class DataPlaneInstanceTest {
     }
 
     @Test
-    void verifyCanHandle_withTransferType() throws MalformedURLException {
-        var srcType1 = "srcType1";
-        var srcType2 = "srcType1";
-        var transferType1 = "customTransferType1";
-        var transferType2 = "customTransferType2";
-
-        var inst = DataPlaneInstance.Builder.newInstance()
-                .id("test-id")
-                .url(new URL("http://localhost:8234/some/path"))
-                .allowedSourceType(srcType1)
-                .allowedSourceType(srcType2)
-                .allowedTransferType(transferType1)
-                .allowedTransferType(transferType2)
-                .build();
-
-        assertThat(inst.canHandle(createAddress(srcType1), transferType1)).isTrue();
-        assertThat(inst.canHandle(createAddress(srcType1), transferType1)).isTrue();
-        assertThat(inst.canHandle(createAddress(srcType2), transferType2)).isTrue();
-        assertThat(inst.canHandle(createAddress(srcType2), transferType2)).isTrue();
-        assertThat(inst.canHandle(createAddress(srcType1), "notexist")).isFalse();
-    }
-
-    @Test
     void verifyCanProvisionDestination() throws MalformedURLException {
         var provisionType = "provisionType";
         var inst = DataPlaneInstance.Builder.newInstance()

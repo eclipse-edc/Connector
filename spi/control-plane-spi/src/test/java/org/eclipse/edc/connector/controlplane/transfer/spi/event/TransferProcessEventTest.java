@@ -64,12 +64,9 @@ class TransferProcessEventTest {
 
             var eventBuilders = Stream.of(
                     TransferProcessCompleted.Builder.newInstance(),
-                    TransferProcessDeprovisioned.Builder.newInstance(),
-                    TransferProcessDeprovisioningRequested.Builder.newInstance(),
                     TransferProcessStarted.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("type").build()),
                     TransferProcessTerminated.Builder.newInstance().reason("any reason"),
                     TransferProcessInitiated.Builder.newInstance(),
-                    TransferProcessProvisioned.Builder.newInstance(),
                     TransferProcessPrepared.Builder.newInstance(),
                     TransferProcessPreparationRequested.Builder.newInstance(),
                     TransferProcessRequested.Builder.newInstance().transferProcessId("id")

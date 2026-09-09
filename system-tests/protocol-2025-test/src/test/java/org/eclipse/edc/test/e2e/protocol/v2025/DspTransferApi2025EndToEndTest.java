@@ -26,7 +26,6 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.util.io.Ports;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -70,7 +69,6 @@ public class DspTransferApi2025EndToEndTest {
         var transfer = TransferProcess.Builder.newInstance()
                 .id(id)
                 .contractId(contractId)
-                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .state(REQUESTED.code())
                 .participantContextId("anonymous")
                 .build();

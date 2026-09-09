@@ -31,7 +31,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CONTRACT_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CORRELATION_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_DATAPLANE_METADATA;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_DATA_DESTINATION;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_ERROR_DETAIL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_STATE;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_STATE_TIMESTAMP;
@@ -69,8 +68,6 @@ public class JsonObjectFromTransferProcessTransformer extends AbstractJsonLdTran
         addIfNotNull(input.getContractId(), TRANSFER_PROCESS_CONTRACT_ID, builder);
         addIfNotNull(input.getTransferType(), TRANSFER_PROCESS_TRANSFER_TYPE, builder);
         addIfNotNull(input.getErrorDetail(), TRANSFER_PROCESS_ERROR_DETAIL, builder);
-        Optional.ofNullable(input.getDataDestination()).map(it -> context.transform(it, JsonObject.class))
-                .ifPresent(it -> builder.add(TRANSFER_PROCESS_DATA_DESTINATION, it));
         Optional.ofNullable(input.getDataplaneMetadata()).map(it -> context.transform(it, JsonObject.class))
                 .ifPresent(it -> builder.add(TRANSFER_PROCESS_DATAPLANE_METADATA, it));
 

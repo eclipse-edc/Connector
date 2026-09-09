@@ -34,7 +34,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CONTRACT_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CORRELATION_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_DATAPLANE_METADATA;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_DATA_DESTINATION;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_ERROR_DETAIL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_STATE;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_STATE_TIMESTAMP;
@@ -79,7 +78,6 @@ class JsonObjectFromTransferProcessTransformerTest {
                 .correlationId("correlationId")
                 .assetId("assetId")
                 .contractId("contractId")
-                .dataDestination(DataAddress.Builder.newInstance().type("any").properties(Map.of("bar", "foo")).build())
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("http://any").events(emptySet()).build()))
                 .errorDetail("an error")
                 .dataplaneMetadata(DataplaneMetadata.Builder.newInstance().label("label").build())
@@ -97,7 +95,6 @@ class JsonObjectFromTransferProcessTransformerTest {
         assertThat(result.getString(TRANSFER_PROCESS_CONTRACT_ID)).isEqualTo("contractId");
         assertThat(result.getString(TRANSFER_PROCESS_TYPE_TYPE)).isEqualTo(CONSUMER.toString());
         assertThat(result.getString(TRANSFER_PROCESS_TRANSFER_TYPE)).isEqualTo("transferType");
-        assertThat(result.getJsonObject(TRANSFER_PROCESS_DATA_DESTINATION)).isSameAs(dataDestinationJson);
         assertThat(result.getJsonArray(TRANSFER_PROCESS_CALLBACK_ADDRESSES).get(0)).isSameAs(callbackAddressJson);
         assertThat(result.getString(TRANSFER_PROCESS_ERROR_DETAIL)).isEqualTo("an error");
         assertThat(result.getJsonObject(TRANSFER_PROCESS_DATAPLANE_METADATA)).isSameAs(dataplaneMetadataJson);

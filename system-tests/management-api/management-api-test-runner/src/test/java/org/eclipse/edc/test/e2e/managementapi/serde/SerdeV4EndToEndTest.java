@@ -247,7 +247,6 @@ public class SerdeV4EndToEndTest extends SerdeTestBase {
         assertThat(compactResult.getString("contractId")).isEqualTo(transferProcess.getContractId());
         assertThat(compactResult.getString("type")).isEqualTo(transferProcess.getType().toString());
         assertThat(compactResult.getString("transferType")).isEqualTo(transferProcess.getTransferType());
-        assertThat(compactResult.getJsonObject("dataDestination")).isNotNull();
         assertThat(compactResult.getJsonArray("callbackAddresses")).hasSize(transferProcess.getCallbackAddresses().size());
         assertThat(compactResult.getString("errorDetail")).isEqualTo(transferProcess.getErrorDetail());
     }

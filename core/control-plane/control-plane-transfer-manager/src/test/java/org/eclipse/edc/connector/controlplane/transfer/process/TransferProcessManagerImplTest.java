@@ -23,7 +23,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -107,7 +106,6 @@ class TransferProcessManagerImplTest {
                 .counterPartyAddress("http://an/address")
                 .contractId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
-                .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
                 .participantContextId("participantContextId")
                 .protocol("protocol");
     }

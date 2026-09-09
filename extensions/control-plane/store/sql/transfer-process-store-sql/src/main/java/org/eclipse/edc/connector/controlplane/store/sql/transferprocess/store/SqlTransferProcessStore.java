@@ -26,7 +26,6 @@ import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilder;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
@@ -126,7 +125,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                         entity.getUpdatedAt(),
                         toJson(entity.getTraceContext()),
                         entity.getErrorDetail(),
-                        toJson(entity.getContentDataAddress()),
                         entity.getType().toString(),
                         toJson(entity.getPrivateProperties()),
                         toJson(entity.getCallbackAddresses()),
@@ -139,7 +137,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                         entity.getProtocol(),
                         entity.getAssetId(),
                         entity.getContractId(),
-                        toJson(entity.getDataDestination()),
                         entity.getParticipantContextId(),
                         toJson(entity.getDataplaneMetadata()),
                         entity.getDataAddressAlias(),
@@ -253,10 +250,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .correlationId(resultSet.getString(statements.getCorrelationIdColumn()))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
                 .protocol(resultSet.getString(statements.getProtocolColumn()))
-                .dataDestination(fromJson(resultSet.getString(statements.getDataDestinationColumn()), DataAddress.class))
                 .counterPartyAddress(resultSet.getString(statements.getCounterPartyAddressColumn()))
                 .contractId(resultSet.getString(statements.getContractIdColumn()))
-                .contentDataAddress(fromJson(resultSet.getString(statements.getContentDataAddressColumn()), DataAddress.class))
                 .callbackAddresses(fromJson(resultSet.getString(statements.getCallbackAddressesColumn()), new TypeReference<>() {
                 }))
                 .privateProperties(fromJson(resultSet.getString(statements.getPrivatePropertiesColumn()), getTypeRef()))

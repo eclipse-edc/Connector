@@ -43,7 +43,6 @@ import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.testfixtures.store.TestFunctions.createTransferProcess;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
@@ -113,7 +112,7 @@ public abstract class TransferProcessStoreTestBase {
             var t = createTransferProcess("id1", INITIAL);
             getTransferProcessStore().save(t);
 
-            var t2 = createTransferProcess("id1", PROVISIONING);
+            var t2 = createTransferProcess("id1", REQUESTING);
             getTransferProcessStore().save(t2);
 
             assertThat(getTransferProcessStore().findAll(QuerySpec.none())).hasSize(1).containsExactly(t2);
@@ -590,62 +589,6 @@ public abstract class TransferProcessStoreTestBase {
             var qs = QuerySpec.Builder.newInstance().limit(10).offset(12).build();
             assertThat(getTransferProcessStore().findAll(qs)).isEmpty();
 
-        }
-
-        @Test
-        void queryByDataAddressProperty() {
-            var da = TestFunctions.createDataAddressBuilder("test-type")
-                    .property("key", "value")
-                    .build();
-            var tp = TestFunctions.createTransferProcessBuilder("testprocess1")
-                    .contentDataAddress(da)
-                    .build();
-            getTransferProcessStore().save(tp);
-            getTransferProcessStore().save(createTransferProcess("testprocess2"));
-
-            var query = QuerySpec.Builder.newInstance()
-                    .filter(List.of(new Criterion("contentDataAddress.properties.key", "=", "value")))
-                    .build();
-
-            assertThat(getTransferProcessStore().findAll(query))
-                    .usingRecursiveFieldByFieldElementComparator()
-                    .containsExactly(tp);
-        }
-
-        @Test
-        void queryByDataAddress_propNotExist() {
-            var da = TestFunctions.createDataAddressBuilder("test-type")
-                    .property("key", "value")
-                    .build();
-            var tp = TestFunctions.createTransferProcessBuilder("testprocess1")
-                    .contentDataAddress(da)
-                    .build();
-            getTransferProcessStore().save(tp);
-            getTransferProcessStore().save(createTransferProcess("testprocess2"));
-
-            var query = QuerySpec.Builder.newInstance()
-                    .filter(List.of(new Criterion("contentDataAddress.properties.notexist", "=", "value")))
-                    .build();
-
-            assertThat(getTransferProcessStore().findAll(query)).isEmpty();
-        }
-
-        @Test
-        void queryByDataAddress_invalidKey_valueNotExist() {
-            var da = TestFunctions.createDataAddressBuilder("test-type")
-                    .property("key", "value")
-                    .build();
-            var tp = TestFunctions.createTransferProcessBuilder("testprocess1")
-                    .contentDataAddress(da)
-                    .build();
-            getTransferProcessStore().save(tp);
-            getTransferProcessStore().save(createTransferProcess("testprocess2"));
-
-            var query = QuerySpec.Builder.newInstance()
-                    .filter(List.of(new Criterion("contentDataAddress.properties.key", "=", "notexist")))
-                    .build();
-
-            assertThat(getTransferProcessStore().findAll(query)).isEmpty();
         }
 
         @Test

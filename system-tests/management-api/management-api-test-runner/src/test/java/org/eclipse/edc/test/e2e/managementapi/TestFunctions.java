@@ -40,7 +40,6 @@ import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.List;
@@ -490,7 +489,6 @@ public class TestFunctions {
                 .assetId("assetId")
                 .contractId("contractId")
                 .transferType("myTransferType")
-                .dataDestination(DataAddress.Builder.newInstance().type("any").properties(Map.of("bar", "foo")).build())
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("http://any").events(emptySet()).build()))
                 .privateProperties(Map.of("fooPrivate", "bar"))
                 .errorDetail("an error")

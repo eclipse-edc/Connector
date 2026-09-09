@@ -134,8 +134,6 @@ public class TransferProcessorsImpl implements TransferProcessors {
             return CompletableFuture.completedFuture(StatusResult.fatalError(message));
         }
 
-        eventuallySetContentDataAddress(process);
-
         return entityRetryProcessFactory.retryProcessor(process)
                 .doProcess(result("start data flow", (t, ignored) -> dataFlowController.start(process, policy)))
                 .doProcess(result("eventually store data address", (t, response) -> {
@@ -362,20 +360,6 @@ public class TransferProcessorsImpl implements TransferProcessors {
                 .execute();
     }
 
-    /**
-     * this is to support the legacy data plane signaling, it will be deleted when the legacy protocol will be dismissed
-     *
-     * @deprecated can be deleted as soon as the legacy data plane signaling protocol is dismissed.
-     */
-    @Deprecated(since = "0.16.0")
-    private void eventuallySetContentDataAddress(TransferProcess process) {
-        var assetId = process.getAssetId();
-        var dataAddress = addressResolver.resolveForAsset(assetId);
-        if (dataAddress != null) {
-            process.setContentDataAddress(dataAddress);
-        }
-    }
-
     private <T, M extends TransferRemoteMessage, B extends TransferRemoteMessage.Builder<M, B>> CompletableFuture<StatusResult<T>> dispatch(B messageBuilder, TransferProcess process, Class<T> responseType) {
 
         var contractPolicy = policyArchive.findPolicyForContract(process.getContractId());
@@ -432,7 +416,7 @@ public class TransferProcessorsImpl implements TransferProcessors {
         transferProcess.transitionStarted();
         update(transferProcess);
         var transferStartedData = TransferProcessStartedData.Builder.newInstance()
-                .dataAddress(transferProcess.getContentDataAddress())
+                .dataAddress(dataAddressStore.resolve(transferProcess).orElse(f -> null))
                 .build();
         observable.invokeForEach(l -> l.started(transferProcess, transferStartedData));
     }

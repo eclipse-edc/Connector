@@ -34,9 +34,6 @@ public class TransferProcessMapping extends StatefulEntityMapping {
         add("protocol", statements.getProtocolColumn());
         add("assetId", statements.getAssetIdColumn());
         add("contractId", statements.getContractIdColumn());
-        add("dataDestination", new JsonFieldTranslator(statements.getDataDestinationColumn()));
-        add("dataAddress", new JsonFieldTranslator(statements.getContentDataAddressColumn()));
-        add("contentDataAddress", new JsonFieldTranslator(statements.getContentDataAddressColumn()));
         add("privateProperties", new JsonFieldTranslator(statements.getPrivatePropertiesColumn()));
         add("pending", statements.getPendingColumn());
         add("transferType", statements.getTransferTypeColumn());

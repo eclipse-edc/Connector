@@ -19,7 +19,6 @@ import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferProcessTransformer;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -36,9 +35,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMED;
@@ -82,19 +78,12 @@ class JsonObjectFromTransferProcessTransformerTest {
 
     @Test
     void transformTransferProcessProvider() {
-        var dataAddress = DataAddress.Builder.newInstance()
-                .keyName("dataAddressId")
-                .property("type", "TestValueProperty")
-                .build();
-
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id("providerPid")
                 .callbackAddresses(new ArrayList<>())
                 .correlationId("consumerPid")
-                .dataDestination(dataAddress)
                 .state(REQUESTED.code())
                 .type(TransferProcess.Type.PROVIDER)
-                .contentDataAddress(dataAddress)
                 .build();
 
         var result = transformer.transform(transferProcess, context);
@@ -111,19 +100,12 @@ class JsonObjectFromTransferProcessTransformerTest {
 
     @Test
     void transformTransferProcessConsumer() {
-        var dataAddress = DataAddress.Builder.newInstance()
-                .keyName("dataAddressId")
-                .property("type", "TestValueProperty")
-                .build();
-
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id("consumerPid")
                 .callbackAddresses(new ArrayList<>())
                 .correlationId("providerPid")
-                .dataDestination(dataAddress)
                 .state(REQUESTED.code())
                 .type(TransferProcess.Type.CONSUMER)
-                .contentDataAddress(dataAddress)
                 .build();
 
         var result = transformer.transform(transferProcess, context);
@@ -141,17 +123,11 @@ class JsonObjectFromTransferProcessTransformerTest {
     @ParameterizedTest
     @ArgumentsSource(Status.class)
     void transform_status(TransferProcessStates inputState, String expectedDspState, String errorDetail) {
-        var dataAddress = DataAddress.Builder.newInstance()
-                .keyName("dataAddressId")
-                .property("type", "TestValueProperty")
-                .build();
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id("consumerPid")
                 .callbackAddresses(new ArrayList<>())
                 .correlationId("providerPid")
-                .dataDestination(dataAddress)
                 .state(inputState.code())
-                .contentDataAddress(dataAddress)
                 .errorDetail(errorDetail)
                 .build();
 
@@ -180,12 +156,6 @@ class JsonObjectFromTransferProcessTransformerTest {
                     arguments(COMPLETING, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM), null),
                     arguments(COMPLETING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM), null),
                     arguments(COMPLETED, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM), null),
-                    arguments(DEPROVISIONING, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM), null),
-                    arguments(DEPROVISIONING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM), null),
-                    arguments(DEPROVISIONED, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM), null),
-                    arguments(DEPROVISIONING, toIri(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM), "error`"),
-                    arguments(DEPROVISIONING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM), "error"),
-                    arguments(DEPROVISIONED, toIri(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM), "error"),
                     arguments(TERMINATING, toIri(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM), null),
                     arguments(TERMINATING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM), null),
                     arguments(TERMINATED, toIri(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM), null)
