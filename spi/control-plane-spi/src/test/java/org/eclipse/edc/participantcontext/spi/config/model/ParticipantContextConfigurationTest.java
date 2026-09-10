@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ParticipantContextConfigurationTest {
 
@@ -102,13 +103,39 @@ class ParticipantContextConfigurationTest {
 
         var merged = patch.mergeOnto(base);
 
-        assertThat(merged.getEntries()).isNotSameAs(base.getEntries()).isNotSameAs(patch.getEntries());
-        assertThat(merged.getPrivateEntries()).isNotSameAs(base.getPrivateEntries()).isNotSameAs(patch.getPrivateEntries());
+        // the entry maps are not writable through the accessors at all, so no result can be mutated into an input
+        assertThatThrownBy(() -> merged.getEntries().put("c", "3")).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> merged.getPrivateEntries().put("s3", "z")).isInstanceOf(UnsupportedOperationException.class);
 
-        // mutating the result must leave both inputs untouched
-        merged.getEntries().put("c", "3");
-        assertThat(base.getEntries()).doesNotContainKey("c");
-        assertThat(patch.getEntries()).doesNotContainKey("c");
+        assertThat(base.getEntries()).containsOnlyKeys("a");
+        assertThat(patch.getEntries()).containsOnlyKeys("b");
+    }
+
+    @Test
+    void builder_shouldCopyTheGivenMaps() {
+        var entries = new HashMap<>(Map.of("a", "1"));
+        var privateEntries = new HashMap<>(Map.of("s1", "x"));
+
+        var config = config(entries, privateEntries, 1000, 1000);
+
+        // a caller holding on to the map it passed in must not be able to reach into the configuration afterwards
+        entries.put("b", "2");
+        privateEntries.put("s2", "y");
+
+        assertThat(config.getEntries()).containsOnlyKeys("a");
+        assertThat(config.getPrivateEntries()).containsOnlyKeys("s1");
+    }
+
+    @Test
+    void toBuilder_shouldCopyTheEntryMaps() {
+        var original = config(new HashMap<>(Map.of("a", "1")), new HashMap<>(Map.of("s1", "x")), 1000, 1000);
+
+        var copy = original.toBuilder().entry("b", "2").privateEntry("s2", "y").build();
+
+        assertThat(copy.getEntries()).containsOnlyKeys("a", "b");
+        assertThat(original.getEntries()).containsOnlyKeys("a");
+        assertThat(copy.getPrivateEntries()).containsOnlyKeys("s1", "s2");
+        assertThat(original.getPrivateEntries()).containsOnlyKeys("s1");
     }
 
     private ParticipantContextConfiguration config(Map<String, String> entries, Map<String, String> privateEntries,
