@@ -34,18 +34,6 @@ public interface CriterionOperatorRegistry {
     String GREATER_THAN_EQUAL = ">=";
 
     /**
-     * Register an operator with the related operator predicate.
-     *
-     * @param operator  the operator, case-insensitive.
-     * @param predicate the operator predicate.
-     * @deprecated please use {@link #registerOperator(String, Class, OperatorPredicate)}
-     */
-    @Deprecated(since = "0.17.0")
-    default void registerOperatorPredicate(String operator, OperatorPredicate predicate) {
-        registerOperator(operator, Object.class, predicate);
-    }
-
-    /**
      * Register an operator.
      *
      * @param operator the operator, case-insensitive
@@ -62,31 +50,12 @@ public interface CriterionOperatorRegistry {
     void registerPropertyLookup(PropertyLookup propertyLookup);
 
     /**
-     * Unregister an operator.
-     *
-     * @param operator the operator, case-insensitive.
-     * @deprecated not necessary.
-     */
-    @Deprecated(since = "0.17.0")
-    void unregister(String operator);
-
-    /**
      * Convert a {@link Criterion} into a {@link Predicate}
      *
      * @param <T> The type of object which the store requires to perform its query.
      * @throws IllegalArgumentException if the criterion cannot be converted.
      */
     <T> Predicate<T> toPredicate(Criterion criterion);
-
-    /**
-     * Tell if the operator is supported.
-     *
-     * @param operator the operator, case-insensitive.
-     * @return true if the operator is supported, false otherwise.
-     * @deprecated use {@link #get(String)}
-     */
-    @Deprecated(since = "0.17.0")
-    boolean isSupported(String operator);
 
     /**
      * Returns the operator.

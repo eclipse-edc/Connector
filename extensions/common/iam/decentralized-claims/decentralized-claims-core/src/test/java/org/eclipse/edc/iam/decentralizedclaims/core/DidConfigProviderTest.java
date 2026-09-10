@@ -19,7 +19,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.DEPRECATED_ISSUER_ID_KEY;
 import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.PARTICIPANT_DID;
 import static org.eclipse.edc.iam.decentralizedclaims.core.DidConfigProvider.PARTICIPANT_ID;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,15 +63,4 @@ class DidConfigProviderTest {
         assertThat(did).isEqualTo("did:participant:value");
     }
 
-    @Test
-    void shouldFallbackToDeprecatedSetting_whenAllTheOthersAreNull() {
-        when(config.getString(any(), eq(PARTICIPANT_ID), any())).thenReturn(null);
-        when(config.getString(any(), eq(PARTICIPANT_DID), any())).thenReturn(null);
-        when(config.getString(any(), eq(DEPRECATED_ISSUER_ID_KEY), any())).thenReturn("did:participant:deprecated");
-
-        var did = provider.apply("participantContextId");
-
-        assertThat(did).isEqualTo("did:participant:deprecated");
-        verify(monitor).warning(anyString());
-    }
 }

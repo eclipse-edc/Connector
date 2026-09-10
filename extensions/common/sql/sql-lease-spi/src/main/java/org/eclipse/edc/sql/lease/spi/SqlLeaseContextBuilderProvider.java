@@ -27,12 +27,4 @@ public interface SqlLeaseContextBuilderProvider {
      */
     SqlLeaseContextBuilder createContextBuilder(String resourceKind);
 
-    /**
-     * Gets the SQL statements implementation used by this provider.
-     *
-     * @return the {@link LeaseStatements} instance
-     * @deprecated LeaseStatements can be injected as a service instead
-     */
-    @Deprecated(since = "0.17.0")
-    LeaseStatements getStatements();
 }

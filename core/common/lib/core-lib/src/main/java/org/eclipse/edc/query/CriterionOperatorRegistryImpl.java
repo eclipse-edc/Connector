@@ -66,11 +66,6 @@ public class CriterionOperatorRegistryImpl implements CriterionOperatorRegistry 
     }
 
     @Override
-    public void unregister(String operator) {
-        operators.remove(operator.toLowerCase());
-    }
-
-    @Override
     public <T> Predicate<T> toPredicate(Criterion criterion) {
         var operator = operators.get(criterion.getOperator().toLowerCase());
         if (operator == null) {
@@ -94,11 +89,6 @@ public class CriterionOperatorRegistryImpl implements CriterionOperatorRegistry 
             return operator.predicate().test(property, criterion.getOperandRight());
         };
 
-    }
-
-    @Override
-    public boolean isSupported(String operator) {
-        return operators.containsKey(operator.toLowerCase());
     }
 
     @Override

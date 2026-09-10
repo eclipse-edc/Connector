@@ -47,11 +47,10 @@ public class DynamicDcpScopeConfigurationExtension implements ServiceExtension {
     private Monitor monitor;
 
     private void addScope(DcpScopeConfig config) {
-        var prefixMapping = config.prefixMapping() != null ? config.prefixMapping() : config.prefixMappingLegacy();
         var scope = DcpScope.Builder.newInstance().id(config.id())
                 .type(DcpScope.Type.valueOf(config.type().toUpperCase()))
                 .value(config.value())
-                .prefixMapping(prefixMapping)
+                .prefixMapping(config.prefixMapping())
                 .profile(config.profile())
                 .build();
 
@@ -71,9 +70,6 @@ public class DynamicDcpScopeConfigurationExtension implements ServiceExtension {
             String type,
             @Setting(key = "value", description = "The value of the scope.")
             String value,
-            @Deprecated(since = "0.17.0")
-            @Setting(key = "prefix-mapping", description = "The prefix mapping for the left operand for applying the scope. Required if type is 'POLICY (Legacy Config)", required = false)
-            String prefixMappingLegacy,
             @Setting(key = "prefix.mapping", description = "The prefix mapping for the left operand for applying the scope. Required if type is 'POLICY", required = false)
             String prefixMapping,
             @Setting(key = "profile", description = "The profile this scope applies to. Use '*' to apply to all profiles.", defaultValue = "*")

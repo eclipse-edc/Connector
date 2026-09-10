@@ -19,7 +19,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.function.Function;
 
-import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.DEPRECATED_ISSUER_ID_KEY;
 import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.PARTICIPANT_DID;
 
 /**
@@ -47,13 +46,6 @@ public class DidConfigProvider implements Function<String, String> {
         var participantDid = config.getString(participantContextId, PARTICIPANT_DID, null);
         if (participantDid != null) {
             return participantDid;
-        }
-
-        var participantDidDeprecated = config.getString(participantContextId, DEPRECATED_ISSUER_ID_KEY, null);
-        if (participantDidDeprecated != null) {
-            monitor.warning("Setting %s has been deprecated in favor of %s (or %s if the value configured is already the participant DID), please adapt your configuration"
-                    .formatted(DEPRECATED_ISSUER_ID_KEY, PARTICIPANT_DID, PARTICIPANT_ID));
-            return participantDidDeprecated;
         }
 
         monitor.severe("Participant DID has not been configured correctly, please set it on %s or %s".formatted(PARTICIPANT_ID, PARTICIPANT_DID));

@@ -83,10 +83,6 @@ public class DcpCoreExtension implements ServiceExtension {
     @Setting(description = "DID of the participant, only needed if different from the value in edc.participant.id", required = false)
     public static final String PARTICIPANT_DID = "edc.participant.did";
 
-    @Setting(description = "DEPRECATED: DID of the participant, please refer to " + PARTICIPANT_DID)
-    @Deprecated(since = "0.17.0")
-    public static final String DEPRECATED_ISSUER_ID_KEY = "edc.iam.issuer.id";
-
     @Setting(
             key = "edc.sql.store.jti.cleanup.period",
             description = "The period of the JTI entry reaper thread in seconds",

@@ -24,7 +24,6 @@ import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.
 import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.from.JsonObjectFromNegotiationStateTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToContractOfferTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToContractRequestTransformer;
-import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToTerminateNegotiationCommandTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToTerminateNegotiationTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
@@ -38,7 +37,6 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
@@ -62,9 +60,6 @@ public class ContractNegotiationApiV5Extension implements ServiceExtension {
 
     @Inject
     private ContractNegotiationService service;
-
-    @Inject
-    private JsonObjectValidatorRegistry validatorRegistry;
 
     @Inject
     private JsonLd jsonLd;
@@ -95,7 +90,6 @@ public class ContractNegotiationApiV5Extension implements ServiceExtension {
 
         managementApiTransformerRegistry.register(new JsonObjectToContractRequestTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToContractOfferTransformer());
-        managementApiTransformerRegistry.register(new JsonObjectToTerminateNegotiationCommandTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToTerminateNegotiationTransformer());
         managementApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(factory));
         managementApiTransformerRegistry.register(new JsonObjectFromNegotiationStateTransformer(factory));
