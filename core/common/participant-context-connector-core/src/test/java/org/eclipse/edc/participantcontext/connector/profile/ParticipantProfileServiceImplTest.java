@@ -23,11 +23,13 @@ import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.HashMap;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.edc.protocol.spi.ParticipantProfileService.PROFILES_CONFIG_KEY;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -111,17 +113,33 @@ class ParticipantProfileServiceImplTest {
     }
 
     @Test
-    void associateProfiles_validProfiles_savesCsvAndReturnsSuccess() {
+    void associateProfiles_validProfiles_mergesCsvAndReturnsSuccess() {
         when(registry.getProfile("a")).thenReturn(profile("a"));
         when(registry.getProfile("b")).thenReturn(profile("b"));
-        var existing = config("p1", "old");
-        when(configStore.get("p1")).thenReturn(existing);
 
         var result = resolver.associateProfiles("p1", List.of("a", "b"));
 
         assertThat(result.succeeded()).isTrue();
-        assertThat(existing.getEntries()).containsEntry(PROFILES_CONFIG_KEY, "a,b");
-        verify(configStore).save(existing);
+        assertThat(capturePatch())
+                .satisfies(patch -> assertThat(patch.getParticipantContextId()).isEqualTo("p1"))
+                .satisfies(patch -> assertThat(patch.getEntries()).containsOnly(entry(PROFILES_CONFIG_KEY, "a,b")));
+        verify(configStore, never()).save(any());
+    }
+
+    @Test
+    void associateProfiles_shouldNotRewriteUnrelatedEntries() {
+        when(registry.getProfile("a")).thenReturn(profile("a"));
+
+        var result = resolver.associateProfiles("p1", List.of("a"));
+
+        assertThat(result.succeeded()).isTrue();
+        var patch = capturePatch();
+        // the patch must carry the profiles key alone: anything else would clobber entries written concurrently
+        assertThat(patch.getEntries()).containsOnlyKeys(PROFILES_CONFIG_KEY);
+        assertThat(patch.getPrivateEntries()).isEmpty();
+        // reading the stored configuration first would reintroduce the read-modify-write race
+        verify(configStore, never()).get(any());
+        verify(configStore, never()).save(any());
     }
 
     @Test
@@ -134,7 +152,7 @@ class ParticipantProfileServiceImplTest {
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).anyMatch(m -> m.contains("Profile unknown does not exist"));
         verify(configStore, never()).get(any());
-        verify(configStore, never()).save(any());
+        verify(configStore, never()).merge(any());
     }
 
     @Test
@@ -148,32 +166,34 @@ class ParticipantProfileServiceImplTest {
         assertThat(result.getFailureMessages())
                 .anyMatch(m -> m.contains("Profile x does not exist"))
                 .anyMatch(m -> m.contains("Profile y does not exist"));
-        verify(configStore, never()).save(any());
+        verify(configStore, never()).merge(any());
     }
 
     @Test
     void associateProfiles_emptyList_writesEmptyEntryAndReturnsSuccess() {
-        var existing = config("p1", "a,b");
-        when(configStore.get("p1")).thenReturn(existing);
-
         var result = resolver.associateProfiles("p1", List.of());
 
         assertThat(result.succeeded()).isTrue();
-        assertThat(existing.getEntries()).containsEntry(PROFILES_CONFIG_KEY, "");
-        verify(configStore).save(existing);
+        assertThat(capturePatch().getEntries()).containsOnly(entry(PROFILES_CONFIG_KEY, ""));
     }
 
     @Test
-    void associateProfiles_configNotFound_returnsFailure() {
+    void associateProfiles_configNotExisting_delegatesCreationToStore() {
         when(registry.getProfile("a")).thenReturn(profile("a"));
-        when(configStore.get("p1")).thenReturn(null);
 
         var result = resolver.associateProfiles("p1", List.of("a"));
 
         assertThat(result.failed()).isFalse();
-        verify(configStore).save(any());
+        // the store creates the configuration from the patch when none exists yet
+        verify(configStore).merge(any());
     }
 
+
+    private ParticipantContextConfiguration capturePatch() {
+        var captor = ArgumentCaptor.forClass(ParticipantContextConfiguration.class);
+        verify(configStore).merge(captor.capture());
+        return captor.getValue();
+    }
 
     private ParticipantContextConfiguration config(String participantContextId, String profiles) {
 

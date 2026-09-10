@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public abstract class ParticipantContextConfigStoreTestBase {
 
@@ -173,6 +174,23 @@ public abstract class ParticipantContextConfigStoreTestBase {
                     assertThat(cfg.getPrivateEntries()).containsExactlyInAnyOrderEntriesOf(merged.getPrivateEntries());
                     assertThat(cfg.getLastModified()).isEqualTo(merged.getLastModified());
                 });
+    }
+
+    @Test
+    protected void get_shouldReturnSnapshot_notLiveStoredState() {
+        getStore().save(config());
+
+        var retrieved = getStore().get("participant1");
+
+        // handing out the live maps is what allowed callers to mutate stored state behind the store's back and
+        // clobber concurrent merges, see ParticipantProfileServiceImpl
+        assertThatThrownBy(() -> retrieved.getEntries().put("key1", "mutated"))
+                .isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> retrieved.getPrivateEntries().put("sensitive1", "mutated"))
+                .isInstanceOf(UnsupportedOperationException.class);
+
+        assertThat(getStore().get("participant1").getEntries()).containsEntry("key1", "value1");
+        assertThat(getStore().get("participant1").getPrivateEntries()).containsEntry("sensitive1", "supersecret");
     }
 
     private ParticipantContextConfiguration patch(Map<String, String> entries, Map<String, String> privateEntries) {

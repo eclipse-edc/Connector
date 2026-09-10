@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Clock;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -48,11 +49,11 @@ public class ParticipantContextConfiguration implements ParticipantResource {
 
     @NotNull
     public Map<String, String> getEntries() {
-        return entries;
+        return Collections.unmodifiableMap(entries);
     }
 
     public Map<String, String> getPrivateEntries() {
-        return privateEntries;
+        return Collections.unmodifiableMap(privateEntries);
     }
 
     public long getCreatedAt() {
@@ -139,12 +140,13 @@ public class ParticipantContextConfiguration implements ParticipantResource {
         }
 
         public Builder entries(Map<String, String> entries) {
-            configuration.entries = entries;
+            // copy: the builder must never alias a map owned by the caller, or by the configuration toBuilder() came from
+            configuration.entries = entries == null ? null : new HashMap<>(entries);
             return this;
         }
 
         public Builder privateEntries(Map<String, String> privateEntries) {
-            configuration.privateEntries = privateEntries;
+            configuration.privateEntries = privateEntries == null ? null : new HashMap<>(privateEntries);
             return this;
         }
 

@@ -104,6 +104,22 @@ public class SingleParticipantContextConfigStoreTest extends ParticipantContextC
         super.merge_shouldReturnMergedConfiguration();
     }
 
+    // SingleParticipantContextConfigStore is read-only, so the base test cannot seed it via save()
+    @Override
+    @Disabled
+    protected void get_shouldReturnSnapshot_notLiveStoredState() {
+        super.get_shouldReturnSnapshot_notLiveStoredState();
+    }
+
+    @Test
+    void get_shouldNotExposeMutableEntries() {
+        var retrieved = getStore().get(PARTICIPANT_CONTEXT_ID);
+
+        assertThatThrownBy(() -> retrieved.getEntries().put("key", "mutated"))
+                .isInstanceOf(UnsupportedOperationException.class);
+        assertThat(getStore().get(PARTICIPANT_CONTEXT_ID).getEntries()).containsEntry("key", "value");
+    }
+
     @Test
     void get() {
         assertThat(getStore().get(PARTICIPANT_CONTEXT_ID))

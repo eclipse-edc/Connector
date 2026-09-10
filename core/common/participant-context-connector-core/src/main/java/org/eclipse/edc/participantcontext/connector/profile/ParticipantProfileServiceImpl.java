@@ -114,14 +114,14 @@ public class ParticipantProfileServiceImpl implements ParticipantProfileService 
 
         if (result.succeeded()) {
             return transactionContext.execute(() -> {
-                var storedConfig = participantContextConfigStore.get(participantContextId);
-                // automatically create config if it does not exist, otherwise update existing config
-                var config = Optional.ofNullable(storedConfig)
-                        .orElseGet(() -> ParticipantContextConfiguration.Builder.newInstance()
-                                .participantContextId(participantContextId)
-                                .build());
-                config.getEntries().put(PROFILES_CONFIG_KEY, String.join(",", profiles));
-                participantContextConfigStore.save(config);
+                // hand a single-key patch to the store: applying it has to happen atomically inside the store,
+                // otherwise a concurrent merge reading the same base would be clobbered. The store creates the
+                // configuration if none exists yet.
+                var patch = ParticipantContextConfiguration.Builder.newInstance()
+                        .participantContextId(participantContextId)
+                        .entry(PROFILES_CONFIG_KEY, String.join(",", profiles))
+                        .build();
+                participantContextConfigStore.merge(patch);
                 return ServiceResult.success();
             });
 
