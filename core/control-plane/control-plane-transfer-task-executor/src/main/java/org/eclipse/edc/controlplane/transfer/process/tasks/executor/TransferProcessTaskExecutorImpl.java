@@ -194,6 +194,7 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
         try {
             return processor.apply(transferProcess).get();
         } catch (Exception e) {
+            monitor.severe("Failed to invoke processor: %s".formatted(e.getMessage()), e);
             return StatusResult.failure(FATAL_ERROR, "Failed to invoke processor: %s".formatted(e.getMessage()));
         }
     }

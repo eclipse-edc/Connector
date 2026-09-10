@@ -91,25 +91,6 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
         return DataPlaneInstanceStates.from(state).name();
     }
 
-    /**
-     * Determines whether this instance can handle a particular source and data address, by evaluating sourceAddress and
-     * transferType against an internal list of allowed source and transfer types.
-     *
-     * @param sourceAddress the sourceAddress
-     * @param transferType  the transferType
-     * @return true if it can handle, false otherwise.
-     * @deprecated will be determined by the DataPlaneSelectorService directly
-     */
-    @Deprecated(since = "0.16.0")
-    public boolean canHandle(DataAddress sourceAddress, @Nullable String transferType) {
-        Objects.requireNonNull(transferType, "transferType cannot be null!");
-        if (sourceAddress != null) {
-            // startsWith: the allowed transferType could be HttpData-PULL-someResponseChannel, and we only need to match the HttpData-PULL
-            return allowedSourceTypes.contains(sourceAddress.getType()) && allowedTransferTypes.contains(transferType);
-        }
-        return allowedTransferTypes.contains(transferType);
-    }
-
     public URL getUrl() {
         return url;
     }

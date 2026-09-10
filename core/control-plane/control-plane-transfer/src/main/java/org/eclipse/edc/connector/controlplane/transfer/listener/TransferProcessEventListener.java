@@ -15,13 +15,10 @@
 package org.eclipse.edc.connector.controlplane.transfer.listener;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessCompleted;
-import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessDeprovisioned;
-import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessDeprovisioningRequested;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessInitiated;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessPreparationRequested;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessPrepared;
-import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessProvisioned;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessRequested;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessResumed;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
@@ -61,14 +58,6 @@ public class TransferProcessEventListener implements TransferProcessListener {
     @Override
     public void prepared(TransferProcess process) {
         var event = withBaseProperties(TransferProcessPrepared.Builder.newInstance(), process)
-                .build();
-
-        eventRouter.publish(event);
-    }
-
-    @Override
-    public void provisioned(TransferProcess process) {
-        var event = withBaseProperties(TransferProcessProvisioned.Builder.newInstance(), process)
                 .build();
 
         eventRouter.publish(event);
@@ -120,22 +109,6 @@ public class TransferProcessEventListener implements TransferProcessListener {
     @Override
     public void resumed(TransferProcess process) {
         var event = withBaseProperties(TransferProcessResumed.Builder.newInstance(), process)
-                .build();
-
-        eventRouter.publish(event);
-    }
-
-    @Override
-    public void deprovisioningRequested(TransferProcess process) {
-        var event = withBaseProperties(TransferProcessDeprovisioningRequested.Builder.newInstance(), process)
-                .build();
-
-        eventRouter.publish(event);
-    }
-
-    @Override
-    public void deprovisioned(TransferProcess process) {
-        var event = withBaseProperties(TransferProcessDeprovisioned.Builder.newInstance(), process)
                 .build();
 
         eventRouter.publish(event);

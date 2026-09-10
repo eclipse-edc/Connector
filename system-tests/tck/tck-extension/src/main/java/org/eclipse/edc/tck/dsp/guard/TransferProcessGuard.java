@@ -24,9 +24,7 @@ import java.util.function.Consumer;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING_REQUESTED;
@@ -52,16 +50,12 @@ public class TransferProcessGuard extends DelayedActionGuard<TransferProcess> im
             RESUMING_REQUESTED.code(),
             COMPLETING.code(),
             COMPLETING_REQUESTED.code(),
-            PROVISIONING.code(),
-            DEPROVISIONING.code(),
             TERMINATING.code(),
             TERMINATING_REQUESTED.code());
 
     private static final Set<Integer> CONSUMER_AUTOMATIC_STATES = Set.of(
             INITIAL.code(),
             REQUESTING.code(),
-            PROVISIONING.code(),
-            DEPROVISIONING.code(),
             STARTUP_REQUESTED.code(),
             SUSPENDING.code(),
             SUSPENDING_REQUESTED.code(),

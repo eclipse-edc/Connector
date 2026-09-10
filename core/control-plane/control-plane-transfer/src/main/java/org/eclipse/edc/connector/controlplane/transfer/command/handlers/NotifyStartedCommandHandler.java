@@ -59,6 +59,9 @@ public class NotifyStartedCommandHandler extends EntityCommandHandler<NotifyStar
 
     @Override
     public void postActions(TransferProcess entity, NotifyStartedCommand command) {
-        observable.invokeForEach(l -> l.started(entity, TransferProcessStartedData.Builder.newInstance().dataAddress(entity.getContentDataAddress()).build()));
+        observable.invokeForEach(l -> {
+            var dataAddress = dataAddressStore.resolve(entity).orElse(i -> null);
+            l.started(entity, TransferProcessStartedData.Builder.newInstance().dataAddress(dataAddress).build());
+        });
     }
 }

@@ -69,7 +69,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMED;
@@ -79,6 +78,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING_REQUESTED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
@@ -231,7 +231,6 @@ class TransferProcessProtocolServiceImplTest {
     private TransferProcess.Builder transferProcessBuilder() {
         return TransferProcess.Builder.newInstance()
                 .contractId("contractId")
-                .dataDestination(DataAddress.Builder.newInstance().type("type").build())
                 .participantContextId(participantContext.getId());
     }
 
@@ -664,7 +663,7 @@ class TransferProcessProtocolServiceImplTest {
         void shouldReturnConflict_whenTransferProcessCannotBeTerminated() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
-            var transferProcess = transferProcess(DEPROVISIONING, UUID.randomUUID().toString());
+            var transferProcess = transferProcess(COMPLETED, UUID.randomUUID().toString());
             var agreement = contractAgreement();
             var message = TransferTerminationMessage.Builder.newInstance()
                     .protocol("protocol")
@@ -789,7 +788,7 @@ class TransferProcessProtocolServiceImplTest {
         void shouldReturnConflict_whenTransferCannotBeStarted() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
-            var transferProcess = transferProcess(DEPROVISIONING, UUID.randomUUID().toString());
+            var transferProcess = transferProcess(TERMINATING, UUID.randomUUID().toString());
             var message = TransferStartMessage.Builder.newInstance()
                     .protocol("protocol")
                     .consumerPid("consumerPid")
@@ -1061,7 +1060,7 @@ class TransferProcessProtocolServiceImplTest {
         void shouldReturnConflict_whenTransferProcessCannotBeSuspended() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
-            var transferProcess = transferProcess(DEPROVISIONING, UUID.randomUUID().toString());
+            var transferProcess = transferProcess(TERMINATING, UUID.randomUUID().toString());
             var agreement = contractAgreement();
             var message = TransferSuspensionMessage.Builder.newInstance()
                     .protocol("protocol")

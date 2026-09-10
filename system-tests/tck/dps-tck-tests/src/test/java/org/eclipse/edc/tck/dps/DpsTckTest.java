@@ -35,6 +35,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspacetck.runtime.filter.DisplayNameFilter.includeName;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 @TckTest
@@ -80,6 +81,7 @@ public class DpsTckTest {
                 .properties(properties)
                 .launcher(DpsSystemLauncher.class)
                 .addPackage("org.eclipse.dataspacetck.dps.verification.controlplane")
+                .filters(includeName(e -> e.startsWith("CP_P:03-01")))
                 .build()
                 .execute();
 

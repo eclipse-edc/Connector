@@ -26,7 +26,6 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata
 import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.entity.StatefulEntity;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,8 +48,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PREPARATION_REQUESTED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMED;
@@ -91,7 +88,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     public static final String TRANSFER_PROCESS_TYPE_TYPE = EDC_NAMESPACE + "type";
     public static final String TRANSFER_PROCESS_TRANSFER_TYPE = EDC_NAMESPACE + "transferType";
     public static final String TRANSFER_PROCESS_ERROR_DETAIL = EDC_NAMESPACE + "errorDetail";
-    public static final String TRANSFER_PROCESS_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
     public static final String TRANSFER_PROCESS_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
     public static final String TRANSFER_PROCESS_DATAPLANE_METADATA = EDC_NAMESPACE + "dataplaneMetadata";
 
@@ -99,14 +95,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     private String protocol;
     private String correlationId;
     private String counterPartyAddress;
-    @Deprecated(since = "0.16.0")
-    private DataAddress dataDestination;
     private String dataAddressAlias;
     private boolean dataAddressOwner;
     private String assetId;
     private String contractId;
-    @Deprecated(since = "0.16.0")
-    private DataAddress contentDataAddress;
     private Map<String, Object> privateProperties = new HashMap<>();
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
     private ProtocolMessages protocolMessages = new ProtocolMessages();
@@ -121,16 +113,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
 
     public Type getType() {
         return type;
-    }
-
-    @Deprecated(since = "0.16.0")
-    public DataAddress getContentDataAddress() {
-        return contentDataAddress;
-    }
-
-    @Deprecated(since = "0.16.0")
-    public void setContentDataAddress(DataAddress dataAddress) {
-        contentDataAddress = dataAddress;
     }
 
     public Map<String, Object> getPrivateProperties() {
@@ -176,7 +158,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     }
 
     public void transitionPreparationRequested() {
-        transition(PREPARATION_REQUESTED, PROVISIONING, INITIAL);
+        transition(PREPARATION_REQUESTED, INITIAL);
     }
 
     public void transitionInitial() {
@@ -187,18 +169,18 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no REQUESTING state");
         }
-        transition(REQUESTING, INITIAL, PROVISIONED, PREPARATION_REQUESTED, REQUESTING);
+        transition(REQUESTING, INITIAL, PREPARATION_REQUESTED, REQUESTING);
     }
 
     public void transitionRequested() {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no REQUESTED state");
         }
-        transition(REQUESTED, PROVISIONED, REQUESTING, REQUESTED);
+        transition(REQUESTED, REQUESTING, REQUESTED);
     }
 
     public void transitionStarting() {
-        transition(STARTING, PROVISIONED, INITIAL, STARTING, SUSPENDED, STARTUP_REQUESTED);
+        transition(STARTING, INITIAL, STARTING, SUSPENDED, STARTUP_REQUESTED);
     }
 
     public boolean canBeStartedConsumer() {
@@ -233,7 +215,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     }
 
     public boolean canBeTerminated() {
-        return currentStateIsOneOf(INITIAL, PROVISIONING, PREPARATION_REQUESTED, PROVISIONED, REQUESTING, REQUESTED,
+        return currentStateIsOneOf(INITIAL, PREPARATION_REQUESTED, REQUESTING, REQUESTED,
                 STARTING, STARTUP_REQUESTED, STARTED, COMPLETING, COMPLETING_REQUESTED, SUSPENDING, SUSPENDING_REQUESTED,
                 SUSPENDED, RESUMING, RESUMING_REQUESTED, TERMINATING, TERMINATING_REQUESTED);
     }
@@ -357,19 +339,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
         this.dataAddressAlias = dataAddressAlias;
     }
 
-    @Nullable
-    @JsonIgnore
-    @Deprecated(since = "0.16.0")
-    public DataAddress getDataDestination() {
-        return dataDestination;
-    }
-
-    @JsonIgnore
-    @Deprecated(since = "0.16.0")
-    public void updateDestination(DataAddress dataAddress) {
-        this.dataDestination = dataAddress;
-    }
-
     public String getDataPlaneId() {
         return dataPlaneId;
     }
@@ -396,10 +365,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
                 .protocol(protocol)
                 .correlationId(correlationId)
                 .counterPartyAddress(counterPartyAddress)
-                .dataDestination(dataDestination)
                 .assetId(assetId)
                 .contractId(contractId)
-                .contentDataAddress(contentDataAddress)
                 .privateProperties(privateProperties)
                 .callbackAddresses(callbackAddresses)
                 .transferType(transferType)
@@ -506,11 +473,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
             return this;
         }
 
-        public Builder contentDataAddress(DataAddress dataAddress) {
-            entity.contentDataAddress = dataAddress;
-            return this;
-        }
-
         public Builder privateProperties(Map<String, Object> privateProperties) {
             entity.privateProperties = privateProperties;
             return this;
@@ -553,12 +515,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
 
         public Builder dataAddressAlias(String dataAddressAlias) {
             entity.dataAddressAlias = dataAddressAlias;
-            return this;
-        }
-
-        @Deprecated(since = "0.16.0")
-        public Builder dataDestination(DataAddress dataDestination) {
-            entity.dataDestination = dataDestination;
             return this;
         }
 

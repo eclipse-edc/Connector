@@ -224,7 +224,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                     : StoreResult.success();
 
             transferProcess.protocolMessageReceived(message.getId());
-            transferProcess.setContentDataAddress(message.getDataAddress());
             transferProcess.transitionStartupRequested();
             return dataAddressStorage
                     .compose(i -> update(transferProcess))

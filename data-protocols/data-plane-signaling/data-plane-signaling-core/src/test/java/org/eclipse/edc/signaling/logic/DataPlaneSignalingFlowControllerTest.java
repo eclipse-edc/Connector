@@ -157,7 +157,6 @@ public class DataPlaneSignalingFlowControllerTest {
             var transferProcess = transferProcessBuilder()
                     .claims(claims)
                     .transferType(HTTP_DATA_PULL)
-                    .contentDataAddress(testDataAddress())
                     .build();
             var dataPlaneInstance = dataPlaneInstanceBuilder().id("data-plane-id").build();
             when(selectorService.selectFor(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
@@ -186,7 +185,6 @@ public class DataPlaneSignalingFlowControllerTest {
         @Test
         void shouldFail_whenNoDataplaneSelected() {
             var transferProcess = transferProcessBuilder()
-                    .contentDataAddress(testDataAddress())
                     .transferType(HTTP_DATA_PULL)
                     .build();
 
@@ -201,7 +199,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void returnFailedResultIfTransferFails() {
             var errorMsg = "error";
             var transferProcess = transferProcessBuilder()
-                    .contentDataAddress(testDataAddress())
                     .transferType(HTTP_DATA_PULL)
                     .build();
 
@@ -229,7 +226,6 @@ public class DataPlaneSignalingFlowControllerTest {
             var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
             var transferProcess = transferProcessBuilder()
                     .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
                     .dataPlaneId("dataPlaneId")
                     .build();
             when(dataPlaneClient.terminate(any(), any())).thenReturn(StatusResult.success());
@@ -247,7 +243,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldFail_whenDataPlaneNotFound() {
             var transferProcess = transferProcessBuilder()
                     .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
                     .dataPlaneId("invalid")
                     .build();
             when(dataPlaneClient.terminate(any(), any())).thenReturn(StatusResult.success());
@@ -264,7 +259,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldReturnSuccess_whenDataPlaneIdIsNull() {
             var transferProcess = transferProcessBuilder()
                     .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
                     .dataPlaneId(null)
                     .build();
 
@@ -282,7 +276,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldCallStarted() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
                     .dataPlaneId("dataPlaneId")
                     .build();
             var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
@@ -290,6 +283,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(dataPlaneClient.started(any(), any())).thenReturn(StatusResult.success());
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
             when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(testDataAddress()));
             when(typeTransformerRegistry.transform(isA(DataAddress.class), any())).thenReturn(Result.success(dspDataAddress));
 
             var result = flowController.started(transferProcess);
@@ -303,7 +297,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldFail_whenDataPlaneDoesNotExist() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
                     .dataPlaneId("invalid")
                     .build();
             when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
@@ -318,7 +311,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldFail_whenDataPlaneIdIsNull() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
                     .dataPlaneId(null)
                     .build();
 
@@ -337,7 +329,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldCallComplete() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
                     .dataPlaneId("dataPlaneId")
                     .build();
             when(dataPlaneClient.completed(any())).thenReturn(StatusResult.success());
@@ -356,7 +347,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldFail_whenDataPlaneDoesNotExist() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
                     .dataPlaneId("invalid")
                     .build();
             when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
@@ -371,7 +361,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldFail_whenDataPlaneIdIsNull() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
                     .dataPlaneId(null)
                     .build();
 
@@ -390,7 +379,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldCallSuspend() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
                     .dataPlaneId("dataPlaneId")
                     .build();
             when(dataPlaneClient.suspend(any(), any())).thenReturn(StatusResult.success());
@@ -409,7 +397,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldFail_whenDataPlaneDoesNotExist() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
                     .dataPlaneId("invalid")
                     .build();
             when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
@@ -424,7 +411,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldFail_whenDataPlaneIdIsNull() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
                     .dataPlaneId(null)
                     .build();
 
@@ -443,7 +429,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldCallResumeWithoutDataAddress_whenTransferDoesntOwnDataAddress() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
                     .dataPlaneId("dataPlaneId")
                     .dataAddressOwner(false)
                     .build();
@@ -490,7 +475,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldFail_whenDataPlaneDoesNotExist() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
                     .dataPlaneId("invalid")
                     .build();
             when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
@@ -505,7 +489,6 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldFail_whenDataPlaneIdIsNull() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
                     .dataPlaneId(null)
                     .build();
 

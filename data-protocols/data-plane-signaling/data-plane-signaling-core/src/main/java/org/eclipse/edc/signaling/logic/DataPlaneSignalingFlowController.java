@@ -232,7 +232,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .compose(client -> {
                     var builder = DataFlowStartedNotificationMessage.Builder.newInstance()
                             .messageId(UUID.randomUUID().toString());
-                    var dataAddress = transferProcess.getContentDataAddress();
+                    var dataAddress = dataAddressStore.resolve(transferProcess).orElse(f -> null);
                     if (dataAddress != null) {
                         var dspDataAddressTransformation = typeTransformerRegistry.transform(dataAddress, DspDataAddress.class);
                         if (dspDataAddressTransformation.failed()) {

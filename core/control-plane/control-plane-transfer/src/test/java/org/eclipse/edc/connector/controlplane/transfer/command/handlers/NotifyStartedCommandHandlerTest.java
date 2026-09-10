@@ -91,9 +91,10 @@ class NotifyStartedCommandHandlerTest {
     void postAction_shouldCallStarted() {
         var dataAddress = DataAddress.Builder.newInstance().type("test").build();
         var command = new NotifyStartedCommand("test-id", null);
-        var entity = TransferProcess.Builder.newInstance().state(STARTING.code()).contentDataAddress(dataAddress).build();
+        var entity = TransferProcess.Builder.newInstance().state(STARTING.code()).build();
         var listener = mock(TransferProcessListener.class);
         observable.registerListener(listener);
+        when(dataAddressStore.resolve(entity)).thenReturn(StoreResult.success(dataAddress));
 
         handler.postActions(entity, command);
 

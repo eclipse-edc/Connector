@@ -34,7 +34,6 @@ import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jspecify.annotations.NonNull;
@@ -155,7 +154,6 @@ class TransferProcessServiceImplTest {
         return TransferProcess.Builder.newInstance()
                 .state(state.code())
                 .id(id)
-                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
     }
 

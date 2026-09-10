@@ -23,11 +23,7 @@ import java.util.List;
  */
 public enum TransferProcessStates {
     INITIAL(100),
-    @Deprecated(since = "0.16.0")
-    PROVISIONING(200),
     PREPARATION_REQUESTED(250),
-    @Deprecated(since = "0.16.0")
-    PROVISIONED(300),
     REQUESTING(400),
     REQUESTED(500),
     STARTING(550),
@@ -44,16 +40,10 @@ public enum TransferProcessStates {
     COMPLETED(800),
     TERMINATING(825),
     TERMINATING_REQUESTED(840),
-    TERMINATED(850),
-    @Deprecated(since = "0.16.0")
-    DEPROVISIONING(900),
-    @Deprecated(since = "0.16.0")
-    DEPROVISIONING_REQUESTED(950),
-    @Deprecated(since = "0.16.0")
-    DEPROVISIONED(1000);
+    TERMINATED(850);
 
     private final int code;
-    private static final List<Integer> FINAL_STATES = List.of(COMPLETED.code(), TERMINATED.code(), DEPROVISIONED.code());
+    private static final List<Integer> FINAL_STATES = List.of(COMPLETED.code(), TERMINATED.code());
 
     TransferProcessStates(int code) {
         this.code = code;

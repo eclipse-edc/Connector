@@ -29,7 +29,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,7 +76,6 @@ class InitiateTransferCommandHandlerTest {
         when(store.save(any())).thenReturn(StoreResult.success());
         var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
         var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
-        var dataAddress = DataAddress.Builder.newInstance().type("test").build();
         var transferRequest = TransferRequest.Builder.newInstance()
                 .callbackAddresses(List.of(callback))
                 .dataplaneMetadata(dataplaneMetadata)
@@ -98,7 +96,6 @@ class InitiateTransferCommandHandlerTest {
         assertThat(transferProcess.getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
         assertThat(transferProcess.getAssetId()).isEqualTo("assetId");
         assertThat(transferProcess.getDataplaneMetadata()).isSameAs(dataplaneMetadata);
-        assertThat(transferProcess.getDataDestination()).isNull();
         assertThat(transferProcess.getClaims()).hasSize(1).containsExactly(entry("key", "value"));
         verify(listener).initiated(any());
     }

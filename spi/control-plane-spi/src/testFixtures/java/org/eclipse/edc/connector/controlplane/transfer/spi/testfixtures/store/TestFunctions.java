@@ -47,7 +47,6 @@ public class TestFunctions {
                 .createdAt(Clock.systemUTC().millis())
                 .state(TransferProcessStates.INITIAL.code())
                 .type(TransferProcess.Type.CONSUMER)
-                .contentDataAddress(createDataAddressBuilder("any").build())
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build()))
                 .participantContextId("participantContextId");
     }

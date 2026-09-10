@@ -98,6 +98,7 @@ class TransferProcessorsImplTest {
     void setUp() {
         when(store.save(any())).thenReturn(StoreResult.success());
         when(dataAddressStore.remove(any())).thenReturn(StoreResult.success());
+        when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("not found"));
         when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().assignee("consumerId").assigner("providerId").build());
         when(policyArchive.getAgreementIdForContract(any())).thenReturn("agreementId");
         when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://protocol.webhook/url");
@@ -670,7 +671,6 @@ class TransferProcessorsImplTest {
                 .counterPartyAddress("http://counter.party/address")
                 .contractId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
-                .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
                 .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .protocol("protocol");
     }

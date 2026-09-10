@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.transfer.spi.types;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -31,7 +30,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
 import static org.junit.jupiter.params.provider.EnumSource.Mode.INCLUDE;
@@ -61,7 +59,6 @@ class TransferProcessTest {
                 .createdAt(3)
                 .updatedAt(1234)
                 .state(TransferProcessStates.COMPLETED.code())
-                .contentDataAddress(DataAddress.Builder.newInstance().type("test").build())
                 .stateCount(1)
                 .stateTimestamp(1)
                 .privateProperties(Map.of("k", "v"))
@@ -79,7 +76,6 @@ class TransferProcessTest {
         assertEquals(process.getPrivateProperties(), copy.getPrivateProperties());
         assertEquals(process.getDataPlaneId(), copy.getDataPlaneId());
         assertEquals(process.getTransferType(), copy.getTransferType());
-        assertNotNull(process.getContentDataAddress());
 
         assertThat(process).usingRecursiveComparison().isEqualTo(copy);
     }
@@ -136,7 +132,7 @@ class TransferProcessTest {
     @EnumSource(
             value = TransferProcessStates.class,
             mode = EXCLUDE,
-            names = {"COMPLETED", "TERMINATED", "DEPROVISIONING", "DEPROVISIONING_REQUESTED", "DEPROVISIONED", "RESUMED"}
+            names = {"COMPLETED", "TERMINATED", "RESUMED"}
     )
     void verifyTerminating_validStates(TransferProcessStates state) {
         var transferProcess = TransferProcess.Builder.newInstance()

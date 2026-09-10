@@ -99,7 +99,6 @@ class NotifyPreparedCommandHandlerTest {
         handler.postActions(entity, command);
 
         verify(listener).prepared(entity);
-        verify(listener).provisioned(entity);
     }
 
     @Test

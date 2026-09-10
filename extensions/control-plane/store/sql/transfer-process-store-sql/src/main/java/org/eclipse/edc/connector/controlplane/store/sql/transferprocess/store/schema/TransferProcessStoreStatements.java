@@ -45,10 +45,6 @@ public interface TransferProcessStoreStatements extends StatefulEntityStatements
         return "type";
     }
 
-    default String getContentDataAddressColumn() {
-        return "content_data_address";
-    }
-
     default String getAssetIdColumn() {
         return "asset_id";
     }

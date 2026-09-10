@@ -33,7 +33,6 @@ import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.Runtimes;
@@ -678,9 +677,6 @@ public class TransferProcessApiV5EndToEndTest {
                     .id(id)
                     .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("http://any").events(emptySet()).build()))
                     .correlationId(UUID.randomUUID().toString())
-                    .dataDestination(DataAddress.Builder.newInstance()
-                            .type("type")
-                            .build())
                     .protocol("dataspace-protocol-http")
                     .assetId("asset-id")
                     .contractId("contractId")

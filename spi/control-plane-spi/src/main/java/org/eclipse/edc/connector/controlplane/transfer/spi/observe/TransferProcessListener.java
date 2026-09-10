@@ -46,17 +46,6 @@ public interface TransferProcessListener {
     }
 
     /**
-     * Called after a {@link TransferProcess} was provisioned.
-     *
-     * @param process the transfer process that has been provisioned.
-     * @deprecated TP doesn't manage provisioning anymore.
-     */
-    @Deprecated(since = "0.16.0")
-    default void provisioned(TransferProcess process) {
-
-    }
-
-    /**
      * Called after a {@link TransferProcess} was prepared.
      *
      * @param process the transfer process that has been prepared.
@@ -198,24 +187,6 @@ public interface TransferProcessListener {
      * @param process the transfer process that has been resumed.
      */
     default void resumed(TransferProcess process) {
-
-    }
-
-    /**
-     * Called after an asynchronous deprovisioning for a {@link TransferProcess} was requested.
-     *
-     * @param process the transfer process that has been requested for deprovisioning.
-     */
-    default void deprovisioningRequested(TransferProcess process) {
-
-    }
-
-    /**
-     * Called after a {@link TransferProcess} was deprovisioned.
-     *
-     * @param process the transfer process that has been deprovisioned.
-     */
-    default void deprovisioned(TransferProcess process) {
 
     }
 
