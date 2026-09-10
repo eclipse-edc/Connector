@@ -128,11 +128,9 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
 
         var registry = registryResult.getContent();
         var inputTransformation = registry.transform(request.getMessage(), request.getInputClass())
-                .compose(message -> {
-                    if (message instanceof ProtocolRemoteMessage protocolRemoteMessage) {
-                        protocolRemoteMessage.setProtocol(request.getProtocol());
-                    }
-                    return Result.success(message);
+                .map(message -> {
+                    message.setProtocol(request.getProtocol());
+                    return message;
                 });
 
         if (inputTransformation.failed()) {
