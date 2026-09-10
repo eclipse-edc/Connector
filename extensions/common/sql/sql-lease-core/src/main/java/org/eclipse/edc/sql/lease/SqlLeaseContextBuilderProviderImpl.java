@@ -31,8 +31,4 @@ public record SqlLeaseContextBuilderProviderImpl(TransactionContext transactionC
         return SqlLeaseContextBuilderImpl.with(transactionContext, leaseHolder, resourceKind, leaseStatements, clock, queryExecutor);
     }
 
-    @Override
-    public LeaseStatements getStatements() {
-        return leaseStatements;
-    }
 }

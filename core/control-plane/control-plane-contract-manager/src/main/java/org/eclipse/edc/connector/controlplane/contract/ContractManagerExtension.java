@@ -26,7 +26,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -70,9 +69,6 @@ public class ContractManagerExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        checkConfigurationGroup(context, "edc.negotiation.provider");
-        checkConfigurationGroup(context, "edc.negotiation.consumer");
-
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class)
                 ? context.getService(NegotiationWaitStrategy.class)
                 : stateMachineConfiguration.iterationWaitExponentialWaitStrategy();
@@ -121,15 +117,6 @@ public class ContractManagerExtension implements ServiceExtension {
 
         if (providerNegotiationManager != null) {
             providerNegotiationManager.stop();
-        }
-    }
-
-    @Deprecated(since = "0.17.0")
-    private void checkConfigurationGroup(ServiceExtensionContext context, String configurationGroup) {
-        if (!context.getConfig(configurationGroup).getEntries().isEmpty()) {
-            var message = "The configuration group '" + configurationGroup + "' needs to be migrated into 'edc.negotiation'";
-            monitor.severe(message);
-            throw new EdcException(message);
         }
     }
 

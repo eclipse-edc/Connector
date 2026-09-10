@@ -19,8 +19,6 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.StatefulEntity;
-import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -126,11 +124,6 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
     @Override
     public String getParticipantContextId() {
         return participantContextId;
-    }
-
-    @Deprecated(since = "0.17.0")
-    public boolean canProvisionDestination(@Nullable DataAddress destination) {
-        return destination != null && destinationProvisionTypes.contains(destination.getType());
     }
 
     public void transitionToRegistered() {

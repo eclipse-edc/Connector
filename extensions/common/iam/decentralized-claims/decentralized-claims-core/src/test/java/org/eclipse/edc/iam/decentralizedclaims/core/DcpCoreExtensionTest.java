@@ -47,7 +47,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.DCP_SELF_ISSUED_TOKEN_CONTEXT;
-import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.DEPRECATED_ISSUER_ID_KEY;
+import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.PARTICIPANT_DID;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -124,7 +124,7 @@ class DcpCoreExtensionTest {
     @Test
     void assertReaperThreadRunning(TestExtensionContext context, ObjectFactory objectFactory) {
         var config = ConfigFactory.fromMap(Map.of(
-                DEPRECATED_ISSUER_ID_KEY, "did:web:test",
+                PARTICIPANT_DID, "did:web:test",
                 CLEANUP_PERIOD, "1"
         ));
         context.setConfig(config);

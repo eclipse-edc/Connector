@@ -79,9 +79,6 @@ public class PolicyMonitorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-
-        failWhenSettingsAreNotUpdated(context);
-
         policyEngine.registerScope(POLICY_MONITOR_SCOPE, PolicyMonitorContext.class);
         ruleBindingRegistry.bind(ODRL_USE_ACTION_ATTRIBUTE, POLICY_MONITOR_SCOPE);
         ruleBindingRegistry.bind(CONTRACT_EXPIRY_EVALUATION_KEY, POLICY_MONITOR_SCOPE);
@@ -106,20 +103,6 @@ public class PolicyMonitorExtension implements ServiceExtension {
     public void shutdown() {
         if (manager != null) {
             manager.stop();
-        }
-    }
-
-    @Deprecated(since = "0.17.0")
-    private void failWhenSettingsAreNotUpdated(ServiceExtensionContext context) {
-        if (!context.getConfig("edc.policy.monitor.state-machine").getEntries().isEmpty()) {
-            var message = """
-                    Policy Monitor model has been changed from a state machine to a watchdog, please
-                    review the configuration accordingly: 'edc.policy.manager.batch-size' to set up the batch size,
-                    'edc.policy.manager.period' to set up the period in ISO-8061 Duration format. The
-                    'edc.policy.manager.state-machine' settings must be deleted.
-                    """;
-            context.getMonitor().severe(message);
-            throw new RuntimeException(message);
         }
     }
 

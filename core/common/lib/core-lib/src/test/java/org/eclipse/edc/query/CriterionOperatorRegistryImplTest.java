@@ -31,46 +31,6 @@ class CriterionOperatorRegistryImplTest {
 
     private final CriterionOperatorRegistryImpl registry = new CriterionOperatorRegistryImpl();
 
-    @Deprecated(since = "0.17.0")
-    @Nested
-    class IsSupported {
-        @Test
-        void shouldReturnFalse_whenOperatorIsNotRegistered() {
-            var result = registry.isSupported("any");
-
-            assertThat(result).isFalse();
-        }
-
-        @Test
-        void shouldReturnTrue_whenOperatorIsRegistered() {
-            registry.registerOperator("operator", Object.class, mock());
-
-            var result = registry.isSupported("operator");
-
-            assertThat(result).isTrue();
-        }
-
-        @Test
-        void shouldReturnTrue_whenOperatorIsRegisteredWithDifferentCase() {
-            registry.registerOperator("OpERaTOr", Object.class, mock());
-
-            var result = registry.isSupported("OPERATOR");
-
-            assertThat(result).isTrue();
-        }
-
-        @Test
-        void shouldReturnFalse_whenOperatorHasBeenUnregistered() {
-            registry.registerOperator("operator", Object.class, mock());
-            registry.unregister("OPERATOR");
-
-            var result = registry.isSupported("OPERATOR");
-
-            assertThat(result).isFalse();
-        }
-
-    }
-
     @Nested
     class Convert {
         @Test

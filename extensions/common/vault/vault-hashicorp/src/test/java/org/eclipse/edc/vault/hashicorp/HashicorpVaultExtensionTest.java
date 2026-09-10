@@ -25,8 +25,6 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -46,8 +44,6 @@ class HashicorpVaultExtensionTest {
     private static final String TOKEN = "some-token";
     private static final String VAULT_URL = "edc.vault.hashicorp.url";
     private static final String VAULT_TOKEN = "edc.vault.hashicorp.token";
-    @Deprecated(since = "0.17.0")
-    private static final String VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_LEGACY = "edc.vault.hashicorp.token.scheduled-renew-enabled";
     private static final String VAULT_TOKEN_SCHEDULED_RENEW_ENABLED = "edc.vault.hashicorp.token.scheduledrenew.enabled";
     private final ExecutorInstrumentation executorInstrumentation = mock();
     private final ScheduledExecutorService scheduledExecutorService = mock();
@@ -83,14 +79,13 @@ class HashicorpVaultExtensionTest {
         verify(scheduledExecutorService).execute(any());
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_LEGACY, VAULT_TOKEN_SCHEDULED_RENEW_ENABLED})
-    void start_withTokenRenewDisabled_shouldNotStartTokenRenewTask(String renewalKey, ServiceExtensionContext context, ObjectFactory factory) {
+    @Test
+    void start_withTokenRenewDisabled_shouldNotStartTokenRenewTask(ServiceExtensionContext context, ObjectFactory factory) {
 
         var config = ConfigFactory.fromMap(Map.of(
                 VAULT_URL, URL,
                 VAULT_TOKEN, TOKEN,
-                renewalKey, "false"
+                VAULT_TOKEN_SCHEDULED_RENEW_ENABLED, "false"
         ));
         when(context.getConfig()).thenReturn(config);
         var ext = factory.constructInstance(HashicorpVaultExtension.class);

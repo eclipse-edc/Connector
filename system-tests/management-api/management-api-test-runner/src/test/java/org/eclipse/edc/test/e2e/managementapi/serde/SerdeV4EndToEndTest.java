@@ -22,7 +22,6 @@ import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation;
@@ -508,15 +507,6 @@ public class SerdeV4EndToEndTest extends SerdeTestBase {
         var request = validateWithResult(validatorRegistry, inputObject);
 
         assertThat(request).isFailed();
-    }
-
-    @Test
-    void de_TerminateNegotiation(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
-        var inputObject = terminateNegotiationObject(jsonLdContext());
-        var terminateNegotiation = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, TerminateNegotiationCommand.class);
-
-        assertThat(terminateNegotiation).isNotNull();
-        assertThat(terminateNegotiation.getReason()).isEqualTo(inputObject.getString("reason"));
     }
 
     @Test
