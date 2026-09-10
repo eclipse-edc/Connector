@@ -18,10 +18,9 @@ import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
- * An interface for resolving the aud claim from a {@link RemoteMessage}. The resolver is used on protocol layer
+ * An interface for resolving the aud claim from a {@link ProtocolRemoteMessage}. The resolver is used on protocol layer
  * before calling the {@link IdentityService} for obtaining the token. Implementors of {@link IdentityService} might
  * use different value for the aud claim, and they should provide a default resolution strategy which specific use case
  * can override.

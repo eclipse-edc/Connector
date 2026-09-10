@@ -17,14 +17,14 @@ package org.eclipse.edc.iam.decentralizedclaims.core.scope;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScope;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScopeRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractor;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Operator;
-import org.eclipse.edc.spi.iam.RequestContext;
+import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -71,7 +71,7 @@ class DynamicScopeExtractorTest {
 
     @ParameterizedTest
     @ArgumentsSource(MessageTypeProvider.class)
-    void extractScopes(RemoteMessage msg) {
+    void extractScopes(ProtocolRemoteMessage msg) {
         // scopes: wildcard (should match), matching profile (should match), non-matching profile (excluded), wrong prefix (excluded)
         var wildcard = DcpScope.Builder.newInstance()
                 .id("w")
@@ -142,7 +142,7 @@ class DynamicScopeExtractorTest {
     @Test
     void extractScopes_empty_withWrongMessage() {
 
-        var msg = mock(RemoteMessage.class);
+        var msg = mock(ProtocolRemoteMessage.class);
         var ctx = RequestContext.Builder.newInstance()
                 .direction(RequestContext.Direction.Egress)
                 .message(msg)

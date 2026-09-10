@@ -12,27 +12,27 @@
  *
  */
 
-package org.eclipse.edc.spi.iam;
+package org.eclipse.edc.protocol.spi;
 
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 
 /**
  * Provides additional context for scope extractors.
  */
 public class RequestContext {
 
-    private RemoteMessage message;
+    private ProtocolRemoteMessage message;
     private Direction direction;
 
     private RequestContext() {
     }
 
     /**
-     * Return the {@link RemoteMessage} associated to the request
+     * Return the {@link ProtocolRemoteMessage} associated to the request
      *
      * @return The message
      */
-    public RemoteMessage getMessage() {
+    public ProtocolRemoteMessage getMessage() {
         return message;
     }
 
@@ -61,7 +61,7 @@ public class RequestContext {
             return new Builder();
         }
 
-        public Builder message(RemoteMessage message) {
+        public Builder message(ProtocolRemoteMessage message) {
             context.message = message;
             return this;
         }

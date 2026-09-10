@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
@@ -27,7 +28,6 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,7 +61,7 @@ class JsonLdRemoteMessageSerializerImplTest {
 
     private final TypeManager typeManager = mock();
     private final ObjectMapper mapper = mock();
-    private final RemoteMessage message = mock();
+    private final ProtocolRemoteMessage message = mock();
     private JsonLdRemoteMessageSerializerImpl serializer;
 
     @BeforeEach

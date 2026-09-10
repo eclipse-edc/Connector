@@ -36,6 +36,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
@@ -44,7 +45,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -301,7 +301,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         return ServiceResult.success(new TransferMessageContext(agreement, transferProcess));
     }
 
-    private ServiceResult<ClaimTokenContext> verifyRequest(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, RemoteMessage message, ContractAgreement contractAgreement) {
+    private ServiceResult<ClaimTokenContext> verifyRequest(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, ProtocolRemoteMessage message, ContractAgreement contractAgreement) {
         var result = protocolTokenValidator.verify(participantContext, tokenRepresentation, RequestTransferProcessPolicyContext::new, contractAgreement.getPolicy(), message);
         if (result.failed()) {
             monitor.debug(() -> "Verification Failed: %s".formatted(result.getFailureDetail()));

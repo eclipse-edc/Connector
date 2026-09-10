@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.services.spi.protocol;
 
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 
 /**
  * Creates an HTTP request for the DSP HTTP Bindings given the message instance
@@ -23,7 +23,7 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
  * @param <R> the request type.
  */
 @FunctionalInterface
-public interface RequestFactory<M extends RemoteMessage, R> {
+public interface RequestFactory<M extends ProtocolRemoteMessage, R> {
 
     /**
      * Create the request given the message and a {@link RequestPathProvider}

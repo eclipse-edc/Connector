@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.services.spi.protocol;
 
 
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 
 /**
  * Provide http request path given the outgoing message.
@@ -23,7 +23,7 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
  * @param <M> the message type
  */
 @FunctionalInterface
-public interface RequestPathProvider<M extends RemoteMessage> {
+public interface RequestPathProvider<M extends ProtocolRemoteMessage> {
     /**
      * Return the path
      *

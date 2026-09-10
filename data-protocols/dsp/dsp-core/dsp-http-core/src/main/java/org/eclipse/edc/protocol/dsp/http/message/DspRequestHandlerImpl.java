@@ -32,7 +32,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,7 +54,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     }
 
     @Override
-    public <I extends RemoteMessage, R, E extends ErrorMessage> Response getResource(GetDspRequest<I, R, E> request) {
+    public <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response getResource(GetDspRequest<I, R, E> request) {
         monitor.debug(() -> "DSP: Incoming resource request for %s id %s".formatted(request.getResultClass(), request.getId()));
 
         var token = request.getToken();
@@ -97,7 +96,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     }
 
     @Override
-    public <I extends RemoteMessage, R, E extends ErrorMessage> Response createResource(PostDspRequest<I, R, E> request, ResponseDecorator<I, R> responseDecorator) {
+    public <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response createResource(PostDspRequest<I, R, E> request, ResponseDecorator<I, R> responseDecorator) {
         monitor.debug(() -> "DSP: Incoming %s for %s process%s".formatted(
                 request.getInputClass().getSimpleName(),
                 request.getResultClass(),
@@ -167,7 +166,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     }
 
     @Override
-    public <I extends RemoteMessage, R, E extends ErrorMessage> Response updateResource(PostDspRequest<I, R, E> request) {
+    public <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response updateResource(PostDspRequest<I, R, E> request) {
         monitor.debug(() -> "DSP: Incoming %s for %s process%s".formatted(
                 request.getInputClass().getSimpleName(),
                 request.getResultClass(),
@@ -231,11 +230,11 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
                 });
     }
 
-    private <I extends RemoteMessage, R, E extends ErrorMessage> Response forFailure(ServiceFailure failure, PostDspRequest<I, R, E> request) {
+    private <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response forFailure(ServiceFailure failure, PostDspRequest<I, R, E> request) {
         return forFailure(failure, request.getProtocol(), request.getErrorProvider().get().processId(request.getProcessId()));
     }
 
-    private <I extends RemoteMessage, R, E extends ErrorMessage> Response forFailure(ServiceFailure failure, GetDspRequest<I, R, E> request) {
+    private <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response forFailure(ServiceFailure failure, GetDspRequest<I, R, E> request) {
         return forFailure(failure, request.getProtocol(), request.getErrorProvider().get().processId(request.getId()));
     }
 
@@ -244,35 +243,35 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
         return forStatus(code, protocol, failure.getMessages(), builder);
     }
 
-    private <I extends RemoteMessage, R, E extends ErrorMessage> Response unauthorized(GetDspRequest<I, R, E> request) {
+    private <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response unauthorized(GetDspRequest<I, R, E> request) {
         return forStatus(Response.Status.UNAUTHORIZED, List.of(UNAUTHORIZED), request);
     }
 
-    private <I extends RemoteMessage, R, E extends ErrorMessage> Response unauthorized(PostDspRequest<I, R, E> request) {
+    private <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response unauthorized(PostDspRequest<I, R, E> request) {
         return forStatus(Response.Status.UNAUTHORIZED, List.of(UNAUTHORIZED), request);
     }
 
-    private <I extends RemoteMessage, R, E extends ErrorMessage> Response badRequest(GetDspRequest<I, R, E> request) {
+    private <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response badRequest(GetDspRequest<I, R, E> request) {
         return forStatus(Response.Status.BAD_REQUEST, List.of(BAD_REQUEST), request);
     }
 
-    private <I extends RemoteMessage, R, E extends ErrorMessage> Response badRequest(PostDspRequest<I, R, E> request) {
+    private <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response badRequest(PostDspRequest<I, R, E> request) {
         return forStatus(Response.Status.BAD_REQUEST, List.of(BAD_REQUEST), request);
     }
 
-    private <I extends RemoteMessage, R, E extends ErrorMessage> Response internalServerError(GetDspRequest<I, R, E> request, String errorCode) {
+    private <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response internalServerError(GetDspRequest<I, R, E> request, String errorCode) {
         return forStatus(Response.Status.INTERNAL_SERVER_ERROR, List.of(INTERNAL_ERROR.formatted(errorCode)), request);
     }
 
-    private <I extends RemoteMessage, R, E extends ErrorMessage> Response internalServerError(PostDspRequest<I, R, E> request, String errorCode) {
+    private <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response internalServerError(PostDspRequest<I, R, E> request, String errorCode) {
         return forStatus(Response.Status.INTERNAL_SERVER_ERROR, List.of(INTERNAL_ERROR.formatted(errorCode)), request);
     }
 
-    private <I extends RemoteMessage, R, E extends ErrorMessage> Response forStatus(Response.Status status, List<String> messages, PostDspRequest<I, R, E> request) {
+    private <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response forStatus(Response.Status status, List<String> messages, PostDspRequest<I, R, E> request) {
         return forStatus(status, request.getProtocol(), messages, request.getErrorProvider().get().processId(request.getProcessId()));
     }
 
-    private <I extends RemoteMessage, R, E extends ErrorMessage> Response forStatus(Response.Status status, List<String> messages, GetDspRequest<I, R, E> request) {
+    private <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response forStatus(Response.Status status, List<String> messages, GetDspRequest<I, R, E> request) {
         return forStatus(status, request.getProtocol(), messages, request.getErrorProvider().get().processId(request.getId()));
     }
 

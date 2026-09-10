@@ -16,6 +16,7 @@
 package org.eclipse.edc.connector.controlplane.services.protocol;
 
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -23,14 +24,13 @@ import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.iam.RequestContext;
 import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
  * Implementation of {@link ProtocolTokenValidator} which uses the {@link PolicyEngine} for extracting
@@ -55,7 +55,7 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
     }
 
     @Override
-    public ServiceResult<ParticipantAgent> verify(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, RemoteMessage message) {
+    public ServiceResult<ParticipantAgent> verify(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, ProtocolRemoteMessage message) {
         var requestScopeBuilder = RequestScope.Builder.newInstance();
         var requestContext = RequestContext.Builder.newInstance().message(message).direction(RequestContext.Direction.Ingress).build();
         var policyContext = policyContextProvider.instantiate(requestContext, requestScopeBuilder);

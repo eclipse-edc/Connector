@@ -17,12 +17,12 @@ package org.eclipse.edc.iam.decentralizedclaims.core.scope;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScope;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScopeRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractor;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Operator;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * Extracts scopes dynamically from the DCP scope registry based on the request context.
  */
 public class DynamicScopeExtractor implements ScopeExtractor {
-    private static final Set<Class<? extends RemoteMessage>> SUPPORTED_MESSAGES = Set.of(CatalogRequestMessage.class, ContractRequestMessage.class, TransferRequestMessage.class);
+    private static final Set<Class<? extends ProtocolRemoteMessage>> SUPPORTED_MESSAGES = Set.of(CatalogRequestMessage.class, ContractRequestMessage.class, TransferRequestMessage.class);
     private final DcpScopeRegistry registry;
 
     public DynamicScopeExtractor(DcpScopeRegistry registry) {

@@ -16,13 +16,13 @@ package org.eclipse.edc.protocol.dsp.http.serialization;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import static java.lang.String.format;
@@ -30,7 +30,7 @@ import static java.lang.String.join;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_CONTEXT_SEPARATOR;
 
 /**
- * Serializes {@link RemoteMessage}s to JSON-LD.
+ * Serializes {@link ProtocolRemoteMessage}s to JSON-LD.
  */
 public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSerializer {
 
@@ -52,7 +52,7 @@ public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSer
     }
 
     /**
-     * Serializes a {@link RemoteMessage} to JSON-LD. The message is first transformed using the
+     * Serializes a {@link ProtocolRemoteMessage} to JSON-LD. The message is first transformed using the
      * {@link TypeTransformerRegistry}, then the resulting JSON-LD structure is compacted using
      * the given JSON-LD context before returning it as a string.
      *
@@ -60,7 +60,7 @@ public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSer
      * @return the serialized message
      */
     @Override
-    public String serialize(RemoteMessage message) {
+    public String serialize(ProtocolRemoteMessage message) {
         try {
             var transformerRegistryResult = dspTransformerRegistry.forProtocol(message.getProtocol());
             if (transformerRegistryResult.failed()) {

@@ -15,7 +15,7 @@
 package org.eclipse.edc.protocol.dsp.http.dispatcher;
 
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestBasePathProvider;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 
 public class DspRequestBasePathProviderImpl implements RequestBasePathProvider {
 
@@ -23,7 +23,7 @@ public class DspRequestBasePathProviderImpl implements RequestBasePathProvider {
     }
 
     @Override
-    public String provideBasePath(RemoteMessage message) {
+    public String provideBasePath(ProtocolRemoteMessage message) {
         return message.getCounterPartyAddress();
     }
 

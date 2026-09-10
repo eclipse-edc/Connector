@@ -14,14 +14,28 @@
 
 package org.eclipse.edc.controlplane;
 
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import java.util.Objects;
 
 /**
  * Envelope that represent a message that is sent through the Dataspace Protocol
  */
-public abstract class ProtocolRemoteMessage extends RemoteMessage {
+public abstract class ProtocolRemoteMessage {
 
+    protected String protocol;
     protected String counterPartyId;
+    protected String counterPartyAddress;
+
+    /**
+     * Returns the transport protocol this message must be sent over.
+     */
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public void setProtocol(String protocol) {
+        Objects.requireNonNull(protocol);
+        this.protocol = protocol;
+    }
 
     /**
      * Returns the recipient's id.
@@ -30,14 +44,39 @@ public abstract class ProtocolRemoteMessage extends RemoteMessage {
         return counterPartyId;
     }
 
-    public abstract static class Builder<RM extends ProtocolRemoteMessage, B extends Builder<RM, B>> extends RemoteMessage.Builder<RM, B> {
+    /**
+     * Returns the recipient's callback address.
+     */
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
+    }
 
+    public abstract static class Builder<RM extends ProtocolRemoteMessage, B extends Builder<RM, B>> {
+
+        protected RM message;
+        
         protected Builder(RM message) {
-            super(message);
+            this.message = message;
+        }
+
+        public abstract B self();
+
+        public RM build() {
+            return message;
         }
 
         public B counterPartyId(String counterPartyId) {
             message.counterPartyId = counterPartyId;
+            return self();
+        }
+
+        public B protocol(String protocol) {
+            message.protocol = protocol;
+            return self();
+        }
+
+        public B counterPartyAddress(String counterPartyAddress) {
+            message.counterPartyAddress = counterPartyAddress;
             return self();
         }
 

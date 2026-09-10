@@ -35,6 +35,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractVa
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatableConsumerOffer;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
@@ -44,7 +45,6 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -366,7 +366,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
         }
     }
 
-    private ServiceResult<ParticipantAgent> verifyRequest(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, Policy policy, RemoteMessage message) {
+    private ServiceResult<ParticipantAgent> verifyRequest(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, Policy policy, ProtocolRemoteMessage message) {
         return protocolTokenValidator.verify(participantContext, tokenRepresentation, RequestContractNegotiationPolicyContext::new, policy, message);
     }
 

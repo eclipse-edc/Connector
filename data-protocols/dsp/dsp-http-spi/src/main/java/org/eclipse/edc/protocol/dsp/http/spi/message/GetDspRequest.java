@@ -16,10 +16,10 @@
 
 package org.eclipse.edc.protocol.dsp.http.spi.message;
 
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
-public class GetDspRequest<I extends RemoteMessage, R, E extends ErrorMessage> extends DspRequest<I, R, E> {
+public class GetDspRequest<I extends ProtocolRemoteMessage, R, E extends ErrorMessage> extends DspRequest<I, R, E> {
 
     private I message;
     private String id;
@@ -36,13 +36,13 @@ public class GetDspRequest<I extends RemoteMessage, R, E extends ErrorMessage> e
         return id;
     }
 
-    public static class Builder<I extends RemoteMessage, R, E extends ErrorMessage> extends DspRequest.Builder<I, R, GetDspRequest<I, R, E>, E, Builder<I, R, E>> {
+    public static class Builder<I extends ProtocolRemoteMessage, R, E extends ErrorMessage> extends DspRequest.Builder<I, R, GetDspRequest<I, R, E>, E, Builder<I, R, E>> {
 
         private Builder(Class<I> inputClass, Class<R> resultClass, Class<E> errorClass) {
             super(new GetDspRequest<>(inputClass, resultClass, errorClass));
         }
 
-        public static <I extends RemoteMessage, R, E extends ErrorMessage> Builder<I, R, E> newInstance(Class<I> inputClass, Class<R> resultClass, Class<E> errorClass) {
+        public static <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Builder<I, R, E> newInstance(Class<I> inputClass, Class<R> resultClass, Class<E> errorClass) {
             return new Builder<>(inputClass, resultClass, errorClass);
         }
 

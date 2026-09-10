@@ -15,7 +15,7 @@
 package org.eclipse.edc.policy.context.request.spi;
 
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
-import org.eclipse.edc.spi.iam.RequestContext;
+import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.spi.iam.RequestScope;
 
 public class RequestCatalogPolicyContext extends RequestPolicyContext {
