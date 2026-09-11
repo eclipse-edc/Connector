@@ -304,7 +304,7 @@ class VirtualDcpTransferPullEndToEndTest {
                 .name(PROVIDER_DP)
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
-                .configurationProvider(Runtimes.SignalingDataPlane::config)
+                .configurationProvider(() -> Runtimes.SignalingDataPlane.config(OAUTH_SERVER.jwksUri()))
                 .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
 
@@ -314,7 +314,7 @@ class VirtualDcpTransferPullEndToEndTest {
                 .name(CONSUMER_DP)
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
-                .configurationProvider(Runtimes.SignalingDataPlane::config)
+                .configurationProvider(() -> Runtimes.SignalingDataPlane.config(OAUTH_SERVER.jwksUri()))
                 .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
 

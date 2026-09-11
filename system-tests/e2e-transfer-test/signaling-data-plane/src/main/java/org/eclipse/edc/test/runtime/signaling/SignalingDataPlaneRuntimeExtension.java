@@ -64,6 +64,14 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
      */
     @Setting(key = "dataplane.authorization", defaultValue = "oauth2_client_credentials")
     private String authorizationType;
+
+    /**
+     * JWKS endpoint used to verify the signature of tokens received on the signaling API. Only needed by the
+     * {@code oauth2_client_credentials} profile.
+     */
+    @Setting(key = "dataplane.authorization.jwks.uri", required = false)
+    private String authorizationJwksUri;
+
     @Configuration
     private ApiConfiguration apiConfiguration;
     @Inject
@@ -74,11 +82,13 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var authorization = "oauth2_token_exchange".equals(authorizationType)
+                ? new Oauth2TokenExchangeAuthorization()
+                : new Oauth2ClientCredentialsAuthorization(authorizationJwksUri);
+
         var builder = Dataplane.newInstance()
                 .id(dataplaneId)
-                .registerAuthorization("oauth2_token_exchange".equals(authorizationType)
-                        ? new Oauth2TokenExchangeAuthorization()
-                        : new Oauth2ClientCredentialsAuthorization())
+                .registerAuthorization(authorization)
                 .endpoint(apiConfiguration.dataFlowEndpoint())
                 .profile("Finite-PUSH")
                 .profile("Finite-PULL")
