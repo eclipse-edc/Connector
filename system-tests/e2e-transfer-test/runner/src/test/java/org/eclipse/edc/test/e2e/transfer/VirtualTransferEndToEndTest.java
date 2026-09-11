@@ -115,7 +115,7 @@ class VirtualTransferEndToEndTest {
                 .name(PROVIDER_DP)
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
-                .configurationProvider(Runtimes.SignalingDataPlane::config)
+                .configurationProvider(() -> Runtimes.SignalingDataPlane.config(OAUTH_SERVER.jwksUri()))
                 .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
 
@@ -125,7 +125,7 @@ class VirtualTransferEndToEndTest {
                 .name(CONSUMER_DP)
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
-                .configurationProvider(Runtimes.SignalingDataPlane::config)
+                .configurationProvider(() -> Runtimes.SignalingDataPlane.config(OAUTH_SERVER.jwksUri()))
                 .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
 
