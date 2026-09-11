@@ -19,14 +19,14 @@ import okhttp3.Request;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestBasePathProvider;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestFactory;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestPathProvider;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 
 /**
  * Creates a GET request through the Dataspace Protocol
  *
  * @param <M> the message class.
  */
-public class GetDspHttpRequestFactory<M extends RemoteMessage> implements RequestFactory<M, Request> {
+public class GetDspHttpRequestFactory<M extends ProtocolRemoteMessage> implements RequestFactory<M, Request> {
     private final RequestPathProvider<M> pathProvider;
     private final RequestBasePathProvider dspBasePathProvider;
 

@@ -15,13 +15,13 @@
 package org.eclipse.edc.protocol.dsp.http.spi.message;
 
 import jakarta.json.JsonObject;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
  * Defines an incoming DSP message as a remote message type.
  */
-public class PostDspRequest<I extends RemoteMessage, R, E extends ErrorMessage> extends DspRequest<I, R, E> {
+public class PostDspRequest<I extends ProtocolRemoteMessage, R, E extends ErrorMessage> extends DspRequest<I, R, E> {
 
     private JsonObject message;
     private String processId;
@@ -43,13 +43,13 @@ public class PostDspRequest<I extends RemoteMessage, R, E extends ErrorMessage> 
         return expectedMessageType;
     }
 
-    public static class Builder<I extends RemoteMessage, R, E extends ErrorMessage> extends DspRequest.Builder<I, R, PostDspRequest<I, R, E>, E, Builder<I, R, E>> {
+    public static class Builder<I extends ProtocolRemoteMessage, R, E extends ErrorMessage> extends DspRequest.Builder<I, R, PostDspRequest<I, R, E>, E, Builder<I, R, E>> {
 
         private Builder(Class<I> inputClass, Class<R> resultClass, Class<E> errorClass) {
             super(new PostDspRequest<>(inputClass, resultClass, errorClass));
         }
 
-        public static <I extends RemoteMessage, R, E extends ErrorMessage> Builder<I, R, E> newInstance(Class<I> inputClass, Class<R> resultClass, Class<E> errorClass) {
+        public static <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Builder<I, R, E> newInstance(Class<I> inputClass, Class<R> resultClass, Class<E> errorClass) {
             return new Builder<>(inputClass, resultClass, errorClass);
         }
 

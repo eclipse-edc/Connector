@@ -36,6 +36,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.controlplane.ProcessRemoteMessage;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
@@ -45,7 +46,6 @@ import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -190,7 +190,7 @@ class TransferProcessProtocolServiceImplTest {
 
     @ParameterizedTest
     @ArgumentsSource(NotifyArguments.class)
-    <M extends RemoteMessage> void notify_shouldFail_whenTransferProcessNotFound(MethodCall<M> methodCall, M message) {
+    <M extends ProtocolRemoteMessage> void notify_shouldFail_whenTransferProcessNotFound(MethodCall<M> methodCall, M message) {
         var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
 
@@ -206,7 +206,7 @@ class TransferProcessProtocolServiceImplTest {
 
     @ParameterizedTest
     @ArgumentsSource(NotifyArguments.class)
-    <M extends RemoteMessage> void notify_shouldFail_whenTokenValidationFails(MethodCall<M> methodCall, M message) {
+    <M extends ProtocolRemoteMessage> void notify_shouldFail_whenTokenValidationFails(MethodCall<M> methodCall, M message) {
         var tokenRepresentation = tokenRepresentation();
 
         when(store.findById(any())).thenReturn(transferProcessBuilder().build());
@@ -259,7 +259,7 @@ class TransferProcessProtocolServiceImplTest {
     }
 
     @FunctionalInterface
-    private interface MethodCall<M extends RemoteMessage> {
+    private interface MethodCall<M extends ProtocolRemoteMessage> {
         ServiceResult<?> call(TransferProcessProtocolService service, ParticipantContext participantContext, M message, TokenRepresentation token);
     }
 

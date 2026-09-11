@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.connector.controlplane.services.protocol;
 
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
@@ -25,14 +26,13 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.ProtocolVersion;
+import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.iam.RequestContext;
 import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 
@@ -136,7 +136,7 @@ class ProtocolTokenValidatorImplTest {
         );
     }
 
-    static class TestMessage extends RemoteMessage {
+    static class TestMessage extends ProtocolRemoteMessage {
 
         @Override
         public String getProtocol() {

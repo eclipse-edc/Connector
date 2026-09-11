@@ -37,6 +37,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.validation.Validatabl
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.controlplane.ProcessRemoteMessage;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
@@ -46,7 +47,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jspecify.annotations.NonNull;
@@ -604,7 +604,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
     @ParameterizedTest
     @ArgumentsSource(NotifyArguments.class)
-    <M extends RemoteMessage> void notify_shouldReturnNotFound_whenNotFound(MethodCall<M> methodCall, M message) {
+    <M extends ProtocolRemoteMessage> void notify_shouldReturnNotFound_whenNotFound(MethodCall<M> methodCall, M message) {
         var tokenRepresentation = tokenRepresentation();
         when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message)))
                 .thenReturn(ServiceResult.success(participantAgent()));
@@ -622,7 +622,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
     @ParameterizedTest
     @ArgumentsSource(NotifyArguments.class)
-    <M extends RemoteMessage> void notify_shouldReturnBadRequest_whenRequestValidationFails(MethodCall<M> methodCall, M message) {
+    <M extends ProtocolRemoteMessage> void notify_shouldReturnBadRequest_whenRequestValidationFails(MethodCall<M> methodCall, M message) {
         var tokenRepresentation = tokenRepresentation();
         var validatableOffer = createValidatableConsumerOffer();
         when(consumerOfferResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
@@ -644,7 +644,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
     @ParameterizedTest
     @ArgumentsSource(NotifyArguments.class)
-    <M extends RemoteMessage> void notify_shouldReturnUnauthorized_whenTokenValidationFails(MethodCall<M> methodCall, M message) {
+    <M extends ProtocolRemoteMessage> void notify_shouldReturnUnauthorized_whenTokenValidationFails(MethodCall<M> methodCall, M message) {
         var tokenRepresentation = tokenRepresentation();
         var validatableOffer = mock(ValidatableConsumerOffer.class);
 
@@ -663,7 +663,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
     @ParameterizedTest
     @ArgumentsSource(NotifyArguments.class)
-    <M extends RemoteMessage> void notify_shouldReturnNotFound_whenParticipantContextNotMatch(MethodCall<M> methodCall, M message) {
+    <M extends ProtocolRemoteMessage> void notify_shouldReturnNotFound_whenParticipantContextNotMatch(MethodCall<M> methodCall, M message) {
         var tokenRepresentation = tokenRepresentation();
 
         var cn = createContractNegotiationOffered();
@@ -938,7 +938,7 @@ class ContractNegotiationProtocolServiceImplTest {
     }
 
     @FunctionalInterface
-    private interface MethodCall<M extends RemoteMessage> {
+    private interface MethodCall<M extends ProtocolRemoteMessage> {
         ServiceResult<?> call(ContractNegotiationProtocolService service, ParticipantContext participantContext, M message, TokenRepresentation token);
     }
 }

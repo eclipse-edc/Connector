@@ -16,8 +16,8 @@
 package org.eclipse.edc.protocol.dsp.http.spi.message;
 
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
  * Handles incoming DSP requests
@@ -31,7 +31,7 @@ public interface DspRequestHandler {
      * @param <R>     the resource type.
      * @return the response to be returned to the client
      */
-    <I extends RemoteMessage, R, E extends ErrorMessage> Response getResource(GetDspRequest<I, R, E> request);
+    <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response getResource(GetDspRequest<I, R, E> request);
 
     /**
      * Verify identity, validate incoming message, transform, call the service to create the resource, transform it and
@@ -42,7 +42,7 @@ public interface DspRequestHandler {
      * @param <R>     the result type.
      * @return the response to be returned to the client.
      */
-    default <I extends RemoteMessage, R, E extends ErrorMessage> Response createResource(PostDspRequest<I, R, E> request) {
+    default <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response createResource(PostDspRequest<I, R, E> request) {
         return createResource(request, (b, i, o) -> b);
     }
 
@@ -55,7 +55,7 @@ public interface DspRequestHandler {
      * @param <R>     the result type.
      * @return the response to be returned to the client.
      */
-    <I extends RemoteMessage, R, E extends ErrorMessage> Response createResource(PostDspRequest<I, R, E> request, ResponseDecorator<I, R> responseDecorator);
+    <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response createResource(PostDspRequest<I, R, E> request, ResponseDecorator<I, R> responseDecorator);
 
     /**
      * Verify identity, validate incoming message, transform and call the service.
@@ -65,6 +65,6 @@ public interface DspRequestHandler {
      * @param <R>     the result type.
      * @return the response to be returned to the client.
      */
-    <I extends RemoteMessage, R, E extends ErrorMessage> Response updateResource(PostDspRequest<I, R, E> request);
+    <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response updateResource(PostDspRequest<I, R, E> request);
 
 }

@@ -21,15 +21,15 @@ import okhttp3.RequestBody;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestBasePathProvider;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestFactory;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestPathProvider;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
  * Creates a POST request through the Dataspace Protocol
  *
  * @param <M> the message class.
  */
-public class PostDspHttpRequestFactory<M extends RemoteMessage> implements RequestFactory<M, Request> {
+public class PostDspHttpRequestFactory<M extends ProtocolRemoteMessage> implements RequestFactory<M, Request> {
 
     public static final String APPLICATION_JSON = "application/json";
     private final RequestPathProvider<M> pathProvider;

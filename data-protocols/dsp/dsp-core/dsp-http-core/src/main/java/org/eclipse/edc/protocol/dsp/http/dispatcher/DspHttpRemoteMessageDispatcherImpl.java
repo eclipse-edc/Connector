@@ -27,13 +27,12 @@ import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.iam.RequestContext;
 import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.token.spi.TokenDecorator;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,8 +56,8 @@ public class DspHttpRemoteMessageDispatcherImpl implements ProtocolRemoteMessage
 
     private static final String AUDIENCE_CLAIM = "aud";
     private static final String SCOPE_CLAIM = "scope";
-    private final Map<Class<? extends RemoteMessage>, MessageHandler<?, ?>> handlers = new HashMap<>();
-    private final Map<Class<? extends RemoteMessage>, PolicyScope<? extends RemoteMessage>> policyScopes = new HashMap<>();
+    private final Map<Class<? extends ProtocolRemoteMessage>, MessageHandler<?, ?>> handlers = new HashMap<>();
+    private final Map<Class<? extends ProtocolRemoteMessage>, PolicyScope<? extends ProtocolRemoteMessage>> policyScopes = new HashMap<>();
     private final EdcHttpClient httpClient;
     private final IdentityService identityService;
     private final PolicyEngine policyEngine;
@@ -166,12 +165,12 @@ public class DspHttpRemoteMessageDispatcherImpl implements ProtocolRemoteMessage
         }
     }
 
-    private record MessageHandler<M extends RemoteMessage, R>(
+    private record MessageHandler<M extends ProtocolRemoteMessage, R>(
             RequestFactory<M, Request> requestFactory,
             ProtocolResponseBodyExtractor<ResponseBody, R> bodyExtractor) {
     }
 
-    private record PolicyScope<M extends RemoteMessage>(
+    private record PolicyScope<M extends ProtocolRemoteMessage>(
             Class<M> messageClass,
             Function<M, Policy> policyProvider,
             RequestPolicyContext.Provider contextProvider) {

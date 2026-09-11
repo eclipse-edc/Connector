@@ -14,14 +14,14 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.core.scope;
 
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScope;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScopeRegistry;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.iam.RequestContext;
+import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -66,7 +66,7 @@ class DefaultScopeMappingFunctionTest {
         // existing scopes on request
         var existing = new HashSet<String>();
         existing.add("existing");
-        var msg = mock(RemoteMessage.class);
+        var msg = mock(ProtocolRemoteMessage.class);
         when(msg.getProtocol()).thenReturn("proto");
         var ctx = RequestContext.Builder.newInstance()
                 .direction(RequestContext.Direction.Egress)

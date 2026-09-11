@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.connector.controlplane.services.spi.protocol;
 
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
@@ -22,7 +23,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
  * Token validator to be used in protocol layer for verifying the token according the
@@ -36,10 +36,10 @@ public interface ProtocolTokenValidator {
      *
      * @param tokenRepresentation   The token
      * @param policyContextProvider The policy scope
-     * @param message               The {@link RemoteMessage}
+     * @param message               The {@link ProtocolRemoteMessage}
      * @return Returns the extracted {@link ParticipantAgent} if successful, failure otherwise
      */
-    default ServiceResult<ParticipantAgent> verify(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, RemoteMessage message) {
+    default ServiceResult<ParticipantAgent> verify(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, ProtocolRemoteMessage message) {
         return verify(participantContext, tokenRepresentation, policyContextProvider, Policy.Builder.newInstance().build(), message);
     }
 
@@ -50,8 +50,8 @@ public interface ProtocolTokenValidator {
      * @param tokenRepresentation   The token
      * @param policyContextProvider The policy scope provider
      * @param policy                The policy
-     * @param message               The {@link RemoteMessage}
+     * @param message               The {@link ProtocolRemoteMessage}
      * @return Returns the extracted {@link ParticipantAgent} if successful, failure otherwise
      */
-    ServiceResult<ParticipantAgent> verify(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, RemoteMessage message);
+    ServiceResult<ParticipantAgent> verify(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, ProtocolRemoteMessage message);
 }

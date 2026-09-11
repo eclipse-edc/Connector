@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.services.spi.protocol;
 
 
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 
 /**
  * Provide the http request base path given the outgoing message.
@@ -28,5 +28,5 @@ public interface RequestBasePathProvider {
      * @param message the message.
      * @return the path.
      */
-    String provideBasePath(RemoteMessage message);
+    String provideBasePath(ProtocolRemoteMessage message);
 }
