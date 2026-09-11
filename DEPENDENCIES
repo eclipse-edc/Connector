@@ -353,7 +353,7 @@ maven/mavencentral/org.xmlunit/xmlunit-placeholders/2.11.0, Apache-2.0, approved
 maven/mavencentral/org.yaml/snakeyaml/2.3, Apache-2.0 AND (Apache-2.0 OR BSD-3-Clause OR EPL-1.0 OR GPL-2.0-or-later OR LGPL-2.1-or-later), approved, #16046
 maven/mavencentral/org.yaml/snakeyaml/2.4, Apache-2.0, approved, #19469
 maven/mavencentral/org.yaml/snakeyaml/2.5, Apache-2.0, approved, #23100
-maven/mavencentral/tools.jackson.core/jackson-core/3.2.2, BSD-2-Clause AND MIT AND (BSD-2-Clause AND BSL-1.0 AND MIT) AND Apache-2.0 AND (Apache-2.0 AND LicenseRef-scancode-free-unknown AND MIT) AND MIT AND LicenseRef-scancode-proprietary-license, restricted, #30552
+maven/mavencentral/tools.jackson.core/jackson-core/3.2.2, BSD-2-Clause AND MIT AND BSL-1.0 AND Apache-2.0, approved, #30552
 maven/mavencentral/tools.jackson.core/jackson-databind/3.2.1, Apache-2.0, approved, #30564
 maven/mavencentral/tools.jackson.core/jackson-databind/3.2.2, Apache-2.0, approved, #30563
 maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-yaml/3.2.1, Apache-2.0, approved, #29717
