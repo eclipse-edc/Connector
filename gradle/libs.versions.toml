@@ -112,7 +112,7 @@ jsonschema = { module = "com.networknt:json-schema-validator", version = "2.0.0"
 nats = { module = "io.nats:jnats", version = "2.26.2" }
 
 dcp-tck = { module = "org.eclipse.dataspacetck.dcp:dcp-tck", version = "1.2.1" }
-dsp-tck = { module = "org.eclipse.dataspacetck.dsp:dsp-tck", version = "1.0.1" }
+dsp-tck = { module = "org.eclipse.dataspacetck.dsp:dsp-tck", version = "1.0.2" }
 dps-tck = { module = "org.eclipse.dataspacetck.dps:dps-tck", version = "1.3.0" }
 
 [bundles]
