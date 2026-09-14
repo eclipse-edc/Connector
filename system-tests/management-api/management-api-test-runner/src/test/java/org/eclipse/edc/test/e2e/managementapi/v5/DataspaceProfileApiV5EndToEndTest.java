@@ -22,6 +22,7 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.protocol.spi.service.DataspaceProfileService;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
@@ -34,12 +35,14 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.List;
+import java.util.UUID;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
+import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.createParticipant;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 
@@ -212,6 +215,37 @@ public class DataspaceProfileApiV5EndToEndTest {
                     .then()
                     .log().ifValidationFails()
                     .statusCode(400);
+        }
+
+        @Test
+        void mutatingEndpoints_shouldReturnForbidden_whenTokenIsNotAdmin(ManagementEndToEndV5TestContext context, OauthServer authServer,
+                                                                        ParticipantContextService participantContextService) {
+            var participantId = UUID.randomUUID().toString();
+            createParticipant(participantContextService, participantId);
+            var writeToken = authServer.createToken(participantId, "management-api:write");
+            var name = "forbidden-profile";
+
+            context.baseRequest(writeToken)
+                    .contentType(ContentType.JSON)
+                    .body(profileJson(name))
+                    .post("/v5/dataspaceprofiles")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(403);
+
+            context.baseRequest(writeToken)
+                    .contentType(ContentType.JSON)
+                    .body(profileJson(name))
+                    .put("/v5/dataspaceprofiles")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(403);
+
+            context.baseRequest(writeToken)
+                    .delete("/v5/dataspaceprofiles/" + name)
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(403);
         }
 
         private JsonObject profileJson(String name) {

@@ -84,6 +84,31 @@ class DatasetResolverImplIntegrationTest {
     }
 
     @Test
+    void getById_shouldReturnNull_whenAssetBelongsToAnotherParticipantContext() {
+        var foreignAsset = createAsset("foreign-asset").participantContextId("anotherParticipantContextId").build();
+        assetIndex.create(foreignAsset);
+        var catchAllDefinition = getContractDefBuilder("def1").assetsSelector(emptyList()).build();
+        when(contractDefinitionResolver.resolveFor(any(), isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(List.of(catchAllDefinition)));
+
+        var dataset = resolver.getById(createParticipantContext(), createAgent(), "foreign-asset", "protocol");
+
+        assertThat(dataset).isNull();
+    }
+
+    @Test
+    void getById_shouldReturnDataset_whenAssetBelongsToTheParticipantContext() {
+        var asset = createAsset("own-asset").build();
+        assetIndex.create(asset);
+        var catchAllDefinition = getContractDefBuilder("def1").assetsSelector(emptyList()).build();
+        when(contractDefinitionResolver.resolveFor(any(), isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(List.of(catchAllDefinition)));
+
+        var dataset = resolver.getById(createParticipantContext(), createAgent(), "own-asset", "protocol");
+
+        assertThat(dataset).isNotNull();
+        assertThat(dataset.getId()).isEqualTo("own-asset");
+    }
+
+    @Test
     void shouldLimitResult_withHeterogeneousChunks() {
         var assets1 = range(10, 24).mapToObj(i -> createAsset("asset" + i).build()).collect(Collectors.toList());
         var assets2 = range(24, 113).mapToObj(i -> createAsset("asset" + i).build()).collect(Collectors.toList());

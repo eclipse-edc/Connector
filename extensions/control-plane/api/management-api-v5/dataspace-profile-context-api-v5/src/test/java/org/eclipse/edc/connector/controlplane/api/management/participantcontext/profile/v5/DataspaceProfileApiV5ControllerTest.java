@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.api.management.participantcontext
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.protocol.spi.DataspaceProfile;
 import org.eclipse.edc.protocol.spi.service.DataspaceProfileService;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -26,12 +27,16 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,6 +69,17 @@ class DataspaceProfileApiV5ControllerTest extends RestControllerTestBase {
 
     private String body() {
         return Json.createObjectBuilder().add("@type", "DataspaceProfile").build().toString();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "createProfileV5", "updateProfileV5", "deleteProfileV5" })
+    void mutatingEndpoints_shouldRequireAdminScope(String methodName) {
+        var method = Arrays.stream(DataspaceProfileApiV5Controller.class.getDeclaredMethods())
+                .filter(it -> it.getName().equals(methodName))
+                .findFirst().orElseThrow();
+
+        assertThat(method.getAnnotation(RequiredScope.class)).isNotNull()
+                .extracting(RequiredScope::value).isEqualTo("management-api:admin");
     }
 
     @Test

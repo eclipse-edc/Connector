@@ -114,6 +114,39 @@ public class DataPlaneRegistrationApiV5EndToEndTest {
         }
 
         @Test
+        void registerDataPlane_shouldReturnConflict_whenDataPlaneIdIsOwnedByAnotherParticipant(ManagementEndToEndV5TestContext context,
+                                                                                               OauthServer authServer,
+                                                                                               ParticipantContextService srv,
+                                                                                               DataPlaneSelectorService selectorService) {
+            var dataPlaneId = UUID.randomUUID().toString();
+            var message = createDataPlaneRegistrationMessage(dataPlaneId, null);
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(ContentType.JSON)
+                    .body(message)
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200);
+
+            var otherParticipantId = UUID.randomUUID().toString();
+            createParticipant(srv, otherParticipantId);
+            var otherToken = authServer.createToken(otherParticipantId);
+
+            context.baseRequest(otherToken)
+                    .contentType(ContentType.JSON)
+                    .body(message)
+                    .put("/v5/participants/" + otherParticipantId + "/dataplanes")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(409);
+
+            var dataPlaneInstance = selectorService.findById(dataPlaneId)
+                    .orElseThrow((e) -> new AssertionError("Data plane instance not found"));
+            assertThat(dataPlaneInstance.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID);
+        }
+
+        @Test
         void registerDataPlane_tokenLacksRequiredScope(ManagementEndToEndV5TestContext context,
                                                        OauthServer authServer) {
 

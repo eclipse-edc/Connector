@@ -17,6 +17,7 @@ package org.eclipse.edc.signaling.port.api.management.v5;
 import io.restassured.http.ContentType;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.DataPlaneSelectorService;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.signaling.domain.DataPlaneRegistrationMessage;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
@@ -31,6 +32,7 @@ import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -48,6 +50,7 @@ class DataPlaneRegistrationApiV5ControllerTest extends RestControllerTestBase {
     @BeforeEach
     public void setup() {
         when(authorizationService.authorize(any(), any(), any(), any())).thenReturn(ServiceResult.success());
+        when(dataPlaneSelectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
     }
 
     @Nested
@@ -96,6 +99,45 @@ class DataPlaneRegistrationApiV5ControllerTest extends RestControllerTestBase {
                     instance.getAuthorizationProfile() != null &&
                             instance.getAuthorizationProfile().type().equals("oauth2")
             ));
+        }
+
+        @Test
+        void shouldRegisterDataPlane_whenAlreadyRegisteredBySameParticipantContext() {
+            var existing = DataPlaneInstance.Builder.newInstance().id("dp-id").url("http://old/endpoint")
+                    .participantContextId(participantContextId).build();
+            when(dataPlaneSelectorService.findById("dp-id")).thenReturn(ServiceResult.success(existing));
+            when(dataPlaneSelectorService.register(any())).thenReturn(ServiceResult.success());
+            var message = new DataPlaneRegistrationMessage("dp-id", "http://dataplane/endpoint", Set.of("HttpData-PUSH"), Set.of(), null);
+
+            given()
+                    .port(port)
+                    .contentType(ContentType.JSON)
+                    .body(message)
+                    .put("/v5/participants/%s/dataplanes".formatted(participantContextId))
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200);
+
+            verify(dataPlaneSelectorService).register(argThat(instance -> instance.getId().equals("dp-id")));
+        }
+
+        @Test
+        void shouldReturnConflict_whenAlreadyRegisteredByAnotherParticipantContext() {
+            var existing = DataPlaneInstance.Builder.newInstance().id("dp-id").url("http://other/endpoint")
+                    .participantContextId("another-participant-context-id").build();
+            when(dataPlaneSelectorService.findById("dp-id")).thenReturn(ServiceResult.success(existing));
+            var message = new DataPlaneRegistrationMessage("dp-id", "http://dataplane/endpoint", Set.of("HttpData-PUSH"), Set.of(), null);
+
+            given()
+                    .port(port)
+                    .contentType(ContentType.JSON)
+                    .body(message)
+                    .put("/v5/participants/%s/dataplanes".formatted(participantContextId))
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(409);
+
+            verify(dataPlaneSelectorService, never()).register(any());
         }
 
         @Test

@@ -44,7 +44,7 @@ class TransferProcessProviderFactoryTest {
     @Test
     void shouldCreateProviderTransferProcess() {
         var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().build();
-        when(assetIndex.findById("assetId")).thenReturn(Asset.Builder.newInstance().id("assetId").dataplaneMetadata(dataplaneMetadata).build());
+        when(assetIndex.findById("participantContextId", "assetId")).thenReturn(Asset.Builder.newInstance().id("assetId").dataplaneMetadata(dataplaneMetadata).build());
         var contractAgreement = createAgreementBuilder().assetId("assetId").build();
         Map<String, Object> claims = Map.of("claim", "value");
         var participantAgent = new ParticipantAgent("id", claims, emptyMap());
@@ -57,12 +57,12 @@ class TransferProcessProviderFactoryTest {
             assertThat(transferProcess.getDataplaneMetadata()).isSameAs(dataplaneMetadata);
             assertThat(transferProcess.getClaims()).isSameAs(claims);
         });
-        verify(assetIndex).findById("assetId");
+        verify(assetIndex).findById("participantContextId", "assetId");
     }
 
     @Test
     void shouldReturnError_whenAssetNotFound() {
-        when(assetIndex.findById(any())).thenReturn(null);
+        when(assetIndex.findById(any(), any())).thenReturn(null);
         var contractAgreement = createAgreementBuilder().assetId("assetId").build();
         var participantAgent = new ParticipantAgent("id", emptyMap(), emptyMap());
         var participantContext = createParticipantContext("participantContextId");

@@ -21,11 +21,14 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackClient;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantEvent;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.event.CallbackAddresses;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -69,7 +72,7 @@ public class CallbackHttpClient implements CallbackClient {
                     .post(RequestBody.create(body, MediaType.get(APPLICATION_JSON)));
 
             if (callbackAddress.getAuthKey() != null) {
-                var authCode = resolveAuthCode(eventEnvelope.getPayload().name(), callbackAddress.getAuthCodeId());
+                var authCode = resolveAuthCode(callbackAddress, eventEnvelope.getPayload());
                 builder.addHeader(callbackAddress.getAuthKey(), authCode);
             }
             return builder.build();
@@ -78,11 +81,34 @@ public class CallbackHttpClient implements CallbackClient {
         }
     }
 
-    private String resolveAuthCode(String eventName, String authCodeId) {
+    private String resolveAuthCode(CallbackAddress callbackAddress, Event event) {
+        var eventName = event.name();
+        var authCodeId = callbackAddress.getAuthCodeId();
         if (authCodeId == null) {
             throw new EdcException(format("Error dispatching event %s: Auth Code Id cannot be null when the Auth Key was provided", eventName));
         }
-        return Optional.ofNullable(vault.resolveSecret(authCodeId))
+
+        var vaultPartition = resolveVaultPartition(callbackAddress, event);
+        var authCode = vaultPartition == null ? vault.resolveSecret(authCodeId) : vault.resolveSecret(vaultPartition, authCodeId);
+        return Optional.ofNullable(authCode)
                 .orElseThrow(() -> new EdcException(format("Error dispatching event %s: no secret found in vault with name %s", eventName, authCodeId)));
+    }
+
+    /**
+     * Callback addresses supplied dynamically by a participant (e.g. within a transfer or negotiation request) must resolve
+     * their secrets from the vault partition of the participant context that owns the event, so that a participant cannot
+     * reference secrets that belong to the runtime or to other participants. Statically configured callbacks resolve their
+     * secrets from the default vault partition.
+     *
+     * @return the participant context id to be used as vault partition, or null for the default partition.
+     */
+    private @Nullable String resolveVaultPartition(CallbackAddress callbackAddress, Event event) {
+        if (event instanceof CallbackAddresses dynamicCallbacks && event instanceof ParticipantEvent participantEvent) {
+            var isDynamic = dynamicCallbacks.getCallbackAddresses().stream().anyMatch(it -> it == callbackAddress);
+            if (isDynamic) {
+                return participantEvent.getParticipantContextId();
+            }
+        }
+        return null;
     }
 }

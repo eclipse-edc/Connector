@@ -328,7 +328,7 @@ class DatasetResolverImplTest {
                     contractDefinitionBuilder("definition1").contractPolicyId("policy1").build(),
                     contractDefinitionBuilder("definition2").contractPolicyId("policy2").build()
             )));
-            when(assetIndex.findById(any())).thenReturn(createAsset("datasetId").build());
+            when(assetIndex.findById("participantContextId", "datasetId")).thenReturn(createAsset("datasetId").build());
             when(policyStore.findById("policy1")).thenReturn(PolicyDefinition.Builder.newInstance().policy(policy1).build());
             when(policyStore.findById("policy2")).thenReturn(PolicyDefinition.Builder.newInstance().policy(policy2).build());
             var participantAgent = createParticipantAgent();
@@ -346,7 +346,7 @@ class DatasetResolverImplTest {
                         assertThat(ContractOfferId.parseId(id)).isSucceeded().extracting(ContractOfferId::definitionPart).isEqualTo("definition2");
                         assertThat(policy.getInheritsFrom()).isEqualTo("inherits2");
                     });
-            verify(assetIndex).findById("datasetId");
+            verify(assetIndex).findById("participantContextId", "datasetId");
             verify(definitionResolver).resolveFor(argThat(argument -> argument.getId().equals("participantContextId")), eq(participantAgent));
         }
 
@@ -354,7 +354,7 @@ class DatasetResolverImplTest {
         void shouldReturnNull_whenAssetNotFound() {
             var contractDefinition = contractDefinitionBuilder("definition1").contractPolicyId("policy1").build();
             when(definitionResolver.resolveFor(any(), any())).thenReturn(new ResolvedContractDefinitions(List.of(contractDefinition)));
-            when(assetIndex.findById(any())).thenReturn(null);
+            when(assetIndex.findById(any(), any())).thenReturn(null);
             var participantAgent = createParticipantAgent();
 
             var dataset = datasetResolver.getById(createParticipantContext(), participantAgent, "datasetId", "protocol");
@@ -371,7 +371,7 @@ class DatasetResolverImplTest {
             var dataset = datasetResolver.getById(createParticipantContext(), participantAgent, "datasetId", "protocol");
 
             assertThat(dataset).isNull();
-            verify(assetIndex, never()).findById(any());
+            verify(assetIndex, never()).findById(any(), any());
         }
 
         @Test
@@ -387,7 +387,7 @@ class DatasetResolverImplTest {
                             .build())
                     .build();
             when(definitionResolver.resolveFor(any(), any())).thenReturn(new ResolvedContractDefinitions(List.of(contractDefinition)));
-            when(assetIndex.findById(any())).thenReturn(createAsset(assetId).build());
+            when(assetIndex.findById("participantContextId", assetId)).thenReturn(createAsset(assetId).build());
 
             var dataset = datasetResolver.getById(createParticipantContext(), participantAgent, assetId, "protocol");
 

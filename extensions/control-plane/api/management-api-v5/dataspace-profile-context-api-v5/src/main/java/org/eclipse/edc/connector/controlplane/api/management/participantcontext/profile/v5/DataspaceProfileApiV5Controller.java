@@ -59,7 +59,7 @@ public class DataspaceProfileApiV5Controller implements DataspaceProfileApiV5 {
     }
 
     @POST
-    @RequiredScope("management-api:profiles:write")
+    @RequiredScope("management-api:admin")
     @Override
     public JsonObject createProfileV5(@SchemaType(value = DATASPACE_PROFILE_CONTEXT_TYPE_TERM, version = "v5") JsonObject request) {
 
@@ -75,7 +75,7 @@ public class DataspaceProfileApiV5Controller implements DataspaceProfileApiV5 {
     }
 
     @PUT
-    @RequiredScope("management-api:profiles:write")
+    @RequiredScope("management-api:admin")
     @Override
     public void updateProfileV5(@SchemaType(value = DATASPACE_PROFILE_CONTEXT_TYPE_TERM, version = "v5") JsonObject request) {
 
@@ -127,7 +127,7 @@ public class DataspaceProfileApiV5Controller implements DataspaceProfileApiV5 {
 
     @DELETE
     @Path("{name}")
-    @RequiredScope("management-api:profiles:write")
+    @RequiredScope("management-api:admin")
     @Override
     public void deleteProfileV5(@PathParam("name") String name) {
 
