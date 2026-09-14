@@ -23,10 +23,6 @@ import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
-import org.eclipse.edc.sql.lease.SqlLeaseContextBuilderImpl;
-import org.eclipse.edc.sql.lease.spi.LeaseStatements;
-import org.eclipse.edc.sql.testfixtures.LeaseUtil;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,16 +30,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.time.Clock;
-import java.time.Duration;
 
 
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTestBase {
 
-    private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
-    private final DataPlaneInstanceStatements statements = new PostgresDataPlaneInstanceStatements(leaseStatements, Clock.systemUTC());
-    private LeaseUtil leaseUtil;
+    private final DataPlaneInstanceStatements statements = new PostgresDataPlaneInstanceStatements(Clock.systemUTC());
     private SqlDataPlaneInstanceStore store;
 
     @BeforeEach
@@ -51,12 +44,8 @@ public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTe
         var typeManager = new JacksonTypeManager();
         typeManager.registerTypes(DataPlaneInstance.class);
 
-        var clock = Clock.systemUTC();
-
-        leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements.getDataPlaneInstanceTable(), leaseStatements, clock);
-        var leaseContextBuilder = SqlLeaseContextBuilderImpl.with(extension.getTransactionContext(), CONNECTOR_NAME, statements.getDataPlaneInstanceTable(), leaseStatements, clock, queryExecutor);
         store = new SqlDataPlaneInstanceStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), statements, leaseContextBuilder, typeManager.getMapper(), queryExecutor);
+                extension.getTransactionContext(), statements, typeManager.getMapper(), queryExecutor);
         var schema = TestUtils.getResourceFileContentAsString("dataplane-instance-schema.sql");
         extension.runQuery(schema);
     }
@@ -69,16 +58,6 @@ public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTe
     @Override
     protected DataPlaneInstanceStore getStore() {
         return store;
-    }
-
-    @Override
-    protected void leaseEntity(String entityId, String owner, Duration duration) {
-        leaseUtil.leaseEntity(entityId, owner, duration);
-    }
-
-    @Override
-    protected boolean isLeasedBy(String entityId, String owner) {
-        return leaseUtil.isLeased(entityId, owner);
     }
 
 }
