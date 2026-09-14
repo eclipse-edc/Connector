@@ -83,10 +83,10 @@ class ContractNegotiationEventDispatchTest {
             .id("participantContextId")
             .identity("participantId")
             .build();
+    private final ProtocolRemoteMessageDispatcher dspDispatcher = mock();
     protected DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
     protected ParticipantIdentityResolver identityResolver = mock();
     protected ProtocolWebhookResolver protocolWebhookResolver = mock();
-    private final ProtocolRemoteMessageDispatcher dspDispatcher = mock();
 
     @BeforeEach
     void setUp(RuntimeExtension extension) {
@@ -133,7 +133,9 @@ class ContractNegotiationEventDispatchTest {
                 .build();
         contractDefinitionStore.save(contractDefinition);
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
-        assetIndex.create(Asset.Builder.newInstance().id("assetId").dataAddress(DataAddress.Builder.newInstance().type("any").build()).build());
+        assetIndex.create(Asset.Builder.newInstance().id("assetId")
+                .participantContextId("participantContextId")
+                .dataAddress(DataAddress.Builder.newInstance().type("any").build()).build());
 
         service.notifyRequested(participantContext, createContractOfferRequest(policy, "assetId"), tokenRepresentation);
 

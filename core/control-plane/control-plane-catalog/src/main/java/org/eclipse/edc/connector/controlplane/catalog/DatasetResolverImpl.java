@@ -97,7 +97,7 @@ public class DatasetResolverImpl implements DatasetResolver {
         }
 
         return Optional.of(id)
-                .map(assetIndex::findById)
+                .map(assetId -> assetIndex.findById(participantContext.getId(), assetId))
                 .map(asset -> toDataset(contractDefinitions, asset, resolved.policies(), protocol))
                 .filter(Dataset::hasOffers)
                 .orElse(null);

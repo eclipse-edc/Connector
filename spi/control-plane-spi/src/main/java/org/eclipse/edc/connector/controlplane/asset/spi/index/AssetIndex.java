@@ -25,6 +25,8 @@ import org.eclipse.edc.spi.result.StoreResult;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
+
 /**
  * Query interface for {@link Asset} objects.
  * <br>
@@ -60,6 +62,23 @@ public interface AssetIndex extends DataAddressResolver {
      * @throws NullPointerException If {@code assetId} was null or empty.
      */
     Asset findById(String assetId);
+
+    /**
+     * Fetches the {@link Asset} with the given ID, scoped to the given participant context. An asset that exists but
+     * belongs to a different participant context is not returned.
+     *
+     * @param participantContextId The ID of the {@link org.eclipse.edc.participantcontext.spi.types.ParticipantContext} that owns the asset.
+     * @param assetId              A String that represents the Asset ID.
+     * @return The {@link Asset} if one was found within the participant context, or null otherwise.
+     */
+    default Asset findById(String participantContextId, String assetId) {
+        var query = queryByParticipantContextId(participantContextId)
+                .filter(new Criterion("id", "=", assetId))
+                .build();
+        try (var assets = queryAssets(query)) {
+            return assets.findFirst().orElse(null);
+        }
+    }
 
     /**
      * Stores a {@link Asset} in the asset index, if no asset with the same ID already exists.

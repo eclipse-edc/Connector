@@ -51,6 +51,7 @@ import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE_TERM;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -176,14 +177,22 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
                                          @SchemaType(value = EDC_POLICY_DEFINITION_TYPE_TERM, version = "v4") JsonObject input,
                                          @Context SecurityContext securityContext) {
 
-        authorizationService.authorize(securityContext, participantContextId, id, PolicyDefinition.class)
-                .orElseThrow(exceptionMapper(PolicyDefinition.class, id));
-
-        var policyDefinition = typeTransformerRegistry.transform(input, PolicyDefinition.class)
+        var policyDefinitionBuilder = typeTransformerRegistry.transform(input, PolicyDefinition.class)
                 .orElseThrow(InvalidRequestException::new)
                 .toBuilder()
-                .participantContextId(participantContextId)
-                .build();
+                .participantContextId(participantContextId);
+
+        if (!input.containsKey(ID)) {
+            policyDefinitionBuilder.id(id);
+        }
+
+        var policyDefinition = policyDefinitionBuilder.build();
+        if (!id.equals(policyDefinition.getId())) {
+            throw new InvalidRequestException("Policy definition id in the request body (%s) does not match the one in the path (%s)".formatted(policyDefinition.getId(), id));
+        }
+
+        authorizationService.authorize(securityContext, participantContextId, policyDefinition.getId(), PolicyDefinition.class)
+                .orElseThrow(exceptionMapper(PolicyDefinition.class, id));
 
         policyDefinitionService.update(policyDefinition)
                 .onSuccess(d -> monitor.debug(format("Policy Definition updated %s", d.getId())))

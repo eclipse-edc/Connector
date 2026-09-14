@@ -135,6 +135,37 @@ public abstract class AssetIndexTestBase {
     }
 
     @Nested
+    class FindByIdAndParticipantContextId {
+
+        @Test
+        void shouldReturnAsset_whenItBelongsToTheParticipantContext() {
+            var asset = createAsset("id1");
+            getAssetIndex().create(asset);
+
+            var found = getAssetIndex().findById("participantContextId", "id1");
+
+            assertThat(found).isNotNull().usingRecursiveComparison().isEqualTo(asset);
+        }
+
+        @Test
+        void shouldReturnNull_whenAssetBelongsToAnotherParticipantContext() {
+            var asset = createAssetBuilder("id1").participantContextId("anotherParticipantContextId").build();
+            getAssetIndex().create(asset);
+
+            var found = getAssetIndex().findById("participantContextId", "id1");
+
+            assertThat(found).isNull();
+        }
+
+        @Test
+        void shouldReturnNull_whenAssetDoesNotExist() {
+            var found = getAssetIndex().findById("participantContextId", "id1");
+
+            assertThat(found).isNull();
+        }
+    }
+
+    @Nested
     class DeleteById {
 
         @Test

@@ -57,7 +57,7 @@ public class TransferProcessProviderFactory {
      */
     public ServiceResult<TransferProcess> create(ParticipantContext participantContext, TransferRequestMessage message,
                                                  ContractAgreement contractAgreement, ParticipantAgent participantAgent) {
-        var asset = assetIndex.findById(contractAgreement.getAssetId());
+        var asset = assetIndex.findById(participantContext.getId(), contractAgreement.getAssetId());
         if (asset == null) {
             return ServiceResult.badRequest("Asset " + contractAgreement.getAssetId() + " not found");
         }

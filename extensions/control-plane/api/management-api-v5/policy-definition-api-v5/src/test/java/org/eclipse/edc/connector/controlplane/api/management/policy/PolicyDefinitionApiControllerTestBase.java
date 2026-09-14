@@ -55,6 +55,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -457,7 +458,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
     class Update {
         @Test
         void update_shouldCallService() {
-            var policyDefinition = createPolicyDefinition().build();
+            var policyDefinition = createPolicyDefinition().id("id").build();
             when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
             when(service.update(any())).thenReturn(ServiceResult.success(policyDefinition));
             var requestBody = Json.createObjectBuilder()
@@ -476,6 +477,55 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
                     .statusCode(204);
             verify(transformerRegistry).transform(isA(JsonObject.class), eq(PolicyDefinition.class));
             verify(service).update(policyDefinition);
+        }
+
+        @Test
+        void update_shouldAuthorizeOnTheBodyId() {
+            var policyDefinition = createPolicyDefinition().id("id").build();
+            when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
+            when(service.update(any())).thenReturn(ServiceResult.success(policyDefinition));
+
+            baseRequest(participantContextId)
+                    .body(createObjectBuilder().add(ID, "id").add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM).build())
+                    .contentType(JSON)
+                    .put("/policydefinitions/id")
+                    .then()
+                    .statusCode(204);
+
+            verify(authorizationService).authorize(any(), eq(participantContextId), eq("id"), eq(PolicyDefinition.class));
+        }
+
+        @Test
+        void update_shouldUsePathId_whenBodyHasNoId() {
+            var policyDefinition = createPolicyDefinition().id("generated-id").build();
+            when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
+            when(service.update(any())).thenAnswer(i -> ServiceResult.success(i.getArgument(0)));
+
+            baseRequest(participantContextId)
+                    .body(createObjectBuilder().add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM).build())
+                    .contentType(JSON)
+                    .put("/policydefinitions/id")
+                    .then()
+                    .statusCode(204);
+
+            verify(authorizationService).authorize(any(), eq(participantContextId), eq("id"), eq(PolicyDefinition.class));
+            verify(service).update(argThat(it -> it.getId().equals("id")));
+        }
+
+        @Test
+        void update_shouldReturnBadRequest_whenBodyIdDoesNotMatchPathId() {
+            var policyDefinition = createPolicyDefinition().id("another-participant-policy").build();
+            when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
+
+            baseRequest(participantContextId)
+                    .body(createObjectBuilder().add(ID, "another-participant-policy").add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM).build())
+                    .contentType(JSON)
+                    .put("/policydefinitions/id")
+                    .then()
+                    .statusCode(400);
+
+            verifyNoInteractions(service);
+            verify(authorizationService, never()).authorize(any(), any(), any(), any());
         }
 
         @Test
@@ -500,7 +550,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
 
         @Test
         void update_shouldReturnNotFound_whenNotFound() {
-            var policyDefinition = createPolicyDefinition().build();
+            var policyDefinition = createPolicyDefinition().id("id").build();
             when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
             when(service.update(any())).thenReturn(ServiceResult.notFound("not found"));
             var requestBody = Json.createObjectBuilder()
@@ -521,14 +571,19 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
 
         @Test
         void update_authorizationFailed() {
+            var policyDefinition = createPolicyDefinition().id("id").build();
+            when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
             when(authorizationService.authorize(any(), any(), any(), any()))
                     .thenReturn(ServiceResult.unauthorized("unauthorized"));
 
             baseRequest(participantContextId)
+                    .body(createObjectBuilder().add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM).build())
                     .contentType(JSON)
                     .put("/policydefinitions/id")
                     .then()
                     .statusCode(403);
+
+            verifyNoInteractions(service);
         }
     }
 

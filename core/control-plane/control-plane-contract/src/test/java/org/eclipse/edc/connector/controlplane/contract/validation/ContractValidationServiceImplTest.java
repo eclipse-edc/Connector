@@ -50,6 +50,7 @@ import static java.time.Instant.MIN;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -58,6 +59,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -66,6 +68,7 @@ class ContractValidationServiceImplTest {
 
     private static final String CONSUMER_ID = "consumer";
     private static final String PROVIDER_ID = "provider";
+    private static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
 
     private final Instant now = Instant.now();
 
@@ -79,6 +82,7 @@ class ContractValidationServiceImplTest {
     private static ContractDefinition.Builder createContractDefinitionBuilder() {
         return ContractDefinition.Builder.newInstance()
                 .id("1")
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .accessPolicyId("access")
                 .contractPolicyId("contract");
     }
@@ -95,7 +99,7 @@ class ContractValidationServiceImplTest {
         var newPolicy = Policy.Builder.newInstance().target("1").build();
         var asset = Asset.Builder.newInstance().id("1").build();
 
-        when(assetIndex.findById("1")).thenReturn(asset);
+        when(assetIndex.findById(PARTICIPANT_CONTEXT_ID, "1")).thenReturn(asset);
         when(policyEngine.evaluate(any(), isA(CatalogPolicyContext.class))).thenReturn(Result.success());
         when(policyEngine.evaluate(any(), isA(ContractNegotiationPolicyContext.class))).thenReturn(Result.success());
 
@@ -105,7 +109,8 @@ class ContractValidationServiceImplTest {
 
         assertThat(result.succeeded()).isTrue();
 
-        verify(assetIndex).findById("1");
+        verify(assetIndex).findById(PARTICIPANT_CONTEXT_ID, "1");
+        verify(assetIndex).countAssets(argThat(criteria -> criteria.contains(filterByParticipantContextId(PARTICIPANT_CONTEXT_ID))));
         verify(policyEngine).evaluate(
                 eq(newPolicy),
                 and(isA(CatalogPolicyContext.class), argThat(c -> c.participantAgent().equals(participantAgent)))
@@ -272,12 +277,48 @@ class ContractValidationServiceImplTest {
         var participantAgent = new ParticipantAgent(CONSUMER_ID, emptyMap(), emptyMap());
 
         when(policyEngine.evaluate(any(), isA(CatalogPolicyContext.class))).thenReturn(Result.success());
-        when(assetIndex.findById(anyString())).thenReturn(Asset.Builder.newInstance().build());
+        when(assetIndex.findById(anyString(), anyString())).thenReturn(Asset.Builder.newInstance().build());
         when(assetIndex.countAssets(anyList())).thenReturn(0L);
 
         var result = validationService.validateInitialOffer(participantAgent, validatableOffer);
 
         assertThat(result).isFailed().detail().isEqualTo("Asset ID from the ContractOffer is not included in the ContractDefinition");
+    }
+
+    @Test
+    void validateInitialOffer_shouldFail_whenAssetBelongsToAnotherParticipantContext() {
+        var validatableOffer = createValidatableConsumerOffer();
+        var participantAgent = new ParticipantAgent(CONSUMER_ID, emptyMap(), emptyMap());
+
+        when(policyEngine.evaluate(any(), isA(CatalogPolicyContext.class))).thenReturn(Result.success());
+        when(assetIndex.findById(anyString(), anyString())).thenReturn(null);
+
+        var result = validationService.validateInitialOffer(participantAgent, validatableOffer);
+
+        assertThat(result).isFailed().detail().startsWith("Invalid target");
+        verify(assetIndex).findById(PARTICIPANT_CONTEXT_ID, validatableOffer.getOfferId().assetIdPart());
+        verify(assetIndex, never()).countAssets(anyList());
+        verify(policyEngine, never()).evaluate(any(), isA(ContractNegotiationPolicyContext.class));
+    }
+
+    @Test
+    void validateInitialOffer_shouldFail_whenContractDefinitionHasNoParticipantContext() {
+        var contractDefinition = ContractDefinition.Builder.newInstance().id("1").accessPolicyId("access").contractPolicyId("contract").build();
+        var validatableOffer = ValidatableConsumerOffer.Builder.newInstance()
+                .offerId(ContractOfferId.create("1", "assetId"))
+                .contractDefinition(contractDefinition)
+                .accessPolicy(createPolicy())
+                .contractPolicy(createPolicy())
+                .build();
+        var participantAgent = new ParticipantAgent(CONSUMER_ID, emptyMap(), emptyMap());
+
+        when(policyEngine.evaluate(any(), isA(CatalogPolicyContext.class))).thenReturn(Result.success());
+
+        var result = validationService.validateInitialOffer(participantAgent, validatableOffer);
+
+        assertThat(result).isFailed().detail().contains("not associated to any participant context");
+        verify(assetIndex, never()).findById(any(), any());
+        verify(assetIndex, never()).countAssets(anyList());
     }
 
     @Test
@@ -288,7 +329,7 @@ class ContractValidationServiceImplTest {
 
         when(policyEngine.evaluate(any(), isA(CatalogPolicyContext.class))).thenReturn(Result.success());
         when(policyEngine.evaluate(any(), isA(ContractNegotiationPolicyContext.class))).thenReturn(Result.failure("evaluation failure"));
-        when(assetIndex.findById(anyString())).thenReturn(Asset.Builder.newInstance().build());
+        when(assetIndex.findById(anyString(), anyString())).thenReturn(Asset.Builder.newInstance().build());
         when(assetIndex.countAssets(anyList())).thenReturn(1L);
 
         var result = validationService.validateInitialOffer(participantAgent, validatableOffer);
