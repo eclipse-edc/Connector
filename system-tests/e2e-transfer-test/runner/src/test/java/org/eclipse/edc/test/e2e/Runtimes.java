@@ -94,5 +94,11 @@ public interface Runtimes {
         static Config config() {
             return ConfigFactory.fromMap(Map.of("dataplane.id", UUID.randomUUID().toString()));
         }
+
+        static Config config(String authorizationJwksUri) {
+            return ConfigFactory.fromMap(Map.of(
+                    "dataplane.id", UUID.randomUUID().toString(),
+                    "dataplane.authorization.jwks.uri", authorizationJwksUri));
+        }
     }
 }
