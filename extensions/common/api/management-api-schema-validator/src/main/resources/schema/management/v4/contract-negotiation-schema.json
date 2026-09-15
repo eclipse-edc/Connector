@@ -65,6 +65,9 @@
         "assetId": {
           "type": "string"
         },
+        "policy": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/policy-definition-schema.json#/definitions/PolicyClass"
+        },
         "contractAgreementId": {
           "type": "string"
         }

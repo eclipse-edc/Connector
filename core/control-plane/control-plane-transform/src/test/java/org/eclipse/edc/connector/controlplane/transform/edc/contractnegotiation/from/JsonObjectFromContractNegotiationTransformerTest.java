@@ -36,6 +36,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_COUNTERPARTY_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_CREATED_AT;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_NEG_TYPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_POLICY;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_PROFILE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_STATE;
@@ -54,6 +55,7 @@ class JsonObjectFromContractNegotiationTransformerTest {
     @Test
     void transform() {
         when(context.transform(any(CallbackAddress.class), eq(JsonObject.class))).thenReturn(Json.createObjectBuilder().build());
+        when(context.transform(any(Policy.class), eq(JsonObject.class))).thenReturn(Json.createObjectBuilder().add("@type", "Offer").build());
         var co = createContractOffer("asset-id");
         var cn = ContractNegotiation.Builder.newInstance()
                 .id("test-id")
@@ -85,7 +87,24 @@ class JsonObjectFromContractNegotiationTransformerTest {
         assertThat(jsonObject.getString(CONTRACT_NEGOTIATION_PROFILE)).isEqualTo("protocol");
         assertThat(jsonObject.getString(CONTRACT_NEGOTIATION_CORRELATION_ID)).isEqualTo(cn.getCorrelationId());
         assertThat(jsonObject.getString(CONTRACT_NEGOTIATION_ASSET_ID)).isEqualTo(co.getAssetId());
+        assertThat(jsonObject.getJsonObject(CONTRACT_NEGOTIATION_POLICY).getString("@type")).isEqualTo("Offer");
         assertThat(jsonObject.getJsonNumber(CONTRACT_NEGOTIATION_CREATED_AT).longValue()).isEqualTo(1234);
+    }
+
+    @Test
+    void transform_shouldNotAddPolicy_whenNoContractOffer() {
+        when(context.transform(any(CallbackAddress.class), eq(JsonObject.class))).thenReturn(Json.createObjectBuilder().build());
+        var cn = ContractNegotiation.Builder.newInstance()
+                .id("test-id")
+                .counterPartyId("counter-party-id")
+                .counterPartyAddress("address")
+                .state(REQUESTED.code())
+                .protocol("protocol")
+                .build();
+
+        var jsonObject = transformer.transform(cn, context);
+
+        assertThat(jsonObject).isNotNull().doesNotContainKeys(CONTRACT_NEGOTIATION_ASSET_ID, CONTRACT_NEGOTIATION_POLICY);
     }
 
     private ContractOffer createContractOffer(String assetId) {
