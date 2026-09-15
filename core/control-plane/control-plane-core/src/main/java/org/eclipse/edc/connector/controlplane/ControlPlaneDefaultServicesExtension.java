@@ -110,7 +110,7 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public DataPlaneInstanceStore instanceStore() {
-        return new InMemoryDataPlaneInstanceStore(clock, criterionOperatorRegistry);
+        return new InMemoryDataPlaneInstanceStore(criterionOperatorRegistry);
     }
 
     @Provider(isDefault = true)

@@ -19,27 +19,18 @@ import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneIn
 import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.store.sql.schema.DataPlaneInstanceStatements;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
-import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilder;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.lang.String.format;
-import static java.util.stream.Collectors.toList;
 
 /**
  * SQL store implementation of {@link DataPlaneInstanceStore}
@@ -47,15 +38,12 @@ import static java.util.stream.Collectors.toList;
 public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataPlaneInstanceStore {
 
     private final DataPlaneInstanceStatements statements;
-    private final SqlLeaseContextBuilder leaseContext;
 
     public SqlDataPlaneInstanceStore(DataSourceRegistry dataSourceRegistry, String dataSourceName,
                                      TransactionContext transactionContext, DataPlaneInstanceStatements statements,
-                                     SqlLeaseContextBuilder leaseContext,
                                      ObjectMapper objectMapper, QueryExecutor queryExecutor) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
         this.statements = statements;
-        this.leaseContext = leaseContext;
     }
 
     @Override
@@ -89,42 +77,6 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
         });
     }
 
-    @Override
-    public @NotNull List<DataPlaneInstance> nextNotLeased(int max, Criterion... criteria) {
-        return transactionContext.execute(() -> {
-            var filter = Arrays.stream(criteria).collect(toList());
-            var querySpec = QuerySpec.Builder.newInstance().filter(filter).limit(max).build();
-            var statement = statements.createNextNotLeaseQuery(querySpec);
-            try (
-                    var connection = getConnection();
-                    var stream = queryExecutor.query(connection, true, this::mapResultSet, statement.getQueryAsString(), statement.getParameters())
-            ) {
-                return stream.filter(entry -> lease(connection, entry))
-                        .collect(Collectors.toList());
-            } catch (SQLException e) {
-                throw new EdcPersistenceException(e);
-            }
-        });
-    }
-
-    private boolean lease(Connection connection, DataPlaneInstance entry) {
-        return leaseContext.withConnection(connection).acquireLease(entry.getId()).succeeded();
-    }
-
-    @Override
-    public StoreResult<DataPlaneInstance> findByIdAndLease(String id) {
-        return transactionContext.execute(() -> {
-            try (var connection = getConnection()) {
-                var entity = findByIdInternal(connection, id);
-                if (entity == null) {
-                    return StoreResult.notFound(format("DataPlaneInstance %s not found", id));
-                }
-                return leaseContext.withConnection(connection).acquireLease(entity.getId()).map(it -> entity);
-            } catch (SQLException e) {
-                throw new EdcPersistenceException(e);
-            }
-        });
-    }
 
     @Override
     public StoreResult<Void> save(DataPlaneInstance entity) {
@@ -132,18 +84,7 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
             try (var connection = getConnection()) {
                 var sql = statements.getUpsertTemplate();
                 queryExecutor.execute(connection, sql, entity.getId(), toJson(entity));
-                return leaseContext.withConnection(connection).breakLease(entity.getId());
-            } catch (SQLException e) {
-                throw new EdcPersistenceException(e);
-            }
-        });
-    }
-
-    @Override
-    public StoreResult<Void> breakLease(DataPlaneInstance entity) {
-        return transactionContext.execute(() -> {
-            try (var connection = getConnection()) {
-                return leaseContext.withConnection(connection).breakLease(entity.getId());
+                return StoreResult.success();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

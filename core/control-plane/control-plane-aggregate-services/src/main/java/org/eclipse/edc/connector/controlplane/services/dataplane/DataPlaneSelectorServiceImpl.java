@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.controlplane.dataplane.spi.strategy.SelectionSt
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.util.List;
@@ -109,13 +108,12 @@ public class DataPlaneSelectorServiceImpl implements DataPlaneSelectorService {
     @Override
     public ServiceResult<Void> unregister(String instanceId) {
         return transactionContext.execute(() -> {
-            StoreResult<Void> operation = store.findByIdAndLease(instanceId)
-                    .map(it -> {
-                        it.transitionToUnregistered();
-                        store.save(it);
-                        return null;
-                    });
-
+            var instance = store.findById(instanceId);
+            if (instance == null) {
+                return ServiceResult.notFound("Data Plane instance with id %s not found".formatted(instanceId));
+            }
+            instance.transitionToUnregistered();
+            var operation = store.save(instance);
             return ServiceResult.from(operation);
         });
     }

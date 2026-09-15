@@ -15,47 +15,57 @@
 package org.eclipse.edc.connector.controlplane.defaults.storage.dataplane;
 
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
+import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.store.InMemoryStatefulEntityStore;
+import org.eclipse.edc.store.ReflectionBasedQueryResolver;
+import org.jetbrains.annotations.Nullable;
 
-import java.time.Clock;
-import java.util.UUID;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 /**
  * Default (=in-memory) implementation for the {@link DataPlaneInstanceStore}.
  */
-public class InMemoryDataPlaneInstanceStore extends InMemoryStatefulEntityStore<DataPlaneInstance> implements DataPlaneInstanceStore {
+public class InMemoryDataPlaneInstanceStore implements DataPlaneInstanceStore {
 
-    public InMemoryDataPlaneInstanceStore(Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
-        this(UUID.randomUUID().toString(), clock, criterionOperatorRegistry);
+    private final Map<String, DataPlaneInstance> dataplaneInstances = new ConcurrentHashMap<>();
+    private final QueryResolver<DataPlaneInstance> queryResolver;
+
+    public InMemoryDataPlaneInstanceStore(CriterionOperatorRegistry criterionOperatorRegistry) {
+        queryResolver = new ReflectionBasedQueryResolver<>(DataPlaneInstance.class, criterionOperatorRegistry);
     }
 
-    public InMemoryDataPlaneInstanceStore(String owner, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
-        super(DataPlaneInstance.class, owner, clock, criterionOperatorRegistry, state -> DataPlaneInstanceStates.valueOf(state).code());
+    @Override
+    public @Nullable DataPlaneInstance findById(String id) {
+        return dataplaneInstances.get(id);
+    }
+
+    @Override
+    public StoreResult<Void> save(DataPlaneInstance entity) {
+        dataplaneInstances.put(entity.getId(), entity);
+        return StoreResult.success();
     }
 
     @Override
     public StoreResult<DataPlaneInstance> deleteById(String instanceId) {
-        var instance = findById(instanceId);
-        if (instance == null) {
+        var old = dataplaneInstances.remove(instanceId);
+        if (old == null) {
             return StoreResult.notFound("Data plane instance %s not found".formatted(instanceId));
         }
-        delete(instanceId);
-        return StoreResult.success(instance);
+        return StoreResult.success(old);
     }
 
     @Override
     public Stream<DataPlaneInstance> getAll() {
-        return findAll();
+        return dataplaneInstances.values().stream();
     }
 
     @Override
     public Stream<DataPlaneInstance> query(QuerySpec querySpec) {
-        return findAll(querySpec);
+        return queryResolver.query(dataplaneInstances.values().stream(), querySpec);
     }
 }

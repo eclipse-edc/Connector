@@ -23,7 +23,6 @@ import org.eclipse.edc.connector.controlplane.dataplane.spi.strategy.SelectionSt
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Nested;
@@ -37,7 +36,6 @@ import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.Data
 import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstanceStates.UNREGISTERED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
-import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -57,14 +55,6 @@ public class DataPlaneSelectorServiceImplTest {
         return DataPlaneInstance.Builder.newInstance()
                 .id(id)
                 .url("http://any");
-    }
-
-    private DataAddress createAddress(String type) {
-        return DataAddress.Builder.newInstance()
-                .type(type)
-                .keyName("key-name")
-                .property("someprop", "someval")
-                .build();
     }
 
     @Nested
@@ -251,7 +241,8 @@ public class DataPlaneSelectorServiceImplTest {
         @Test
         void shouldUnregisterInstance() {
             var instance = DataPlaneInstance.Builder.newInstance().url("http://any").build();
-            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(instance));
+            when(store.findById(any())).thenReturn(instance);
+            when(store.save(any())).thenReturn(StoreResult.success());
 
             var result = service.unregister(UUID.randomUUID().toString());
 
@@ -260,12 +251,12 @@ public class DataPlaneSelectorServiceImplTest {
         }
 
         @Test
-        void shouldFail_whenLeaseFails() {
-            when(store.findByIdAndLease(any())).thenReturn(StoreResult.alreadyLeased("already leased"));
+        void shouldFail_whenNotFound() {
+            when(store.findById(any())).thenReturn(null);
 
             var result = service.unregister(UUID.randomUUID().toString());
 
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
             verify(store, never()).save(any());
         }
     }

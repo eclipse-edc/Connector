@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.dataplane.selector.store.sql.schema;
 
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
@@ -26,12 +25,10 @@ import static java.lang.String.format;
 public class BaseSqlDataPlaneInstanceStatements implements DataPlaneInstanceStatements {
 
     protected final SqlOperatorTranslator operatorTranslator;
-    protected final LeaseStatements leaseStatements;
     protected final Clock clock;
 
-    public BaseSqlDataPlaneInstanceStatements(SqlOperatorTranslator operatorTranslator, LeaseStatements leaseStatements, Clock clock) {
+    public BaseSqlDataPlaneInstanceStatements(SqlOperatorTranslator operatorTranslator, Clock clock) {
         this.operatorTranslator = operatorTranslator;
-        this.leaseStatements = leaseStatements;
         this.clock = clock;
     }
 
@@ -67,18 +64,6 @@ public class BaseSqlDataPlaneInstanceStatements implements DataPlaneInstanceStat
     @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
         return new SqlQueryStatement(getSelectTemplate(), querySpec, new DataPlaneInstanceMapping(this), operatorTranslator);
-    }
-
-    @Override
-    public SqlQueryStatement createNextNotLeaseQuery(QuerySpec querySpec) {
-        var queryTemplate = "%s LEFT JOIN %s l ON %s.%s = l.%s".formatted(getSelectTemplate(), leaseStatements.getLeaseTableName(), getDataPlaneInstanceTable(), getIdColumn(), leaseStatements.getResourceIdColumn());
-        return new SqlQueryStatement(queryTemplate, querySpec, new DataPlaneInstanceMapping(this), operatorTranslator)
-                .addWhereClause(getNotLeasedFilter(), clock.millis(), getDataPlaneInstanceTable());
-    }
-
-    private String getNotLeasedFilter() {
-        return format("(l.%s IS NULL OR (? > (%s + %s) AND ? = l.%s))",
-                leaseStatements.getResourceIdColumn(), leaseStatements.getLeasedAtColumn(), leaseStatements.getLeaseDurationColumn(), leaseStatements.getResourceKindColumn());
     }
 
 }
