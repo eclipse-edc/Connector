@@ -176,8 +176,10 @@ public class DspTransferApi2025EndToEndTest {
                         .providerId("any")
                         .consumerId("any")
                         .assetId("any")
+                        .participantContextId("anonymous")
                         .policy(Policy.Builder.newInstance().build())
                         .build())
+                .participantContextId("anonymous")
                 .build();
     }
 

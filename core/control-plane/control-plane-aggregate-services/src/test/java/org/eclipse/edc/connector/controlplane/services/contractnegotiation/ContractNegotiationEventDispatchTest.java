@@ -132,7 +132,7 @@ class ContractNegotiationEventDispatchTest {
                 .participantContextId("participantContextId")
                 .build();
         contractDefinitionStore.save(contractDefinition);
-        policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
+        policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).participantContextId("participantContextId").build());
         assetIndex.create(Asset.Builder.newInstance().id("assetId")
                 .participantContextId("participantContextId")
                 .dataAddress(DataAddress.Builder.newInstance().type("any").build()).build());

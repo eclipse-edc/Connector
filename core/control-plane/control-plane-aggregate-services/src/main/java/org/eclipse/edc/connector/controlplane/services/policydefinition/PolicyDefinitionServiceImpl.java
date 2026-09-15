@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Map;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore.POLICY_NOT_FOUND;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
@@ -84,18 +86,24 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
     @Override
     public @NotNull ServiceResult<PolicyDefinition> deleteById(String policyId) {
         return transactionContext.execute(() -> {
+            var policyDefinition = policyStore.findById(policyId);
+            if (policyDefinition == null) {
+                return ServiceResult.notFound(format(POLICY_NOT_FOUND, policyId));
+            }
 
+            // only contract definitions of the same participant context can reference the policy
+            var participantFilter = filterByParticipantContextId(policyDefinition.getParticipantContextId());
             var contractFilter = criterion("contractPolicyId", "=", policyId);
             var accessFilter = criterion("accessPolicyId", "=", policyId);
 
-            var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(contractFilter).build();
+            var queryContractPolicyFilter = QuerySpec.Builder.newInstance().filter(contractFilter).filter(participantFilter).build();
             try (var contractDefinitionOnPolicy = contractDefinitionStore.findAll(queryContractPolicyFilter)) {
                 if (contractDefinitionOnPolicy.findAny().isPresent()) {
                     return ServiceResult.conflict(format("PolicyDefinition %s cannot be deleted as it is referenced by at least one contract definition", policyId));
                 }
             }
 
-            var queryAccessPolicyFilter = QuerySpec.Builder.newInstance().filter(accessFilter).build();
+            var queryAccessPolicyFilter = QuerySpec.Builder.newInstance().filter(accessFilter).filter(participantFilter).build();
             try (var accessDefinitionOnPolicy = contractDefinitionStore.findAll(queryAccessPolicyFilter)) {
                 if (accessDefinitionOnPolicy.findAny().isPresent()) {
                     return ServiceResult.conflict(format("PolicyDefinition %s cannot be deleted as it is referenced by at least one contract definition", policyId));

@@ -43,6 +43,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -169,6 +170,37 @@ public abstract class CelExpressionApiControllerTestBase extends RestControllerT
                     .statusCode(204);
             verify(transformerRegistry).transform(isA(JsonObject.class), eq(CelExpression.class));
             verify(service).update(expr);
+        }
+
+        @Test
+        void update_shouldUsePathId_whenBodyHasNoId() {
+            var expr = celExpression();
+            when(transformerRegistry.transform(any(), eq(CelExpression.class))).thenReturn(Result.success(expr));
+            when(service.update(any())).thenReturn(ServiceResult.success());
+
+            baseRequest()
+                    .body(createObjectBuilder().add(TYPE, "CelExpression").build())
+                    .contentType(JSON)
+                    .put("/celexpressions/" + expr.getId())
+                    .then()
+                    .statusCode(204);
+
+            verify(transformerRegistry).transform(argThat((JsonObject json) -> expr.getId().equals(json.getString(ID))), eq(CelExpression.class));
+        }
+
+        @Test
+        void update_shouldReturnBadRequest_whenBodyIdDoesNotMatchPathId() {
+            var expr = celExpression();
+            when(transformerRegistry.transform(any(), eq(CelExpression.class))).thenReturn(Result.success(expr));
+
+            baseRequest()
+                    .body(createObjectBuilder().add(ID, expr.getId()).add(TYPE, "CelExpression").build())
+                    .contentType(JSON)
+                    .put("/celexpressions/another-expression")
+                    .then()
+                    .statusCode(400);
+
+            verifyNoInteractions(service);
         }
 
         @Test

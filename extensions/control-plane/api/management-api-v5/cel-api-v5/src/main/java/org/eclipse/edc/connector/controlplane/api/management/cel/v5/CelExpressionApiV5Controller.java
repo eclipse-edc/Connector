@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.api.management.cel.v5;
 
 
+import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
@@ -40,6 +41,7 @@ import org.eclipse.edc.web.spi.validation.SchemaType;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_TYPE_TERM;
 import static org.eclipse.edc.policy.cel.model.CelExpressionTestRequest.CEL_EXPRESSION_TEST_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
@@ -115,8 +117,12 @@ public class CelExpressionApiV5Controller implements CelExpressionApiV5 {
     @Override
     public void updateExpressionV5(@PathParam("id") String id, @SchemaType(value = CEL_EXPRESSION_TYPE_TERM, version = "v5") JsonObject expression) {
 
-        var expr = transformerRegistry.transform(expression, CelExpression.class)
+        var expr = transformerRegistry.transform(withPathId(expression, id), CelExpression.class)
                 .orElseThrow(InvalidRequestException::new);
+
+        if (!id.equals(expr.getId())) {
+            throw new InvalidRequestException("CEL expression id in the request body (%s) does not match the one in the path (%s)".formatted(expr.getId(), id));
+        }
 
         service.update(expr)
                 .orElseThrow(exceptionMapper(CelExpression.class, id));
@@ -151,5 +157,12 @@ public class CelExpressionApiV5Controller implements CelExpressionApiV5 {
     public void deleteExpressionV5(@PathParam("id") String id) {
         service.delete(id)
                 .orElseThrow(exceptionMapper(ParticipantContext.class, id));
+    }
+
+    /**
+     * Uses the id from the path when the request body carries none, so that a PUT on a resource path updates that resource.
+     */
+    private static JsonObject withPathId(JsonObject request, String id) {
+        return request.containsKey(ID) ? request : Json.createObjectBuilder(request).add(ID, id).build();
     }
 }

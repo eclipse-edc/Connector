@@ -841,6 +841,23 @@ public class AssetApiV5EndToEndTest {
         }
 
         @Test
+        void deleteAsset_tokenLacksRequiredScope(ManagementEndToEndV5TestContext context, AssetIndex assetIndex,
+                                                 OauthServer authServer) {
+            var asset = createAsset().build();
+            assetIndex.create(asset);
+
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:read"));
+
+            context.baseRequest(token)
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + asset.getId())
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(403);
+
+            assertThat(assetIndex.findById(asset.getId())).isNotNull();
+        }
+
+        @Test
         void deleteAsset(ManagementEndToEndV5TestContext context, AssetIndex assetIndex) {
             var asset = createAsset().build();
             assetIndex.create(asset);

@@ -141,7 +141,7 @@ public class DatasetResolverImpl implements DatasetResolver {
                 )
                 .forEach(contractDefinition -> {
                     var policy = policies.computeIfAbsent(contractDefinition.getContractPolicyId(), policyId ->
-                            Optional.ofNullable(policyDefinitionStore.findById(policyId))
+                            Optional.ofNullable(policyDefinitionStore.findById(contractDefinition.getParticipantContextId(), policyId))
                                     .map(PolicyDefinition::getPolicy)
                                     .orElse(null)
                     );

@@ -19,10 +19,14 @@ import org.eclipse.edc.connector.controlplane.contract.spi.definition.observe.Co
 import org.eclipse.edc.connector.controlplane.contract.spi.definition.observe.ContractDefinitionObservableImpl;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -37,6 +41,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,12 +58,13 @@ import static org.mockito.Mockito.when;
 class ContractDefinitionServiceImplTest {
 
     private final ContractDefinitionStore store = mock();
+    private final PolicyDefinitionStore policyDefinitionStore = mock();
     private final TransactionContext transactionContext = new NoopTransactionContext();
     private final ContractDefinitionObservable observable = new ContractDefinitionObservableImpl();
     private final ContractDefinitionListener listener = mock();
     private final QueryValidator queryValidator = mock();
 
-    private final ContractDefinitionService service = new ContractDefinitionServiceImpl(store, transactionContext, observable, queryValidator);
+    private final ContractDefinitionService service = new ContractDefinitionServiceImpl(store, policyDefinitionStore, transactionContext, observable, queryValidator);
 
     @BeforeEach
     void setUp() {
@@ -118,6 +124,43 @@ class ContractDefinitionServiceImplTest {
         assertThat(inserted.getContent()).matches(hasId(definition.getId()));
         verify(store).save(argThat(it -> definition.getId().equals(it.getId())));
         verify(listener).created(any());
+    }
+
+    @Test
+    void create_shouldCreateDefinition_whenReferencedPoliciesBelongToSameParticipantContext() {
+        var definition = createContractDefinition();
+        when(policyDefinitionStore.findById(definition.getAccessPolicyId())).thenReturn(policyDefinition("participantContextId"));
+        when(policyDefinitionStore.findById(definition.getContractPolicyId())).thenReturn(policyDefinition("participantContextId"));
+        when(store.save(definition)).thenReturn(StoreResult.success());
+
+        var inserted = service.create(definition);
+
+        assertThat(inserted).isSucceeded();
+        verify(store).save(definition);
+    }
+
+    @Test
+    void create_shouldFail_whenReferencedPolicyBelongsToAnotherParticipantContext() {
+        var definition = createContractDefinition();
+        when(policyDefinitionStore.findById(definition.getContractPolicyId())).thenReturn(policyDefinition("anotherParticipantContextId"));
+
+        var inserted = service.create(definition);
+
+        assertThat(inserted).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+        verify(store, never()).save(any());
+        verifyNoInteractions(listener);
+    }
+
+    @Test
+    void update_shouldFail_whenReferencedPolicyBelongsToAnotherParticipantContext() {
+        var definition = createContractDefinition();
+        when(policyDefinitionStore.findById(definition.getAccessPolicyId())).thenReturn(policyDefinition("anotherParticipantContextId"));
+
+        var updated = service.update(definition);
+
+        assertThat(updated).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+        verify(store, never()).update(any());
+        verifyNoInteractions(listener);
     }
 
     @Test
@@ -202,8 +245,17 @@ class ContractDefinitionServiceImplTest {
     private ContractDefinition createContractDefinition() {
         return ContractDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
+                .participantContextId("participantContextId")
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
+                .build();
+    }
+
+    private PolicyDefinition policyDefinition(String participantContextId) {
+        return PolicyDefinition.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .participantContextId(participantContextId)
+                .policy(Policy.Builder.newInstance().build())
                 .build();
     }
 }

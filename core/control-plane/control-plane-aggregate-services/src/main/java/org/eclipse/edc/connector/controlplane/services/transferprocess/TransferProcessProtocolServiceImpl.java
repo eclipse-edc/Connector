@@ -47,6 +47,7 @@ import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.function.Function;
@@ -165,7 +166,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "agreement not found or not valid"));
         }
 
-        var existingTransferProcess = transferProcessStore.findForCorrelationId(message.getConsumerPid());
+        var existingTransferProcess = findForCorrelationId(participantContext, message.getConsumerPid());
         if (existingTransferProcess != null) {
             return ServiceResult.success(existingTransferProcess);
         }
@@ -294,7 +295,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             return notFound(transferProcess.getId());
         }
 
-        var agreement = negotiationStore.findContractAgreement(transferProcess.getContractId());
+        var agreement = negotiationStore.findContractAgreement(participantContext.getId(), transferProcess.getContractId());
         if (agreement == null) {
             return ServiceResult.notFound(format("No transfer process with id %s found", transferProcess.getId()));
         }
@@ -332,6 +333,15 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                     return action.apply(transferProcess)
                             .onFailure(f -> transferProcessStore.breakLease(transferProcess));
                 });
+    }
+
+    private @Nullable TransferProcess findForCorrelationId(ParticipantContext participantContext, String correlationId) {
+        var query = queryByParticipantContextId(participantContext.getId())
+                .filter(Criterion.criterion("correlationId", "=", correlationId))
+                .build();
+        try (var stream = transferProcessStore.findAll(query)) {
+            return stream.findFirst().orElse(null);
+        }
     }
 
     private ContractAgreement findAgreement(ParticipantContext participantContext, String contractId) {

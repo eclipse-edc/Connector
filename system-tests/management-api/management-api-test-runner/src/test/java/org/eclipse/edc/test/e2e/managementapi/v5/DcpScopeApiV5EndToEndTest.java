@@ -200,6 +200,23 @@ public class DcpScopeApiV5EndToEndTest {
         }
 
         @Test
+        void update_shouldReturnBadRequest_whenBodyIdDoesNotMatchPathId(ManagementEndToEndV5TestContext context, OauthServer authServer, DcpScopeRegistry registry) {
+            seedScope(registry, "scope-1", "org.example.scope");
+            seedScope(registry, "scope-2", "org.example.other");
+            var token = authServer.createAdminToken();
+
+            context.baseRequest(token)
+                    .contentType(JSON)
+                    .body(dcpScopeBody("scope-2", "DEFAULT", "org.example.updated", "*", null))
+                    .put(DCP_SCOPES_PATH + "/scope-1")
+                    .then()
+                    .statusCode(400);
+
+            assertThat(find(registry, "scope-2")).isPresent()
+                    .get().satisfies(scope -> assertThat(scope.getValue()).isEqualTo("org.example.other"));
+        }
+
+        @Test
         void update_notAuthorized(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService srv) {
             var participantContextId = "test-user";
             createParticipant(srv, participantContextId);

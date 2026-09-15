@@ -65,7 +65,7 @@ class ContractDefinitionResolverImplTest {
     void shouldReturnDefinition_whenAccessPolicySatisfied() {
         var agent = new ParticipantAgent("identity", emptyMap(), emptyMap());
         var def = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
-        when(policyStore.findById(any())).thenReturn(def);
+        when(policyStore.findById(any(), any())).thenReturn(def);
         when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(definitionStore.findAll(any())).thenReturn(Stream.of(createContractDefinition()));
 
@@ -86,7 +86,7 @@ class ContractDefinitionResolverImplTest {
     void shouldNotReturnDefinition_whenAccessPolicyNotSatisfied() {
         var agent = new ParticipantAgent("identity", emptyMap(), emptyMap());
         var definition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id("access").build();
-        when(policyStore.findById(any())).thenReturn(definition);
+        when(policyStore.findById(any(), any())).thenReturn(definition);
         var contractDefinition = createContractDefinition();
         when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.failure("invalid"));
         when(definitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition));
@@ -101,7 +101,7 @@ class ContractDefinitionResolverImplTest {
     @Test
     void shouldNotReturnDefinition_whenAccessPolicyDoesNotExist() {
         var agent = new ParticipantAgent("identity", emptyMap(), emptyMap());
-        when(policyStore.findById(any())).thenReturn(null);
+        when(policyStore.findById(any(), any())).thenReturn(null);
         when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(definitionStore.findAll(QuerySpec.max())).thenReturn(Stream.of(createContractDefinition()));
 
@@ -118,7 +118,7 @@ class ContractDefinitionResolverImplTest {
         var contractDefinition2 = contractDefinitionBuilder().accessPolicyId("accessPolicyId").build();
         var policy = Policy.Builder.newInstance().build();
         var policyDefinition = PolicyDefinition.Builder.newInstance().policy(policy).build();
-        when(policyStore.findById(any())).thenReturn(policyDefinition);
+        when(policyStore.findById(any(), any())).thenReturn(policyDefinition);
         when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(definitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition1, contractDefinition2));
 
@@ -126,7 +126,7 @@ class ContractDefinitionResolverImplTest {
 
         assertThat(result.contractDefinitions()).hasSize(2);
         assertThat(result.policies()).hasSize(1).containsOnly(entry("accessPolicyId", policy));
-        verify(policyStore, only()).findById("accessPolicyId");
+        verify(policyStore, only()).findById("participantContextId", "accessPolicyId");
     }
 
     private ContractDefinition createContractDefinition() {

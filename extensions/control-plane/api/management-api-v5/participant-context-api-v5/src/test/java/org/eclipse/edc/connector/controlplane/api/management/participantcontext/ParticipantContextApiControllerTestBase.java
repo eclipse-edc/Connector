@@ -237,6 +237,37 @@ public abstract class ParticipantContextApiControllerTestBase extends RestContro
         }
 
         @Test
+        void update_shouldUsePathId_whenBodyHasNoId() {
+            var participantContext = createParticipantContext();
+            when(transformerRegistry.transform(any(), eq(ParticipantContext.class))).thenReturn(Result.success(participantContext));
+            when(service.updateParticipantContext(any())).thenReturn(ServiceResult.success());
+
+            baseRequest()
+                    .body(Json.createObjectBuilder().add(TYPE, "ParticipantContext").build())
+                    .contentType(JSON)
+                    .put("/participants/" + participantContext.getId())
+                    .then()
+                    .statusCode(204);
+
+            verify(transformerRegistry).transform(argThat((JsonObject json) -> participantContext.getId().equals(json.getString(ID))), eq(ParticipantContext.class));
+        }
+
+        @Test
+        void update_shouldReturnBadRequest_whenBodyIdDoesNotMatchPathId() {
+            var participantContext = createParticipantContext();
+            when(transformerRegistry.transform(any(), eq(ParticipantContext.class))).thenReturn(Result.success(participantContext));
+
+            baseRequest()
+                    .body(Json.createObjectBuilder().add(ID, participantContext.getId()).add(TYPE, "ParticipantContext").build())
+                    .contentType(JSON)
+                    .put("/participants/another-participant")
+                    .then()
+                    .statusCode(400);
+
+            verifyNoInteractions(service);
+        }
+
+        @Test
         void update_shouldReturnBadRequest_whenTransformationFails() {
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
             var requestBody = Json.createObjectBuilder()
@@ -267,7 +298,7 @@ public abstract class ParticipantContextApiControllerTestBase extends RestContro
             baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .put("/participants/id")
+                    .put("/participants/" + participantContext.getId())
                     .then()
                     .statusCode(404);
         }

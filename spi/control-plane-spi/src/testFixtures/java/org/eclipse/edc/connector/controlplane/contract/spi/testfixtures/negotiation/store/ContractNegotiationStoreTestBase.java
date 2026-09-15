@@ -144,6 +144,28 @@ public abstract class ContractNegotiationStoreTestBase {
 
             assertThat(result).isNull();
         }
+
+        @Test
+        void findContractAgreement_byParticipantContext_shouldReturnAgreement_whenOwnedByParticipantContext() {
+            var agreement = createAgreement(ContractOfferId.create("test-cd1", "test-as1"));
+            var negotiation = createNegotiation("test-cn1", agreement);
+            getContractNegotiationStore().save(negotiation);
+
+            var result = getContractNegotiationStore().findContractAgreement(agreement.getParticipantContextId(), agreement.getId());
+
+            assertThat(result).usingRecursiveComparison().isEqualTo(agreement);
+        }
+
+        @Test
+        void findContractAgreement_byParticipantContext_shouldReturnNull_whenOwnedByAnotherParticipantContext() {
+            var agreement = createAgreement(ContractOfferId.create("test-cd1", "test-as1"));
+            var negotiation = createNegotiation("test-cn1", agreement);
+            getContractNegotiationStore().save(negotiation);
+
+            var result = getContractNegotiationStore().findContractAgreement("anotherParticipantContextId", agreement.getId());
+
+            assertThat(result).isNull();
+        }
     }
 
     @Nested

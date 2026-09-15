@@ -36,13 +36,16 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -159,6 +162,7 @@ class PolicyDefinitionServiceImplTest {
     @Test
     void delete_shouldNotDelete_whenPolicyPartOfContractDef() {
         var policy = createPolicy("policyId");
+        when(policyStore.findById("policyId")).thenReturn(policy);
         when(policyStore.delete("policyId")).thenReturn(StoreResult.success(policy));
 
         var contractDefinition = ContractDefinition.Builder.newInstance()
@@ -179,6 +183,7 @@ class PolicyDefinitionServiceImplTest {
     @Test
     void delete_shouldNotDelete_whenPolicyIsPartOfContractDefinition() {
         var policy = createPolicy("policyId");
+        when(policyStore.findById("policyId")).thenReturn(policy);
         when(policyStore.delete("policyId")).thenReturn(StoreResult.success(policy));
 
         var contractDefinition = ContractDefinition.Builder.newInstance()
@@ -209,9 +214,13 @@ class PolicyDefinitionServiceImplTest {
     @Test
     void delete_verifyCorrectQueries() {
         var policyId = "test-policy";
+        when(policyStore.findById(policyId)).thenReturn(createPolicy(policyId));
         when(policyStore.delete(policyId)).thenReturn(StoreResult.success());
+
         policyServiceImpl.deleteById(policyId);
 
+        verify(policyStore).findById(policyId);
+        verify(contractDefinitionStore, times(2)).findAll(argThat(query -> query.getFilterExpression().contains(filterByParticipantContextId("participantContextId"))));
         verify(policyStore).delete(eq(policyId));
         verifyNoMoreInteractions(policyStore);
     }
@@ -285,7 +294,8 @@ class PolicyDefinitionServiceImplTest {
     }
 
     private PolicyDefinition createPolicy(String policyId) {
-        return PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id(policyId).build();
+        return PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id(policyId)
+                .participantContextId("participantContextId").build();
     }
 
 }

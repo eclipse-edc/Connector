@@ -23,6 +23,9 @@ import org.eclipse.edc.spi.result.StoreResult;
 
 import java.util.stream.Stream;
 
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
+
 /**
  * Persists {@link Policy}.
  */
@@ -40,6 +43,23 @@ public interface PolicyDefinitionStore {
      * @throws EdcPersistenceException if something goes wrong.
      */
     PolicyDefinition findById(String policyId);
+
+    /**
+     * Finds the policy by id, scoped to the given participant context. A policy that exists but belongs to a different
+     * participant context is not returned.
+     *
+     * @param participantContextId the id of the participant context that owns the policy.
+     * @param policyId             id of the policy.
+     * @return {@link PolicyDefinition} if found within the participant context, null otherwise.
+     */
+    default PolicyDefinition findById(String participantContextId, String policyId) {
+        var query = queryByParticipantContextId(participantContextId)
+                .filter(criterion("id", "=", policyId))
+                .build();
+        try (var policies = findAll(query)) {
+            return policies.findFirst().orElse(null);
+        }
+    }
 
     /**
      * Find stream of policies in the store based on query spec.

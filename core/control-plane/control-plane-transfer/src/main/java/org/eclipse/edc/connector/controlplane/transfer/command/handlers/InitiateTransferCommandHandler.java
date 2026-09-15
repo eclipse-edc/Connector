@@ -62,7 +62,7 @@ public class InitiateTransferCommandHandler implements CommandHandler<InitiateTr
         var transferRequest = command.getRequest();
         var participantContext = command.getParticipantContext();
 
-        var contractAgreement = contractNegotiationStore.findContractAgreement(transferRequest.getContractId());
+        var contractAgreement = contractNegotiationStore.findContractAgreement(participantContext.getId(), transferRequest.getContractId());
         if (contractAgreement == null) {
             return CommandResult.notExecutable("No ContractAgreement %s found".formatted(transferRequest.getContractId()));
         }

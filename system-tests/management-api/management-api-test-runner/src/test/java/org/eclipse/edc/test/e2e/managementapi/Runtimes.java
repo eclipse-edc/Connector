@@ -63,6 +63,7 @@ public interface Runtimes {
         static Config config() {
             return ConfigFactory.fromMap(Map.of(
                     "edc.participant.id", "anonymous",
+                    "web.http.protocol.virtual", "true",
                     "edc.dataspace.enable.profiles.all", "true")
             );
         }
