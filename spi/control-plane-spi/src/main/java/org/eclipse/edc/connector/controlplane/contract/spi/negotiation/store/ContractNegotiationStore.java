@@ -26,6 +26,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Stream;
 
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
+
 /**
  * Stores {@link ContractNegotiation}s and their associated types such as {@link ContractAgreement}s.
  * <p>
@@ -38,6 +41,24 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
      */
     @Nullable
     ContractAgreement findContractAgreement(String contractId);
+
+    /**
+     * Returns the contract agreement for the contract id, scoped to the given participant context. An agreement that
+     * exists but belongs to a different participant context is not returned.
+     *
+     * @param participantContextId the id of the participant context that owns the agreement.
+     * @param contractId           the contract agreement id.
+     * @return the {@link ContractAgreement} if found within the participant context, null otherwise.
+     */
+    @Nullable
+    default ContractAgreement findContractAgreement(String participantContextId, String contractId) {
+        var query = queryByParticipantContextId(participantContextId)
+                .filter(criterion("id", "=", contractId))
+                .build();
+        try (var agreements = queryAgreements(query)) {
+            return agreements.findFirst().orElse(null);
+        }
+    }
 
     /**
      * Removes a contract negotiation for the given id.

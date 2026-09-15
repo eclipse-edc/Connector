@@ -182,7 +182,7 @@ class TransferProcessServiceImplTest {
         void shouldInitiateTransfer() {
             var transferRequest = transferRequest();
             var transferProcess = transferProcess();
-            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
+            when(contractNegotiationStore.findContractAgreement("participantContextId", transferRequest.getContractId()))
                     .thenReturn(createContractAgreement(transferProcess.getContractId(), "assetId"));
             when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success(transferProcess));
 
@@ -204,10 +204,23 @@ class TransferProcessServiceImplTest {
         }
 
         @Test
+        void shouldFail_whenContractAgreementBelongsToAnotherParticipantContext() {
+            var transferRequest = transferRequest();
+            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
+                    .thenReturn(createContractAgreement(transferRequest.getContractId(), "assetId"));
+
+            var result = service.initiateTransfer(participantContext, transferRequest);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+            verify(contractNegotiationStore).findContractAgreement("participantContextId", transferRequest.getContractId());
+            verifyNoInteractions(commandHandlerRegistry);
+        }
+
+        @Test
         void shouldFail_whenCommandFails() {
             var transferRequest = transferRequest();
             var transferProcess = transferProcess();
-            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
+            when(contractNegotiationStore.findContractAgreement("participantContextId", transferRequest.getContractId()))
                     .thenReturn(createContractAgreement(transferProcess.getContractId(), "assetId"));
             when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.notExecutable("error"));
 
@@ -220,7 +233,7 @@ class TransferProcessServiceImplTest {
         void shouldInitiateTransfer_whenNoDataDestination() {
             var transferRequest = transferRequestBuilder().build();
             var transferProcess = transferProcess();
-            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
+            when(contractNegotiationStore.findContractAgreement("participantContextId", transferRequest.getContractId()))
                     .thenReturn(createContractAgreement(transferProcess.getContractId(), "assetId"));
             when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success(transferProcess));
 

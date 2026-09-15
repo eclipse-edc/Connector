@@ -345,6 +345,24 @@ public abstract class PolicyDefinitionStoreTestBase {
         void whenNonexistent() {
             assertThat(getPolicyDefinitionStore().findById("nonexistent")).isNull();
         }
+
+        @Test
+        void byParticipantContext_whenOwnedByParticipantContext() {
+            var policy = TestFunctions.createPolicy(getRandomId());
+            getPolicyDefinitionStore().create(policy);
+
+            var policyFromDb = getPolicyDefinitionStore().findById(policy.getParticipantContextId(), policy.getId());
+
+            assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
+        }
+
+        @Test
+        void byParticipantContext_whenOwnedByAnotherParticipantContext() {
+            var policy = TestFunctions.createPolicy(getRandomId());
+            getPolicyDefinitionStore().create(policy);
+
+            assertThat(getPolicyDefinitionStore().findById("anotherParticipantContext", policy.getId())).isNull();
+        }
     }
 
     @Nested

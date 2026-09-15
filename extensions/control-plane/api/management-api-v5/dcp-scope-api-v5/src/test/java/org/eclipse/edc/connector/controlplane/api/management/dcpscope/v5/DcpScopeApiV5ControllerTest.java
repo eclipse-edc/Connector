@@ -34,6 +34,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -131,6 +132,37 @@ class DcpScopeApiV5ControllerTest extends RestControllerTestBase {
                 .statusCode(204);
 
         verify(scopeRegistry).update(any());
+    }
+
+    @Test
+    void update_shouldUsePathId_whenBodyHasNoId() {
+        when(transformerRegistry.transform(isA(JsonObject.class), eq(DcpScope.class))).thenReturn(Result.success(scope()));
+        when(scopeRegistry.update(any())).thenReturn(ServiceResult.success());
+
+        given()
+                .port(port)
+                .contentType(JSON)
+                .body(Json.createObjectBuilder().add("@type", "DcpScope").add("value", "org.example.scope").build().toString())
+                .put(BASE_URL + "/scope-1")
+                .then()
+                .statusCode(204);
+
+        verify(transformerRegistry).transform(argThat((JsonObject json) -> "scope-1".equals(json.getString("@id"))), eq(DcpScope.class));
+    }
+
+    @Test
+    void update_shouldReturnBadRequest_whenBodyIdDoesNotMatchPathId() {
+        when(transformerRegistry.transform(isA(JsonObject.class), eq(DcpScope.class))).thenReturn(Result.success(scope()));
+
+        given()
+                .port(port)
+                .contentType(JSON)
+                .body(requestBody())
+                .put(BASE_URL + "/another-scope")
+                .then()
+                .statusCode(400);
+
+        verifyNoInteractions(scopeRegistry);
     }
 
     @Test

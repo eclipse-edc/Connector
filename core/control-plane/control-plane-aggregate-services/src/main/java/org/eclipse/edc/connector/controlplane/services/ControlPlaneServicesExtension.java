@@ -205,7 +205,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     public ContractDefinitionService contractDefinitionService() {
         var contractDefinitionObservable = new ContractDefinitionObservableImpl();
         contractDefinitionObservable.registerListener(new ContractDefinitionEventListener(eventRouter));
-        return new ContractDefinitionServiceImpl(contractDefinitionStore, transactionContext, contractDefinitionObservable, QueryValidators.contractDefinition());
+        return new ContractDefinitionServiceImpl(contractDefinitionStore, policyDefinitionStore, transactionContext, contractDefinitionObservable, QueryValidators.contractDefinition());
     }
 
     @Provider

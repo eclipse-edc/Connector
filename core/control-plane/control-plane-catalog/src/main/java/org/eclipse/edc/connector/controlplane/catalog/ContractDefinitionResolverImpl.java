@@ -57,7 +57,7 @@ public class ContractDefinitionResolverImpl implements ContractDefinitionResolve
                 .filter(definition -> {
                     var accessResult = Optional.of(definition.getAccessPolicyId())
                             .map(policyId -> policies.computeIfAbsent(policyId,
-                                    key -> Optional.ofNullable(policyStore.findById(key))
+                                    key -> Optional.ofNullable(policyStore.findById(participantContext.getId(), key))
                                             .map(PolicyDefinition::getPolicy)
                                             .orElse(null))
                             )

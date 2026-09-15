@@ -66,7 +66,7 @@ class InitiateTransferCommandHandlerTest {
 
     @Test
     void shouldStoreTransferProcessAndDataAddress() {
-        when(contractNegotiationStore.findContractAgreement(any())).thenReturn(ContractAgreement.Builder.newInstance()
+        when(contractNegotiationStore.findContractAgreement(any(), any())).thenReturn(ContractAgreement.Builder.newInstance()
                 .consumerId("consumerId")
                 .providerId("providerId")
                 .assetId("assetId")
@@ -102,12 +102,13 @@ class InitiateTransferCommandHandlerTest {
 
     @Test
     void shouldNotStoreDataAddress_whenItsNotProvided() {
-        when(contractNegotiationStore.findContractAgreement(any())).thenReturn(ContractAgreement.Builder.newInstance()
+        when(contractNegotiationStore.findContractAgreement(any(), any())).thenReturn(ContractAgreement.Builder.newInstance()
                 .consumerId("consumerId")
                 .providerId("providerId")
                 .assetId("assetId")
                 .policy(Policy.Builder.newInstance().target("assetId").build())
                 .claims(Map.of("key", "value"))
+                .participantContextId("participantContextId")
                 .build());
         when(store.save(any())).thenReturn(StoreResult.success());
         var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
@@ -116,18 +117,20 @@ class InitiateTransferCommandHandlerTest {
                 .callbackAddresses(List.of(callback))
                 .dataplaneMetadata(dataplaneMetadata)
                 .build();
-        var participantContext = ParticipantContext.Builder.newInstance().id("id")
+        var participantContext = ParticipantContext.Builder.newInstance().id("participantContextId")
                 .identity("identity")
                 .build();
 
         var result = handler.handle(new InitiateTransferCommand(participantContext, transferRequest));
+
+        verify(contractNegotiationStore).findContractAgreement("participantContextId", transferRequest.getContractId());
 
         assertThat(result).isSucceeded().isNotNull();
     }
 
     @Test
     void shouldFail_whenAgreementNotAvailable() {
-        when(contractNegotiationStore.findContractAgreement(any())).thenReturn(null);
+        when(contractNegotiationStore.findContractAgreement(any(), any())).thenReturn(null);
 
         var transferRequest = TransferRequest.Builder.newInstance()
                 .contractId("contractId")

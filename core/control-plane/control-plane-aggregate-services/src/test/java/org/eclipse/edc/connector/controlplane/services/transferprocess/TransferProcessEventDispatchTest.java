@@ -156,7 +156,7 @@ public class TransferProcessEventDispatchTest {
         when(DSP_DISPATCHER.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(policyArchive.findPolicyForContract(matches(transferRequest.getContractId()))).thenReturn(Policy.Builder.newInstance().target("assetId").build());
         when(policyArchive.getAgreementIdForContract(transferRequest.getContractId())).thenReturn(agreement.getAgreementId());
-        when(negotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(agreement);
+        when(negotiationStore.findContractAgreement("participantContextId", transferRequest.getContractId())).thenReturn(agreement);
         when(agentService.createFor(eq(token), any())).thenReturn(agent);
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
         var dataAddress = DataAddress.Builder.newInstance().type("test").build();
@@ -213,7 +213,7 @@ public class TransferProcessEventDispatchTest {
                 .consumerId("consumerId")
                 .policy(Policy.Builder.newInstance().build())
                 .build();
-        when(negotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(agreement);
+        when(negotiationStore.findContractAgreement("participantContextId", transferRequest.getContractId())).thenReturn(agreement);
         var ack = TransferProcessAck.Builder.newInstance().build();
         when(DSP_DISPATCHER.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
@@ -242,7 +242,7 @@ public class TransferProcessEventDispatchTest {
                 .consumerId("consumerId")
                 .policy(Policy.Builder.newInstance().build())
                 .build();
-        when(negotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(agreement);
+        when(negotiationStore.findContractAgreement("participantContextId", transferRequest.getContractId())).thenReturn(agreement);
         when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
 
         service.initiateTransfer(participantContext, transferRequest);

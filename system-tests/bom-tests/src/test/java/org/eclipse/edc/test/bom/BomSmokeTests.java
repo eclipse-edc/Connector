@@ -120,6 +120,7 @@ public class BomSmokeTests {
                                     put("edc.participant.did", "did:web:someone");
                                     put("edc.iam.oauth2.jwks.url", "https://example.com/jwks");
                                     put("edc.iam.oauth2.issuer", "test-issuer");
+                                    put("web.http.protocol.virtual", "true");
                                 }})
                         )
         );

@@ -152,7 +152,7 @@ public class AssetApiV5Controller implements AssetApiV5 {
 
     @DELETE
     @Path("{assetId}")
-    @RequiredScope("management-api:assets:read")
+    @RequiredScope("management-api:assets:write")
     @Override
     public void removeAssetV5(@PathParam("participantContextId") String participantContextId,
                               @PathParam("assetId") String assetId,

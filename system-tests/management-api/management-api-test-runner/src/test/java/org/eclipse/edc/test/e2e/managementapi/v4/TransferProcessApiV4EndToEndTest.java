@@ -134,8 +134,8 @@ public class TransferProcessApiV4EndToEndTest {
                     .counterPartyId("counterPartyId")
                     .counterPartyAddress("http://counterparty")
                     .protocol(DATASPACE_PROTOCOL_HTTP_V_2025_1)
-                    .participantContextId("participantContextId")
-                    .contractAgreement(createContractAgreement(contractId, assetId).build())
+                    .participantContextId("anonymous")
+                    .contractAgreement(createContractAgreement(contractId, assetId).participantContextId("anonymous").build())
                     .build();
             contractNegotiationStore.save(contractNegotiation);
 

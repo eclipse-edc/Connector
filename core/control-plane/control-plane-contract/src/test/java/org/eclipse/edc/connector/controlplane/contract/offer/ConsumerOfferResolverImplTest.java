@@ -56,8 +56,8 @@ class ConsumerOfferResolverImplTest {
         var contractPolicy = Policy.Builder.newInstance().build();
         var contractPolicyDef = PolicyDefinition.Builder.newInstance().policy(contractPolicy).build();
 
-        when(policyStore.findById(contractDefinition.getAccessPolicyId())).thenReturn(accessPolicyDef);
-        when(policyStore.findById(contractDefinition.getContractPolicyId())).thenReturn(contractPolicyDef);
+        when(policyStore.findById(contractDefinition.getParticipantContextId(), contractDefinition.getAccessPolicyId())).thenReturn(accessPolicyDef);
+        when(policyStore.findById(contractDefinition.getParticipantContextId(), contractDefinition.getContractPolicyId())).thenReturn(contractPolicyDef);
         when(definitionStore.findById(contractDefinition.getId())).thenReturn(contractDefinition);
 
         var validatableOfferResult = validatableConsumerOfferResolver.resolveOffer(offerId.toString());
@@ -69,8 +69,8 @@ class ConsumerOfferResolverImplTest {
             assertThat(consumerOffer.getContractPolicy()).isSameAs(contractPolicy);
         });
 
-        verify(policyStore).findById(contractDefinition.getAccessPolicyId());
-        verify(policyStore).findById(contractDefinition.getContractPolicyId());
+        verify(policyStore).findById(contractDefinition.getParticipantContextId(), contractDefinition.getAccessPolicyId());
+        verify(policyStore).findById(contractDefinition.getParticipantContextId(), contractDefinition.getContractPolicyId());
         verify(definitionStore).findById(any());
     }
 
@@ -95,8 +95,8 @@ class ConsumerOfferResolverImplTest {
         var accessPolicyDef = PolicyDefinition.Builder.newInstance().policy(accessPolicy).build();
 
         when(definitionStore.findById(contractDefinition.getId())).thenReturn(contractDefinition);
-        when(policyStore.findById(contractDefinition.getAccessPolicyId())).thenReturn(accessPolicyDef);
-        when(policyStore.findById(contractDefinition.getContractPolicyId())).thenReturn(null);
+        when(policyStore.findById(contractDefinition.getParticipantContextId(), contractDefinition.getAccessPolicyId())).thenReturn(accessPolicyDef);
+        when(policyStore.findById(contractDefinition.getParticipantContextId(), contractDefinition.getContractPolicyId())).thenReturn(null);
 
         var validatableOfferResult = validatableConsumerOfferResolver.resolveOffer(offerId.toString());
 
@@ -111,7 +111,7 @@ class ConsumerOfferResolverImplTest {
         var offerId = ContractOfferId.create(contractDefinition.getId(), "1");
 
         when(definitionStore.findById(contractDefinition.getId())).thenReturn(contractDefinition);
-        when(policyStore.findById(contractDefinition.getAccessPolicyId())).thenReturn(null);
+        when(policyStore.findById(contractDefinition.getParticipantContextId(), contractDefinition.getAccessPolicyId())).thenReturn(null);
 
         var validatableOfferResult = validatableConsumerOfferResolver.resolveOffer(offerId.toString());
 
@@ -134,6 +134,7 @@ class ConsumerOfferResolverImplTest {
                 .id("1")
                 .accessPolicyId("access")
                 .contractPolicyId("contract")
+                .participantContextId("participantContextId")
                 .build();
     }
 }

@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.api.management.participantcontext.v5;
 
 
+import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
@@ -45,6 +46,7 @@ import org.eclipse.edc.web.spi.validation.SchemaType;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_TYPE_TERM;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -104,8 +106,12 @@ public class ParticipantContextApiV5Controller implements ParticipantContextApiV
     @RequiredScope("management-api:admin")
     @Override
     public void updateParticipantV5(@PathParam("id") String id, @SchemaType(value = PARTICIPANT_CONTEXT_TYPE_TERM, version = "v5") JsonObject request) {
-        var participantContext = transformerRegistry.transform(request, ParticipantContext.class)
+        var participantContext = transformerRegistry.transform(withPathId(request, id), ParticipantContext.class)
                 .orElseThrow(InvalidRequestException::new);
+
+        if (!id.equals(participantContext.getId())) {
+            throw new InvalidRequestException("Participant context id in the request body (%s) does not match the one in the path (%s)".formatted(participantContext.getId(), id));
+        }
 
         participantContextService.updateParticipantContext(participantContext)
                 .orElseThrow(exceptionMapper(ParticipantContext.class, id));
@@ -138,5 +144,12 @@ public class ParticipantContextApiV5Controller implements ParticipantContextApiV
                 .filter(Result::succeeded)
                 .map(Result::getContent)
                 .collect(toJsonArray());
+    }
+
+    /**
+     * Uses the id from the path when the request body carries none, so that a PUT on a resource path updates that resource.
+     */
+    private static JsonObject withPathId(JsonObject request, String id) {
+        return request.containsKey(ID) ? request : Json.createObjectBuilder(request).add(ID, id).build();
     }
 }

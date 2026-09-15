@@ -17,7 +17,9 @@ package org.eclipse.edc.connector.controlplane.api.management.asset;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
+import org.assertj.core.api.Assertions;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
+import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
@@ -34,6 +36,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
@@ -95,6 +98,16 @@ public abstract class AssetApiControllerTest extends RestControllerTestBase {
     }
 
     protected abstract String versionPath();
+
+    @Test
+    void removeAsset_shouldRequireWriteScope() {
+        var method = Arrays.stream(controller().getClass().getDeclaredMethods())
+                .filter(it -> it.getName().startsWith("removeAsset"))
+                .findFirst().orElseThrow();
+
+        Assertions.assertThat(method.getAnnotation(RequiredScope.class)).isNotNull()
+                .extracting(RequiredScope::value).isEqualTo("management-api:assets:write");
+    }
 
     private JsonObjectBuilder createAssetJson() {
         return createObjectBuilder()

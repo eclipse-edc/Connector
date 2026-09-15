@@ -30,6 +30,7 @@ import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -63,6 +64,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 public class DspVirtualApiConfigurationV2025Extension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol 2025/1 API Virtual Configuration Extension";
+    public static final String PARTICIPANT_CONTEXT_PLACEHOLDER = "%s";
 
     @Configuration(context = CONFIG_PREFIX)
     private Map<String, DefaultTrustedIssuersConfig> trustedIssuers;
@@ -91,6 +93,7 @@ public class DspVirtualApiConfigurationV2025Extension implements ServiceExtensio
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        validateWebhookAddress();
         registerTransformers();
 
         var protocolVersion = new ProtocolVersion(V_2025_1_VERSION, "/" + DATASPACE_HTTP_PROFILE_2025_1, DSP_HTTPS_BINDING);
@@ -106,6 +109,19 @@ public class DspVirtualApiConfigurationV2025Extension implements ServiceExtensio
 
         dataspaceProfileContextRegistry.registerDefault(profileContext);
 
+    }
+
+    /**
+     * In virtual mode the protocol webhook is advertised per participant, so the base address must carry the
+     * participant context placeholder. Without it, every participant would advertise the same callback address.
+     */
+    private void validateWebhookAddress() {
+        var address = dspWebhookAddress.get();
+        if (address == null || !address.contains(PARTICIPANT_CONTEXT_PLACEHOLDER)) {
+            throw new EdcException(("The DSP callback address '%s' does not contain the participant context placeholder '%s', " +
+                    "which is required in virtual mode: either configure '%s' with the placeholder or set '%s' to true")
+                    .formatted(address, PARTICIPANT_CONTEXT_PLACEHOLDER, "edc.dsp.callback.address", "web.http.protocol.virtual"));
+        }
     }
 
     private void registerTransformers() {

@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -193,7 +194,7 @@ public class DiscoveryApiV5EndToEndTest {
                 .build();
 
         static Config config() {
-            return ConfigFactory.fromMap(Map.of(
+            var config = new HashMap<>(Map.of(
                             "edc.dataspace.profiles.dsp2025_1.name", "dsp2025_1",
                             "edc.dataspace.profiles.dsp2025_1.protocol.version", "2025-1",
                             "edc.dataspace.profiles.dsp2025_1.protocol.binding", "HTTPS",
@@ -204,8 +205,9 @@ public class DiscoveryApiV5EndToEndTest {
                             "edc.dataspace.profiles.dsp2025_2.protocol.binding", "HTTPS",
                             "edc.dataspace.profiles.dsp2025_2.protocol.namespace", "https://w3id.org/dspace/2025/1/",
                             "edc.dataspace.profiles.dsp2025_2.jsonld.context.urls", "https://w3id.org/dspace/2025/1/context.jsonld"
-                    )
-            );
+            ));
+            config.put("web.http.protocol.virtual", "true");
+            return ConfigFactory.fromMap(config);
         }
     }
 

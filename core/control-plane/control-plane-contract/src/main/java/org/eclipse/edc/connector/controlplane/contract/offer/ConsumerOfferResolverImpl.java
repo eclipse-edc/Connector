@@ -50,12 +50,13 @@ public class ConsumerOfferResolverImpl implements ConsumerOfferResolver {
             return ServiceResult.notFound(format("Contract definition with id %s not found", definitionId));
         }
 
-        var accessPolicy = policyDefinitionStore.findById(contractDefinition.getAccessPolicyId());
+        var participantContextId = contractDefinition.getParticipantContextId();
+        var accessPolicy = policyDefinitionStore.findById(participantContextId, contractDefinition.getAccessPolicyId());
         if (accessPolicy == null) {
             return ServiceResult.notFound(format("Policy with id %s not found", contractDefinition.getAccessPolicyId()));
         }
 
-        var contractPolicy = policyDefinitionStore.findById(contractDefinition.getContractPolicyId());
+        var contractPolicy = policyDefinitionStore.findById(participantContextId, contractDefinition.getContractPolicyId());
         if (contractPolicy == null) {
             return ServiceResult.notFound(format("Policy with id %s not found", contractDefinition.getContractPolicyId()));
         }

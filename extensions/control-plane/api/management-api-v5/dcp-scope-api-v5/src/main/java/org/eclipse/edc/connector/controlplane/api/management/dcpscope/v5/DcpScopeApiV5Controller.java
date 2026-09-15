@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.dcpscope.v5;
 
+import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
@@ -38,6 +39,7 @@ import org.eclipse.edc.web.spi.validation.SchemaType;
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScope.DCP_SCOPE_TYPE_TERM;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -79,8 +81,12 @@ public class DcpScopeApiV5Controller implements DcpScopeApiV5 {
     @RequiredScope("management-api:admin")
     @Override
     public void updateDcpScopeV5(@PathParam("id") String id, @SchemaType(value = DCP_SCOPE_TYPE_TERM, version = "v5") JsonObject request) {
-        var scope = transformerRegistry.transform(request, DcpScope.class)
+        var scope = transformerRegistry.transform(withPathId(request, id), DcpScope.class)
                 .orElseThrow(InvalidRequestException::new);
+
+        if (!id.equals(scope.getId())) {
+            throw new InvalidRequestException("DCP scope id in the request body (%s) does not match the one in the path (%s)".formatted(scope.getId(), id));
+        }
 
         scopeRegistry.update(scope)
                 .orElseThrow(exceptionMapper(DcpScope.class, id));
@@ -115,5 +121,12 @@ public class DcpScopeApiV5Controller implements DcpScopeApiV5 {
                 .filter(Result::succeeded)
                 .map(Result::getContent)
                 .collect(toJsonArray());
+    }
+
+    /**
+     * Uses the id from the path when the request body carries none, so that a PUT on a resource path updates that resource.
+     */
+    private static JsonObject withPathId(JsonObject request, String id) {
+        return request.containsKey(ID) ? request : Json.createObjectBuilder(request).add(ID, id).build();
     }
 }

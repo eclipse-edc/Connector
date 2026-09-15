@@ -105,7 +105,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     @Override
     public @NotNull ServiceResult<TransferProcess> initiateTransfer(ParticipantContext participantContext, TransferRequest request) {
-        var agreement = contractNegotiationStore.findContractAgreement(request.getContractId());
+        var agreement = contractNegotiationStore.findContractAgreement(participantContext.getId(), request.getContractId());
         if (agreement == null) {
             return ServiceResult.badRequest("Contract agreement with id %s not found".formatted(request.getContractId()));
         }
