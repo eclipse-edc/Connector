@@ -12,6 +12,11 @@
  *
  */
 
+// MODIFIED from upstream eclipse-edc (Apache-2.0) in this fork: the version is
+// derived from the git tag and the autodoc/signing setup is adapted for a frozen
+// copy. See the commit on branch freeze/v1.0.0-RC1-1. Upstream LICENSE and
+// NOTICE.md apply unchanged.
+
 
 plugins {
     `java-library`
