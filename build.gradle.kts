@@ -42,38 +42,25 @@ val gitTag: String = providers.exec {
     isIgnoreExitValue = true
 }.standardOutput.asText.get().trim()
 
-// From the tag to the Maven coordinate, ONLY the last field is dropped -- the
-// `a.b.c` maturity counter, which does not belong to the base coordinate -- and
-// the leading `v`, because Maven versions do not carry it.
+// From the tag to the Maven coordinate only the leading `v` is dropped: Maven
+// versions do not carry it. The tag itself is `v<upstream>-<n>`, the same
+// convention Debian and RPM use for downstream builds of an upstream release:
 //
-//   v 1.0.0-RC1 - 1 - 0.0.1   ->   Maven  1.0.0-RC1-1
-//     └────┬───┘  │   └─┬─┘
-//          │      │     └── maturity counter; does NOT travel to the coordinate
-//          │      └──────── freeze iteration over THAT upstream tag (starts at 1)
-//          └─────────────── the upstream tag, VERBATIM
+//   v 1.0.0-RC1 - 1        ->   Maven  1.0.0-RC1-1
+//     └────┬───┘  │
+//          │      └──────── revision of THIS fork over that upstream tag (starts at 1);
+//          │                it moves only when the fork's delta changes
+//          └─────────────── the upstream tag, VERBATIM, dashes and capitals included
 //
-// Dropping the last field and keeping the other two is the point: a launcher
-// can iterate its maturity -- add an extension of its own -- without the base
-// being republished under a new coordinate, and the name still says which
-// upstream release it came from.
+// `.+` is deliberate, not lax: the upstream tag may contain dashes, so the only
+// thing that can be anchored is the tail `-<n>`. An upstream tag (`v1.0.0-RC1`,
+// `v0.18.0`) does not match -- its last field is not an integer after a dash --
+// and that is the mechanism that prevents publishing from the mirror believing
+// it is one of ours.
 //
-// `.+` is deliberate, not lax: the upstream tag is kept verbatim, dashes and
-// capitals included (`1.0.0-RC1`), so the only thing that can be anchored is
-// the tail. That is why the last two fields are explicit.
-//
-// TWIN IN BASH: the launchers rebuild this same cut in
-// `scripts/verificar-congelacion.sh` (the grammar guard and the `${tag%-*}`
-// cut). Change one, change the other.
-//
-//   v1.0.0-RC1-1-0.0.1  -> 1.0.0-RC1-1     v1.0.0-RC1-2-0.0.3 -> 1.0.0-RC1-2
-//   v1.0.0-1-0.0.1      -> 1.0.0-1         v1.1.0-1-0.1.0     -> 1.1.0-1
-//   v1.0.0-RC1          -> NO VERSION      (upstream tag, not ours)
-//   v0.18.0             -> NO VERSION      (idem)
-val maturity = """0\.0\.[1-9]\d*|0\.[1-9]\d*\.0|[1-9]\d*\.0\.0"""
-val grammar = Regex("""^v(.+-\d+)-(?:$maturity)$""")
-
-// An upstream tag does not match, and that is the mechanism that prevents
-// publishing from the mirror believing it is one of ours.
+//   v1.0.0-RC1-1   -> 1.0.0-RC1-1      v1.0.0-2  -> 1.0.0-2
+//   v1.0.0-RC1     -> NO VERSION       v0.18.0   -> NO VERSION
+val grammar = Regex("""^v(.+-\d+)$""")
 val releaseVersion: String = grammar.find(gitTag)?.groupValues?.get(1) ?: ""
 
 allprojects { version = releaseVersion.ifEmpty { "0.0.0-UNTAGGED" } }
