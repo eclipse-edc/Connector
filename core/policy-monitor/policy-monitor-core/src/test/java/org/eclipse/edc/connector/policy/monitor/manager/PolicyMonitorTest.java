@@ -149,10 +149,12 @@ class PolicyMonitorTest {
 
         @Test
         void started_shouldDoNothing_whenPolicyIsValid() {
+            var originalUpdatedAt = 42;
             var entry = PolicyMonitorEntry.Builder.newInstance()
                     .id("transferProcessId")
                     .contractId("contractId")
                     .state(STARTED.code())
+                    .updatedAt(originalUpdatedAt)
                     .build();
             var policy = Policy.Builder.newInstance().build();
 
@@ -165,7 +167,7 @@ class PolicyMonitorTest {
             policyMonitor.monitor(entry);
 
             verify(transferProcessService, never()).terminate(any());
-            verify(store).save(any());
+            verify(store).save(argThat(it -> it.getUpdatedAt() != originalUpdatedAt));
         }
 
         @Test

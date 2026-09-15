@@ -107,6 +107,7 @@ public class PolicyMonitor {
                 }
             }
 
+            entry.setModified();
             entry.updateStateTimestamp();
             store.save(entry);
         });
