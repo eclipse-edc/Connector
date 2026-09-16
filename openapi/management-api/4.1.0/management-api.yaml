@@ -4163,6 +4163,44 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/dataplanes/request:
+    post:
+      tags:
+      - Dataplane Selector v5
+      description: Returns all data plane instances registered for the participant
+        context according to a particular query
+      operationId: queryDataPlaneInstancesV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: A (potentially empty) list of data plane instances matching
+            the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/dataplane-instance-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v5/participants/{participantContextId}/policydefinitions/{id}/evaluationplan:
     post:
       tags:
@@ -7780,6 +7818,59 @@ components:
           type: string
         reason:
           type: string
+    dataplane-instance-schema:
+      title: DataPlaneInstanceSchema
+      type: object
+      example:
+        allowedTransferTypes:
+        - allowedTransferTypes
+        - allowedTransferTypes
+        destinationProvisionTypes:
+        - destinationProvisionTypes
+        - destinationProvisionTypes
+        '@type': '@type'
+        allowedSourceTypes:
+        - allowedSourceTypes
+        - allowedSourceTypes
+        '@id': '@id'
+        state: state
+        '@context':
+        - '@context'
+        - '@context'
+        properties: "{}"
+      allOf:
+      - $ref: "#/components/schemas/DataPlaneInstance"
+    DataPlaneInstance:
+      required:
+      - '@context'
+      - '@type'
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        '@id':
+          type: string
+        properties:
+          type: object
+        state:
+          type: string
+        allowedSourceTypes:
+          type: array
+          items:
+            type: string
+        allowedTransferTypes:
+          type: array
+          items:
+            type: string
+        destinationProvisionTypes:
+          type: array
+          items:
+            type: string
     updateExpressionV5_request:
       type: object
       properties:
