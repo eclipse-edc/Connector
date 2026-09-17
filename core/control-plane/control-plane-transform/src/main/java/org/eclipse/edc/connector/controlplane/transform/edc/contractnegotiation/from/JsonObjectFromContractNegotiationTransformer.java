@@ -35,6 +35,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_CREATED_AT;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_ERRORDETAIL;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_NEG_TYPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_POLICY;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_PROFILE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_STATE;
@@ -70,7 +71,11 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
                 .add(CONTRACT_NEGOTIATION_CALLBACK_ADDR, callbackAddresses)
                 .add(CONTRACT_NEGOTIATION_CREATED_AT, contractNegotiation.getCreatedAt());
 
-        ofNullable(contractNegotiation.getLastContractOffer()).ifPresent(contractOffer -> builder.add(CONTRACT_NEGOTIATION_ASSET_ID, contractOffer.getAssetId()));
+        ofNullable(contractNegotiation.getLastContractOffer()).ifPresent(contractOffer -> {
+            builder.add(CONTRACT_NEGOTIATION_ASSET_ID, contractOffer.getAssetId());
+            ofNullable(context.transform(contractOffer.getPolicy(), JsonObject.class))
+                    .ifPresent(policy -> builder.add(CONTRACT_NEGOTIATION_POLICY, policy));
+        });
         ofNullable(contractNegotiation.getContractAgreement()).map(ContractAgreement::getId).ifPresent(s -> builder.add(CONTRACT_NEGOTIATION_AGREEMENT_ID, s));
         ofNullable(contractNegotiation.getCorrelationId()).ifPresent(correlationId -> builder.add(CONTRACT_NEGOTIATION_CORRELATION_ID, correlationId));
         ofNullable(contractNegotiation.getErrorDetail()).ifPresent(s -> builder.add(CONTRACT_NEGOTIATION_ERRORDETAIL, s));
