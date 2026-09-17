@@ -15,7 +15,7 @@
 package org.eclipse.edc.validator.registration.api.v5.transform;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.validator.registration.spi.SchemaValidatorRegistration;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +32,7 @@ import static org.eclipse.edc.validator.registration.spi.SchemaValidatorRegistra
  * Transforms the (expanded) request body of the schema validator registration API into a
  * {@link SchemaValidatorRegistration}.
  */
-public class JsonObjectToSchemaValidatorRegistrationTransformer extends AbstractJsonLdTransformer<JsonObject, SchemaValidatorRegistration> {
+public class JsonObjectToSchemaValidatorRegistrationTransformer extends JsonLdToModelTransformer<JsonObject, SchemaValidatorRegistration> {
 
     public JsonObjectToSchemaValidatorRegistrationTransformer() {
         super(JsonObject.class, SchemaValidatorRegistration.class);
@@ -75,4 +75,5 @@ public class JsonObjectToSchemaValidatorRegistrationTransformer extends Abstract
 
         return builder.build();
     }
+
 }

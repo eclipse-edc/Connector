@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transform.odrl.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Constraint;
 import org.eclipse.edc.policy.model.Duty;
@@ -30,7 +30,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_AT
 /**
  * Converts from an ODRL duty as a {@link JsonObject} in JSON-LD expanded form to a {@link Duty}.
  */
-public class JsonObjectToDutyTransformer extends AbstractJsonLdTransformer<JsonObject, Duty> {
+public class JsonObjectToDutyTransformer extends JsonLdToModelTransformer<JsonObject, Duty> {
 
     public JsonObjectToDutyTransformer() {
         super(JsonObject.class, Duty.class);

@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transform.edc.cel.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.policy.cel.model.CelExpressionTestRequest;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,7 @@ import static org.eclipse.edc.policy.cel.model.CelExpressionTestRequest.CEL_EXPR
 import static org.eclipse.edc.policy.cel.model.CelExpressionTestRequest.CEL_EXPRESSION_TEST_REQUEST_PARAMS_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpressionTestRequest.CEL_EXPRESSION_TEST_REQUEST_RIGHT_OPERAND_IRI;
 
-public class JsonObjectToCelExpressionTestRequestTransformer extends AbstractJsonLdTransformer<JsonObject, CelExpressionTestRequest> {
+public class JsonObjectToCelExpressionTestRequestTransformer extends JsonLdToModelTransformer<JsonObject, CelExpressionTestRequest> {
 
     public JsonObjectToCelExpressionTestRequestTransformer() {
         super(JsonObject.class, CelExpressionTestRequest.class);
@@ -60,4 +60,5 @@ public class JsonObjectToCelExpressionTestRequestTransformer extends AbstractJso
         }
         return builder.build();
     }
+
 }

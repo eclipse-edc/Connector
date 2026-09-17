@@ -16,13 +16,13 @@ package org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class JsonObjectToContractOfferTransformer extends AbstractJsonLdTransformer<JsonObject, ContractOffer> {
+public class JsonObjectToContractOfferTransformer extends JsonLdToModelTransformer<JsonObject, ContractOffer> {
 
     public JsonObjectToContractOfferTransformer() {
         super(JsonObject.class, ContractOffer.class);
@@ -41,4 +41,5 @@ public class JsonObjectToContractOfferTransformer extends AbstractJsonLdTransfor
                 .policy(policy)
                 .build();
     }
+
 }

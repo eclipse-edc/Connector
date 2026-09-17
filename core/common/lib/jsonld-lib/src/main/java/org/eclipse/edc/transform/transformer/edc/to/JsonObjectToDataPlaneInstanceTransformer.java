@@ -19,7 +19,7 @@ import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +41,7 @@ import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.Data
 import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.URL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 
-public class JsonObjectToDataPlaneInstanceTransformer extends AbstractJsonLdTransformer<JsonObject, DataPlaneInstance> {
+public class JsonObjectToDataPlaneInstanceTransformer extends JsonLdToModelTransformer<JsonObject, DataPlaneInstance> {
     public JsonObjectToDataPlaneInstanceTransformer() {
         super(JsonObject.class, DataPlaneInstance.class);
     }
@@ -97,4 +97,5 @@ public class JsonObjectToDataPlaneInstanceTransformer extends AbstractJsonLdTran
         context.reportProblem("Cannot convert a " + jsonValue.getValueType() + " to a long!");
         return 0;
     }
+
 }

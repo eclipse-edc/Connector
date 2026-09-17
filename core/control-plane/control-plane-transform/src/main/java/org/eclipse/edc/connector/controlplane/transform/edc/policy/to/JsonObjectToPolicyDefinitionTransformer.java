@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.policy.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,7 @@ import java.util.Optional;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES;
 
-public class JsonObjectToPolicyDefinitionTransformer extends AbstractJsonLdTransformer<JsonObject, PolicyDefinition> {
+public class JsonObjectToPolicyDefinitionTransformer extends JsonLdToModelTransformer<JsonObject, PolicyDefinition> {
 
     public JsonObjectToPolicyDefinitionTransformer() {
         super(JsonObject.class, PolicyDefinition.class);

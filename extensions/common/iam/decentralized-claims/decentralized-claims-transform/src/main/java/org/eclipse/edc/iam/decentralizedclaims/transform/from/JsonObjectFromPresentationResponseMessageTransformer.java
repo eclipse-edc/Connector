@@ -19,7 +19,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationResponseMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdFromModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +32,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 /**
  * Transforms a {@link PresentationResponseMessage} into a {@link JsonObject} object.
  */
-public class JsonObjectFromPresentationResponseMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<PresentationResponseMessage, JsonObject> {
+public class JsonObjectFromPresentationResponseMessageTransformer extends NamespacedJsonLdFromModelTransformer<PresentationResponseMessage, JsonObject> {
 
     public JsonObjectFromPresentationResponseMessageTransformer(JsonLdNamespace namespace) {
         super(PresentationResponseMessage.class, JsonObject.class, namespace);

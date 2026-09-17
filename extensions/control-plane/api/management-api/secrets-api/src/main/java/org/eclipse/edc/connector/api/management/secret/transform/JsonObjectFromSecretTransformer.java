@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.api.management.secret.transform;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
 
-public class JsonObjectFromSecretTransformer extends AbstractJsonLdTransformer<Secret, JsonObject> {
+public class JsonObjectFromSecretTransformer extends JsonLdFromModelTransformer<Secret, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
 

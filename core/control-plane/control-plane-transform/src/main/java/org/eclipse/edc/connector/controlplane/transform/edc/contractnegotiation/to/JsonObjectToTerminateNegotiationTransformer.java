@@ -16,14 +16,14 @@ package org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_REASON;
 
-public class JsonObjectToTerminateNegotiationTransformer extends AbstractJsonLdTransformer<JsonObject, TerminateNegotiation> {
+public class JsonObjectToTerminateNegotiationTransformer extends JsonLdToModelTransformer<JsonObject, TerminateNegotiation> {
 
     public JsonObjectToTerminateNegotiationTransformer() {
         super(JsonObject.class, TerminateNegotiation.class);
@@ -35,4 +35,5 @@ public class JsonObjectToTerminateNegotiationTransformer extends AbstractJsonLdT
 
         return new TerminateNegotiation(reason);
     }
+
 }

@@ -16,7 +16,7 @@ package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSchema;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +28,7 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSche
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSchema.CREDENTIAL_SCHEMA_TYPE_PROPERTY;
 
 
-public class JsonObjectToCredentialSchemaTransformer extends AbstractJsonLdTransformer<JsonObject, CredentialSchema> {
+public class JsonObjectToCredentialSchemaTransformer extends JsonLdToModelTransformer<JsonObject, CredentialSchema> {
     public JsonObjectToCredentialSchemaTransformer() {
         super(JsonObject.class, CredentialSchema.class);
     }
@@ -50,4 +50,5 @@ public class JsonObjectToCredentialSchemaTransformer extends AbstractJsonLdTrans
         }
         return new CredentialSchema(id, type);
     }
+
 }

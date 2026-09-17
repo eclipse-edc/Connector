@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.catalog.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,7 @@ import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
 
-public class JsonObjectToCatalogRequestTransformer extends AbstractJsonLdTransformer<JsonObject, CatalogRequest> {
+public class JsonObjectToCatalogRequestTransformer extends JsonLdToModelTransformer<JsonObject, CatalogRequest> {
 
     public JsonObjectToCatalogRequestTransformer() {
         super(JsonObject.class, CatalogRequest.class);

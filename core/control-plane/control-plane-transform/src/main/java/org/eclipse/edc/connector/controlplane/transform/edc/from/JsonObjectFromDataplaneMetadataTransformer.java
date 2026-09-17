@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.from;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +27,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.JSON;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 
-public class JsonObjectFromDataplaneMetadataTransformer extends AbstractJsonLdTransformer<DataplaneMetadata, JsonObject> {
+public class JsonObjectFromDataplaneMetadataTransformer extends JsonLdFromModelTransformer<DataplaneMetadata, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
 

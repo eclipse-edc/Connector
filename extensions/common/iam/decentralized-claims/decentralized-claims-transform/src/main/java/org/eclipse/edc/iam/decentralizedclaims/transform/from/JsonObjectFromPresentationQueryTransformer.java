@@ -19,7 +19,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationQueryMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdFromModelTransformer;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,7 @@ import static org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationQuer
 import static org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_TERM;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
-public class JsonObjectFromPresentationQueryTransformer extends AbstractNamespaceAwareJsonLdTransformer<PresentationQueryMessage, JsonObject> {
+public class JsonObjectFromPresentationQueryTransformer extends NamespacedJsonLdFromModelTransformer<PresentationQueryMessage, JsonObject> {
     private final TypeManager typeManager;
     private final String typeContext;
 

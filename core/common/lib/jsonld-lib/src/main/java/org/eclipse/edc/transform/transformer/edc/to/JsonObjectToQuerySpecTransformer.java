@@ -15,7 +15,7 @@
 package org.eclipse.edc.transform.transformer.edc.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -29,7 +29,7 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_OFFSET;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_SORT_FIELD;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_SORT_ORDER;
 
-public class JsonObjectToQuerySpecTransformer extends AbstractJsonLdTransformer<JsonObject, QuerySpec> {
+public class JsonObjectToQuerySpecTransformer extends JsonLdToModelTransformer<JsonObject, QuerySpec> {
 
     public JsonObjectToQuerySpecTransformer() {
         super(JsonObject.class, QuerySpec.class);

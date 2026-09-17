@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.fr
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,7 @@ import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PRO
 import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_PROTOCOL_VERSION_IRI;
 import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_TYPE_IRI;
 
-public class JsonObjectFromDataspaceProfileContextTransformer extends AbstractJsonLdTransformer<DataspaceProfileContext, JsonObject> {
+public class JsonObjectFromDataspaceProfileContextTransformer extends JsonLdFromModelTransformer<DataspaceProfileContext, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
 

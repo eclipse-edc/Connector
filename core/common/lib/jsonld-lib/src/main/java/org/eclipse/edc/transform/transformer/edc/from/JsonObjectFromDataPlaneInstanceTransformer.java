@@ -18,7 +18,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstanceStates;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +37,7 @@ import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.Data
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
-public class JsonObjectFromDataPlaneInstanceTransformer extends AbstractJsonLdTransformer<DataPlaneInstance, JsonObject> {
+public class JsonObjectFromDataPlaneInstanceTransformer extends JsonLdFromModelTransformer<DataPlaneInstance, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
     private final TypeManager typeManager;
     private final String typeContext;

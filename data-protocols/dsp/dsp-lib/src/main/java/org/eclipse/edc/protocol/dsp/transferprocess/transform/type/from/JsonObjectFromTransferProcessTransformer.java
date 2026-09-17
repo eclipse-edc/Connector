@@ -19,7 +19,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdFromModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,7 +36,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAn
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM;
 
-public class JsonObjectFromTransferProcessTransformer extends AbstractNamespaceAwareJsonLdTransformer<TransferProcess, JsonObject> {
+public class JsonObjectFromTransferProcessTransformer extends NamespacedJsonLdFromModelTransformer<TransferProcess, JsonObject> {
 
     private final JsonBuilderFactory jsonBuilderFactory;
 

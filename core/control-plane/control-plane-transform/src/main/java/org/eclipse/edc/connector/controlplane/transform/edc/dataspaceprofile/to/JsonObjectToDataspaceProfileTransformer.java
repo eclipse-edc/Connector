@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.protocol.spi.DataspaceProfile;
 import org.eclipse.edc.protocol.spi.TrustedIssuer;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -33,7 +33,7 @@ import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PRO
 import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_PROTOCOL_VERSION_IRI;
 import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_TRUSTED_ISSUERS_IRI;
 
-public class JsonObjectToDataspaceProfileTransformer extends AbstractJsonLdTransformer<JsonObject, DataspaceProfile> {
+public class JsonObjectToDataspaceProfileTransformer extends JsonLdToModelTransformer<JsonObject, DataspaceProfile> {
 
     public JsonObjectToDataspaceProfileTransformer() {
         super(JsonObject.class, DataspaceProfile.class);
@@ -61,4 +61,5 @@ public class JsonObjectToDataspaceProfileTransformer extends AbstractJsonLdTrans
 
         return builder.build();
     }
+
 }

@@ -20,7 +20,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +35,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPA
 /**
  * Converts from a DCAT catalog as a {@link JsonObject} in JSON-LD expanded form to a {@link Catalog}.
  */
-public class JsonObjectToCatalogTransformer extends AbstractJsonLdTransformer<JsonObject, Catalog> {
+public class JsonObjectToCatalogTransformer extends JsonLdToModelTransformer<JsonObject, Catalog> {
 
     public JsonObjectToCatalogTransformer() {
         super(JsonObject.class, Catalog.class);
@@ -76,4 +76,5 @@ public class JsonObjectToCatalogTransformer extends AbstractJsonLdTransformer<Js
             builder.property(key, transformGenericProperty(value, context));
         }
     }
+
 }

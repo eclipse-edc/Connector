@@ -18,7 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.document.cache.spi.CachedDocument;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +42,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
  * The {@code content} property is emitted as a {@code @json} literal so the arbitrary JSON document
  * it carries is preserved verbatim through compaction instead of being expanded as a nested node.
  */
-public class JsonObjectFromCachedDocumentTransformer extends AbstractJsonLdTransformer<CachedDocument, JsonObject> {
+public class JsonObjectFromCachedDocumentTransformer extends JsonLdFromModelTransformer<CachedDocument, JsonObject> {
 
     private final JsonBuilderFactory factory;
 

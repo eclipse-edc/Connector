@@ -16,7 +16,7 @@ package org.eclipse.edc.api.transformer;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,7 @@ import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
 
-public class JsonObjectToCallbackAddressTransformer extends AbstractJsonLdTransformer<JsonObject, CallbackAddress> {
+public class JsonObjectToCallbackAddressTransformer extends JsonLdToModelTransformer<JsonObject, CallbackAddress> {
 
     public JsonObjectToCallbackAddressTransformer() {
         super(JsonObject.class, CallbackAddress.class);
@@ -78,4 +78,5 @@ public class JsonObjectToCallbackAddressTransformer extends AbstractJsonLdTransf
                 break;
         }
     }
+
 }

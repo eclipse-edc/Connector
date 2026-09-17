@@ -20,7 +20,7 @@ import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +32,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 /**
  * Converts from a generic property as a {@link JsonObject} in JSON-LD expanded form to a Java Object.
  */
-public class JsonValueToGenericTypeTransformer extends AbstractJsonLdTransformer<JsonValue, Object> {
+public class JsonValueToGenericTypeTransformer extends JsonLdToModelTransformer<JsonValue, Object> {
     private final TypeManager typeManager;
     private final String typeContext;
 

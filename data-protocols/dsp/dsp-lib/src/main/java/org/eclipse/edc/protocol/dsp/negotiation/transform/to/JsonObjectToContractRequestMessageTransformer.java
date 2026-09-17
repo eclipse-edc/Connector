@@ -18,7 +18,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 /**
  * Creates a {@link ContractRequestMessage} from a {@link JsonObject}.
  */
-public class JsonObjectToContractRequestMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, ContractRequestMessage> {
+public class JsonObjectToContractRequestMessageTransformer extends NamespacedJsonLdToModelTransformer<JsonObject, ContractRequestMessage> {
 
     public JsonObjectToContractRequestMessageTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, ContractRequestMessage.class, namespace);

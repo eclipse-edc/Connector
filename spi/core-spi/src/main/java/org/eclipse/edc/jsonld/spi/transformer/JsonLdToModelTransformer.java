@@ -14,12 +14,9 @@
 
 package org.eclipse.edc.jsonld.spi.transformer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonArray;
-import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
@@ -28,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -50,14 +46,14 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 /**
  * Base JSON-LD transformer implementation.
  */
-public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLdTransformer<INPUT, OUTPUT> {
+public abstract class JsonLdToModelTransformer<INPUT, OUTPUT> implements JsonLdTransformer<INPUT, OUTPUT> {
     private static final Consumer<JsonValue> NOOP_CONSUMER = v -> {
     };
 
     private final Class<INPUT> input;
     private final Class<OUTPUT> output;
 
-    protected AbstractJsonLdTransformer(Class<INPUT> input, Class<OUTPUT> output) {
+    protected JsonLdToModelTransformer(Class<INPUT> input, Class<OUTPUT> output) {
         this.input = input;
         this.output = output;
     }
@@ -143,47 +139,6 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
                     .report();
             return null;
         }
-    }
-
-    /**
-     * Transforms properties of a Java type. The properties are mapped to generic JSON values.
-     *
-     * @param properties the properties to map
-     * @param builder    the builder on which to set the properties
-     * @param mapper     the mapper for converting the properties
-     * @param context    the transformer context
-     */
-    protected void transformProperties(Map<String, ?> properties, JsonObjectBuilder builder, ObjectMapper mapper, TransformerContext context) {
-        Function<Object, JsonValue> func = v -> mapper.convertValue(v, JsonValue.class);
-
-        transformProperties(properties, builder, func, context);
-    }
-
-    /**
-     * Transforms properties of a Java type. The properties are mapped to generic JSON values using the provided transformer function.
-     *
-     * @param properties          the properties to map
-     * @param builder             the builder on which to set the properties
-     * @param transformerFunction the function to transform the property value
-     * @param context             the transformer context
-     */
-    protected void transformProperties(Map<String, ?> properties, JsonObjectBuilder builder, Function<Object, JsonValue> transformerFunction, TransformerContext context) {
-        if (properties == null) {
-            return;
-        }
-        properties.forEach((k, v) -> {
-            try {
-                builder.add(k, transformerFunction.apply(v));
-            } catch (IllegalArgumentException e) {
-                context.problem()
-                        .invalidProperty()
-                        .type(JsonLdKeywords.VALUE)
-                        .property(k)
-                        .value(v != null ? v.toString() : "null")
-                        .error(e.getMessage())
-                        .report();
-            }
-        });
     }
 
     protected void visitProperties(JsonObject object, BiConsumer<String, JsonValue> consumer) {
@@ -519,40 +474,5 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
         }
     }
 
-    /**
-     * Add a key-value pair to the builder only if the value is not null, to avoid NPE.
-     *
-     * @param value   the value.
-     * @param key     the key.
-     * @param builder the builder.
-     */
-    protected void addIfNotNull(String value, String key, JsonObjectBuilder builder) {
-        if (value != null) {
-            builder.add(key, value);
-        }
-    }
 
-    /**
-     * Add JSON-LD ID object to the builder only if the id is not null, to avoid NPE.
-     *
-     * @param id      the value.
-     * @param key     the key.
-     * @param builder the builder.
-     */
-    protected void addIdIfNotNull(String id, String key, JsonBuilderFactory factory, JsonObjectBuilder builder) {
-        if (id != null) {
-            builder.add(key, createId(factory, id));
-        }
-    }
-
-
-    /**
-     * Create a JSON-LD ID object with the input string.
-     *
-     * @param factory The {@link JsonBuilderFactory} .
-     * @param id      The id.
-     */
-    protected JsonObject createId(JsonBuilderFactory factory, String id) {
-        return factory.createObjectBuilder().add(ID, id).build();
-    }
 }

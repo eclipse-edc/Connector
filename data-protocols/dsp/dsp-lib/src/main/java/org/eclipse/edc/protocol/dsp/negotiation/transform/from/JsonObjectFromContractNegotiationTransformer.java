@@ -19,7 +19,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdFromModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +42,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 /**
  * Creates a {@link JsonObject} from a {@link ContractNegotiation}.
  */
-public class JsonObjectFromContractNegotiationTransformer extends AbstractNamespaceAwareJsonLdTransformer<ContractNegotiation, JsonObject> {
+public class JsonObjectFromContractNegotiationTransformer extends NamespacedJsonLdFromModelTransformer<ContractNegotiation, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
 

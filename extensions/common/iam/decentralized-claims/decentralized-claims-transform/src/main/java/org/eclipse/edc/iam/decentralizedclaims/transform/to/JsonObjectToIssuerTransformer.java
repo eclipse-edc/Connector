@@ -17,14 +17,14 @@ package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 
-public class JsonObjectToIssuerTransformer extends AbstractJsonLdTransformer<JsonObject, Issuer> {
+public class JsonObjectToIssuerTransformer extends JsonLdToModelTransformer<JsonObject, Issuer> {
     public JsonObjectToIssuerTransformer() {
         super(JsonObject.class, Issuer.class);
     }
@@ -41,4 +41,5 @@ public class JsonObjectToIssuerTransformer extends AbstractJsonLdTransformer<Jso
         });
         return new Issuer(id, props);
     }
+
 }

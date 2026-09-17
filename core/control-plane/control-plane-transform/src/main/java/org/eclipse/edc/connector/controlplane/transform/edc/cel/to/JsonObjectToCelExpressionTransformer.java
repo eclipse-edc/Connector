@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transform.edc.cel.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.policy.cel.model.CelExpression;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_EXPR
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_LEFT_OPERAND_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_SCOPES_IRI;
 
-public class JsonObjectToCelExpressionTransformer extends AbstractJsonLdTransformer<JsonObject, CelExpression> {
+public class JsonObjectToCelExpressionTransformer extends JsonLdToModelTransformer<JsonObject, CelExpression> {
 
     public JsonObjectToCelExpressionTransformer() {
         super(JsonObject.class, CelExpression.class);
@@ -67,4 +67,5 @@ public class JsonObjectToCelExpressionTransformer extends AbstractJsonLdTransfor
                 .actions(actions)
                 .build();
     }
+
 }

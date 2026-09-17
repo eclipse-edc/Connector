@@ -20,7 +20,7 @@ import jakarta.json.JsonValue;
 import org.eclipse.edc.document.cache.spi.CachedDocument;
 import org.eclipse.edc.document.cache.spi.CachedDocumentType;
 import org.eclipse.edc.document.cache.spi.PullStrategy;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +38,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
  * arbitrary JSON document it carries survives expansion untouched and is read back from its
  * {@code @value}.
  */
-public class JsonObjectToCachedDocumentTransformer extends AbstractJsonLdTransformer<JsonObject, CachedDocument> {
+public class JsonObjectToCachedDocumentTransformer extends JsonLdToModelTransformer<JsonObject, CachedDocument> {
 
     public JsonObjectToCachedDocumentTransformer() {
         super(JsonObject.class, CachedDocument.class);
@@ -100,4 +100,5 @@ public class JsonObjectToCachedDocumentTransformer extends AbstractJsonLdTransfo
         }
         return null;
     }
+
 }

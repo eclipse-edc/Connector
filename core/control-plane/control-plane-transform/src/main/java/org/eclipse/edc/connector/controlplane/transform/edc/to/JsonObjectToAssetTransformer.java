@@ -18,7 +18,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,7 @@ import static org.eclipse.edc.jsonld.spi.TypeUtil.nodeType;
 /**
  * Converts from an {@link Asset} as a {@link JsonObject} in JSON-LD expanded form to an {@link Asset}.
  */
-public class JsonObjectToAssetTransformer extends AbstractJsonLdTransformer<JsonObject, Asset> {
+public class JsonObjectToAssetTransformer extends JsonLdToModelTransformer<JsonObject, Asset> {
     public JsonObjectToAssetTransformer() {
         super(JsonObject.class, Asset.class);
     }

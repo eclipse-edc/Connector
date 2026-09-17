@@ -16,14 +16,14 @@ package org.eclipse.edc.connector.controlplane.transform.edc.transferprocess.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransfer;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransfer.TERMINATE_TRANSFER_REASON;
 
-public class JsonObjectToTerminateTransferTransformer extends AbstractJsonLdTransformer<JsonObject, TerminateTransfer> {
+public class JsonObjectToTerminateTransferTransformer extends JsonLdToModelTransformer<JsonObject, TerminateTransfer> {
 
     public JsonObjectToTerminateTransferTransformer() {
         super(JsonObject.class, TerminateTransfer.class);

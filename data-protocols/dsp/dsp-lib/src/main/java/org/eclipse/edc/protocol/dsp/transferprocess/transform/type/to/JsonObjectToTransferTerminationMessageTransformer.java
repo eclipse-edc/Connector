@@ -18,7 +18,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +30,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_TERM;
 
-public class JsonObjectToTransferTerminationMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, TransferTerminationMessage> {
+public class JsonObjectToTransferTerminationMessageTransformer extends NamespacedJsonLdToModelTransformer<JsonObject, TransferTerminationMessage> {
 
     public JsonObjectToTransferTerminationMessageTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, TransferTerminationMessage.class, namespace);

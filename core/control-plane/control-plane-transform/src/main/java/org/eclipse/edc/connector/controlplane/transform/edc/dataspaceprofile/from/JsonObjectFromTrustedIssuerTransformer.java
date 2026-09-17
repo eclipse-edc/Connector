@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.fr
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.protocol.spi.TrustedIssuer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +29,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.spi.TrustedIssuer.TRUSTED_ISSUER_SUPPORTED_TYPES_IRI;
 import static org.eclipse.edc.protocol.spi.TrustedIssuer.TRUSTED_ISSUER_TYPE_IRI;
 
-public class JsonObjectFromTrustedIssuerTransformer extends AbstractJsonLdTransformer<TrustedIssuer, JsonObject> {
+public class JsonObjectFromTrustedIssuerTransformer extends JsonLdFromModelTransformer<TrustedIssuer, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
 

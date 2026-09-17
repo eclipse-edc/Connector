@@ -18,7 +18,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,7 @@ import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSeri
 /**
  * Transforms a {@link JsonObject} into a DataAddress using the DSPACE-serialization format.
  */
-public class JsonObjectToDataAddressDspaceTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, DataAddress> {
+public class JsonObjectToDataAddressDspaceTransformer extends NamespacedJsonLdToModelTransformer<JsonObject, DataAddress> {
 
     public JsonObjectToDataAddressDspaceTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, DataAddress.class, namespace);

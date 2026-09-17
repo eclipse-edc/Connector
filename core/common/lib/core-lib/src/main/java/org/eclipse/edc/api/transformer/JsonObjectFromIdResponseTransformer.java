@@ -17,7 +17,7 @@ package org.eclipse.edc.api.transformer;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponse;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +27,7 @@ import static org.eclipse.edc.api.model.IdResponse.ID_RESPONSE_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
-public class JsonObjectFromIdResponseTransformer extends AbstractJsonLdTransformer<IdResponse, JsonObject> {
+public class JsonObjectFromIdResponseTransformer extends JsonLdFromModelTransformer<IdResponse, JsonObject> {
 
     private final JsonBuilderFactory builderFactory;
 

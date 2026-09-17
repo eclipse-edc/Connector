@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.policy.from;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.spi.plan.step.AndConstraintStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.AtomicConstraintStep;
@@ -64,7 +64,7 @@ import static org.eclipse.edc.policy.engine.spi.plan.step.RuleStep.EDC_RULE_STEP
 import static org.eclipse.edc.policy.engine.spi.plan.step.RuleStep.EDC_RULE_STEP_IS_FILTERED;
 import static org.eclipse.edc.policy.engine.spi.plan.step.XoneConstraintStep.EDC_XONE_CONSTRAINT_STEP_TYPE;
 
-public class JsonObjectFromPolicyEvaluationPlanTransformer extends AbstractJsonLdTransformer<PolicyEvaluationPlan, JsonObject> {
+public class JsonObjectFromPolicyEvaluationPlanTransformer extends JsonLdFromModelTransformer<PolicyEvaluationPlan, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
 

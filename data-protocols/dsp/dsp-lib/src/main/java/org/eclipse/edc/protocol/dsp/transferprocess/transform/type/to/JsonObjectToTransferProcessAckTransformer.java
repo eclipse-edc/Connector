@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +29,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 /**
  * Create a {@link TransferProcessAck} from {@link JsonObject}
  */
-public class JsonObjectToTransferProcessAckTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, TransferProcessAck> {
+public class JsonObjectToTransferProcessAckTransformer extends NamespacedJsonLdToModelTransformer<JsonObject, TransferProcessAck> {
 
     public JsonObjectToTransferProcessAckTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, TransferProcessAck.class, namespace);
