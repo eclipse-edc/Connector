@@ -20,14 +20,22 @@ import org.eclipse.edc.connector.controlplane.store.sql.policydefinition.store.s
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.policy.model.Action;
+import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.policy.model.Operator;
+import org.eclipse.edc.policy.model.Permission;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * This test aims to verify those parts of the policy definition store, that are specific to Postgres, e.g. JSON query
@@ -55,6 +63,29 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
     @AfterEach
     void tearDown(PostgresqlStoreSetupExtension extension) {
         extension.runQuery("DROP TABLE " + statements.getPolicyTable() + " CASCADE");
+    }
+
+    @Test
+    void shouldReadInOperatorAsIsPartOf() {
+        var policyDefinition = policyDefinitionBuilder()
+                .policy(Policy.Builder.newInstance()
+                        .permission(Permission.Builder.newInstance()
+                                .action(Action.Builder.newInstance().constraint(atomicConstraint("foo", Operator.IN, "bar"))
+                                        .type("use")
+                                        .build())
+                                .build()
+                        )
+                        .build())
+                .build();
+
+        getPolicyDefinitionStore().create(policyDefinition);
+
+        var policyFromDb = getPolicyDefinitionStore().findById(policyDefinition.getId());
+
+        assertThat(policyFromDb.getPolicy().getPermissions().get(0).getAction().getConstraint())
+                .isInstanceOfSatisfying(AtomicConstraint.class, constraint -> {
+                    assertThat(constraint.getOperator()).isEqualTo(Operator.IS_PART_OF);
+                });
     }
 
     @Override

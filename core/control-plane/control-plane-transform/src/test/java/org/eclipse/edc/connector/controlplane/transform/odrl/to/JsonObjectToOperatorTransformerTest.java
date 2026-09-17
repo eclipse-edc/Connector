@@ -55,6 +55,15 @@ class JsonObjectToOperatorTransformerTest {
     }
 
     @Test
+    void shouldTransformIsPartOf() {
+        var jsonOperator = jsonFactory.createObjectBuilder().add(ID, ODRL_SCHEMA + "isPartOf").build();
+
+        var operator = transformer.transform(jsonOperator, context);
+
+        assertThat(operator).isEqualTo(Operator.IS_PART_OF);
+    }
+
+    @Test
     void shouldReportError_whenValueIsMissing() {
         var jsonOperator = jsonFactory.createObjectBuilder().build();
 

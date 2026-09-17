@@ -19,7 +19,11 @@ import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.testfixtures.TestFunctions;
 import org.eclipse.edc.policy.model.Action;
+import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.policy.model.Constraint;
 import org.eclipse.edc.policy.model.Duty;
+import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
@@ -49,18 +53,18 @@ public abstract class PolicyDefinitionStoreTestBase {
 
     protected abstract PolicyDefinitionStore getPolicyDefinitionStore();
 
-    private String getRandomId() {
-        return UUID.randomUUID().toString();
+    protected Constraint atomicConstraint(String left, Operator operator, String right) {
+        return AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression(left))
+                .operator(operator)
+                .rightExpression(new LiteralExpression(right))
+                .build();
     }
 
-    private PolicyDefinition createPolicyDef(String id, String target) {
-        return PolicyDefinition.Builder.newInstance().id(id)
-                .participantContextId("participantContextId")
-                .policy(Policy.Builder.newInstance().target(target).build()).build();
-    }
-
-    private QuerySpec createQuery(Criterion criterion) {
-        return QuerySpec.Builder.newInstance().filter(criterion).build();
+    protected PolicyDefinition.Builder policyDefinitionBuilder() {
+        return PolicyDefinition.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .participantContextId(UUID.randomUUID().toString());
     }
 
     @Nested
@@ -306,9 +310,9 @@ public abstract class PolicyDefinitionStoreTestBase {
             var store = getPolicyDefinitionStore();
             store.create(policy);
 
-            var updatedPermission = TestFunctions.createPermissionBuilder("updated-id").build();
-            var updatedProhibition = TestFunctions.createProhibitionBuilder("updated-id").build();
-            var updatedDuty = TestFunctions.createDutyBuilder("updated-id").build();
+            var updatedPermission = Permission.Builder.newInstance().build();
+            var updatedProhibition = Prohibition.Builder.newInstance().build();
+            var updatedDuty = Duty.Builder.newInstance().build();
             var updatedPolicy = Policy.Builder.newInstance()
                     .target("updatedTarget")
                     .permission(updatedPermission)
@@ -452,8 +456,8 @@ public abstract class PolicyDefinitionStoreTestBase {
         @Test
         void queryByProhibitions() {
             var p = TestFunctions.createPolicyBuilder("test-policy")
-                    .prohibition(TestFunctions.createProhibitionBuilder("prohibition1")
-                            .action(TestFunctions.createAction("test-action-type"))
+                    .prohibition(Prohibition.Builder.newInstance()
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -480,8 +484,8 @@ public abstract class PolicyDefinitionStoreTestBase {
         @Test
         void queryByProhibitions_valueNotExist() {
             var p = TestFunctions.createPolicyBuilder("test-policy")
-                    .prohibition(TestFunctions.createProhibitionBuilder("prohibition1")
-                            .action(TestFunctions.createAction("test-action-type"))
+                    .prohibition(Prohibition.Builder.newInstance()
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -499,8 +503,8 @@ public abstract class PolicyDefinitionStoreTestBase {
         @Test
         void queryByPermissions() {
             var p = TestFunctions.createPolicyBuilder("test-policy")
-                    .permission(TestFunctions.createPermissionBuilder("permission1")
-                            .action(TestFunctions.createAction("test-action-type"))
+                    .permission(Permission.Builder.newInstance()
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -527,8 +531,8 @@ public abstract class PolicyDefinitionStoreTestBase {
         @Test
         void queryByPermissions_valueNotExist() {
             var p = TestFunctions.createPolicyBuilder("test-policy")
-                    .permission(TestFunctions.createPermissionBuilder("permission1")
-                            .action(TestFunctions.createAction("test-action-type"))
+                    .permission(Permission.Builder.newInstance()
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -546,8 +550,8 @@ public abstract class PolicyDefinitionStoreTestBase {
         @Test
         void queryByDuties() {
             var p = TestFunctions.createPolicyBuilder("test-policy")
-                    .duty(TestFunctions.createDutyBuilder("prohibition1")
-                            .action(TestFunctions.createAction("test-action-type"))
+                    .duty(Duty.Builder.newInstance()
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -575,8 +579,8 @@ public abstract class PolicyDefinitionStoreTestBase {
         @Test
         void queryByDuties_valueNotExist() {
             var p = TestFunctions.createPolicyBuilder("test-policy")
-                    .duty(TestFunctions.createDutyBuilder("prohibition1")
-                            .action(TestFunctions.createAction("test-action-type"))
+                    .duty(Duty.Builder.newInstance()
+                            .action(createAction("test-action-type"))
                             .build())
                     .build();
 
@@ -855,5 +859,25 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .extracting(StoreResult::reason)
                     .isEqualTo(NOT_FOUND);
         }
+    }
+
+    private Action createAction(String type) {
+        return Action.Builder.newInstance().constraint(atomicConstraint("foo", Operator.EQ, "bar"))
+                .type(type)
+                .build();
+    }
+
+    private String getRandomId() {
+        return UUID.randomUUID().toString();
+    }
+
+    private PolicyDefinition createPolicyDef(String id, String target) {
+        return PolicyDefinition.Builder.newInstance().id(id)
+                .participantContextId("participantContextId")
+                .policy(Policy.Builder.newInstance().target(target).build()).build();
+    }
+
+    private QuerySpec createQuery(Criterion criterion) {
+        return QuerySpec.Builder.newInstance().filter(criterion).build();
     }
 }
