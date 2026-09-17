@@ -6165,6 +6165,82 @@ components:
         correlationId: correlationId
         '@id': '@id'
         state: state
+        policy:
+          '@type': '@type'
+          obligation:
+          - action: null
+            constraint:
+            - null
+            - null
+          - action: null
+            constraint:
+            - null
+            - null
+          profile:
+          - PolicyClass_profile
+          - PolicyClass_profile
+          prohibition:
+          - action: action
+            constraint:
+            - null
+            - null
+          - action: action
+            constraint:
+            - null
+            - null
+          permission:
+          - action: action
+            constraint:
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+          - action: action
+            constraint:
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
       allOf:
       - $ref: "#/components/schemas/ContractNegotiation"
     ContractNegotiation:
@@ -6219,6 +6295,8 @@ components:
           type: string
         assetId:
           type: string
+        policy:
+          $ref: "#/components/schemas/PolicyClass"
         contractAgreementId:
           type: string
     secret-schema:
