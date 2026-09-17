@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.cel.from;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.policy.cel.model.CelExpression;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +32,7 @@ import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_LEFT
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_SCOPES_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_TYPE_IRI;
 
-public class JsonObjectFromCelExpressionTransformer extends AbstractJsonLdTransformer<CelExpression, JsonObject> {
+public class JsonObjectFromCelExpressionTransformer extends JsonLdFromModelTransformer<CelExpression, JsonObject> {
 
     private final JsonBuilderFactory factory;
 

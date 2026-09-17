@@ -19,7 +19,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdFromModelTransformer;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -43,7 +43,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DSPACE_PROPERTY_PA
 /**
  * Converts from a {@link Catalog} to a DCAT catalog as a {@link JsonObject} in JSON-LD expanded form.
  */
-public class JsonObjectFromCatalogV2025Transformer extends AbstractNamespaceAwareJsonLdTransformer<Catalog, JsonObject> {
+public class JsonObjectFromCatalogV2025Transformer extends NamespacedJsonLdFromModelTransformer<Catalog, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
     private final TypeManager typeManager;
     private final String typeContext;

@@ -20,12 +20,12 @@ import jakarta.json.JsonValue;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class JsonObjectToVerifiablePresentationTransformer extends AbstractJsonLdTransformer<JsonObject, VerifiablePresentation> {
+public class JsonObjectToVerifiablePresentationTransformer extends JsonLdToModelTransformer<JsonObject, VerifiablePresentation> {
     public JsonObjectToVerifiablePresentationTransformer() {
         super(JsonObject.class, VerifiablePresentation.class);
     }
@@ -67,4 +67,5 @@ public class JsonObjectToVerifiablePresentationTransformer extends AbstractJsonL
             });
         }
     }
+
 }

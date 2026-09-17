@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.protocol.spi.TrustedIssuer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-public class JsonObjectToTrustedIssuerTransformer extends AbstractJsonLdTransformer<JsonObject, TrustedIssuer> {
+public class JsonObjectToTrustedIssuerTransformer extends JsonLdToModelTransformer<JsonObject, TrustedIssuer> {
 
     public JsonObjectToTrustedIssuerTransformer() {
         super(JsonObject.class, TrustedIssuer.class);
@@ -39,4 +39,5 @@ public class JsonObjectToTrustedIssuerTransformer extends AbstractJsonLdTransfor
 
         return builder.build();
     }
+
 }

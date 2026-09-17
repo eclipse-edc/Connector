@@ -15,7 +15,7 @@
 package org.eclipse.edc.transform.transformer.edc.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -26,7 +26,7 @@ import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_LEFT;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_RIGHT;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERATOR;
 
-public class JsonObjectToCriterionTransformer extends AbstractJsonLdTransformer<JsonObject, Criterion> {
+public class JsonObjectToCriterionTransformer extends JsonLdToModelTransformer<JsonObject, Criterion> {
 
     private final CriterionOperatorRegistry criterionOperatorRegistry;
 

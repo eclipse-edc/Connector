@@ -18,7 +18,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +29,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBU
 /**
  * Converts from a DCAT distribution as a {@link JsonObject} in JSON-LD expanded form to a {@link Distribution}.
  */
-public class JsonObjectToDistributionTransformer extends AbstractJsonLdTransformer<JsonObject, Distribution> {
+public class JsonObjectToDistributionTransformer extends JsonLdToModelTransformer<JsonObject, Distribution> {
 
     public JsonObjectToDistributionTransformer() {
         super(JsonObject.class, Distribution.class);
@@ -51,4 +51,5 @@ public class JsonObjectToDistributionTransformer extends AbstractJsonLdTransform
             transformString(value, builder::format, context);
         }
     }
+
 }

@@ -20,7 +20,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AndConstraint;
@@ -76,7 +76,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAI
 /**
  * Transforms a {@link Policy} to an ODRL type as a {@link JsonObject} in expanded JSON-LD form.
  */
-public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<Policy, JsonObject> {
+public class JsonObjectFromPolicyTransformer extends JsonLdFromModelTransformer<Policy, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
     private final ParticipantIdMapper participantIdMapper;
     private final TransformerConfig config;

@@ -19,7 +19,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIB
 /**
  * Converts from a DCAT dataset as a {@link JsonObject} in JSON-LD expanded form to a {@link Dataset}.
  */
-public class JsonObjectToDatasetTransformer extends AbstractJsonLdTransformer<JsonObject, Dataset> {
+public class JsonObjectToDatasetTransformer extends JsonLdToModelTransformer<JsonObject, Dataset> {
 
     public JsonObjectToDatasetTransformer() {
         super(JsonObject.class, Dataset.class);
@@ -80,4 +80,5 @@ public class JsonObjectToDatasetTransformer extends AbstractJsonLdTransformer<Js
                     .report();
         }
     }
+
 }

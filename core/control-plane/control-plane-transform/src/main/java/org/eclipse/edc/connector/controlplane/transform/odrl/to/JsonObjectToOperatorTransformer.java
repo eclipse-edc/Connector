@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transform.odrl.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +29,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_OPERATOR_TYPE
 /**
  * Converts from an ODRL operator as a {@link JsonObject} in JSON-LD expanded form to an {@link Operator}.
  */
-public class JsonObjectToOperatorTransformer extends AbstractJsonLdTransformer<JsonObject, Operator> {
+public class JsonObjectToOperatorTransformer extends JsonLdToModelTransformer<JsonObject, Operator> {
 
     public JsonObjectToOperatorTransformer() {
         super(JsonObject.class, Operator.class);

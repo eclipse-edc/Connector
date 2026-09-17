@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +26,7 @@ import java.util.UUID;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_IDENTITY_IRI;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_PROPERTIES_IRI;
 
-public class JsonObjectToParticipantContextTransformer extends AbstractJsonLdTransformer<JsonObject, ParticipantContext> {
+public class JsonObjectToParticipantContextTransformer extends JsonLdToModelTransformer<JsonObject, ParticipantContext> {
     public JsonObjectToParticipantContextTransformer() {
         super(JsonObject.class, ParticipantContext.class);
     }
@@ -53,4 +53,5 @@ public class JsonObjectToParticipantContextTransformer extends AbstractJsonLdTra
 
         return participantContext.build();
     }
+
 }

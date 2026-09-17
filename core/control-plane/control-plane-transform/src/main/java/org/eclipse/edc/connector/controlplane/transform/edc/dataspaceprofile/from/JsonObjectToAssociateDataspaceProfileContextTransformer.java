@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.from;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.protocol.spi.AssociateDataspaceProfileContext;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +26,7 @@ import java.util.Optional;
 
 import static org.eclipse.edc.protocol.spi.AssociateDataspaceProfileContext.ASSOCIATE_DATASPACE_PROFILE_CONTEXT_PROFILES_IRI;
 
-public class JsonObjectToAssociateDataspaceProfileContextTransformer extends AbstractJsonLdTransformer<JsonObject, AssociateDataspaceProfileContext> {
+public class JsonObjectToAssociateDataspaceProfileContextTransformer extends JsonLdToModelTransformer<JsonObject, AssociateDataspaceProfileContext> {
 
 
     public JsonObjectToAssociateDataspaceProfileContextTransformer() {
@@ -40,4 +40,5 @@ public class JsonObjectToAssociateDataspaceProfileContextTransformer extends Abs
                 .orElse(List.of());
         return new AssociateDataspaceProfileContext(profiles);
     }
+
 }

@@ -17,14 +17,14 @@ package org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
-public class JsonObjectFromNegotiationStateTransformer extends AbstractJsonLdTransformer<NegotiationState, JsonObject> {
+public class JsonObjectFromNegotiationStateTransformer extends JsonLdFromModelTransformer<NegotiationState, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
 
     public JsonObjectFromNegotiationStateTransformer(JsonBuilderFactory jsonFactory) {

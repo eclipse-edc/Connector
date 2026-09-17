@@ -17,7 +17,7 @@ package org.eclipse.edc.transform.transformer.edc.from;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
-public class JsonObjectFromQuerySpecTransformer extends AbstractJsonLdTransformer<QuerySpec, JsonObject> {
+public class JsonObjectFromQuerySpecTransformer extends JsonLdFromModelTransformer<QuerySpec, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
 
     public JsonObjectFromQuerySpecTransformer(JsonBuilderFactory jsonFactory) {

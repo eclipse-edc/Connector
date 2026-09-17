@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAn
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM;
 
-public class JsonObjectToTransferRequestMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, TransferRequestMessage> {
+public class JsonObjectToTransferRequestMessageTransformer extends NamespacedJsonLdToModelTransformer<JsonObject, TransferRequestMessage> {
 
     public JsonObjectToTransferRequestMessageTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, TransferRequestMessage.class, namespace);

@@ -19,7 +19,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +30,7 @@ import java.util.Optional;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.JSON;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
-public class JsonObjectToDataplaneMetadataTransformer extends AbstractJsonLdTransformer<JsonObject, DataplaneMetadata> {
+public class JsonObjectToDataplaneMetadataTransformer extends JsonLdToModelTransformer<JsonObject, DataplaneMetadata> {
 
     public JsonObjectToDataplaneMetadataTransformer() {
         super(JsonObject.class, DataplaneMetadata.class);
@@ -88,4 +88,5 @@ public class JsonObjectToDataplaneMetadataTransformer extends AbstractJsonLdTran
                 .formatted(listAttribute, value, value.getValueType()));
         return null;
     }
+
 }

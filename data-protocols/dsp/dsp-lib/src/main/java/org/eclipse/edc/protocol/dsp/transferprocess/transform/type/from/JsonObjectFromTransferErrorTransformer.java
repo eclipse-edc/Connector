@@ -18,7 +18,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferError;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdFromModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +31,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAn
 /**
  * Transforms a {@link TransferError} to a {@link JsonObject} in JSON-LD expanded form.
  */
-public class JsonObjectFromTransferErrorTransformer extends AbstractNamespaceAwareJsonLdTransformer<TransferError, JsonObject> {
+public class JsonObjectFromTransferErrorTransformer extends NamespacedJsonLdFromModelTransformer<TransferError, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
 

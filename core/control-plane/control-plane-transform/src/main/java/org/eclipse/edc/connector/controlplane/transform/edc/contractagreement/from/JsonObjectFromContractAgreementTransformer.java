@@ -19,7 +19,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +37,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreemen
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
-public class JsonObjectFromContractAgreementTransformer extends AbstractJsonLdTransformer<ContractAgreement, JsonObject> {
+public class JsonObjectFromContractAgreementTransformer extends JsonLdFromModelTransformer<ContractAgreement, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
     private final Supplier<ObjectMapper> objectMapperSupplier;
 

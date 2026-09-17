@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.discovery.from;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.protocol.spi.discovery.DiscoveryResponse;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ import static org.eclipse.edc.protocol.spi.discovery.DiscoveryResponse.DISCOVERY
 import static org.eclipse.edc.protocol.spi.discovery.DiscoveryResponse.DISCOVERY_RESPONSE_TYPE_IRI;
 import static org.eclipse.edc.protocol.spi.discovery.DiscoveryResponse.DISCOVERY_RESPONSE_VERSION_IRI;
 
-public class JsonObjectFromDiscoveryResponseTransformer extends AbstractJsonLdTransformer<DiscoveryResponse, JsonObject> {
+public class JsonObjectFromDiscoveryResponseTransformer extends JsonLdFromModelTransformer<DiscoveryResponse, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
 

@@ -18,7 +18,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdFromModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +32,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 /**
  * Creates a {@link JsonObject} from a {@link ContractAgreementVerificationMessage}.
  */
-public class JsonObjectFromContractAgreementVerificationMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<ContractAgreementVerificationMessage, JsonObject> {
+public class JsonObjectFromContractAgreementVerificationMessageTransformer extends NamespacedJsonLdFromModelTransformer<ContractAgreementVerificationMessage, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
 

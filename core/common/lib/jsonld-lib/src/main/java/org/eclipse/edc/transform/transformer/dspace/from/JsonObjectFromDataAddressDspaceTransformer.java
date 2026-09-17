@@ -18,7 +18,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.stream.JsonCollectors;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdFromModelTransformer;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -38,7 +38,7 @@ import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSeri
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_TYPE_PROPERTY_TERM;
 
-public class JsonObjectFromDataAddressDspaceTransformer extends AbstractNamespaceAwareJsonLdTransformer<DataAddress, JsonObject> {
+public class JsonObjectFromDataAddressDspaceTransformer extends NamespacedJsonLdFromModelTransformer<DataAddress, JsonObject> {
 
     private static final Set<String> EXCLUDED_PROPERTIES = Set.of(EDC_DATA_ADDRESS_TYPE_PROPERTY);
     private final JsonBuilderFactory jsonFactory;

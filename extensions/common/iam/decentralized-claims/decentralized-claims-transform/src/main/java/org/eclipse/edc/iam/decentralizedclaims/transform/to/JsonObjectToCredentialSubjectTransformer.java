@@ -16,12 +16,12 @@ package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class JsonObjectToCredentialSubjectTransformer extends AbstractJsonLdTransformer<JsonObject, CredentialSubject> {
+public class JsonObjectToCredentialSubjectTransformer extends JsonLdToModelTransformer<JsonObject, CredentialSubject> {
     public JsonObjectToCredentialSubjectTransformer() {
         super(JsonObject.class, CredentialSubject.class);
     }
@@ -41,4 +41,5 @@ public class JsonObjectToCredentialSubjectTransformer extends AbstractJsonLdTran
 
         return builder.build();
     }
+
 }

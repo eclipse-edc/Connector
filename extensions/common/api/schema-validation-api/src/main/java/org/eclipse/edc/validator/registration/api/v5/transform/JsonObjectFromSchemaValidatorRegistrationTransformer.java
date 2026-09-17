@@ -16,7 +16,7 @@ package org.eclipse.edc.validator.registration.api.v5.transform;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.validator.registration.spi.SchemaValidatorRegistration;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,7 @@ import static org.eclipse.edc.validator.registration.spi.SchemaValidatorRegistra
 /**
  * Renders a {@link SchemaValidatorRegistration} as an (expanded) JSON-LD object.
  */
-public class JsonObjectFromSchemaValidatorRegistrationTransformer extends AbstractJsonLdTransformer<SchemaValidatorRegistration, JsonObject> {
+public class JsonObjectFromSchemaValidatorRegistrationTransformer extends JsonLdFromModelTransformer<SchemaValidatorRegistration, JsonObject> {
 
     private final JsonBuilderFactory factory;
 

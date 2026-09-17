@@ -22,7 +22,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,7 +47,7 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCred
  * Transforms a JSON-LD structure into a {@link VerifiableCredential}.
  * Note that keeping a raw form of the JSON-LD for verification purposes is highly recommended.
  */
-public class JsonObjectToVerifiableCredentialTransformer extends AbstractJsonLdTransformer<JsonObject, VerifiableCredential> {
+public class JsonObjectToVerifiableCredentialTransformer extends JsonLdToModelTransformer<JsonObject, VerifiableCredential> {
 
     public JsonObjectToVerifiableCredentialTransformer() {
         super(JsonObject.class, VerifiableCredential.class);
@@ -110,4 +110,5 @@ public class JsonObjectToVerifiableCredentialTransformer extends AbstractJsonLdT
             return transformObject(issuer, Issuer.class, context);
         }
     }
+
 }

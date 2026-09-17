@@ -37,16 +37,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class AbstractJsonLdTransformerReturnObjectTest {
+class JsonLdToModelTransformerReturnObjectTest {
 
     public static final String TEST_PROPERTY = "testProperty";
-    private AbstractJsonLdTransformer<Object, Object> transformer;
+    private JsonLdToModelTransformer<Object, Object> transformer;
     private JsonBuilderFactory jsonFactory;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
-        transformer = new AbstractJsonLdTransformer<>(Object.class, Object.class) {
+        transformer = new JsonLdToModelTransformer<>(Object.class, Object.class) {
 
             @Nullable
             @Override

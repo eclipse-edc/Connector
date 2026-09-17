@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -32,7 +32,7 @@ import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PA
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_STATE_IRI;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_TYPE_IRI;
 
-public class JsonObjectFromParticipantContextTransformer extends AbstractJsonLdTransformer<ParticipantContext, JsonObject> {
+public class JsonObjectFromParticipantContextTransformer extends JsonLdFromModelTransformer<ParticipantContext, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
 

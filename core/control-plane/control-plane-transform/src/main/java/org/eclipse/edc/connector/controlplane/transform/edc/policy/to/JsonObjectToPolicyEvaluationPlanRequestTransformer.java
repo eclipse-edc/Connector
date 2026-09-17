@@ -16,14 +16,14 @@ package org.eclipse.edc.connector.controlplane.transform.edc.policy.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyEvaluationPlanRequest;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyEvaluationPlanRequest.EDC_POLICY_EVALUATION_PLAN_REQUEST_POLICY_SCOPE;
 
-public class JsonObjectToPolicyEvaluationPlanRequestTransformer extends AbstractJsonLdTransformer<JsonObject, PolicyEvaluationPlanRequest> {
+public class JsonObjectToPolicyEvaluationPlanRequestTransformer extends JsonLdToModelTransformer<JsonObject, PolicyEvaluationPlanRequest> {
 
     public JsonObjectToPolicyEvaluationPlanRequestTransformer() {
         super(JsonObject.class, PolicyEvaluationPlanRequest.class);

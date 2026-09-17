@@ -17,14 +17,14 @@ package org.eclipse.edc.connector.controlplane.transform.edc.policy.from;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyValidationResult;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
-public class JsonObjectFromPolicyValidationResultTransformer extends AbstractJsonLdTransformer<PolicyValidationResult, JsonObject> {
+public class JsonObjectFromPolicyValidationResultTransformer extends JsonLdFromModelTransformer<PolicyValidationResult, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
 

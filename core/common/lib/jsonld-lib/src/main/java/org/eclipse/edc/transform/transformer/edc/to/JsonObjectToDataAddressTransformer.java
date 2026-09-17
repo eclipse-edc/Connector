@@ -16,7 +16,7 @@ package org.eclipse.edc.transform.transformer.edc.to;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +29,7 @@ import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESP
 /**
  * Converts from an {@link DataAddress} as a {@link JsonObject} in JSON-LD expanded form to an {@link DataAddress}.
  */
-public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransformer<JsonObject, DataAddress> {
+public class JsonObjectToDataAddressTransformer extends JsonLdToModelTransformer<JsonObject, DataAddress> {
 
     public static final String PROPERTIES_KEY = EDC_NAMESPACE + "properties";
 

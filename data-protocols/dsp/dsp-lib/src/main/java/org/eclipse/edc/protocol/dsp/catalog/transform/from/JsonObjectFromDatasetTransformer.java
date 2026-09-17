@@ -20,7 +20,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +35,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIB
 /**
  * Converts from a {@link Dataset} to a DCAT dataset as a {@link JsonObject} in JSON-LD expanded form.
  */
-public class JsonObjectFromDatasetTransformer extends AbstractJsonLdTransformer<Dataset, JsonObject> {
+public class JsonObjectFromDatasetTransformer extends JsonLdFromModelTransformer<Dataset, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
     private final TypeManager typeManager;

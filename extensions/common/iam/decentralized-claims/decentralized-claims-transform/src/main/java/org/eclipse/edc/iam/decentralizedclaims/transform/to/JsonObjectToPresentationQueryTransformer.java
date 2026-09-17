@@ -22,7 +22,7 @@ import org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationQueryMessag
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinition.PresentationDefinition;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,7 @@ import static org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationQuer
 /**
  * Transforms a JsonObject into a PresentationQuery object.
  */
-public class JsonObjectToPresentationQueryTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, PresentationQueryMessage> {
+public class JsonObjectToPresentationQueryTransformer extends NamespacedJsonLdToModelTransformer<JsonObject, PresentationQueryMessage> {
 
     private final TypeManager typeManager;
     private final String typeContext;

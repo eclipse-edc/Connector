@@ -18,7 +18,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +33,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 /**
  * Creates a {@link ContractNegotiationTerminationMessage} from a {@link JsonObject}.
  */
-public class JsonObjectToContractNegotiationTerminationMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, ContractNegotiationTerminationMessage> {
+public class JsonObjectToContractNegotiationTerminationMessageTransformer extends NamespacedJsonLdToModelTransformer<JsonObject, ContractNegotiationTerminationMessage> {
 
     public JsonObjectToContractNegotiationTerminationMessageTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, ContractNegotiationTerminationMessage.class, namespace);

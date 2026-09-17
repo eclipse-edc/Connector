@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transform.edc.discovery.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.protocol.spi.discovery.DiscoveryRequest;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import static org.eclipse.edc.protocol.spi.discovery.DiscoveryRequest.DISCOVERY_REQUEST_COUNTER_PARTY_ADDRESS_IRI;
 import static org.eclipse.edc.protocol.spi.discovery.DiscoveryRequest.DISCOVERY_REQUEST_COUNTER_PARTY_ID_IRI;
 
-public class JsonObjectToDiscoveryRequestTransformer extends AbstractJsonLdTransformer<JsonObject, DiscoveryRequest> {
+public class JsonObjectToDiscoveryRequestTransformer extends JsonLdToModelTransformer<JsonObject, DiscoveryRequest> {
 
     public JsonObjectToDiscoveryRequestTransformer() {
         super(JsonObject.class, DiscoveryRequest.class);
@@ -36,4 +36,5 @@ public class JsonObjectToDiscoveryRequestTransformer extends AbstractJsonLdTrans
         var counterPartyAddress = transformString(request.get(DISCOVERY_REQUEST_COUNTER_PARTY_ADDRESS_IRI), context);
         return new DiscoveryRequest(counterPartyId, counterPartyAddress);
     }
+
 }

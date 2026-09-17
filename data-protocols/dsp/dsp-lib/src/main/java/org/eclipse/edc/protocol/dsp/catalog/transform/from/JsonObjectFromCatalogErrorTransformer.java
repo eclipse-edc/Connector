@@ -18,7 +18,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogError;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdFromModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +31,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 /**
  * Transforms a {@link CatalogError} to a {@link JsonObject} in JSON-LD expanded form.
  */
-public class JsonObjectFromCatalogErrorTransformer extends AbstractNamespaceAwareJsonLdTransformer<CatalogError, JsonObject> {
+public class JsonObjectFromCatalogErrorTransformer extends NamespacedJsonLdFromModelTransformer<CatalogError, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
 

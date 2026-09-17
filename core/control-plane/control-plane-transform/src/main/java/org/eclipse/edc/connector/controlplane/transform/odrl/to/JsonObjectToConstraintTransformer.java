@@ -19,7 +19,7 @@ import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
@@ -57,7 +57,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAI
  * </ul>
  * -
  */
-public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer<JsonObject, Constraint> {
+public class JsonObjectToConstraintTransformer extends JsonLdToModelTransformer<JsonObject, Constraint> {
 
     private final Map<String, Supplier<MultiplicityConstraint.Builder<?, ?>>> operands = Map.of(
             ODRL_AND_CONSTRAINT_ATTRIBUTE, AndConstraint.Builder::newInstance,

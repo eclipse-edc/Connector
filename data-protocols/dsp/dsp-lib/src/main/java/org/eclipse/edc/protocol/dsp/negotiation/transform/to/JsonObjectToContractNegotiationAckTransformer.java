@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.transform.to;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractNamespaceAwareJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +29,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 /**
  * Create a {@link ContractNegotiationAck} from {@link JsonObject}
  */
-public class JsonObjectToContractNegotiationAckTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, ContractNegotiationAck> {
+public class JsonObjectToContractNegotiationAckTransformer extends NamespacedJsonLdToModelTransformer<JsonObject, ContractNegotiationAck> {
 
     public JsonObjectToContractNegotiationAckTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, ContractNegotiationAck.class, namespace);

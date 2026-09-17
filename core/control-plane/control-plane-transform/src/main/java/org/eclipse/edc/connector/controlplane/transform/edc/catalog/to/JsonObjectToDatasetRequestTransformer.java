@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.catalog.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +29,7 @@ import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_PROFILE;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_PROTOCOL;
 
-public class JsonObjectToDatasetRequestTransformer extends AbstractJsonLdTransformer<JsonObject, DatasetRequest> {
+public class JsonObjectToDatasetRequestTransformer extends JsonLdToModelTransformer<JsonObject, DatasetRequest> {
 
     public JsonObjectToDatasetRequestTransformer() {
         super(JsonObject.class, DatasetRequest.class);

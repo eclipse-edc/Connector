@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transform.odrl.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Constraint;
 import org.eclipse.edc.policy.model.Duty;
@@ -31,7 +31,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REMEDY_ATTRIB
 /**
  * Converts from an ODRL prohibition as a {@link JsonObject} in JSON-LD expanded form to a {@link Prohibition}.
  */
-public class JsonObjectToProhibitionTransformer extends AbstractJsonLdTransformer<JsonObject, Prohibition> {
+public class JsonObjectToProhibitionTransformer extends JsonLdToModelTransformer<JsonObject, Prohibition> {
 
     public JsonObjectToProhibitionTransformer() {
         super(JsonObject.class, Prohibition.class);

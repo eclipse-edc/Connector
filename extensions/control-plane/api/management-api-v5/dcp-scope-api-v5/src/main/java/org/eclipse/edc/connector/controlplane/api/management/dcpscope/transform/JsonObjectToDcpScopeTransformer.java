@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.controlplane.api.management.dcpscope.transform
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScope;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +26,7 @@ import static org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScope.DCP_SCO
 import static org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScope.DCP_SCOPE_TYPE_PROPERTY_IRI;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScope.DCP_SCOPE_VALUE_IRI;
 
-public class JsonObjectToDcpScopeTransformer extends AbstractJsonLdTransformer<JsonObject, DcpScope> {
+public class JsonObjectToDcpScopeTransformer extends JsonLdToModelTransformer<JsonObject, DcpScope> {
 
     public JsonObjectToDcpScopeTransformer() {
         super(JsonObject.class, DcpScope.class);
@@ -68,4 +68,5 @@ public class JsonObjectToDcpScopeTransformer extends AbstractJsonLdTransformer<J
             return null;
         }
     }
+
 }

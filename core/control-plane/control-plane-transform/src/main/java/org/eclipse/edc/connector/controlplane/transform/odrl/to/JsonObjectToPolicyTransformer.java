@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.controlplane.transform.odrl.to;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
@@ -48,7 +48,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIB
 /**
  * Converts from an ODRL policy as a {@link JsonObject} in JSON-LD expanded form to a {@link Policy}.
  */
-public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<JsonObject, Policy> {
+public class JsonObjectToPolicyTransformer extends JsonLdToModelTransformer<JsonObject, Policy> {
 
     private final ParticipantIdMapper participantIdMapper;
 
@@ -127,4 +127,5 @@ public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<Jso
                 .filter(Objects::nonNull)
                 .collect(toList());
     }
+
 }
