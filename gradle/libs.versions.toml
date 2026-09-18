@@ -41,7 +41,7 @@ testcontainers = "2.0.5"
 tink = "1.23.0"
 junit = "6.1.2"
 wiremock = "3.13.2"
-cel = "0.11.1"
+cel = "0.14.0"
 nats = "2.26.2"
 
 [libraries]
