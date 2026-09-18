@@ -15,11 +15,13 @@
 package org.eclipse.edc.connector.dataplane.selector.store.sql.schema;
 
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.sql.lease.StatefulEntityStatements;
 import org.eclipse.edc.sql.statement.SqlStatements;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
-public interface DataPlaneInstanceStatements extends StatefulEntityStatements, SqlStatements {
+/**
+ * Statement templates and column names of the SQL {@code DataPlaneInstance} store.
+ */
+public interface DataPlaneInstanceStatements extends SqlStatements {
 
     default String getDataPlaneInstanceTable() {
         return "edc_data_plane_instance";
@@ -29,8 +31,56 @@ public interface DataPlaneInstanceStatements extends StatefulEntityStatements, S
         return "id";
     }
 
-    default String getDataColumn() {
-        return "data";
+    default String getStateColumn() {
+        return "state";
+    }
+
+    default String getStateTimestampColumn() {
+        return "state_time_stamp";
+    }
+
+    default String getCreatedAtColumn() {
+        return "created_at";
+    }
+
+    default String getUpdatedAtColumn() {
+        return "updated_at";
+    }
+
+    default String getUrlColumn() {
+        return "url";
+    }
+
+    default String getLastActiveColumn() {
+        return "last_active";
+    }
+
+    default String getParticipantContextIdColumn() {
+        return "participant_context_id";
+    }
+
+    default String getAllowedSourceTypesColumn() {
+        return "allowed_source_types";
+    }
+
+    default String getAllowedTransferTypesColumn() {
+        return "allowed_transfer_types";
+    }
+
+    default String getDestinationProvisionTypesColumn() {
+        return "destination_provision_types";
+    }
+
+    default String getLabelsColumn() {
+        return "labels";
+    }
+
+    default String getPropertiesColumn() {
+        return "properties";
+    }
+
+    default String getAuthorizationProfileColumn() {
+        return "authorization_profile";
     }
 
     String getFindByIdTemplate();
@@ -44,6 +94,4 @@ public interface DataPlaneInstanceStatements extends StatefulEntityStatements, S
     String getDeleteByIdTemplate();
 
     SqlQueryStatement createQuery(QuerySpec querySpec);
-
 }
-

@@ -22,27 +22,30 @@ import org.eclipse.edc.connector.dataplane.selector.store.sql.schema.postgres.Po
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
-import java.time.Clock;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTestBase {
 
-    private final DataPlaneInstanceStatements statements = new PostgresDataPlaneInstanceStatements(Clock.systemUTC());
+    private final DataPlaneInstanceStatements statements = new PostgresDataPlaneInstanceStatements();
     private SqlDataPlaneInstanceStore store;
 
     @BeforeEach
     void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
         var typeManager = new JacksonTypeManager();
-        typeManager.registerTypes(DataPlaneInstance.class);
 
         store = new SqlDataPlaneInstanceStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
                 extension.getTransactionContext(), statements, typeManager.getMapper(), queryExecutor);
@@ -58,6 +61,19 @@ public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTe
     @Override
     protected DataPlaneInstanceStore getStore() {
         return store;
+    }
+
+    @Test
+    void query_byUrl() {
+        var doc1 = DataPlaneInstance.Builder.newInstance().id("test-id").url("http://first.com/api").participantContextId("pc").build();
+        var doc2 = DataPlaneInstance.Builder.newInstance().id("test-id-2").url("http://second.com/api").participantContextId("pc").build();
+
+        store.save(doc1);
+        store.save(doc2);
+
+        var query = QuerySpec.Builder.newInstance().filter(new Criterion("url", "=", "http://second.com/api")).build();
+
+        assertThat(store.query(query)).hasSize(1).first().extracting(DataPlaneInstance::getId).isEqualTo("test-id-2");
     }
 
 }

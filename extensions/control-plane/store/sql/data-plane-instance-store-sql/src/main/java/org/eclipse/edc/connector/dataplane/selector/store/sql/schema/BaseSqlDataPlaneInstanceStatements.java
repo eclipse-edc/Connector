@@ -18,18 +18,14 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
-import java.time.Clock;
-
 import static java.lang.String.format;
 
 public class BaseSqlDataPlaneInstanceStatements implements DataPlaneInstanceStatements {
 
     protected final SqlOperatorTranslator operatorTranslator;
-    protected final Clock clock;
 
-    public BaseSqlDataPlaneInstanceStatements(SqlOperatorTranslator operatorTranslator, Clock clock) {
+    public BaseSqlDataPlaneInstanceStatements(SqlOperatorTranslator operatorTranslator) {
         this.operatorTranslator = operatorTranslator;
-        this.clock = clock;
     }
 
     @Override
@@ -46,7 +42,19 @@ public class BaseSqlDataPlaneInstanceStatements implements DataPlaneInstanceStat
     public String getUpsertTemplate() {
         return executeStatement()
                 .column(getIdColumn())
-                .jsonColumn(getDataColumn())
+                .column(getStateColumn())
+                .column(getStateTimestampColumn())
+                .column(getCreatedAtColumn())
+                .column(getUpdatedAtColumn())
+                .column(getUrlColumn())
+                .column(getLastActiveColumn())
+                .column(getParticipantContextIdColumn())
+                .jsonColumn(getAllowedSourceTypesColumn())
+                .jsonColumn(getAllowedTransferTypesColumn())
+                .jsonColumn(getDestinationProvisionTypesColumn())
+                .jsonColumn(getLabelsColumn())
+                .jsonColumn(getPropertiesColumn())
+                .jsonColumn(getAuthorizationProfileColumn())
                 .upsertInto(getDataPlaneInstanceTable(), getIdColumn());
     }
 
@@ -57,13 +65,11 @@ public class BaseSqlDataPlaneInstanceStatements implements DataPlaneInstanceStat
 
     @Override
     public String getDeleteByIdTemplate() {
-        return executeStatement()
-                .delete(getDataPlaneInstanceTable(), getIdColumn());
+        return executeStatement().delete(getDataPlaneInstanceTable(), getIdColumn());
     }
 
     @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
         return new SqlQueryStatement(getSelectTemplate(), querySpec, new DataPlaneInstanceMapping(this), operatorTranslator);
     }
-
 }

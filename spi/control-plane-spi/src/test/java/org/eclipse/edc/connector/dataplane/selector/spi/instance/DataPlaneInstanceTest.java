@@ -23,10 +23,13 @@ import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstanceStates.REGISTERED;
 
 class DataPlaneInstanceTest {
 
@@ -52,6 +55,59 @@ class DataPlaneInstanceTest {
 
         var deserialized = mapper.readValue(json, DataPlaneInstance.class).copy();
         assertThat(deserialized).usingRecursiveComparison().isEqualTo(instance);
+    }
+
+    @Test
+    void copy_shouldCarryOverStateAndTimestamps() {
+        var instance = DataPlaneInstance.Builder.newInstance()
+                .id("test-id")
+                .createdAt(10)
+                .updatedAt(20)
+                .state(REGISTERED.code())
+                .stateTimestamp(30)
+                .url("http://localhost:8234/some/path")
+                .build();
+
+        var copy = instance.copy();
+
+        assertThat(copy).usingRecursiveComparison().isEqualTo(instance);
+        assertThat(copy.getId()).isEqualTo("test-id");
+        assertThat(copy.getCreatedAt()).isEqualTo(10);
+        assertThat(copy.getUpdatedAt()).isEqualTo(20);
+        assertThat(copy.getState()).isEqualTo(REGISTERED.code());
+        assertThat(copy.getStateTimestamp()).isEqualTo(30);
+    }
+
+    @Test
+    void build_shouldDefaultTimestampsAndId() {
+        var clock = Clock.fixed(Instant.ofEpochMilli(1000), ZoneId.of("UTC"));
+        var instance = DataPlaneInstance.Builder.newInstance()
+                .clock(clock)
+                .url("http://localhost:8234/some/path")
+                .build();
+
+        assertThat(instance.getId()).isNotNull();
+        assertThat(instance.getCreatedAt()).isEqualTo(clock.millis());
+        assertThat(instance.getUpdatedAt()).isEqualTo(clock.millis());
+        assertThat(instance.getStateTimestamp()).isEqualTo(clock.millis());
+    }
+
+    @Test
+    void transition_shouldUpdateStateAndTimestamps() {
+        var clock = Clock.fixed(Instant.ofEpochMilli(1000), ZoneId.of("UTC"));
+        var instance = DataPlaneInstance.Builder.newInstance()
+                .clock(clock)
+                .createdAt(1)
+                .updatedAt(1)
+                .stateTimestamp(1)
+                .url("http://localhost:8234/some/path")
+                .build();
+
+        instance.transitionToRegistered();
+
+        assertThat(instance.getState()).isEqualTo(REGISTERED.code());
+        assertThat(instance.getStateTimestamp()).isEqualTo(clock.millis());
+        assertThat(instance.getUpdatedAt()).isEqualTo(clock.millis());
     }
 
 }

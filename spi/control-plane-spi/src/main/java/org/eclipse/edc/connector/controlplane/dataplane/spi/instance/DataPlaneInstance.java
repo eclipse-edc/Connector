@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.entity.Entity;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -29,19 +29,21 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstanceStates.REGISTERED;
 import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstanceStates.UNREGISTERED;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
- * Representations of a data plane instance. Every DPF has an ID and a URL as well as a number, how often it was selected,
- * and a timestamp of its last selection time. In addition, there are extensible properties to hold specific properties.
+ * Representation of a data plane instance. Every data plane has an ID and a URL, the source and transfer types it
+ * can handle, a registration {@link DataPlaneInstanceStates state} and extensible properties.
  */
-public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> implements ParticipantResource {
+public class DataPlaneInstance extends Entity implements ParticipantResource {
 
     public static final String DATAPLANE_INSTANCE_TYPE_TERM = "DataPlaneInstance";
     public static final String DATAPLANE_INSTANCE_TYPE = EDC_NAMESPACE + DATAPLANE_INSTANCE_TYPE_TERM;
+    @Deprecated(since = "1.0.0")
     public static final String LAST_ACTIVE = EDC_NAMESPACE + "lastActive";
     public static final String URL = EDC_NAMESPACE + "url";
     public static final String PROPERTIES = EDC_NAMESPACE + "properties";
@@ -52,14 +54,17 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
     public static final String DATAPLANE_INSTANCE_STATE = EDC_NAMESPACE + "state";
     public static final String DATAPLANE_INSTANCE_STATE_TIMESTAMP = EDC_NAMESPACE + "stateTimestamp";
     private final Set<String> destinationProvisionTypes = new HashSet<>();
-    private Map<String, Object> properties = new HashMap<>();
     private final Set<String> allowedTransferTypes = new HashSet<>();
     private final Set<String> allowedSourceTypes = new HashSet<>();
+    private final Set<String> labels = new HashSet<>();
+    private Map<String, Object> properties = new HashMap<>();
     private long lastActive = Instant.now().toEpochMilli();
     private URL url;
     private String participantContextId;
-    private final Set<String> labels = new HashSet<>();
     private AuthorizationProfile authorizationProfile;
+    private int state;
+    private long stateTimestamp;
+    private long updatedAt;
 
     private DataPlaneInstance() {
     }
@@ -68,9 +73,14 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
         return new Builder(copy());
     }
 
-    @Override
     public DataPlaneInstance copy() {
-        var builder = Builder.newInstance()
+        return Builder.newInstance()
+                .id(id)
+                .createdAt(createdAt)
+                .clock(clock)
+                .updatedAt(updatedAt)
+                .state(state)
+                .stateTimestamp(stateTimestamp)
                 .url(url)
                 .lastActive(lastActive)
                 .allowedSourceTypes(allowedSourceTypes)
@@ -79,20 +89,36 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
                 .destinationProvisionTypes(destinationProvisionTypes)
                 .participantContextId(participantContextId)
                 .labels(labels)
-                .authorizationProfile(authorizationProfile);
-
-        return copy(builder);
+                .authorizationProfile(authorizationProfile)
+                .build();
     }
 
-    @Override
     public String stateAsString() {
         return DataPlaneInstanceStates.from(state).name();
+    }
+
+    public int getState() {
+        return state;
+    }
+
+    public long getStateTimestamp() {
+        return stateTimestamp;
+    }
+
+    public long getUpdatedAt() {
+        return updatedAt;
     }
 
     public URL getUrl() {
         return url;
     }
 
+    /**
+     * Gets the last active timestamp of the data plane instance.
+     *
+     * @deprecated the last active timestamp is not tracked anymore and will be removed.
+     */
+    @Deprecated(since = "1.0.0")
     public long getLastActive() {
         return lastActive;
     }
@@ -134,8 +160,14 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
         transitionTo(UNREGISTERED.code());
     }
 
+    private void transitionTo(int targetState) {
+        state = targetState;
+        stateTimestamp = clock.millis();
+        updatedAt = clock.millis();
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder extends StatefulEntity.Builder<DataPlaneInstance, Builder> {
+    public static final class Builder extends Entity.Builder<DataPlaneInstance, Builder> {
 
         private Builder(DataPlaneInstance dataPlaneInstance) {
             super(dataPlaneInstance);
@@ -146,6 +178,27 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
             return new Builder(new DataPlaneInstance());
         }
 
+        public Builder state(int state) {
+            entity.state = state;
+            return this;
+        }
+
+        public Builder stateTimestamp(long stateTimestamp) {
+            entity.stateTimestamp = stateTimestamp;
+            return this;
+        }
+
+        public Builder updatedAt(long updatedAt) {
+            entity.updatedAt = updatedAt;
+            return this;
+        }
+
+        /**
+         * Sets the last active timestamp of the data plane instance.
+         *
+         * @deprecated the last active timestamp is not tracked anymore and will be removed.
+         */
+        @Deprecated(since = "1.0.0")
         public Builder lastActive(long lastActive) {
             entity.lastActive = lastActive;
             return this;
@@ -200,7 +253,9 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
         }
 
         public Builder destinationProvisionTypes(Set<String> types) {
-            entity.destinationProvisionTypes.addAll(types);
+            if (types != null) {
+                entity.destinationProvisionTypes.addAll(types);
+            }
             return this;
         }
 
@@ -235,7 +290,19 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
         public DataPlaneInstance build() {
             Objects.requireNonNull(entity.url, "DataPlaneInstance must have an URL");
 
-            return super.build();
+            if (entity.id == null) {
+                entity.id = UUID.randomUUID().toString();
+            }
+
+            super.build();
+
+            if (entity.updatedAt == 0) {
+                entity.updatedAt = entity.createdAt;
+            }
+            if (entity.stateTimestamp == 0) {
+                entity.stateTimestamp = entity.clock.millis();
+            }
+            return entity;
         }
     }
 }
