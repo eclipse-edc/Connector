@@ -34,7 +34,7 @@ import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.policy.engine.spi.PolicyEngine.ALL_SCOPES;
-import static org.eclipse.edc.policy.model.Operator.IN;
+import static org.eclipse.edc.policy.model.Operator.IS_PART_OF;
 
 /**
  * Tests key policy enforcement scenarios. Also serves as a blueprint for custom policy functions.
@@ -102,7 +102,7 @@ public class PolicyEngineImplScenariosTest {
 
         var left = new LiteralExpression(ABS_SPATIAL_CONSTRAINT);
         var right = new LiteralExpression("eu");
-        var spatialConstraint = AtomicConstraint.Builder.newInstance().leftExpression(left).operator(IN).rightExpression(right).build();
+        var spatialConstraint = AtomicConstraint.Builder.newInstance().leftExpression(left).operator(IS_PART_OF).rightExpression(right).build();
         var usePermission = Permission.Builder.newInstance().action(USE_ACTION).constraint(spatialConstraint).build();
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
 
@@ -131,7 +131,7 @@ public class PolicyEngineImplScenariosTest {
 
         var left = new LiteralExpression(CONNECTOR_CONSTRAINT);
         var right = new LiteralExpression(List.of("connector1"));
-        var connectorConstraint = AtomicConstraint.Builder.newInstance().leftExpression(left).operator(IN).rightExpression(right).build();
+        var connectorConstraint = AtomicConstraint.Builder.newInstance().leftExpression(left).operator(IS_PART_OF).rightExpression(right).build();
         var usePermission = Permission.Builder.newInstance().action(USE_ACTION).constraint(connectorConstraint).build();
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
 

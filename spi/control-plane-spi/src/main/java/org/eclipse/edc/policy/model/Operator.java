@@ -14,10 +14,13 @@
 
 package org.eclipse.edc.policy.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_SCHEMA;
 
 /**
- * The set of supported expression operators. Not all operators may be supported for particular expression types.
+ * The set of supported ODRL expression operators. Not all operators may be supported for particular expression types.
  */
 public enum Operator {
 
@@ -54,6 +57,14 @@ public enum Operator {
     /**
      * A set-based operator indicating that a given value is contained by the right operand of the Constraint.
      */
+    IS_PART_OF("isPartOf"),
+
+    /**
+     * A set-based operator indicating that a given value is contained by the right operand of the Constraint.
+     *
+     * @deprecated use {@link #IS_PART_OF} instead.
+     */
+    @Deprecated(since = "1.0.0")
     IN("isPartOf"),
 
     /**
@@ -89,6 +100,36 @@ public enum Operator {
 
     public String getOdrlRepresentation() {
         return odrlRepresentation;
+    }
+
+    /**
+     * Handles deserialization of deprecated IN value into IS_PART_OF.
+     * This method should not be deleted for some time also after the deletion of the IN value to prevent unexpected errors
+     *
+     * @param value the value.
+     * @return the operator.
+     */
+    @JsonCreator
+    public static Operator fromString(String value) {
+        if (value.equals("IN")) {
+            return IS_PART_OF;
+        }
+
+        return Operator.valueOf(value);
+    }
+
+    /**
+     * Handles serialization of deprecated IN value into IS_PART_OF.
+     * This method should not be deleted for some time also after the deletion of the IN value to prevent unexpected errors
+     *
+     * @return serialized value.
+     */
+    @JsonValue
+    public String toJson() {
+        if (name().equals("IN")) {
+            return IS_PART_OF.name();
+        }
+        return name();
     }
 
 }

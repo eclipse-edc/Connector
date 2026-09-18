@@ -15,11 +15,7 @@
 package org.eclipse.edc.connector.controlplane.policy.spi.testfixtures;
 
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
-import org.eclipse.edc.policy.model.Action;
-import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Duty;
-import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
@@ -79,7 +75,7 @@ public class TestFunctions {
         var permission = Permission.Builder.newInstance()
                 .build();
 
-        var prohibition = createProhibitionBuilder(id)
+        var prohibition = Prohibition.Builder.newInstance()
                 .build();
 
         var duty = Duty.Builder.newInstance()
@@ -94,28 +90,6 @@ public class TestFunctions {
                 .assignee("sampleAssignee")
                 .target("sampleTarget")
                 .type(PolicyType.SET);
-    }
-
-    public static Prohibition.Builder createProhibitionBuilder(String id) {
-        return Prohibition.Builder.newInstance();
-    }
-
-    public static Duty.Builder createDutyBuilder(String id) {
-        return Duty.Builder.newInstance();
-    }
-
-    public static Permission.Builder createPermissionBuilder(String id) {
-        return Permission.Builder.newInstance();
-    }
-
-    public static Action createAction(String type) {
-        return Action.Builder.newInstance().constraint(AtomicConstraint.Builder.newInstance()
-                        .leftExpression(new LiteralExpression("foo"))
-                        .operator(Operator.EQ)
-                        .rightExpression(new LiteralExpression("bar"))
-                        .build())
-                .type(type)
-                .build();
     }
 
 }
