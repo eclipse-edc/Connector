@@ -113,11 +113,11 @@ class ContractValidationServiceImplTest {
         verify(assetIndex).countAssets(argThat(criteria -> criteria.contains(filterByParticipantContextId(PARTICIPANT_CONTEXT_ID))));
         verify(policyEngine).evaluate(
                 eq(newPolicy),
-                and(isA(CatalogPolicyContext.class), argThat(c -> c.participantAgent().equals(participantAgent)))
+                and(isA(CatalogPolicyContext.class), argThat(c -> c.participantAgent().equals(participantAgent) && PARTICIPANT_CONTEXT_ID.equals(c.participantContextId())))
         );
         verify(policyEngine).evaluate(
                 eq(newPolicy),
-                and(isA(ContractNegotiationPolicyContext.class), argThat(c -> c.participantAgent().equals(participantAgent)))
+                and(isA(ContractNegotiationPolicyContext.class), argThat(c -> c.participantAgent().equals(participantAgent) && PARTICIPANT_CONTEXT_ID.equals(c.participantContextId())))
         );
     }
 
@@ -312,11 +312,10 @@ class ContractValidationServiceImplTest {
                 .build();
         var participantAgent = new ParticipantAgent(CONSUMER_ID, emptyMap(), emptyMap());
 
-        when(policyEngine.evaluate(any(), isA(CatalogPolicyContext.class))).thenReturn(Result.success());
-
         var result = validationService.validateInitialOffer(participantAgent, validatableOffer);
 
         assertThat(result).isFailed().detail().contains("not associated to any participant context");
+        verify(policyEngine, never()).evaluate(any(), isA(CatalogPolicyContext.class));
         verify(assetIndex, never()).findById(any(), any());
         verify(assetIndex, never()).countAssets(anyList());
     }

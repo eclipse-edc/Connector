@@ -17,6 +17,8 @@ package org.eclipse.edc.connector.controlplane.services.query;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.controlplane.partner.spi.Partner;
+import org.eclipse.edc.connector.controlplane.partner.spi.PartnerGroup;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.AndConstraint;
@@ -61,6 +63,24 @@ public final class QueryValidators {
      */
     public static QueryValidator contractNegotiation() {
         return new QueryValidator(ContractNegotiation.class);
+    }
+
+    /**
+     * Validator for {@link Partner}
+     *
+     * @return the validator.
+     */
+    public static QueryValidator partner() {
+        return new QueryValidator(Partner.class);
+    }
+
+    /**
+     * Validator for {@link PartnerGroup}
+     *
+     * @return the validator.
+     */
+    public static QueryValidator partnerGroup() {
+        return new QueryValidator(PartnerGroup.class);
     }
 
     /**

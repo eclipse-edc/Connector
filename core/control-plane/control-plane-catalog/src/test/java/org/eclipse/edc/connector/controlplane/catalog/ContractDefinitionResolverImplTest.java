@@ -75,7 +75,7 @@ class ContractDefinitionResolverImplTest {
         assertThat(result.policies()).hasSize(1);
         verify(policyEngine, atLeastOnce()).evaluate(
                 eq(def.getPolicy()),
-                and(isA(CatalogPolicyContext.class), argThat(c -> c.participantAgent().equals(agent)))
+                and(isA(CatalogPolicyContext.class), argThat(c -> c.participantAgent().equals(agent) && participantContext.getId().equals(c.participantContextId())))
         );
         var query = queryByParticipantContextId(participantContext.getId()).limit(Integer.MAX_VALUE).build();
 

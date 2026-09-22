@@ -61,15 +61,15 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     @Override
     public @NotNull Result<Void> validateInitialOffer(ParticipantAgent agent, ValidatableConsumerOffer consumerOffer) {
-        var accessPolicyResult = policyEngine.evaluate(consumerOffer.getAccessPolicy(), new CatalogPolicyContext(agent));
-        if (accessPolicyResult.failed()) {
-            return accessPolicyResult.mapFailure();
-        }
-
         var contractDefinition = consumerOffer.getContractDefinition();
         var participantContextId = contractDefinition.getParticipantContextId();
         if (participantContextId == null) {
             return failure("Contract definition %s is not associated to any participant context".formatted(contractDefinition.getId()));
+        }
+
+        var accessPolicyResult = policyEngine.evaluate(consumerOffer.getAccessPolicy(), new CatalogPolicyContext(participantContextId, agent));
+        if (accessPolicyResult.failed()) {
+            return accessPolicyResult.mapFailure();
         }
 
         // verify the target asset exists within the same participant context that owns the contract definition
@@ -92,7 +92,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         var contractPolicy = consumerOffer.getTargetedContractPolicy();
-        var contractPolicyResult = policyEngine.evaluate(contractPolicy, new ContractNegotiationPolicyContext(agent));
+        var contractPolicyResult = policyEngine.evaluate(contractPolicy, new ContractNegotiationPolicyContext(participantContextId, agent));
         if (contractPolicyResult.failed()) {
             return contractPolicyResult.mapFailure();
         }

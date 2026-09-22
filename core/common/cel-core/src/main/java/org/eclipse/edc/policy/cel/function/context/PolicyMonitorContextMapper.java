@@ -25,13 +25,16 @@ import java.util.Map;
 public class PolicyMonitorContextMapper implements CelContextMapper<PolicyMonitorContext> {
 
     private final AgreementContextMapper agreementContextSupplier;
+    private final ParticipantAgentContextMapper<PolicyMonitorContext> participantAgentContextSupplier;
 
-    public PolicyMonitorContextMapper(AgreementContextMapper agreementContextSupplier) {
+    public PolicyMonitorContextMapper(AgreementContextMapper agreementContextSupplier,
+                                      ParticipantAgentContextMapper<PolicyMonitorContext> participantAgentContextSupplier) {
         this.agreementContextSupplier = agreementContextSupplier;
+        this.participantAgentContextSupplier = participantAgentContextSupplier;
     }
 
     @Override
     public Result<Map<String, Object>> mapContext(PolicyMonitorContext context) {
-        return agreementContextSupplier.mapContext(context);
+        return CompositeCelContextMapper.of(agreementContextSupplier, participantAgentContextSupplier).mapContext(context);
     }
 }

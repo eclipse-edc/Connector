@@ -26,6 +26,7 @@ dependencies {
     api(project(":core:common:runtime-core"))
     api(project(":core:common:token-core"))
     api(project(":core:common:cel-core"))
+    api(project(":core:control-plane:partner-cel"))
     api(project(":core:common:task-core"))
     api(project(":core:common:document-cache-core"))
     api(project(":core:common:schema-validation-core"))

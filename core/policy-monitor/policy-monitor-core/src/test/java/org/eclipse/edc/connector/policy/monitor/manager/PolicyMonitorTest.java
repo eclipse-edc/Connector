@@ -39,6 +39,7 @@ import org.mockito.Mockito;
 
 import java.time.Clock;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -121,6 +122,9 @@ class PolicyMonitorTest {
             verify(policyEngine).evaluate(same(policy), captor.capture());
             var policyContext = captor.getValue();
             assertThat(policyContext.contractAgreement()).isSameAs(contractAgreement);
+            assertThat(policyContext.participantContextId()).isEqualTo("participantContextId");
+            assertThat(policyContext.participantAgent().getIdentity()).isEqualTo("consumerId");
+            assertThat(policyContext.participantAgent().getClaims()).containsEntry("claim", "value");
             verify(transferProcessService).terminate(argThat(c -> c.getEntityId().equals("transferProcessId")));
             verify(store).save(argThat(it -> it.getState() == COMPLETED.code()));
         }
@@ -225,6 +229,8 @@ class PolicyMonitorTest {
             return ContractAgreement.Builder.newInstance()
                     .providerId("providerId")
                     .consumerId("consumerId")
+                    .participantContextId("participantContextId")
+                    .claims(Map.of("claim", "value"))
                     .assetId("assetIt")
                     .policy(policy)
                     .build();

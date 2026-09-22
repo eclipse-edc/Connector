@@ -151,6 +151,29 @@ public class SqlExecuteStatement {
     }
 
     /**
+     * Gives a SQL update statement. The where criteria are joined with the AND operator.
+     *
+     * @param tableName     the table name.
+     * @param whereCriteria the update field criteria
+     * @return sql update statement.
+     */
+    public String update(String tableName, Criterion... whereCriteria) {
+        if (columnEntries.isEmpty()) {
+            throw new IllegalArgumentException(format("Cannot create UPDATE statement on %s because no columns are registered", tableName));
+        }
+
+        var statement = columnEntries.stream()
+                .map(ColumnEntry::asString)
+                .collect(joining(", "));
+
+        var where = Arrays.stream(whereCriteria)
+                .map(Criterion::toString)
+                .collect(joining(" AND "));
+
+        return format("UPDATE %s SET %s WHERE %s;", tableName, statement, where);
+    }
+
+    /**
      * Gives a SQL delete statement.
      *
      * @param tableName   the table name.

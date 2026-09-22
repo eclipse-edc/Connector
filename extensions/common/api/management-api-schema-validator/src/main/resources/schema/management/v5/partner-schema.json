@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "PartnerSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/Partner"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v5/partner-schema.json",
+  "definitions": {
+    "Partner": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "Partner"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "identity": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "properties": {
+          "type": "object"
+        },
+        "groupIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "identity"
+      ]
+    }
+  }
+}
