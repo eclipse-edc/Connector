@@ -18,12 +18,13 @@ import org.eclipse.edc.connector.dataplane.selector.store.sql.schema.BaseSqlData
 import org.eclipse.edc.sql.dialect.PostgresDialect;
 import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
 
-import java.time.Clock;
-
+/**
+ * Postgres-specific specialization for definitions of the {@code DataPlaneInstance} store statements.
+ */
 public class PostgresDataPlaneInstanceStatements extends BaseSqlDataPlaneInstanceStatements {
 
-    public PostgresDataPlaneInstanceStatements(Clock clock) {
-        super(new PostgresqlOperatorTranslator(), clock);
+    public PostgresDataPlaneInstanceStatements() {
+        super(new PostgresqlOperatorTranslator());
     }
 
     @Override

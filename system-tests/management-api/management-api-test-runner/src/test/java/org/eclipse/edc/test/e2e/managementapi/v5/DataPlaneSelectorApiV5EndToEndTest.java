@@ -119,6 +119,22 @@ public class DataPlaneSelectorApiV5EndToEndTest {
         }
 
         @Test
+        void query_shouldFilterByAllowedTransferType(ManagementEndToEndV5TestContext context, DataPlaneSelectorService selectorService) {
+            registerInstance(selectorService, PARTICIPANT_CONTEXT_ID, "http://example.com/pull", "HttpData-PULL");
+            var push = registerInstance(selectorService, PARTICIPANT_CONTEXT_ID, "http://example.com/push", "HttpData-PUSH");
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(ContentType.JSON)
+                    .body(context.query(new Criterion("allowedTransferTypes", "contains", "HttpData-PUSH")))
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes/request")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .body("size()", is(1))
+                    .body("[0].@id", is(push.getId()));
+        }
+
+        @Test
         void query_shouldReturnEmptyArray_whenNoInstances(ManagementEndToEndV5TestContext context) {
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
@@ -172,10 +188,15 @@ public class DataPlaneSelectorApiV5EndToEndTest {
         }
 
         private DataPlaneInstance registerInstance(DataPlaneSelectorService selectorService, String participantContextId, String url) {
+            return registerInstance(selectorService, participantContextId, url, "transfer-type");
+        }
+
+        private DataPlaneInstance registerInstance(DataPlaneSelectorService selectorService, String participantContextId, String url, String transferType) {
             var instance = DataPlaneInstance.Builder.newInstance()
                     .id(UUID.randomUUID().toString())
                     .participantContextId(participantContextId)
                     .url(url)
+                    .allowedTransferType(transferType)
                     .build();
             selectorService.register(instance)
                     .orElseThrow(f -> new AssertionError("Failed to register data plane instance for test setup: " + f.getFailureDetail()));

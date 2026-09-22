@@ -52,7 +52,7 @@ public record DataPlaneInstanceSchemaV4(
                     "source-type2"
                 ],
                 "allowedTransferTypes": ["transfer-type"],
-                "state": "AVAILABLE",
+                "state": "REGISTERED",
                 "stateTimestamp": 1688465655
             }
             """;
