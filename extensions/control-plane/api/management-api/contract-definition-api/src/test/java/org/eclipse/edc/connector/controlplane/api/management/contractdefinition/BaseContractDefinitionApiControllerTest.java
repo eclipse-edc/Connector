@@ -149,7 +149,7 @@ public abstract class BaseContractDefinitionApiControllerTest extends RestContro
     void getContractDefById_exists() {
         var entity = createContractDefinition().id("test-id").build();
 
-        when(service.findById(any())).thenReturn(entity);
+        when(service.findById(any(), any())).thenReturn(entity);
         when(transformerRegistry.transform(any(ContractDefinition.class), eq(JsonObject.class))).thenReturn(Result.success(createExpandedJsonObject()));
         baseRequest()
                 .get("/test-id")
@@ -157,19 +157,19 @@ public abstract class BaseContractDefinitionApiControllerTest extends RestContro
                 .statusCode(200)
                 .body("size()", greaterThan(0));
 
-        verify(service).findById(eq(entity.getId()));
+        verify(service).findById(eq(participantContext.getId()), eq(entity.getId()));
     }
 
     @Test
     void getContractDefById_notExists() {
-        when(service.findById(any())).thenReturn(null);
+        when(service.findById(any(), any())).thenReturn(null);
 
         baseRequest()
                 .get("/test-id")
                 .then()
                 .statusCode(404);
 
-        verify(service).findById("test-id");
+        verify(service).findById(participantContext.getId(), "test-id");
         verify(transformerRegistry, never()).transform(any(ContractDefinition.class), eq(JsonObject.class));
     }
 
@@ -257,40 +257,40 @@ public abstract class BaseContractDefinitionApiControllerTest extends RestContro
     @Test
     void delete_exists() {
         var contractDefinition = createContractDefinition().build();
-        when(service.delete(eq(contractDefinition.getId()))).thenReturn(ServiceResult.success(contractDefinition));
+        when(service.delete(eq(participantContext.getId()), eq(contractDefinition.getId()))).thenReturn(ServiceResult.success(contractDefinition));
 
         baseRequest()
                 .delete(contractDefinition.getId())
                 .then()
                 .statusCode(204);
 
-        verify(service).delete(contractDefinition.getId());
+        verify(service).delete(participantContext.getId(), contractDefinition.getId());
     }
 
     @Test
     void delete_notExists() {
         var contractDefinition = createContractDefinition().build();
-        when(service.delete(eq(contractDefinition.getId()))).thenReturn(ServiceResult.notFound("test-message"));
+        when(service.delete(eq(participantContext.getId()), eq(contractDefinition.getId()))).thenReturn(ServiceResult.notFound("test-message"));
 
         baseRequest()
                 .delete(contractDefinition.getId())
                 .then()
                 .statusCode(404);
 
-        verify(service).delete(contractDefinition.getId());
+        verify(service).delete(participantContext.getId(), contractDefinition.getId());
     }
 
     @Test
     void delete_notPossible() {
         var contractDefinition = createContractDefinition().build();
-        when(service.delete(eq(contractDefinition.getId()))).thenReturn(ServiceResult.conflict("test-message"));
+        when(service.delete(eq(participantContext.getId()), eq(contractDefinition.getId()))).thenReturn(ServiceResult.conflict("test-message"));
 
         baseRequest()
                 .delete(contractDefinition.getId())
                 .then()
                 .statusCode(409);
 
-        verify(service).delete(contractDefinition.getId());
+        verify(service).delete(participantContext.getId(), contractDefinition.getId());
     }
 
     @Test

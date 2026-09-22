@@ -31,13 +31,13 @@ import java.util.List;
 public interface PolicyDefinitionService {
 
     /**
-     * Returns a policy by its id
+     * Returns a policy by its id within the given participant context
      *
-     * @param policyId id of the policy
-     * @return the policy, null if it's not found
+     * @param participantContextId id of the participant context that owns the policy
+     * @param policyId             id of the policy
+     * @return the policy, null if it's not found in the participant context
      */
-
-    PolicyDefinition findById(String policyId);
+    PolicyDefinition findById(String participantContextId, String policyId);
 
     /**
      * Search policies
@@ -48,14 +48,14 @@ public interface PolicyDefinitionService {
     ServiceResult<List<PolicyDefinition>> search(QuerySpec query);
 
     /**
-     * Delete a policy
+     * Delete a policy within the given participant context
      *
-     * @param policyId the id of the policy to be deleted
+     * @param participantContextId id of the participant context that owns the policy
+     * @param policyId             the id of the policy to be deleted
      * @return Policy deleted if the policy is deleted correctly, failure otherwise
      */
-
     @NotNull
-    ServiceResult<PolicyDefinition> deleteById(String policyId);
+    ServiceResult<PolicyDefinition> deleteById(String participantContextId, String policyId);
 
     /**
      * Create an policy

@@ -42,6 +42,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
@@ -69,11 +70,12 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     }
 
     @Override
-    public @Nullable Asset findById(String assetId) {
+    public @Nullable Asset findById(String participantContextId, String assetId) {
+        Objects.requireNonNull(participantContextId);
         Objects.requireNonNull(assetId);
 
         try (var connection = getConnection()) {
-            var querySpec = QuerySpec.Builder.newInstance().filter(criterion("id", "=", assetId)).build();
+            var querySpec = queryByParticipantContextId(participantContextId).filter(criterion("id", "=", assetId)).build();
             var statement = assetStatements.createQuery(querySpec);
             return queryExecutor.query(connection, true, this::mapAsset, statement.getQueryAsString(), statement.getParameters())
                     .findFirst().orElse(null);
@@ -89,7 +91,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var assetId = asset.getId();
-                if (existsById(assetId, connection)) {
+                if (existsById(asset.getParticipantContextId(), assetId, connection)) {
                     var msg = format(ASSET_EXISTS_TEMPLATE, assetId);
                     return StoreResult.alreadyExists(msg);
                 }
@@ -112,17 +114,18 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     }
 
     @Override
-    public StoreResult<Asset> deleteById(String assetId) {
+    public StoreResult<Asset> deleteById(String participantContextId, String assetId) {
+        Objects.requireNonNull(participantContextId);
         Objects.requireNonNull(assetId);
 
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var asset = findById(assetId);
+                var asset = findById(participantContextId, assetId);
                 if (asset == null) {
                     return StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId));
                 }
 
-                queryExecutor.execute(connection, assetStatements.getDeleteAssetByIdTemplate(), assetId);
+                queryExecutor.execute(connection, assetStatements.getDeleteAssetByIdTemplate(), participantContextId, assetId);
 
                 return StoreResult.success(asset);
             } catch (Exception e) {
@@ -149,13 +152,15 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var assetId = asset.getId();
-                if (existsById(assetId, connection)) {
+                var participantContextId = asset.getParticipantContextId();
+                if (existsById(participantContextId, assetId, connection)) {
 
                     queryExecutor.execute(connection, assetStatements.getUpdateAssetTemplate(),
                             toJson(asset.getProperties()),
                             toJson(asset.getPrivateProperties()),
                             toJson(Optional.ofNullable(asset.getDataAddress()).map(DataAddress::getProperties).orElse(null)),
                             toJson(asset.getDataplaneMetadata()),
+                            participantContextId,
                             assetId
                     );
 
@@ -170,17 +175,17 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     }
 
     @Override
-    public DataAddress resolveForAsset(String assetId) {
-        return Optional.ofNullable(findById(assetId)).map(Asset::getDataAddress).orElse(null);
+    public DataAddress resolveForAsset(String participantContextId, String assetId) {
+        return Optional.ofNullable(findById(participantContextId, assetId)).map(Asset::getDataAddress).orElse(null);
     }
 
     private int mapRowCount(ResultSet resultSet) throws SQLException {
         return resultSet.getInt(assetStatements.getCountVariableName());
     }
 
-    private boolean existsById(String assetId, Connection connection) {
+    private boolean existsById(String participantContextId, String assetId, Connection connection) {
         var sql = assetStatements.getCountAssetByIdClause();
-        try (var stream = queryExecutor.query(connection, false, this::mapRowCount, sql, assetId)) {
+        try (var stream = queryExecutor.query(connection, false, this::mapRowCount, sql, participantContextId, assetId)) {
             return stream.findFirst().orElse(0) > 0;
         }
     }

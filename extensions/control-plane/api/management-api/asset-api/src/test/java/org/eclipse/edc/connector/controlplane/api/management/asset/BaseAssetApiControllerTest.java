@@ -199,7 +199,7 @@ public abstract class BaseAssetApiControllerTest extends RestControllerTestBase 
     @Test
     void getSingleAsset() {
         var asset = Asset.Builder.newInstance().property("key", "value").build();
-        when(service.findById("id")).thenReturn(asset);
+        when(service.findById(participantContext.getId(), "id")).thenReturn(asset);
         var assetJson = createAssetJson().build();
         when(transformerRegistry.transform(isA(Asset.class), eq(JsonObject.class))).thenReturn(Result.success(assetJson));
 
@@ -216,7 +216,7 @@ public abstract class BaseAssetApiControllerTest extends RestControllerTestBase 
 
     @Test
     void getSingleAsset_notFound() {
-        when(service.findById(any())).thenReturn(null);
+        when(service.findById(any(), any())).thenReturn(null);
 
         baseRequest()
                 .get("/assets/not-existent-id")
@@ -226,7 +226,7 @@ public abstract class BaseAssetApiControllerTest extends RestControllerTestBase 
 
     @Test
     void getAssetById_shouldReturnNotFound_whenTransformFails() {
-        when(service.findById("id")).thenReturn(Asset.Builder.newInstance().build());
+        when(service.findById(participantContext.getId(), "id")).thenReturn(Asset.Builder.newInstance().build());
         when(transformerRegistry.transform(isA(Asset.class), eq(JsonObject.class))).thenReturn(Result.failure("failure"));
 
         baseRequest()
@@ -317,7 +317,7 @@ public abstract class BaseAssetApiControllerTest extends RestControllerTestBase 
 
     @Test
     void deleteAsset() {
-        when(service.delete("assetId"))
+        when(service.delete(participantContext.getId(), "assetId"))
                 .thenReturn(ServiceResult.success(createAssetBuilder().build()));
 
         baseRequest()
@@ -325,12 +325,12 @@ public abstract class BaseAssetApiControllerTest extends RestControllerTestBase 
                 .delete("/assets/assetId")
                 .then()
                 .statusCode(204);
-        verify(service).delete("assetId");
+        verify(service).delete(participantContext.getId(), "assetId");
     }
 
     @Test
     void deleteAsset_notExists() {
-        when(service.delete(any())).thenReturn(ServiceResult.notFound("not found"));
+        when(service.delete(any(), any())).thenReturn(ServiceResult.notFound("not found"));
 
         baseRequest()
                 .contentType(JSON)
@@ -341,7 +341,7 @@ public abstract class BaseAssetApiControllerTest extends RestControllerTestBase 
 
     @Test
     void deleteAsset_conflicts() {
-        when(service.delete(any())).thenReturn(ServiceResult.conflict("conflict"));
+        when(service.delete(any(), any())).thenReturn(ServiceResult.conflict("conflict"));
 
         baseRequest()
                 .contentType(JSON)

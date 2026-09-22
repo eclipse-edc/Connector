@@ -74,8 +74,11 @@ public abstract class BaseContractDefinitionApiController {
     }
 
     public JsonObject getContractDefinition(String id) {
+        var participantContext = participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(ContractDefinition.class, id));
+
         return Optional.ofNullable(id)
-                .map(service::findById)
+                .map(it -> service.findById(participantContext.getId(), it))
                 .map(it -> transformerRegistry.transform(it, JsonObject.class))
                 .map(Result::getContent)
                 .orElseThrow(() -> new ObjectNotFoundException(ContractDefinition.class, id));
@@ -105,7 +108,10 @@ public abstract class BaseContractDefinitionApiController {
     }
 
     public void deleteContractDefinition(String id) {
-        service.delete(id).orElseThrow(exceptionMapper(ContractDefinition.class, id));
+        var participantContext = participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(ContractDefinition.class, id));
+
+        service.delete(participantContext.getId(), id).orElseThrow(exceptionMapper(ContractDefinition.class, id));
     }
 
     public void updateContractDefinition(JsonObject updateObject) {

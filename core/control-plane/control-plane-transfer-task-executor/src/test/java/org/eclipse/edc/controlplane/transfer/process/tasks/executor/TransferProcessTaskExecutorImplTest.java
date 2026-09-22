@@ -149,7 +149,7 @@ class TransferProcessTaskExecutorImplTest {
         when(dataFlowController.resume(any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
         when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
         when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
-        when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("type").build());
+        when(addressResolver.resolveForAsset(any(), any())).thenReturn(DataAddress.Builder.newInstance().type("type").build());
         when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(dataAddress));
         when(dataAddressStore.remove(any())).thenReturn(StoreResult.success());
         when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());

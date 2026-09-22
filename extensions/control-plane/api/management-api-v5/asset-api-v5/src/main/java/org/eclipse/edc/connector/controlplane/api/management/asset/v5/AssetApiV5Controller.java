@@ -145,7 +145,7 @@ public class AssetApiV5Controller implements AssetApiV5 {
         authorizationService.authorize(securityContext, participantContextId, assetId, Asset.class)
                 .orElseThrow(exceptionMapper(Asset.class, assetId));
 
-        return ofNullable(assetService.findById(assetId))
+        return ofNullable(assetService.findById(participantContextId, assetId))
                 .map(asset -> typeTransformerRegistry.transform(asset, JsonObject.class).orElseThrow(f -> new EdcException(f.getFailureDetail())))
                 .orElseThrow(() -> new ObjectNotFoundException(Asset.class, assetId));
     }
@@ -160,7 +160,7 @@ public class AssetApiV5Controller implements AssetApiV5 {
         authorizationService.authorize(securityContext, participantContextId, assetId, Asset.class)
                 .orElseThrow(exceptionMapper(Asset.class, assetId));
 
-        assetService.delete(assetId)
+        assetService.delete(participantContextId, assetId)
                 .orElseThrow(exceptionMapper(Asset.class, assetId));
     }
 

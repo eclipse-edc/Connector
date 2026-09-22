@@ -107,7 +107,7 @@ public class ContractDefinitionApiV5Controller implements ContractDefinitionApiV
         authorizationService.authorize(securityContext, participantContextId, id, ContractDefinition.class)
                 .orElseThrow(exceptionMapper(ContractDefinition.class, id));
 
-        return ofNullable(contractDefinitionService.findById(id))
+        return ofNullable(contractDefinitionService.findById(participantContextId, id))
                 .map(cd -> typeTransformerRegistry.transform(cd, JsonObject.class))
                 .map(Result::getContent)
                 .orElseThrow(() -> new ObjectNotFoundException(ContractDefinition.class, id));
@@ -150,7 +150,7 @@ public class ContractDefinitionApiV5Controller implements ContractDefinitionApiV
         authorizationService.authorize(securityContext, participantContextId, id, ContractDefinition.class)
                 .orElseThrow(exceptionMapper(ContractDefinition.class, id));
 
-        contractDefinitionService.delete(id)
+        contractDefinitionService.delete(participantContextId, id)
                 .orElseThrow(exceptionMapper(ContractDefinition.class, id));
     }
 

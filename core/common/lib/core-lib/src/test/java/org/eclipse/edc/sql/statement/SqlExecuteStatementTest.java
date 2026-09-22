@@ -84,6 +84,15 @@ class SqlExecuteStatementTest {
 
             assertThat(statement).isEqualToIgnoringCase("update table_name set column_name = ?::json where id = ?;");
         }
+
+        @Test
+        void shouldReturnStatementWithAndOperator_whenMultipleWhereClauses() {
+            var statement = SqlExecuteStatement.newInstance("::json")
+                    .column("column_name")
+                    .update("table_name", equalTo("participant_context_id"), equalTo("id"));
+
+            assertThat(statement).isEqualToIgnoringCase("update table_name set column_name = ? where participant_context_id = ? and id = ?;");
+        }
     }
 
     @Nested

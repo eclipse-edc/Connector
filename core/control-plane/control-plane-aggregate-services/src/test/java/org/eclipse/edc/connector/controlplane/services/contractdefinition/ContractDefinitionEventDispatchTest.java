@@ -67,6 +67,7 @@ public class ContractDefinitionEventDispatchTest {
         eventRouter.register(ContractDefinitionEvent.class, eventSubscriber);
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
+                .participantContextId("participantContextId")
                 .contractPolicyId(UUID.randomUUID().toString())
                 .accessPolicyId(UUID.randomUUID().toString())
                 .build();
@@ -75,7 +76,7 @@ public class ContractDefinitionEventDispatchTest {
 
         await().untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractDefinitionCreated.class))));
 
-        service.delete(contractDefinition.getId());
+        service.delete(contractDefinition.getParticipantContextId(), contractDefinition.getId());
 
         await().untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractDefinitionDeleted.class))));
     }

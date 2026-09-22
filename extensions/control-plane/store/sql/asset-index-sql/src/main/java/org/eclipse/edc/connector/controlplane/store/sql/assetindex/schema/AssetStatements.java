@@ -73,12 +73,12 @@ public interface AssetStatements extends SqlStatements {
     String getInsertAssetTemplate();
 
     /**
-     * UPDATE clause for assets.
+     * UPDATE clause for assets. Parameters: the updated columns, then participant context id and asset id.
      */
     String getUpdateAssetTemplate();
 
     /**
-     * SELECT COUNT clause for assets.
+     * SELECT COUNT clause for assets. Parameters: participant context id and asset id.
      */
     String getCountAssetByIdClause();
 
@@ -88,7 +88,7 @@ public interface AssetStatements extends SqlStatements {
     String getSelectAssetTemplate();
 
     /**
-     * DELETE clause for assets.
+     * DELETE clause for assets. Parameters: participant context id and asset id.
      */
     String getDeleteAssetByIdTemplate();
 

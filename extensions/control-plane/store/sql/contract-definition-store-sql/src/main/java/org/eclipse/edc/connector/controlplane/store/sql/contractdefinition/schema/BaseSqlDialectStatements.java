@@ -20,6 +20,7 @@ import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.sql.statement.SqlExecuteStatement.equalTo;
 
 public class BaseSqlDialectStatements implements ContractDefinitionStatements {
 
@@ -31,12 +32,12 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
 
     @Override
     public String getDeleteByIdTemplate() {
-        return executeStatement().delete(getContractDefinitionTable(), getIdColumn());
+        return executeStatement().delete(getContractDefinitionTable(), equalTo(getParticipantContextIdColumn()), equalTo(getIdColumn()));
     }
 
     @Override
     public String getFindByTemplate() {
-        return format("SELECT * FROM %s WHERE %s = ?", getContractDefinitionTable(), getIdColumn());
+        return format("SELECT * FROM %s WHERE %s = ? AND %s = ?", getContractDefinitionTable(), getParticipantContextIdColumn(), getIdColumn());
     }
 
     @Override
@@ -54,9 +55,10 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
 
     @Override
     public String getCountTemplate() {
-        return format("SELECT COUNT (%s) FROM %s WHERE %s = ?",
+        return format("SELECT COUNT (%s) FROM %s WHERE %s = ? AND %s = ?",
                 getIdColumn(),
                 getContractDefinitionTable(),
+                getParticipantContextIdColumn(),
                 getIdColumn());
     }
 
@@ -69,7 +71,7 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
                 .jsonColumn(getAssetsSelectorColumn())
                 .column(getCreatedAtColumn())
                 .jsonColumn(getPrivatePropertiesColumn())
-                .update(getContractDefinitionTable(), getIdColumn());
+                .update(getContractDefinitionTable(), equalTo(getParticipantContextIdColumn()), equalTo(getIdColumn()));
 
     }
 

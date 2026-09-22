@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.defaults.storage.assetindex;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.defaults.storage.ParticipantResourceKey;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -35,10 +36,10 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 
 /**
- * An ephemeral asset index, that is also a DataAddressResolver
+ * An ephemeral asset index, that is also a DataAddressResolver. Assets are keyed by participant context id and asset id.
  */
 public class InMemoryAssetIndex implements AssetIndex {
-    private final Map<String, Asset> cache = new ConcurrentHashMap<>();
+    private final Map<ParticipantResourceKey, Asset> cache = new ConcurrentHashMap<>();
     private final CriterionOperatorRegistry criterionOperatorRegistry;
     private final ReentrantReadWriteLock lock;
 
@@ -66,13 +67,11 @@ public class InMemoryAssetIndex implements AssetIndex {
     }
 
     @Override
-    public Asset findById(String assetId) {
+    public Asset findById(String participantContextId, String assetId) {
+        var key = ParticipantResourceKey.of(participantContextId, assetId);
         lock.readLock().lock();
         try {
-            return cache.values().stream()
-                    .filter(asset -> asset.getId().equals(assetId))
-                    .findFirst()
-                    .orElse(null);
+            return cache.get(key);
         } finally {
             lock.readLock().unlock();
         }
@@ -80,13 +79,13 @@ public class InMemoryAssetIndex implements AssetIndex {
 
     @Override
     public StoreResult<Void> create(Asset asset) {
+        var key = ParticipantResourceKey.of(asset.getParticipantContextId(), asset.getId());
         lock.writeLock().lock();
         try {
-            var id = asset.getId();
-            if (cache.containsKey(id)) {
-                return StoreResult.alreadyExists(format(ASSET_EXISTS_TEMPLATE, id));
+            if (cache.containsKey(key)) {
+                return StoreResult.alreadyExists(format(ASSET_EXISTS_TEMPLATE, asset.getId()));
             }
-            cache.put(asset.getId(), asset);
+            cache.put(key, asset);
         } finally {
             lock.writeLock().unlock();
         }
@@ -94,10 +93,11 @@ public class InMemoryAssetIndex implements AssetIndex {
     }
 
     @Override
-    public StoreResult<Asset> deleteById(String assetId) {
+    public StoreResult<Asset> deleteById(String participantContextId, String assetId) {
+        var key = ParticipantResourceKey.of(participantContextId, assetId);
         lock.writeLock().lock();
         try {
-            return Optional.ofNullable(cache.remove(assetId))
+            return Optional.ofNullable(cache.remove(key))
                     .map(StoreResult::success)
                     .orElse(StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId)));
         } finally {
@@ -112,30 +112,23 @@ public class InMemoryAssetIndex implements AssetIndex {
 
     @Override
     public StoreResult<Asset> updateAsset(Asset asset) {
+        Objects.requireNonNull(asset, "asset");
+        var key = ParticipantResourceKey.of(asset.getParticipantContextId(), asset.getId());
         lock.writeLock().lock();
         try {
-            var id = asset.getId();
-            Objects.requireNonNull(asset, "asset");
-            Objects.requireNonNull(id, "assetId");
-            if (cache.containsKey(id)) {
-                cache.put(asset.getId(), asset);
+            if (cache.containsKey(key)) {
+                cache.put(key, asset);
                 return StoreResult.success(asset);
             }
-            return StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, id));
+            return StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, asset.getId()));
         } finally {
             lock.writeLock().unlock();
         }
     }
 
     @Override
-    public DataAddress resolveForAsset(String assetId) {
-        Objects.requireNonNull(assetId, "assetId");
-        lock.readLock().lock();
-        try {
-            return Optional.ofNullable(cache.get(assetId)).map(Asset::getDataAddress).orElse(null);
-        } finally {
-            lock.readLock().unlock();
-        }
+    public DataAddress resolveForAsset(String participantContextId, String assetId) {
+        return Optional.ofNullable(findById(participantContextId, assetId)).map(Asset::getDataAddress).orElse(null);
     }
 
     private Stream<Asset> filterBy(List<Criterion> criteria) {

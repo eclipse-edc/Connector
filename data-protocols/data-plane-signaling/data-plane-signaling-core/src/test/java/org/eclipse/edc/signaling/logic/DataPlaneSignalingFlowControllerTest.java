@@ -584,12 +584,12 @@ public class DataPlaneSignalingFlowControllerTest {
                     .participantContextId("participant-1")
                     .dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build())
                     .build();
-            when(assetIndex.findById("assetId")).thenReturn(asset);
+            when(assetIndex.findById("participant-1", "assetId")).thenReturn(asset);
             when(selectorService.search(any())).thenReturn(ServiceResult.success(List.of(
                     dataPlaneInstanceBuilder().allowedTransferType("Http-PULL").build()
             )));
 
-            var transferTypes = flowController.transferTypesFor("assetId");
+            var transferTypes = flowController.transferTypesFor("participant-1", "assetId");
 
             assertThat(transferTypes).containsExactly("Http-PULL");
             verify(selectorService).search(argThat(querySpec -> querySpec.getFilterExpression().stream().anyMatch(criterion ->
@@ -599,9 +599,9 @@ public class DataPlaneSignalingFlowControllerTest {
 
         @Test
         void shouldReturnEmpty_whenAssetIdNotFound() {
-            when(assetIndex.findById("missing")).thenReturn(null);
+            when(assetIndex.findById("participant-1", "missing")).thenReturn(null);
 
-            var transferTypes = flowController.transferTypesFor("missing");
+            var transferTypes = flowController.transferTypesFor("participant-1", "missing");
 
             assertThat(transferTypes).isEmpty();
             verifyNoInteractions(selectorService);

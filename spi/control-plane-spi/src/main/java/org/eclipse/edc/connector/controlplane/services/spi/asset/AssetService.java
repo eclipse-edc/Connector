@@ -23,12 +23,13 @@ import java.util.List;
 public interface AssetService {
 
     /**
-     * Returns an asset by its id
+     * Returns an asset by its id within the given participant context
      *
-     * @param assetId id of the asset
-     * @return the asset, null if it's not found
+     * @param participantContextId id of the participant context that owns the asset
+     * @param assetId              id of the asset
+     * @return the asset, null if it's not found in the participant context
      */
-    Asset findById(String assetId);
+    Asset findById(String participantContextId, String assetId);
 
     /**
      * Search Assets
@@ -47,12 +48,13 @@ public interface AssetService {
     ServiceResult<Asset> create(Asset asset);
 
     /**
-     * Delete an asset
+     * Delete an asset within the given participant context
      *
-     * @param assetId the id of the asset to be deleted
+     * @param participantContextId id of the participant context that owns the asset
+     * @param assetId              the id of the asset to be deleted
      * @return successful result if the asset is deleted correctly, failure otherwise
      */
-    ServiceResult<Asset> delete(String assetId);
+    ServiceResult<Asset> delete(String participantContextId, String assetId);
 
     /**
      * Updates an asset. If the asset does not yet exist, {@link ServiceResult#notFound(String)} will be returned.

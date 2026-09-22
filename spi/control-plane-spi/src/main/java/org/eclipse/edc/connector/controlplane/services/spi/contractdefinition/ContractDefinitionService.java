@@ -26,12 +26,13 @@ import java.util.List;
 public interface ContractDefinitionService {
 
     /**
-     * Returns a contract definition by its id
+     * Returns a contract definition by its id within the given participant context
      *
+     * @param participantContextId id of the participant context that owns the contract definition
      * @param contractDefinitionId id of the contract definition
-     * @return the contract definition, null if it's not found
+     * @return the contract definition, null if it's not found in the participant context
      */
-    ContractDefinition findById(String contractDefinitionId);
+    ContractDefinition findById(String participantContextId, String contractDefinitionId);
 
     /**
      * Search contract definitions
@@ -64,8 +65,9 @@ public interface ContractDefinitionService {
      * Delete a contract definition. If the definition is already referenced by a contract agreement, returns CONFLICT
      * failure. If the definition does not exist, returns NOT_FOUND failure.
      *
+     * @param participantContextId id of the participant context that owns the contract definition
      * @param contractDefinitionId the id of the contract definition to be deleted
      * @return successful result if the contract definition is deleted correctly, failure otherwise
      */
-    ServiceResult<ContractDefinition> delete(String contractDefinitionId);
+    ServiceResult<ContractDefinition> delete(String participantContextId, String contractDefinitionId);
 }

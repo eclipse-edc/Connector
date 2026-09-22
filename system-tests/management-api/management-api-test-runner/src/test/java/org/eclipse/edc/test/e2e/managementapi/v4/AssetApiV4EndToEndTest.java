@@ -67,7 +67,7 @@ public class AssetApiV4EndToEndTest {
     @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
 
-        private static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
+        private static final String PARTICIPANT_CONTEXT_ID = "anonymous";
 
         @AfterEach
         void teardown(ContractNegotiationStore negotiationStore) {
@@ -145,7 +145,7 @@ public class AssetApiV4EndToEndTest {
                     .statusCode(200)
                     .body(ID, is(id));
 
-            var asset = assetIndex.findById(id);
+            var asset = assetIndex.findById(PARTICIPANT_CONTEXT_ID, id);
             assertThat(asset).isNotNull();
             assertThat(asset.isCatalog()).isTrue();
             assertThat(asset.getPrivateProperty(EDC_NAMESPACE + "anotherProp")).isEqualTo("anotherVal");
@@ -199,14 +199,14 @@ public class AssetApiV4EndToEndTest {
                     .statusCode(200)
                     .body(ID, is(id));
 
-            var asset = assetIndex.findById(id);
+            var asset = assetIndex.findById(PARTICIPANT_CONTEXT_ID, id);
             assertThat(asset).isNotNull();
             //make sure unprefixed keys are caught and prefixed with the EDC_NAMESPACE ns.
             assertThat(asset.getProperties().keySet())
                     .hasSize(6)
                     .allMatch(key -> key.startsWith(EDC_NAMESPACE));
 
-            var dataAddress = assetIndex.resolveForAsset(asset.getId());
+            var dataAddress = assetIndex.resolveForAsset(PARTICIPANT_CONTEXT_ID, asset.getId());
             assertThat(dataAddress).isNotNull();
             assertThat(dataAddress.getProperties().keySet())
                     .hasSize(2)
@@ -237,7 +237,7 @@ public class AssetApiV4EndToEndTest {
                     .statusCode(200)
                     .body(ID, is(id));
 
-            var asset = assetIndex.findById(id);
+            var asset = assetIndex.findById(PARTICIPANT_CONTEXT_ID, id);
             assertThat(asset).isNotNull();
             assertThat(asset.isCatalog()).isTrue();
         }
@@ -267,7 +267,7 @@ public class AssetApiV4EndToEndTest {
                     .body(ID, is(id));
 
             // verify the property was set
-            var asset = index.findById(id);
+            var asset = index.findById(PARTICIPANT_CONTEXT_ID, id);
             assertThat(asset.isCatalog()).isTrue();
 
             // query the asset, assert that @type: CatalogAsset
@@ -400,7 +400,7 @@ public class AssetApiV4EndToEndTest {
                     .statusCode(204)
                     .body(notNullValue());
 
-            var dbAsset = assetIndex.findById(asset.getId());
+            var dbAsset = assetIndex.findById(PARTICIPANT_CONTEXT_ID, asset.getId());
             assertThat(dbAsset).isNotNull();
             assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property", "some-new-value");
             assertThat(dbAsset.getDataplaneMetadata().getLabels()).containsExactly("updated-label");
@@ -426,7 +426,7 @@ public class AssetApiV4EndToEndTest {
                     .log().ifValidationFails()
                     .statusCode(204);
 
-            assertThat(assetIndex.findById(asset.getId())).isNull();
+            assertThat(assetIndex.findById(PARTICIPANT_CONTEXT_ID, asset.getId())).isNull();
         }
 
         @Test
@@ -443,7 +443,7 @@ public class AssetApiV4EndToEndTest {
                     .log().ifValidationFails()
                     .statusCode(409);
 
-            assertThat(assetIndex.findById(asset.getId())).isNotNull();
+            assertThat(assetIndex.findById(PARTICIPANT_CONTEXT_ID, asset.getId())).isNotNull();
         }
 
         @Test
@@ -461,7 +461,7 @@ public class AssetApiV4EndToEndTest {
                     .log().ifValidationFails()
                     .statusCode(204);
 
-            assertThat(assetIndex.findById(asset.getId())).isNull();
+            assertThat(assetIndex.findById(PARTICIPANT_CONTEXT_ID, asset.getId())).isNull();
         }
 
         @Test
@@ -478,7 +478,7 @@ public class AssetApiV4EndToEndTest {
                     .log().ifValidationFails()
                     .statusCode(204);
 
-            assertThat(assetIndex.findById(asset.getId())).isNull();
+            assertThat(assetIndex.findById(PARTICIPANT_CONTEXT_ID, asset.getId())).isNull();
         }
 
         @Test

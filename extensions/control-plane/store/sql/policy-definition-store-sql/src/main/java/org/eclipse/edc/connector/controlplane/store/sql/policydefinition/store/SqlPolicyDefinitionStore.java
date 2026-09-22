@@ -43,6 +43,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
 
 public class SqlPolicyDefinitionStore extends AbstractSqlStore implements PolicyDefinitionStore {
 
@@ -67,9 +68,11 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
     }
 
     @Override
-    public PolicyDefinition findById(String id) {
+    public PolicyDefinition findById(String participantContextId, String id) {
+        Objects.requireNonNull(participantContextId);
+        Objects.requireNonNull(id);
         return transactionContext.execute(() -> {
-            var query = QuerySpec.Builder.newInstance().filter(List.of(new Criterion("id", "=", id))).build();
+            var query = queryByParticipantContextId(participantContextId).filter(new Criterion("id", "=", id)).build();
             try {
                 var queryStatement = statements.createQuery(query);
                 return queryExecutor.single(getConnection(), true, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
@@ -98,7 +101,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
         Objects.requireNonNull(policy);
         var policyId = policy.getId();
         return transactionContext.execute(() -> {
-            if (findById(policyId) != null) {
+            if (findById(policy.getParticipantContextId(), policyId) != null) {
                 return StoreResult.alreadyExists(format(POLICY_ALREADY_EXISTS, policyId));
             } else {
                 insert(policy);
@@ -110,7 +113,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
     @Override
     public StoreResult<PolicyDefinition> update(PolicyDefinition policyDefinition) {
         var policyId = policyDefinition.getId();
-        if (findById(policyId) != null) {
+        if (findById(policyDefinition.getParticipantContextId(), policyId) != null) {
             return transactionContext.execute(() -> {
                 updateInternal(policyDefinition);
                 return StoreResult.success(policyDefinition);
@@ -120,13 +123,14 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
     }
 
     @Override
-    public StoreResult<PolicyDefinition> delete(String policyId) {
+    public StoreResult<PolicyDefinition> delete(String participantContextId, String policyId) {
+        Objects.requireNonNull(participantContextId);
         Objects.requireNonNull(policyId);
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var entity = findById(policyId);
+                var entity = findById(participantContextId, policyId);
                 if (entity != null) {
-                    queryExecutor.execute(connection, statements.getDeleteTemplate(), policyId);
+                    queryExecutor.execute(connection, statements.getDeleteTemplate(), participantContextId, policyId);
                     return StoreResult.success(entity);
                 }
                 return StoreResult.notFound(format(POLICY_NOT_FOUND, policyId));
@@ -177,6 +181,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
                         policy.getTarget(),
                         toJson(policy.getType(), policyType),
                         toJson(def.getPrivateProperties()),
+                        def.getParticipantContextId(),
                         id);
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);

@@ -24,6 +24,8 @@ import java.util.stream.IntStream;
 
 public class TestFunctions {
 
+    public static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
+
     private TestFunctions() {
     }
 
@@ -45,7 +47,7 @@ public class TestFunctions {
                 .accessPolicyId(accessPolicyId)
                 .contractPolicyId(contractPolicyId)
                 .privateProperties(privateProperties)
-                .participantContextId("participantContextId")
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .createdAt(1234);
     }
 

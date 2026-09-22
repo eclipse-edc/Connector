@@ -69,9 +69,9 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
     }
 
     @Override
-    public PolicyDefinition findById(String policyId) {
+    public PolicyDefinition findById(String participantContextId, String policyId) {
         return transactionContext.execute(() ->
-                policyStore.findById(policyId));
+                policyStore.findById(participantContextId, policyId));
     }
 
     @Override
@@ -84,15 +84,15 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
     }
 
     @Override
-    public @NotNull ServiceResult<PolicyDefinition> deleteById(String policyId) {
+    public @NotNull ServiceResult<PolicyDefinition> deleteById(String participantContextId, String policyId) {
         return transactionContext.execute(() -> {
-            var policyDefinition = policyStore.findById(policyId);
+            var policyDefinition = policyStore.findById(participantContextId, policyId);
             if (policyDefinition == null) {
                 return ServiceResult.notFound(format(POLICY_NOT_FOUND, policyId));
             }
 
             // only contract definitions of the same participant context can reference the policy
-            var participantFilter = filterByParticipantContextId(policyDefinition.getParticipantContextId());
+            var participantFilter = filterByParticipantContextId(participantContextId);
             var contractFilter = criterion("contractPolicyId", "=", policyId);
             var accessFilter = criterion("accessPolicyId", "=", policyId);
 
@@ -110,7 +110,7 @@ public class PolicyDefinitionServiceImpl implements PolicyDefinitionService {
                 }
             }
 
-            var deleted = policyStore.delete(policyId);
+            var deleted = policyStore.delete(participantContextId, policyId);
             deleted.onSuccess(pd -> observable.invokeForEach(l -> l.deleted(pd)));
             return ServiceResult.from(deleted);
         });

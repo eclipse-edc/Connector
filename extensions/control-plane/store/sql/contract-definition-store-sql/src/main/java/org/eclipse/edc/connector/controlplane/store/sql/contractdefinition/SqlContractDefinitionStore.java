@@ -74,11 +74,12 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
     }
 
     @Override
-    public ContractDefinition findById(String definitionId) {
+    public ContractDefinition findById(String participantContextId, String definitionId) {
+        Objects.requireNonNull(participantContextId);
         Objects.requireNonNull(definitionId);
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                return findById(connection, definitionId);
+                return findById(connection, participantContextId, definitionId);
             } catch (Exception exception) {
                 throw new EdcPersistenceException(exception);
             }
@@ -90,7 +91,7 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
     public StoreResult<Void> save(ContractDefinition definition) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                if (existsById(connection, definition.getId())) {
+                if (existsById(connection, definition.getParticipantContextId(), definition.getId())) {
                     return StoreResult.alreadyExists(format(CONTRACT_DEFINITION_EXISTS, definition.getId()));
                 } else {
                     insertInternal(connection, definition);
@@ -107,7 +108,7 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
     public StoreResult<Void> update(ContractDefinition definition) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                if (existsById(connection, definition.getId())) {
+                if (existsById(connection, definition.getParticipantContextId(), definition.getId())) {
                     updateInternal(connection, definition);
                     return StoreResult.success();
                 } else {
@@ -120,13 +121,14 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
     }
 
     @Override
-    public StoreResult<ContractDefinition> deleteById(String id) {
+    public StoreResult<ContractDefinition> deleteById(String participantContextId, String id) {
+        Objects.requireNonNull(participantContextId);
         Objects.requireNonNull(id);
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var entity = findById(connection, id);
+                var entity = findById(connection, participantContextId, id);
                 if (entity != null) {
-                    queryExecutor.execute(connection, statements.getDeleteByIdTemplate(), id);
+                    queryExecutor.execute(connection, statements.getDeleteByIdTemplate(), participantContextId, id);
                     return StoreResult.success(entity);
                 } else {
                     return StoreResult.notFound(format(CONTRACT_DEFINITION_NOT_FOUND, id));
@@ -173,12 +175,13 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                 toJson(definition.getAssetsSelector()),
                 definition.getCreatedAt(),
                 toJson(definition.getPrivateProperties()),
+                definition.getParticipantContextId(),
                 definition.getId());
     }
 
-    private boolean existsById(Connection connection, String definitionId) {
+    private boolean existsById(Connection connection, String participantContextId, String definitionId) {
         var sql = statements.getCountTemplate();
-        try (var stream = queryExecutor.query(connection, false, this::mapCount, sql, definitionId)) {
+        try (var stream = queryExecutor.query(connection, false, this::mapCount, sql, participantContextId, definitionId)) {
             return stream.findFirst().orElse(0L) > 0;
         }
     }
@@ -187,8 +190,8 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
         return resultSet.getLong(1);
     }
 
-    private ContractDefinition findById(Connection connection, String id) {
+    private ContractDefinition findById(Connection connection, String participantContextId, String id) {
         var sql = statements.getFindByTemplate();
-        return queryExecutor.single(connection, false, this::mapResultSet, sql, id);
+        return queryExecutor.single(connection, false, this::mapResultSet, sql, participantContextId, id);
     }
 }

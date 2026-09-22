@@ -353,7 +353,7 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
-            when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
+            when(dataFlowController.transferTypesFor(anyString(), anyString())).thenReturn(Set.of("transferType"));
             when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
             var transferProcess = transferProcess(INITIAL, "transferProcessId");
             when(transferProcessProviderFactory.create(any(), any(), any(), any())).thenReturn(ServiceResult.success(transferProcess));
@@ -415,7 +415,7 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
-            when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
+            when(dataFlowController.transferTypesFor(anyString(), anyString())).thenReturn(Set.of("transferType"));
             when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.generalError("error"));
             when(transferProcessProviderFactory.create(any(), any(), any(), any())).thenReturn(ServiceResult.success(transferProcess(INITIAL, "transferProcessId")));
 
@@ -443,7 +443,7 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
-            when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
+            when(dataFlowController.transferTypesFor(anyString(), anyString())).thenReturn(Set.of("transferType"));
             when(transferProcessProviderFactory.create(any(), any(), any(), any())).thenReturn(ServiceResult.badRequest("cannot create transfer process"));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
@@ -474,7 +474,7 @@ class TransferProcessProtocolServiceImplTest {
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
             when(store.findAll(any())).thenAnswer(i -> Stream.of(transferProcess(REQUESTED, "transferProcessId")));
-            when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
+            when(dataFlowController.transferTypesFor(anyString(), anyString())).thenReturn(Set.of("transferType"));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
@@ -506,7 +506,7 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
             when(store.findForCorrelationId("consumerPid")).thenReturn(foreignTransferProcess);
             when(store.findAll(argThat(query -> query.getFilterExpression().contains(filterByParticipantContextId("participantContextId"))))).thenAnswer(i -> Stream.empty());
-            when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
+            when(dataFlowController.transferTypesFor(anyString(), anyString())).thenReturn(Set.of("transferType"));
             when(transferProcessProviderFactory.create(any(), any(), any(), any())).thenAnswer(i -> ServiceResult.success(transferProcessBuilder().id("newTransferProcessId").build()));
             when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
 
@@ -534,7 +534,7 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.failure("error"));
-            when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
+            when(dataFlowController.transferTypesFor(anyString(), anyString())).thenReturn(Set.of("transferType"));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
@@ -584,7 +584,7 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(contractAgreement));
-            when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("supported-transfer-type"));
+            when(dataFlowController.transferTypesFor(anyString(), anyString())).thenReturn(Set.of("supported-transfer-type"));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 

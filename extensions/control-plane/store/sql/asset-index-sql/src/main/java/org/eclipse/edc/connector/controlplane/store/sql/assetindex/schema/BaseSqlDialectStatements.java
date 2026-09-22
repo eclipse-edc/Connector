@@ -25,6 +25,7 @@ import org.eclipse.edc.sql.translation.SqlQueryStatement;
 import java.util.List;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.sql.statement.SqlExecuteStatement.equalTo;
 
 public class BaseSqlDialectStatements implements AssetStatements {
 
@@ -54,14 +55,15 @@ public class BaseSqlDialectStatements implements AssetStatements {
                 .jsonColumn(getPrivatePropertiesColumn())
                 .jsonColumn(getDataAddressColumn())
                 .jsonColumn(getDataplaneMetadataColumn())
-                .update(getAssetTable(), getAssetIdColumn());
+                .update(getAssetTable(), equalTo(getParticipantContextIdColumn()), equalTo(getAssetIdColumn()));
     }
 
     @Override
     public String getCountAssetByIdClause() {
-        return format("SELECT COUNT(*) AS %s FROM %s WHERE %s = ?",
+        return format("SELECT COUNT(*) AS %s FROM %s WHERE %s = ? AND %s = ?",
                 getCountVariableName(),
                 getAssetTable(),
+                getParticipantContextIdColumn(),
                 getAssetIdColumn());
     }
 
@@ -73,7 +75,7 @@ public class BaseSqlDialectStatements implements AssetStatements {
     @Override
     public String getDeleteAssetByIdTemplate() {
         return executeStatement()
-                .delete(getAssetTable(), getAssetIdColumn());
+                .delete(getAssetTable(), equalTo(getParticipantContextIdColumn()), equalTo(getAssetIdColumn()));
     }
 
     @Override

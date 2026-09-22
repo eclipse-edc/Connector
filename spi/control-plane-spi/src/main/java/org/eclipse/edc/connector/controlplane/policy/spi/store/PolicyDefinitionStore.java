@@ -23,11 +23,9 @@ import org.eclipse.edc.spi.result.StoreResult;
 
 import java.util.stream.Stream;
 
-import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
-import static org.eclipse.edc.spi.query.Criterion.criterion;
-
 /**
- * Persists {@link Policy}.
+ * Persists {@link Policy}. Policy definition IDs are unique only within a participant context: the pair
+ * {@code (participantContextId, id)} identifies a policy definition.
  */
 @ExtensionPoint
 public interface PolicyDefinitionStore {
@@ -36,30 +34,15 @@ public interface PolicyDefinitionStore {
     String POLICY_ALREADY_EXISTS = "Policy with ID %s already exists";
 
     /**
-     * Finds the policy by id.
-     *
-     * @param policyId id of the policy.
-     * @return {@link Policy} or null if not found.
-     * @throws EdcPersistenceException if something goes wrong.
-     */
-    PolicyDefinition findById(String policyId);
-
-    /**
      * Finds the policy by id, scoped to the given participant context. A policy that exists but belongs to a different
      * participant context is not returned.
      *
      * @param participantContextId the id of the participant context that owns the policy.
      * @param policyId             id of the policy.
      * @return {@link PolicyDefinition} if found within the participant context, null otherwise.
+     * @throws EdcPersistenceException if something goes wrong.
      */
-    default PolicyDefinition findById(String participantContextId, String policyId) {
-        var query = queryByParticipantContextId(participantContextId)
-                .filter(criterion("id", "=", policyId))
-                .build();
-        try (var policies = findAll(query)) {
-            return policies.findFirst().orElse(null);
-        }
-    }
+    PolicyDefinition findById(String participantContextId, String policyId);
 
     /**
      * Find stream of policies in the store based on query spec.
@@ -71,31 +54,32 @@ public interface PolicyDefinitionStore {
     Stream<PolicyDefinition> findAll(QuerySpec spec);
 
     /**
-     * Persists the policy, if it does not yet exist.
+     * Persists the policy, if it does not yet exist within the participant context of the policy.
      *
      * @param policy to be saved.
-     * @return {@link StoreResult#success()} if it could be stored, {@link StoreResult#alreadyExists(String)} if a policy with the same ID already exists.
+     * @return {@link StoreResult#success()} if it could be stored, {@link StoreResult#alreadyExists(String)} if a policy with the same ID already exists in the same participant context.
      * @throws EdcPersistenceException if something goes wrong.
      */
     StoreResult<PolicyDefinition> create(PolicyDefinition policy);
 
     /**
-     * Updates the policy.
+     * Updates the policy, identified by its ID and its participant context ID.
      *
      * @param policy to be updated.
-     * @return {@link StoreResult#success()} if it could be updated, {@link StoreResult#notFound(String)} if a policy with the same ID was not found.
+     * @return {@link StoreResult#success()} if it could be updated, {@link StoreResult#notFound(String)} if a policy with the same ID was not found in the participant context.
      * @throws EdcPersistenceException if any exception occurs during Query Execution e.g., SQLException.
      */
     StoreResult<PolicyDefinition> update(PolicyDefinition policy);
 
     /**
-     * Deletes a policy for the given id.
+     * Deletes a policy for the given id within the given participant context.
      *
-     * @param policyId id of the policy to be removed.
-     * @return {@link StoreResult#success()} if was deleted, {@link StoreResult#notFound(String)} if a policy with the same ID was not found.
+     * @param participantContextId the id of the participant context that owns the policy.
+     * @param policyId             id of the policy to be removed.
+     * @return {@link StoreResult#success()} if was deleted, {@link StoreResult#notFound(String)} if a policy with the same ID was not found in the participant context.
      * @throws EdcPersistenceException if something goes wrong.
      */
-    StoreResult<PolicyDefinition> delete(String policyId);
+    StoreResult<PolicyDefinition> delete(String participantContextId, String policyId);
 
     /**
      * If the store implementation supports caching, this method triggers a cache-reload.

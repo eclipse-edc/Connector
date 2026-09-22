@@ -315,7 +315,7 @@ class DatasetResolverImplTest {
             var datasets = datasetResolver.query(createParticipantContext(), createParticipantAgent(), QuerySpec.none(), "protocol");
 
             assertThat(datasets).hasSize(1);
-            verify(policyStore, never()).findById(any());
+            verify(policyStore, never()).findById(any(), any());
         }
     }
 

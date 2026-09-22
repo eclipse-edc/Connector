@@ -12,6 +12,7 @@ Contributors:
 
 @startuml
 entity edc_policydefinitions {
+  * participant_context_id: string <<PK>>
   * policy_id: string <<PK>>
   --
   permissions: string <<json>>

@@ -36,12 +36,12 @@ public interface SqlPolicyStoreStatements extends SqlStatements {
     String getInsertTemplate();
 
     /**
-     * UPDATE statement for policy.
+     * UPDATE statement for policy. Parameters: the updated columns, then participant context id and policy id.
      */
     String getUpdateTemplate();
 
     /**
-     * DELETE statement for policies.
+     * DELETE statement for policies. Parameters: participant context id and policy id.
      */
     String getDeleteTemplate();
 

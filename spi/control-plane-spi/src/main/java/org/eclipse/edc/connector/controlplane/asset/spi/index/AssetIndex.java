@@ -25,8 +25,6 @@ import org.eclipse.edc.spi.result.StoreResult;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
-
 /**
  * Query interface for {@link Asset} objects.
  * <br>
@@ -55,48 +53,37 @@ public interface AssetIndex extends DataAddressResolver {
     Stream<Asset> queryAssets(QuerySpec querySpec);
 
     /**
-     * Fetches the {@link Asset} with the given ID from the metadata backend.
-     *
-     * @param assetId A String that represents the Asset ID, in most cases this will be a UUID.
-     * @return The {@link Asset} if one was found, or null otherwise.
-     * @throws NullPointerException If {@code assetId} was null or empty.
-     */
-    Asset findById(String assetId);
-
-    /**
      * Fetches the {@link Asset} with the given ID, scoped to the given participant context. An asset that exists but
      * belongs to a different participant context is not returned.
+     * <p>
+     * Asset IDs are unique only within a participant context: the pair {@code (participantContextId, assetId)}
+     * identifies an asset.
      *
      * @param participantContextId The ID of the {@link org.eclipse.edc.participantcontext.spi.types.ParticipantContext} that owns the asset.
      * @param assetId              A String that represents the Asset ID.
      * @return The {@link Asset} if one was found within the participant context, or null otherwise.
+     * @throws NullPointerException If {@code participantContextId} or {@code assetId} was null.
      */
-    default Asset findById(String participantContextId, String assetId) {
-        var query = queryByParticipantContextId(participantContextId)
-                .filter(new Criterion("id", "=", assetId))
-                .build();
-        try (var assets = queryAssets(query)) {
-            return assets.findFirst().orElse(null);
-        }
-    }
+    Asset findById(String participantContextId, String assetId);
 
     /**
-     * Stores a {@link Asset} in the asset index, if no asset with the same ID already exists.
-     * Implementors must ensure that it's stored in a transactional way.
+     * Stores a {@link Asset} in the asset index, if no asset with the same ID already exists within the participant
+     * context of the asset. Implementors must ensure that it's stored in a transactional way.
      *
      * @param asset The {@link Asset} to store
-     * @return {@link StoreResult#success()} if the objects were stored, {@link StoreResult#alreadyExists(String)} when an object with the same ID already exists.
+     * @return {@link StoreResult#success()} if the objects were stored, {@link StoreResult#alreadyExists(String)} when an object with the same ID already exists in the same participant context.
      */
     StoreResult<Void> create(Asset asset);
 
     /**
-     * Deletes an asset if it exists.
+     * Deletes an asset if it exists within the given participant context.
      *
-     * @param assetId Id of the asset to be deleted.
-     * @return {@link StoreResult#success(Object)} if the object was deleted, {@link StoreResult#notFound(String)} when an object with that ID was not found.
+     * @param participantContextId The ID of the participant context that owns the asset.
+     * @param assetId              Id of the asset to be deleted.
+     * @return {@link StoreResult#success(Object)} if the object was deleted, {@link StoreResult#notFound(String)} when an object with that ID was not found in the participant context.
      * @throws EdcPersistenceException if something goes wrong.
      */
-    StoreResult<Asset> deleteById(String assetId);
+    StoreResult<Asset> deleteById(String participantContextId, String assetId);
 
     /**
      * Counts all assets that are selected by the given criteria
@@ -107,10 +94,11 @@ public interface AssetIndex extends DataAddressResolver {
     long countAssets(List<Criterion> criteria);
 
     /**
-     * Updates an asset with the content from the given {@link Asset}. If the asset is not found, no further database interaction takes place.
+     * Updates an asset with the content from the given {@link Asset}. The asset is identified by its ID and its
+     * participant context ID. If the asset is not found, no further database interaction takes place.
      *
-     * @param asset The Asset containing the new values. ID will be ignored.
-     * @return {@link StoreResult#success(Object)} if the object was updated, {@link StoreResult#notFound(String)} when an object with that ID was not found.
+     * @param asset The Asset containing the new values.
+     * @return {@link StoreResult#success(Object)} if the object was updated, {@link StoreResult#notFound(String)} when an object with that ID was not found in the participant context.
      */
     StoreResult<Asset> updateAsset(Asset asset);
 

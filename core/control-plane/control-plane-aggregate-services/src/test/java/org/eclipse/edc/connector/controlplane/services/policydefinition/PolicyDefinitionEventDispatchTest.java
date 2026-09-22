@@ -67,7 +67,7 @@ public class PolicyDefinitionEventDispatchTest {
     @Test
     void shouldDispatchEventOnPolicyDefinitionCreationAndDeletionAndUpdate(PolicyDefinitionService service, EventRouter eventRouter) {
         eventRouter.register(PolicyDefinitionEvent.class, eventSubscriber);
-        var policyDefinition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
+        var policyDefinition = PolicyDefinition.Builder.newInstance().participantContextId("participantContextId").policy(Policy.Builder.newInstance().build()).build();
 
         service.create(policyDefinition);
         await().untilAsserted(() -> {
@@ -79,7 +79,7 @@ public class PolicyDefinitionEventDispatchTest {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionUpdated.class)));
         });
 
-        service.deleteById(policyDefinition.getId());
+        service.deleteById(policyDefinition.getParticipantContextId(), policyDefinition.getId());
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(PolicyDefinitionDeleted.class)));
 

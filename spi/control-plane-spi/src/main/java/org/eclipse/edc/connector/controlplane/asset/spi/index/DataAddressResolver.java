@@ -27,8 +27,9 @@ public interface DataAddressResolver {
      * Resolves a {@link DataAddress} for a given {@code Asset}. A {@code DataAddress} can be understood as a pointer into
      * a storage system like a database or a document store.
      *
-     * @param assetId The {@code assetId} for which the data pointer should be fetched.
+     * @param participantContextId The ID of the participant context that owns the asset.
+     * @param assetId              The {@code assetId} for which the data pointer should be fetched.
      * @return A DataAddress, null if not found
      */
-    DataAddress resolveForAsset(String assetId);
+    DataAddress resolveForAsset(String participantContextId, String assetId);
 }

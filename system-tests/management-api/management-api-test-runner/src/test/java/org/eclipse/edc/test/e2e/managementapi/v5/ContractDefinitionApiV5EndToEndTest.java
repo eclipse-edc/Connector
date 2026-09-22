@@ -99,9 +99,56 @@ public class ContractDefinitionApiV5EndToEndTest {
                     .statusCode(200)
                     .body("@id", equalTo(id));
 
-            var actual = store.findById(id);
+            var actual = store.findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(actual.getId()).matches(id);
+        }
+
+        @Test
+        void create_shouldAllowSameIdInAnotherParticipantContext(ManagementEndToEndV5TestContext context, OauthServer authServer,
+                                                                 ContractDefinitionStore store, ParticipantContextService srv) {
+            var otherParticipantId = UUID.randomUUID().toString();
+            createParticipant(srv, otherParticipantId);
+            var otherToken = authServer.createToken(otherParticipantId);
+            var id = UUID.randomUUID().toString();
+            var requestJson = createDefinitionBuilder(id).build().toString();
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(requestJson)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .then()
+                    .statusCode(200)
+                    .body("@id", equalTo(id));
+
+            // the same id is available to the other participant: no conflict, no existence oracle
+            context.baseRequest(otherToken)
+                    .contentType(JSON)
+                    .body(requestJson)
+                    .post("/v5/participants/" + otherParticipantId + "/contractdefinitions")
+                    .then()
+                    .statusCode(200)
+                    .body("@id", equalTo(id));
+
+            context.baseRequest(otherToken)
+                    .get("/v5/participants/" + otherParticipantId + "/contractdefinitions/" + id)
+                    .then()
+                    .statusCode(200)
+                    .body(ID, is(id));
+
+            assertThat(store.findById(PARTICIPANT_CONTEXT_ID, id)).isNotNull()
+                    .extracting(ContractDefinition::getParticipantContextId).isEqualTo(PARTICIPANT_CONTEXT_ID);
+            assertThat(store.findById(otherParticipantId, id)).isNotNull()
+                    .extracting(ContractDefinition::getParticipantContextId).isEqualTo(otherParticipantId);
+
+            // deleting the definition of one participant leaves the other one untouched
+            context.baseRequest(otherToken)
+                    .delete("/v5/participants/" + otherParticipantId + "/contractdefinitions/" + id)
+                    .then()
+                    .statusCode(204);
+
+            assertThat(store.findById(otherParticipantId, id)).isNull();
+            assertThat(store.findById(PARTICIPANT_CONTEXT_ID, id)).isNotNull();
         }
 
         @Test
@@ -159,7 +206,7 @@ public class ContractDefinitionApiV5EndToEndTest {
                     .statusCode(200)
                     .body("@id", equalTo(id));
 
-            var actual = store.findById(id);
+            var actual = store.findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(actual.getId()).matches(id);
         }
@@ -373,7 +420,7 @@ public class ContractDefinitionApiV5EndToEndTest {
                     .then()
                     .statusCode(204);
 
-            var actual = store.findById(id);
+            var actual = store.findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(actual).isNull();
         }
@@ -433,7 +480,7 @@ public class ContractDefinitionApiV5EndToEndTest {
                     .then()
                     .statusCode(204);
 
-            var actual = store.findById(id);
+            var actual = store.findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(actual).isNull();
         }
@@ -470,7 +517,7 @@ public class ContractDefinitionApiV5EndToEndTest {
                     .then()
                     .statusCode(204);
 
-            var actual = store.findById(id);
+            var actual = store.findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(actual.getAccessPolicyId()).isEqualTo("new-policy");
         }

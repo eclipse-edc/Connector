@@ -25,7 +25,14 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface ConsumerOfferResolver {
 
+    /**
+     * Resolves the offer with the given id within the given participant context.
+     *
+     * @param participantContextId the id of the participant context (the provider) that owns the offered contract definition.
+     * @param offerId              the offer id.
+     * @return the resolved offer, a not-found failure if the contract definition or its policies do not exist in the participant context.
+     */
     @NotNull
-    ServiceResult<ValidatableConsumerOffer> resolveOffer(String offerId);
+    ServiceResult<ValidatableConsumerOffer> resolveOffer(String participantContextId, String offerId);
 
 }
