@@ -516,6 +516,32 @@
         }
       }
     },
+    "Partner": {
+      "@id": "edc:Partner",
+      "@context": {
+        "identity": "edc:identity",
+        "name": "edc:name",
+        "properties": {
+          "@id": "edc:properties",
+          "@type": "@json"
+        },
+        "groupIds": {
+          "@id": "edc:groupIds",
+          "@container": "@set"
+        }
+      }
+    },
+    "PartnerGroup": {
+      "@id": "edc:PartnerGroup",
+      "@context": {
+        "name": "edc:name",
+        "description": "edc:description",
+        "properties": {
+          "@id": "edc:properties",
+          "@type": "@json"
+        }
+      }
+    },
     "CelExpression": {
       "@id": "edc:CelExpression",
       "@context": {
