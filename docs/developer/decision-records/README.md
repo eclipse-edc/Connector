@@ -102,3 +102,4 @@
 - [2026-06-18 SPI Module Consolidation](2026-06-18-spi-module-consolidation)
 - [2026-07-24 Transformers Registry](2026-07-24-transformers-registry)
 - [2026-07-29 JSON-LD single-pass deserialization](2026-07-29-jsonld-single-pass-deserialization)
+- [2026-09-22 Partners and Partner Groups](2026-09-22-partners-and-partner-groups)
