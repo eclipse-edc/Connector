@@ -21,6 +21,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.sql.statement.SqlExecuteStatement.equalTo;
 import static org.eclipse.edc.sql.statement.SqlExecuteStatement.isNull;
 
@@ -183,5 +184,15 @@ class SqlExecuteStatementTest {
             assertThat(statement).isEqualToIgnoringCase("insert into table_name (id, column_name) values (?, ?::json)" +
                     " on conflict (id) do update set column_name = excluded.column_name;");
         }
+    }
+
+    @Test
+    void update_withMultipleCriteria_shouldJoinWithAnd() {
+        var statement = SqlExecuteStatement.newInstance("::json")
+                .column("name")
+                .jsonColumn("properties")
+                .update("table", criterion("participant_context_id", "=", "?"), criterion("id", "=", "?"));
+
+        assertThat(statement).isEqualTo("UPDATE table SET name = ?, properties = ?::json WHERE participant_context_id = ? AND id = ?;");
     }
 }

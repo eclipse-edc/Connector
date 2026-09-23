@@ -27,9 +27,13 @@ import org.eclipse.edc.connector.controlplane.defaults.storage.contractdefinitio
 import org.eclipse.edc.connector.controlplane.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.defaults.storage.dataplane.InMemoryDataPlaneInstanceStore;
 import org.eclipse.edc.connector.controlplane.defaults.storage.dataspaceprofile.InMemoryDataspaceProfileStore;
+import org.eclipse.edc.connector.controlplane.defaults.storage.partner.InMemoryPartnerGroupStore;
+import org.eclipse.edc.connector.controlplane.defaults.storage.partner.InMemoryPartnerStore;
 import org.eclipse.edc.connector.controlplane.defaults.storage.policydefinition.InMemoryPolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.defaults.storage.transferprocess.InMemoryTransferProcessStore;
 import org.eclipse.edc.connector.controlplane.defaults.strategy.DefaultSelectionStrategyRegistry;
+import org.eclipse.edc.connector.controlplane.partner.spi.store.PartnerGroupStore;
+import org.eclipse.edc.connector.controlplane.partner.spi.store.PartnerStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.query.asset.AssetPropertyLookup;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry;
@@ -101,6 +105,16 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public DataspaceProfileStore defaultDataspaceProfileStore() {
         return new InMemoryDataspaceProfileStore(criterionOperatorRegistry);
+    }
+
+    @Provider(isDefault = true)
+    public PartnerStore defaultPartnerStore() {
+        return new InMemoryPartnerStore(criterionOperatorRegistry);
+    }
+
+    @Provider(isDefault = true)
+    public PartnerGroupStore defaultPartnerGroupStore() {
+        return new InMemoryPartnerGroupStore(criterionOperatorRegistry);
     }
 
     @Provider(isDefault = true)

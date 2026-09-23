@@ -52,6 +52,8 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.partner.spi.Partner.EDC_PARTNER_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.partner.spi.PartnerGroup.EDC_PARTNER_GROUP_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE_TERM;
@@ -136,6 +138,8 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
             put("DataspaceProfile", V5.DATASPACE_PROFILE_CONTEXT);
             put("CachedDocument", V5.CACHED_DOCUMENT);
             put("SchemaValidatorRegistration", V5.SCHEMA_VALIDATOR_REGISTRATION);
+            put(EDC_PARTNER_TYPE_TERM, V5.PARTNER);
+            put(EDC_PARTNER_GROUP_TYPE_TERM, V5.PARTNER_GROUP);
         }
     };
 

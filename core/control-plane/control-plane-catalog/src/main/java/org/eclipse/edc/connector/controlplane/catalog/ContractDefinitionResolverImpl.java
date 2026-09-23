@@ -61,7 +61,7 @@ public class ContractDefinitionResolverImpl implements ContractDefinitionResolve
                                             .map(PolicyDefinition::getPolicy)
                                             .orElse(null))
                             )
-                            .map(policy -> policyEngine.evaluate(policy, new CatalogPolicyContext(agent)))
+                            .map(policy -> policyEngine.evaluate(policy, new CatalogPolicyContext(participantContext.getId(), agent)))
                             .orElse(Result.failure(format("Policy %s not found", definition.getAccessPolicyId())));
 
                     return accessResult.succeeded();

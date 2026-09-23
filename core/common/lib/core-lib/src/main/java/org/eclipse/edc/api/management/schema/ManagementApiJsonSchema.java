@@ -68,6 +68,8 @@ public interface ManagementApiJsonSchema {
         String DCP_SCOPE = EDC_MGMT_V5_SCHEMA_PREFIX + "/dcp-scope-schema.json";
         String CACHED_DOCUMENT = EDC_MGMT_V5_SCHEMA_PREFIX + "/cached-document-schema.json";
         String SCHEMA_VALIDATOR_REGISTRATION = EDC_MGMT_V5_SCHEMA_PREFIX + "/schema-validator-registration-schema.json";
+        String PARTNER = EDC_MGMT_V5_SCHEMA_PREFIX + "/partner-schema.json";
+        String PARTNER_GROUP = EDC_MGMT_V5_SCHEMA_PREFIX + "/partner-group-schema.json";
 
 
         static String version() {

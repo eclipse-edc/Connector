@@ -27,6 +27,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.ConsumerOfferResolver;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService;
+import org.eclipse.edc.connector.controlplane.partner.spi.store.PartnerGroupStore;
+import org.eclipse.edc.connector.controlplane.partner.spi.store.PartnerStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.observe.PolicyDefinitionObservableImpl;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.services.asset.AssetEventListener;
@@ -39,6 +41,8 @@ import org.eclipse.edc.connector.controlplane.services.contractdefinition.Contra
 import org.eclipse.edc.connector.controlplane.services.contractdefinition.ContractDefinitionServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.contractnegotiation.ContractNegotiationProtocolServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.contractnegotiation.ContractNegotiationServiceImpl;
+import org.eclipse.edc.connector.controlplane.services.partner.PartnerGroupServiceImpl;
+import org.eclipse.edc.connector.controlplane.services.partner.PartnerServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.policydefinition.PolicyDefinitionEventListener;
 import org.eclipse.edc.connector.controlplane.services.policydefinition.PolicyDefinitionServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.protocol.ProtocolTokenValidatorImpl;
@@ -53,6 +57,8 @@ import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.Con
 import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.connector.controlplane.services.spi.partner.PartnerGroupService;
+import org.eclipse.edc.connector.controlplane.services.spi.partner.PartnerService;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
@@ -157,6 +163,10 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     private DataFlowController dataFlowController;
     @Inject
     private DataAddressStore dataAddressStore;
+    @Inject
+    private PartnerStore partnerStore;
+    @Inject
+    private PartnerGroupStore partnerGroupStore;
 
     @Override
     public String name() {
@@ -227,6 +237,16 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
         policyDefinitionObservable.registerListener(new PolicyDefinitionEventListener(eventRouter));
         return new PolicyDefinitionServiceImpl(transactionContext, policyDefinitionStore, contractDefinitionStore,
                 policyDefinitionObservable, policyEngine, QueryValidators.policyDefinition(), validatePolicy);
+    }
+
+    @Provider
+    public PartnerService partnerService() {
+        return new PartnerServiceImpl(partnerStore, partnerGroupStore, transactionContext, QueryValidators.partner());
+    }
+
+    @Provider
+    public PartnerGroupService partnerGroupService() {
+        return new PartnerGroupServiceImpl(partnerGroupStore, partnerStore, transactionContext, QueryValidators.partnerGroup());
     }
 
     @Provider

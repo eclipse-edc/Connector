@@ -17,6 +17,7 @@ package org.eclipse.edc.policy.cel.function.context;
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorContext;
+import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.model.Policy;
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +30,8 @@ import static org.mockito.Mockito.when;
 public class PolicyMonitorContextMapperTest {
 
     private final PolicyMonitorContextMapper mapper = new PolicyMonitorContextMapper(
-            new AgreementContextMapper()
+            new AgreementContextMapper(),
+            new ParticipantAgentContextMapper<>(mock())
     );
 
     @SuppressWarnings("unchecked")
@@ -46,6 +48,7 @@ public class PolicyMonitorContextMapperTest {
                 .build();
 
         when(ctx.contractAgreement()).thenReturn(agreement);
+        when(ctx.participantAgent()).thenReturn(new ParticipantAgent("consumer-id", Map.of("claim", "value"), Map.of()));
         var result = mapper.mapContext(ctx);
 
         assertThat(result).isSucceeded().satisfies(map -> {
@@ -55,6 +58,9 @@ public class PolicyMonitorContextMapperTest {
             Assertions.assertThat(contract.get("agreementId")).isEqualTo("agreement-id");
             Assertions.assertThat(contract.get("providerId")).isEqualTo("provider-id");
             Assertions.assertThat(contract.get("consumerId")).isEqualTo("consumer-id");
+            var agent = (Map<String, Object>) map.get("agent");
+            Assertions.assertThat(agent.get("id")).isEqualTo("consumer-id");
+            Assertions.assertThat(agent.get("claims")).isEqualTo(Map.of("claim", "value"));
 
         });
 

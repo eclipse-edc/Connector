@@ -22,6 +22,7 @@ dependencies {
     }
     api(project(":extensions:control-plane:store:sql:participantcontext-store-sql"))
     api(project(":extensions:control-plane:store:sql:participantcontext-config-store-sql"))
+    api(project(":extensions:control-plane:store:sql:partner-store-sql"))
     api(project(":extensions:control-plane:store:sql:dataspace-profile-store-sql"))
     api(project(":extensions:common:store:sql:cel-store-sql"))
     api(project(":extensions:common:store:sql:document-cache-store-sql"))

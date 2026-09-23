@@ -24,15 +24,19 @@ import org.eclipse.edc.policy.cel.function.CelExpressionFunction;
 import org.eclipse.edc.policy.cel.function.CelFunctionRegistry;
 import org.eclipse.edc.policy.cel.function.CelFunctionRegistryImpl;
 import org.eclipse.edc.policy.cel.function.context.AgreementContextMapper;
+import org.eclipse.edc.policy.cel.function.context.CelContextMapper;
 import org.eclipse.edc.policy.cel.function.context.CelParticipantAgentClaimMapperRegistry;
 import org.eclipse.edc.policy.cel.function.context.CelParticipantAgentClaimMapperRegistryImpl;
+import org.eclipse.edc.policy.cel.function.context.CompositeCelContextMapper;
 import org.eclipse.edc.policy.cel.function.context.ParticipantAgentContextMapper;
+import org.eclipse.edc.policy.cel.function.context.ParticipantContextContextMapper;
 import org.eclipse.edc.policy.cel.function.context.PolicyMonitorContextMapper;
 import org.eclipse.edc.policy.cel.function.context.TransferProcessContextMapper;
 import org.eclipse.edc.policy.cel.service.CelPolicyExpressionService;
 import org.eclipse.edc.policy.cel.service.CelPolicyExpressionServiceImpl;
 import org.eclipse.edc.policy.cel.store.CelExpressionStore;
 import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintRuleFunction;
+import org.eclipse.edc.policy.engine.spi.ParticipantContextPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
@@ -96,10 +100,12 @@ public class CelPolicyCoreExtension implements ServiceExtension {
         ruleBindingRegistry.dynamicBind(policyExpressionEngine()::evaluationScopes);
 
         List.of(Permission.class, Duty.class, Prohibition.class).forEach(c -> {
-            bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), new TransferProcessContextMapper(new AgreementContextMapper(), new ParticipantAgentContextMapper<>(claimMapperRegistry()))), c, TransferProcessPolicyContext.class);
-            bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), new ParticipantAgentContextMapper<>(claimMapperRegistry())), c, ContractNegotiationPolicyContext.class);
-            bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), new ParticipantAgentContextMapper<>(claimMapperRegistry())), c, CatalogPolicyContext.class);
-            bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), new PolicyMonitorContextMapper(new AgreementContextMapper())), c, PolicyMonitorContext.class);
+            var transferMapper = new TransferProcessContextMapper(new AgreementContextMapper(), new ParticipantAgentContextMapper<>(claimMapperRegistry()));
+            var monitorMapper = new PolicyMonitorContextMapper(new AgreementContextMapper(), new ParticipantAgentContextMapper<>(claimMapperRegistry()));
+            bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), withParticipantContext(transferMapper)), c, TransferProcessPolicyContext.class);
+            bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), withParticipantContext(new ParticipantAgentContextMapper<>(claimMapperRegistry()))), c, ContractNegotiationPolicyContext.class);
+            bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), withParticipantContext(new ParticipantAgentContextMapper<>(claimMapperRegistry()))), c, CatalogPolicyContext.class);
+            bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), withParticipantContext(monitorMapper)), c, PolicyMonitorContext.class);
         });
 
         List.of(CATALOG_SCOPE, TRANSFER_SCOPE, NEGOTIATION_SCOPE, POLICY_MONITOR_SCOPE).forEach(scope -> {
@@ -119,6 +125,13 @@ public class CelPolicyCoreExtension implements ServiceExtension {
     @Provider
     public CelPolicyExpressionService policyExpressionService() {
         return new CelPolicyExpressionServiceImpl(celExpressionStore, transactionContext, policyExpressionEngine());
+    }
+
+    /**
+     * Adds the {@code ctx.partners} handle so partner-aware functions can scope lookups to the evaluating participant context.
+     */
+    private <C extends ParticipantContextPolicyContext> CelContextMapper<C> withParticipantContext(CelContextMapper<C> mapper) {
+        return CompositeCelContextMapper.of(mapper, new ParticipantContextContextMapper<>());
     }
 
     private <C extends PolicyContext, R extends Rule> void bindFunction(DynamicAtomicConstraintRuleFunction<R, C> function, Class<R> ruleClass, Class<C> contextClass) {
