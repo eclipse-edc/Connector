@@ -186,6 +186,43 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/partnergroups/request:
+    post:
+      tags:
+      - Partner Group v5
+      description: Returns all partner groups of the participant context matching
+        a query
+      operationId: queryPartnerGroupsV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The partner groups matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/partner-group-schema"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v5/participants/{participantContextId}/transferprocesses:
     post:
       tags:
@@ -223,6 +260,124 @@ paths:
                 id: $response.body#/id
         "400":
           description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/partnergroups/{id}:
+    get:
+      tags:
+      - Partner Group v5
+      description: Gets a partner group with the given ID
+      operationId: getPartnerGroupV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The partner group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/partner-group-schema"
+        "404":
+          description: A partner group with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    put:
+      tags:
+      - Partner Group v5
+      description: Updates an existing partner group
+      operationId: updatePartnerGroupV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/partner-group-schema"
+      responses:
+        "204":
+          description: The partner group was updated
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A partner group with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api-error-schema"
+    delete:
+      tags:
+      - Partner Group v5
+      description: Removes a partner group with the given ID. A group that is still
+        referenced by a partner cannot be deleted.
+      operationId: deletePartnerGroupV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: The partner group was deleted
+        "404":
+          description: A partner group with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: The partner group is still referenced by at least one partner
           content:
             application/json:
               schema:
@@ -524,6 +679,124 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/partners/{id}:
+    get:
+      tags:
+      - Partner v5
+      description: Gets a partner with the given ID
+      operationId: getPartnerV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The partner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/partner-schema"
+        "404":
+          description: A partner with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    put:
+      tags:
+      - Partner v5
+      description: Updates an existing partner. Every referenced partner group must
+        exist in the participant context.
+      operationId: updatePartnerV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/partner-schema"
+      responses:
+        "204":
+          description: The partner was updated
+        "400":
+          description: Request body was malformed or a referenced group does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A partner with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: Another partner already has the requested identity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    delete:
+      tags:
+      - Partner v5
+      description: Removes a partner with the given ID
+      operationId: deletePartnerV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: The partner was deleted
+        "404":
+          description: A partner with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v5/celexpressions/test:
     post:
       tags:
@@ -849,6 +1122,50 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/catalog-schema"
+  /v5/participants/{participantContextId}/partners:
+    post:
+      tags:
+      - Partner v5
+      description: Creates a new partner. Every referenced partner group must exist
+        in the participant context.
+      operationId: createPartnerV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/partner-schema"
+      responses:
+        "200":
+          description: The partner was created. Returns the partner id and created
+            timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+        "400":
+          description: Request body was malformed or a referenced group does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: A partner with that id or identity already exists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v5/participants/{participantContextId}/assets/{assetId}:
     delete:
       tags:
@@ -1065,6 +1382,44 @@ paths:
           description: The dataspace profile was deleted successfully
         "404":
           description: A dataspace profile with the given name does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/partners/request:
+    post:
+      tags:
+      - Partner v5
+      description: "Returns all partners of the participant context matching a query.\
+        \ Partner properties can be filtered with nested criteria, e.g. `properties.businessId\
+        \ = BID-0001`, group membership with `groupIds contains <groupId>`"
+      operationId: queryPartnersV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The partners matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/partner-schema"
+        "400":
+          description: Request was malformed
           content:
             application/json:
               schema:
@@ -3675,6 +4030,49 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/partnergroups:
+    post:
+      tags:
+      - Partner Group v5
+      description: Creates a new partner group
+      operationId: createPartnerGroupV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/partner-group-schema"
+      responses:
+        "200":
+          description: The partner group was created. Returns the group id and created
+            timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: A partner group with that id already exists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v5/cacheddocuments:
     get:
       tags:
@@ -5161,6 +5559,102 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/Constraint"
+    partner-group-schema:
+      title: PartnerGroupSchema
+      type: object
+      example:
+        '@type': '@type'
+        name: name
+        description: description
+        '@id': '@id'
+        '@context':
+        - '@context'
+        - '@context'
+        properties: "{}"
+      allOf:
+      - $ref: "#/components/schemas/PartnerGroup"
+    PartnerGroup:
+      required:
+      - '@context'
+      - '@type'
+      - name
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        '@id':
+          type: string
+        name:
+          minLength: 1
+          type: string
+        description:
+          type: string
+        properties:
+          type: object
+    query-spec-schema:
+      title: QuerySpecSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/QuerySpecRoot"
+    QuerySpecRoot:
+      required:
+      - '@context'
+      - '@type'
+      type: object
+      allOf:
+      - properties:
+          '@context':
+            $ref: "#/components/schemas/context-schema"
+      - $ref: "#/components/schemas/QuerySpec"
+    QuerySpec:
+      required:
+      - '@type'
+      type: object
+      properties:
+        '@type':
+          type: string
+        offset:
+          minimum: 0
+          type: integer
+        limit:
+          minimum: 1
+          type: integer
+        sortField:
+          type: string
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC
+        filterExpression:
+          type: array
+          items:
+            $ref: "#/components/schemas/Criterion"
+    Criterion:
+      required:
+      - '@type'
+      - operandLeft
+      - operandRight
+      - operator
+      type: object
+      properties:
+        '@type':
+          type: string
+        operandLeft:
+          type: string
+        operandRight: {}
+        operator:
+          type: string
+      example:
+        operandRight: ""
+        '@type': '@type'
+        operandLeft: operandLeft
+        operator: operator
     id-response-schema:
       title: IdResponseSchema
       type: object
@@ -5345,6 +5839,51 @@ components:
         isValid:
           type: boolean
         errors:
+          type: array
+          items:
+            type: string
+    partner-schema:
+      title: PartnerSchema
+      type: object
+      example:
+        '@type': '@type'
+        identity: identity
+        groupIds:
+        - groupIds
+        - groupIds
+        name: name
+        '@id': '@id'
+        '@context':
+        - '@context'
+        - '@context'
+        properties: "{}"
+      allOf:
+      - $ref: "#/components/schemas/Partner"
+    Partner:
+      required:
+      - '@context'
+      - '@type'
+      - identity
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        '@id':
+          type: string
+        identity:
+          minLength: 1
+          type: string
+        name:
+          type: string
+        properties:
+          type: object
+        groupIds:
+          uniqueItems: true
           type: array
           items:
             type: string
@@ -5890,65 +6429,6 @@ components:
       example: {}
       items:
         type: string
-    query-spec-schema:
-      title: QuerySpecSchema
-      type: object
-      allOf:
-      - $ref: "#/components/schemas/QuerySpecRoot"
-    QuerySpecRoot:
-      required:
-      - '@context'
-      - '@type'
-      type: object
-      allOf:
-      - properties:
-          '@context':
-            $ref: "#/components/schemas/context-schema"
-      - $ref: "#/components/schemas/QuerySpec"
-    QuerySpec:
-      required:
-      - '@type'
-      type: object
-      properties:
-        '@type':
-          type: string
-        offset:
-          minimum: 0
-          type: integer
-        limit:
-          minimum: 1
-          type: integer
-        sortField:
-          type: string
-        sortOrder:
-          type: string
-          enum:
-          - ASC
-          - DESC
-        filterExpression:
-          type: array
-          items:
-            $ref: "#/components/schemas/Criterion"
-    Criterion:
-      required:
-      - '@type'
-      - operandLeft
-      - operandRight
-      - operator
-      type: object
-      properties:
-        '@type':
-          type: string
-        operandLeft:
-          type: string
-        operandRight: {}
-        operator:
-          type: string
-      example:
-        operandRight: ""
-        '@type': '@type'
-        operandLeft: operandLeft
-        operator: operator
     dataspace-profile-schema:
       title: DataspaceProfileSchema
       type: object
