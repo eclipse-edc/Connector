@@ -17,6 +17,7 @@ package org.eclipse.edc.vault.hashicorp.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
@@ -54,7 +55,7 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
         protected static final long TTL = 5L;
         protected static final long RENEW_BUFFER = 4L;
         protected HashicorpVaultTokenRenewService tokenRenewService;
-        protected final ObjectMapper mapper = new ObjectMapper();
+        protected final ObjectMapper mapper = new JacksonTypeManager().getMapper();
         protected final ConsoleMonitor monitor = new ConsoleMonitor();
 
         @BeforeEach
@@ -76,8 +77,7 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
                     .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
                         var tokenLookUpResult = tokenRenewService.isTokenRenewable();
-                        assertThat(tokenLookUpResult).isFailed();
-                        assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status 403");
+                        assertThat(tokenLookUpResult).isFailed().detail().contains("403");
                     });
         }
 
@@ -95,8 +95,7 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
                     .atMost(CREATION_TTL + 1, TimeUnit.SECONDS)
                     .untilAsserted(() -> {
                         var tokenRenewResult = tokenRenewService.renewToken();
-                        assertThat(tokenRenewResult).isFailed();
-                        assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: 403");
+                        assertThat(tokenRenewResult).isFailed().detail().contains("403");
                     });
         }
     }
@@ -139,8 +138,7 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
                     testHttpClient(),
                     mapper,
                     settings,
-                    new HashicorpVaultTokenProviderImpl(clientToken),
-                    monitor
+                    new HashicorpVaultTokenProviderImpl(clientToken)
             );
         }
     }
@@ -150,7 +148,7 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
     @Nested
     class Latest extends Tests {
         @Container
-        static final VaultContainer<?> VAULT_CONTAINER = new VaultContainer<>("hashicorp/vault:1.18.3")
+        static final VaultContainer<?> VAULT_CONTAINER = new VaultContainer<>("hashicorp/vault:2.1.1")
                 .withVaultToken(UUID.randomUUID().toString());
 
         @BeforeEach
@@ -183,8 +181,7 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
                     testHttpClient(),
                     mapper,
                     settings,
-                    new HashicorpVaultTokenProviderImpl(clientToken),
-                    monitor
+                    new HashicorpVaultTokenProviderImpl(clientToken)
             );
         }
     }

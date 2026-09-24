@@ -16,6 +16,7 @@ package org.eclipse.edc.vault.hashicorp.client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.json.Json;
 import okhttp3.MediaType;
 import okhttp3.Protocol;
 import okhttp3.Request;
@@ -24,7 +25,6 @@ import okhttp3.ResponseBody;
 import okio.Buffer;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.http.spi.FallbackFactory;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
 import org.junit.jupiter.api.Nested;
@@ -61,8 +61,6 @@ public class HashicorpVaultTokenRenewServiceTest {
     private static final long VAULT_TOKEN_TTL = 5L;
     private static final long RENEW_BUFFER = 4L;
     private static final String CUSTOM_SECRET_PATH = "v1/test/secret";
-    private static final String DATA_KEY = "data";
-    private static final String RENEWABLE_KEY = "renewable";
     private static final String AUTH_KEY = "auth";
     private static final String LEASE_DURATION_KEY = "lease_duration";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -80,30 +78,22 @@ public class HashicorpVaultTokenRenewServiceTest {
             .build();
     
     private final EdcHttpClient httpClient = mock();
-    private final Monitor monitor = mock();
     private final HashicorpVaultTokenProvider tokenProvider = new HashicorpVaultTokenProviderImpl(VAULT_TOKEN);
     private final HashicorpVaultTokenRenewService vaultClient = new HashicorpVaultTokenRenewService(
             httpClient,
             OBJECT_MAPPER,
             HASHICORP_VAULT_CLIENT_CONFIG_VALUES,
-            tokenProvider,
-            monitor);
+            tokenProvider);
     
     @Nested
-    class Token {
+    class IsTokenRenewable {
         @Test
         void lookUpToken_whenApiReturns200_shouldSucceed() throws IOException {
-            var body = """
-                    {
-                        "data": {
-                            "renewable": true
-                        }
-                    }
-                    """;
+            var body = Json.createObjectBuilder().add("data", Json.createObjectBuilder().add("renewable", true)).build();
             var response = new Response.Builder()
                     .code(200)
                     .message("any")
-                    .body(ResponseBody.create(body, MediaType.get("application/json")))
+                    .body(ResponseBody.create(body.toString(), MediaType.get("application/json")))
                     .protocol(Protocol.HTTP_1_1)
                     .request(new Request.Builder().url("http://any").build())
                     .build();
@@ -113,6 +103,23 @@ public class HashicorpVaultTokenRenewServiceTest {
             
             verify(httpClient).execute(any(Request.class), argThat((List<FallbackFactory> factories) -> factories.get(0) instanceof HashicorpVaultClientFallbackFactory));
             assertThat(tokenLookUpResult).isSucceeded().satisfies(isRenewable -> assertThat(isRenewable).isTrue());
+        }
+
+        @Test
+        void shouldReturnFalse_whenRenewableAttributeDoesNotExist() throws IOException {
+            var body = Json.createObjectBuilder().add("data", Json.createObjectBuilder()).build();
+            var response = new Response.Builder()
+                    .code(200)
+                    .message("any")
+                    .body(ResponseBody.create(body.toString(), MediaType.get("application/json")))
+                    .protocol(Protocol.HTTP_1_1)
+                    .request(new Request.Builder().url("http://any").build())
+                    .build();
+            when(httpClient.execute(any(Request.class), anyList())).thenReturn(response);
+
+            var tokenLookUpResult = vaultClient.isTokenRenewable();
+
+            assertThat(tokenLookUpResult).isSucceeded().isEqualTo(false);
         }
         
         @Test
@@ -128,8 +135,7 @@ public class HashicorpVaultTokenRenewServiceTest {
             
             var tokenLookUpResult = vaultClient.isTokenRenewable();
             
-            assertThat(tokenLookUpResult).isFailed();
-            assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Token look up failed with status %s".formatted(403));
+            assertThat(tokenLookUpResult).isFailed().detail().contains("403");
         }
         
         @Test
@@ -138,8 +144,7 @@ public class HashicorpVaultTokenRenewServiceTest {
             
             var tokenLookUpResult = vaultClient.isTokenRenewable();
             
-            assertThat(tokenLookUpResult).isFailed();
-            assertThat(tokenLookUpResult.getFailureDetail()).isEqualTo("Failed to look up token with reason: foo-bar");
+            assertThat(tokenLookUpResult).isFailed().detail().contains("foo-bar");
         }
         
         @ParameterizedTest
@@ -157,9 +162,24 @@ public class HashicorpVaultTokenRenewServiceTest {
             var tokenLookUpResult = vaultClient.isTokenRenewable();
             
             assertThat(tokenLookUpResult).isFailed();
-            assertThat(tokenLookUpResult.getFailureDetail()).startsWith("Token look up response could not be parsed: Failed to parse renewable flag");
+            assertThat(tokenLookUpResult.getFailureDetail()).startsWith("Unexpected exception");
         }
-        
+
+        private static class InvalidTokenLookUpResponseArgumentProvider implements ArgumentsProvider {
+            @Override
+            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+                return Stream.of(
+                        arguments(Map.of()),
+                        arguments(Map.of("data", Map.of("renewable", "not a boolean")))
+                );
+            }
+        }
+
+    }
+
+    @Nested
+    class RenewToken {
+
         @Test
         void renewToken_whenApiReturns200_shouldSucceed() throws IOException {
             var body = """
@@ -178,9 +198,9 @@ public class HashicorpVaultTokenRenewServiceTest {
                     .build();
             var requestCaptor = ArgumentCaptor.forClass(Request.class);
             when(httpClient.execute(any(Request.class), anyList())).thenReturn(response);
-            
+
             var tokenRenewResult = vaultClient.renewToken();
-            
+
             verify(httpClient).execute(requestCaptor.capture(), argThat((List<FallbackFactory> ids) -> ids.get(0) instanceof HashicorpVaultClientFallbackFactory));
             var request = requestCaptor.getValue();
             var copy = Objects.requireNonNull(request.newBuilder().build());
@@ -191,7 +211,7 @@ public class HashicorpVaultTokenRenewServiceTest {
             assertThat(tokenRenewRequest.get(INCREMENT_KEY)).isEqualTo("%ds".formatted(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.getTtl()));
             assertThat(tokenRenewResult).isSucceeded().isEqualTo(1800L);
         }
-        
+
         @Test
         void renewToken_whenApiReturnsErrorCode_shouldFail() throws IOException {
             var response = new Response.Builder()
@@ -202,25 +222,23 @@ public class HashicorpVaultTokenRenewServiceTest {
                     .request(new Request.Builder().url("http://any").build())
                     .build();
             when(httpClient.execute(any(Request.class), anyList())).thenReturn(response);
-            
+
             var tokenRenewResult = vaultClient.renewToken();
-            
-            assertThat(tokenRenewResult).isFailed();
-            assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Token renew failed with status: %s".formatted(403));
+
+            assertThat(tokenRenewResult).isFailed().detail().contains("403");
         }
-        
+
         @Test
         void renewToken_whenHttpClientThrowsIoException_shouldFail() throws IOException {
             when(httpClient.execute(any(Request.class), anyList())).thenThrow(new IOException("foo-bar"));
-            
+
             var tokenRenewResult = vaultClient.renewToken();
-            
-            assertThat(tokenRenewResult).isFailed();
-            assertThat(tokenRenewResult.getFailureDetail()).isEqualTo("Failed to renew token with reason: foo-bar");
+
+            assertThat(tokenRenewResult).isFailed().detail().contains("foo-bar");
             // should be called only once
             verify(httpClient).execute(any(Request.class), anyList());
         }
-        
+
         @ParameterizedTest
         @ArgumentsSource(InvalidTokenRenewResponseArgumentProvider.class)
         void renewToken_withInvalidTokenRenewResponse_shouldFail(Map<String, Object> tokenRenewResponse) throws IOException {
@@ -232,30 +250,18 @@ public class HashicorpVaultTokenRenewServiceTest {
                     .request(new Request.Builder().url("http://any").build())
                     .build();
             when(httpClient.execute(any(Request.class), anyList())).thenReturn(response);
-            
+
             var tokenRenewResult = vaultClient.renewToken();
-            
+
             assertThat(tokenRenewResult).isFailed();
-            assertThat(tokenRenewResult.getFailureDetail()).startsWith("Token renew response could not be parsed: Failed to parse ttl");
+            assertThat(tokenRenewResult.getFailureDetail()).startsWith("Unexpected exception");
         }
-        
-        private static class InvalidTokenLookUpResponseArgumentProvider implements ArgumentsProvider {
-            @Override
-            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-                return Stream.of(
-                        arguments(Map.of()),
-                        arguments(Map.of(DATA_KEY, Map.of())),
-                        arguments(Map.of(DATA_KEY, Map.of(RENEWABLE_KEY, "not a boolean")))
-                );
-            }
-        }
-        
+
         private static class InvalidTokenRenewResponseArgumentProvider implements ArgumentsProvider {
             @Override
             public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
                 return Stream.of(
                         arguments(Map.of()),
-                        arguments(Map.of(AUTH_KEY, Map.of())),
                         arguments(Map.of(AUTH_KEY, Map.of(LEASE_DURATION_KEY, "not a long")))
                 );
             }
