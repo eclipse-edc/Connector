@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.vault.hashicorp.client;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
@@ -25,7 +25,6 @@ import okhttp3.RequestBody;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.http.spi.FallbackFactory;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
 import org.jetbrains.annotations.NotNull;
@@ -47,21 +46,12 @@ public class HashicorpVaultTokenRenewService {
     private static final String TOKEN_LOOK_UP_SELF_PATH = "v1/auth/token/lookup-self";
     private static final String TOKEN_RENEW_SELF_PATH = "v1/auth/token/renew-self";
     private static final List<FallbackFactory> FALLBACK_FACTORIES = List.of(new HashicorpVaultClientFallbackFactory());
-    private static final String DATA_KEY = "data";
-    private static final String RENEWABLE_KEY = "renewable";
-    private static final String AUTH_KEY = "auth";
-    private static final String LEASE_DURATION_KEY = "lease_duration";
-    private static final TypeReference<Map<String, Object>> MAP_TYPE_REFERENCE = new TypeReference<>() {
-    };
-    private static final String INCREMENT_SECONDS_FORMAT = "%ds";
-    private static final String INCREMENT_KEY = "increment";
-    
+
     private final EdcHttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final HashicorpVaultConfig settings;
     private final HashicorpVaultTokenProvider tokenProvider;
-    private final Monitor monitor;
-    
+
     /**
      * Constructor for the HashicorpVaultTokenRenewService.
      *
@@ -69,23 +59,19 @@ public class HashicorpVaultTokenRenewService {
      * @param objectMapper  the object mapper
      * @param settings      the configuration for interacting with HashiCorp Vault
      * @param tokenProvider the token provider for retrieving the vault authentication token
-     * @param monitor       the monitor
      */
     public HashicorpVaultTokenRenewService(@NotNull EdcHttpClient httpClient,
                                            @NotNull ObjectMapper objectMapper,
                                            @NotNull HashicorpVaultConfig settings,
-                                           @NotNull HashicorpVaultTokenProvider tokenProvider,
-                                           @NotNull Monitor monitor) {
+                                           @NotNull HashicorpVaultTokenProvider tokenProvider) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
         this.settings = settings;
         this.tokenProvider = tokenProvider;
-        this.monitor = monitor;
     }
     
     /**
-     * Attempts to look up the current Vault token and returns a boolean indicating if the token
-     * is renewable.
+     * Attempts to look up the current Vault token and returns a boolean indicating if the token is renewable.
      * <p>
      * Will retry in some error cases.
      *
@@ -96,29 +82,17 @@ public class HashicorpVaultTokenRenewService {
                 .newBuilder()
                 .addPathSegments(TOKEN_LOOK_UP_SELF_PATH)
                 .build();
-        var request = httpGet(uri);
-        
-        try (var response = httpClient.execute(request, FALLBACK_FACTORIES)) {
-            if (response.isSuccessful()) {
-                var responseBody = response.body();
-                if (responseBody == null) {
-                    return Result.failure("Token look up returned empty body");
-                }
-                var payload = objectMapper.readValue(responseBody.string(), MAP_TYPE_REFERENCE);
-                var parseRenewableResult = parseRenewable(payload);
-                if (parseRenewableResult.failed()) {
-                    return Result.failure("Token look up response could not be parsed: %s".formatted(parseRenewableResult.getFailureDetail()));
-                }
-                var isRenewable = parseRenewableResult.getContent();
-                return Result.success(isRenewable);
-            } else {
-                return Result.failure("Token look up failed with status %d".formatted(response.code()));
-            }
-        } catch (IOException e) {
-            return Result.failure("Failed to look up token with reason: %s".formatted(e.getMessage()));
-        }
+
+        var request = new Request.Builder()
+                .url(uri)
+                .headers(getHeaders())
+                .get()
+                .build();
+
+        return execute(request, LookupSelfResponse.class)
+                .map(LookupSelfResponse::data).map(LookupSelfResponseData::renewable);
     }
-    
+
     /**
      * Attempts to renew the Vault token with the configured ttl. Note that Vault will not honor the passed
      * ttl (or increment) for periodic tokens. Therefore, the ttl returned by this operation should always be used
@@ -133,48 +107,31 @@ public class HashicorpVaultTokenRenewService {
                 .newBuilder()
                 .addPathSegments(TOKEN_RENEW_SELF_PATH)
                 .build();
-        var requestPayload = getTokenRenewRequestPayload();
-        var request = httpPost(uri, requestPayload);
-        
+        var requestPayload = Map.of("increment", "%ds".formatted(settings.getTtl()));
+        var request = new Request.Builder()
+                .url(uri)
+                .headers(getHeaders())
+                .post(createRequestBody(requestPayload))
+                .build();
+
+        return execute(request, RenewResponse.class)
+                .map(RenewResponse::auth).map(RenewAuthResponse::leaseDuration);
+    }
+
+    private <R> Result<R> execute(Request request, Class<R> responseBodyType) {
         try (var response = httpClient.execute(request, FALLBACK_FACTORIES)) {
             if (response.isSuccessful()) {
                 var responseBody = response.body();
-                if (responseBody == null) {
-                    return Result.failure("Token renew returned empty body");
-                }
-                var payload = objectMapper.readValue(responseBody.string(), MAP_TYPE_REFERENCE);
-                var parseTtlResult = parseTtl(payload);
-                if (parseTtlResult.failed()) {
-                    return Result.failure("Token renew response could not be parsed: %s".formatted(parseTtlResult.getFailureDetail()));
-                }
-                var ttl = parseTtlResult.getContent();
-                return Result.success(ttl);
+                var payload = objectMapper.readValue(responseBody.string(), responseBodyType);
+                return Result.success(payload);
             } else {
-                return Result.failure("Token renew failed with status: %d".formatted(response.code()));
+                return Result.failure("Response failed with status %d".formatted(response.code()));
             }
         } catch (IOException e) {
-            return Result.failure("Failed to renew token with reason: %s".formatted(e.getMessage()));
+            return Result.failure("Unexpected exception: %s".formatted(e.getMessage()));
         }
     }
-    
-    @NotNull
-    private Request httpGet(HttpUrl requestUri) {
-        return new Request.Builder()
-                .url(requestUri)
-                .headers(getHeaders())
-                .get()
-                .build();
-    }
-    
-    @NotNull
-    private Request httpPost(HttpUrl requestUri, Object requestBody) {
-        return new Request.Builder()
-                .url(requestUri)
-                .headers(getHeaders())
-                .post(createRequestBody(requestBody))
-                .build();
-    }
-    
+
     private Headers getHeaders() {
         var headersBuilder = new Headers.Builder().add(VAULT_REQUEST_HEADER, Boolean.toString(true));
         headersBuilder.add(VAULT_TOKEN_HEADER, tokenProvider.vaultToken());
@@ -190,42 +147,24 @@ public class HashicorpVaultTokenRenewService {
         }
         return RequestBody.create(jsonRepresentation, MEDIA_TYPE_APPLICATION_JSON);
     }
-    
-    private Map<String, String> getTokenRenewRequestPayload() {
-        return Map.of(INCREMENT_KEY, INCREMENT_SECONDS_FORMAT.formatted(settings.getTtl()));
-    }
-    
-    private Result<Boolean> parseRenewable(Map<String, Object> map) {
-        try {
-            var data = objectMapper.convertValue(getValueFromMap(map, DATA_KEY), new TypeReference<Map<String, Object>>() {
-            });
-            var isRenewable = objectMapper.convertValue(getValueFromMap(data, RENEWABLE_KEY), Boolean.class);
-            return Result.success(isRenewable);
-        } catch (IllegalArgumentException e) {
-            var errMsgFormat = "Failed to parse renewable flag from token look up response %s with reason: %s";
-            monitor.warning(errMsgFormat.formatted(map, e.getMessage()), e);
-            return Result.failure(errMsgFormat.formatted(map, e.getMessage()));
-        }
-    }
-    
-    private Result<Long> parseTtl(Map<String, Object> map) {
-        try {
-            var auth = objectMapper.convertValue(getValueFromMap(map, AUTH_KEY), new TypeReference<Map<String, Object>>() {
-            });
-            var ttl = objectMapper.convertValue(getValueFromMap(auth, LEASE_DURATION_KEY), Long.class);
-            return Result.success(ttl);
-        } catch (IllegalArgumentException e) {
-            var errMsgFormat = "Failed to parse ttl from token renewal response %s with reason: %s";
-            monitor.warning(errMsgFormat.formatted(map, e.getMessage()), e);
-            return Result.failure(errMsgFormat.formatted(map, e.getMessage()));
-        }
-    }
-    
-    private Object getValueFromMap(Map<String, Object> map, String key) {
-        var value = map.get(key);
-        if (value == null) {
-            throw new IllegalArgumentException("Key '%s' does not exist".formatted(key));
-        }
-        return value;
-    }
+
+    private record LookupSelfResponse(
+            @JsonProperty(required = true)
+            LookupSelfResponseData data
+    ) {}
+
+    private record LookupSelfResponseData(
+            @JsonProperty(defaultValue = "false")
+            boolean renewable
+    ) {}
+
+    private record RenewResponse(
+            @JsonProperty(required = true)
+            RenewAuthResponse auth
+    ) {}
+
+    private record RenewAuthResponse(
+            @JsonProperty("lease_duration")
+            long leaseDuration
+    ) {}
 }

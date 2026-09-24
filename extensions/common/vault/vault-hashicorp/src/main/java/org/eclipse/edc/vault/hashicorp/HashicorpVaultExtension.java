@@ -84,7 +84,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor().withPrefix(NAME);
 
-        var tokenRenewService = new HashicorpVaultTokenRenewService(httpClient, MAPPER, defaultVaultConfig, tokenProviderFactory.create(null), monitor);
+        var tokenRenewService = new HashicorpVaultTokenRenewService(httpClient, MAPPER, defaultVaultConfig, tokenProviderFactory.create(null));
         tokenRenewalTask = new HashicorpVaultTokenRenewTask(
                 NAME,
                 executorInstrumentation,
