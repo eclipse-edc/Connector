@@ -104,3 +104,4 @@
 - [2026-07-29 JSON-LD single-pass deserialization](2026-07-29-jsonld-single-pass-deserialization)
 - [2026-09-22 Partners and Partner Groups](2026-09-22-partners-and-partner-groups)
 - [2026-09-22 Per-participant resource identifiers](2026-09-22-per-participant-resource-ids)
+- [2026-09-24 Remove Atomikos](2026-09-24-remove-atomikos)
