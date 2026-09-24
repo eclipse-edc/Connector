@@ -20,6 +20,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.api.management.secret.transform.JsonObjectToSecretTransformer;
 import org.eclipse.edc.connector.api.management.secret.validation.SecretsValidator;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
@@ -44,7 +45,7 @@ import static org.mockito.Mockito.when;
 class SecretsApiTest {
     private final TypeManager typeManager = mock();
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
-    private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
+    private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl(mock(Monitor.class));
 
     @BeforeEach
     void setUp() {

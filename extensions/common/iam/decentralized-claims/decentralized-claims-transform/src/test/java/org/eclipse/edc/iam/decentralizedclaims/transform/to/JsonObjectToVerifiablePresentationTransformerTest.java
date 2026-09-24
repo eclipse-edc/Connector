@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TransformerContextImpl;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
@@ -50,7 +51,7 @@ class JsonObjectToVerifiablePresentationTransformerTest {
     @BeforeEach
     void setup() {
         transformer = new JsonObjectToVerifiablePresentationTransformer();
-        var registry = new TypeTransformerRegistryImpl();
+        var registry = new TypeTransformerRegistryImpl(mock(Monitor.class));
         registry.register(new JsonObjectToCredentialSubjectTransformer());
         registry.register(new JsonObjectToCredentialStatusTransformer());
         registry.register(new JsonObjectToVerifiableCredentialTransformer());

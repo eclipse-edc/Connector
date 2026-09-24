@@ -61,7 +61,7 @@ class JsonObjectToDataplaneMetadataTransformerTest {
     @BeforeEach
     void setUp() {
         var transformer = new JsonObjectToDataplaneMetadataTransformer();
-        typeTransformerRegistry = new TypeTransformerRegistryImpl();
+        typeTransformerRegistry = new TypeTransformerRegistryImpl(mock());
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         typeTransformerRegistry.register(transformer);
 
