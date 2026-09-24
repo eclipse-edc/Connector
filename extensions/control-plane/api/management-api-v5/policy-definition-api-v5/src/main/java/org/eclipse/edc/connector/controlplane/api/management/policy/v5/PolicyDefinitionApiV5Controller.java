@@ -114,7 +114,7 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
         authorizationService.authorize(securityContext, participantContextId, id, PolicyDefinition.class)
                 .orElseThrow(exceptionMapper(PolicyDefinition.class, id));
 
-        var definition = policyDefinitionService.findById(id);
+        var definition = policyDefinitionService.findById(participantContextId, id);
         if (definition == null) {
             throw new ObjectNotFoundException(PolicyDefinition.class, id);
         }
@@ -163,7 +163,7 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
         authorizationService.authorize(securityContext, participantContextId, id, PolicyDefinition.class)
                 .orElseThrow(exceptionMapper(Asset.class, id));
 
-        policyDefinitionService.deleteById(id)
+        policyDefinitionService.deleteById(participantContextId, id)
                 .onSuccess(d -> monitor.debug(format("Policy Definition deleted %s", d.getId())))
                 .orElseThrow(exceptionMapper(PolicyDefinition.class, id));
     }
@@ -210,7 +210,7 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
         authorizationService.authorize(securityContext, participantContextId, id, PolicyDefinition.class)
                 .orElseThrow(exceptionMapper(PolicyDefinition.class, id));
 
-        var definition = policyDefinitionService.findById(id);
+        var definition = policyDefinitionService.findById(participantContextId, id);
         if (definition == null) {
             throw new ObjectNotFoundException(PolicyDefinition.class, id);
         }
@@ -241,7 +241,7 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
         var planeRequest = typeTransformerRegistry.transform(input, PolicyEvaluationPlanRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        var definition = policyDefinitionService.findById(id);
+        var definition = policyDefinitionService.findById(participantContextId, id);
         if (definition == null) {
             throw new ObjectNotFoundException(PolicyDefinition.class, id);
         }

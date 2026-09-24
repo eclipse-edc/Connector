@@ -86,7 +86,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             participantContextService.deleteParticipantContext(PARTICIPANT_CONTEXT_ID)
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
-            store.findAll(QuerySpec.max()).forEach(pd -> store.delete(pd.getId()));
+            store.findAll(QuerySpec.max()).forEach(pd -> store.delete(pd.getParticipantContextId(), pd.getId()));
         }
 
         @Test
@@ -120,6 +120,63 @@ public class PolicyDefinitionApiV5EndToEndTest {
                     .body("policy.permission[0].constraint[0].rightOperand", is("contractAgreement+0s"))
                     .body("policy.prohibition[0].action", is("use"))
                     .body("policy.obligation[0].action", is("use"));
+        }
+
+        @Test
+        void create_shouldAllowSameIdInAnotherParticipantContext(ManagementEndToEndV5TestContext context, OauthServer authServer,
+                                                                 PolicyDefinitionStore store, ParticipantContextService srv) {
+            var otherParticipantId = UUID.randomUUID().toString();
+            createParticipant(srv, otherParticipantId);
+            var otherToken = authServer.createToken(otherParticipantId);
+            var id = UUID.randomUUID().toString();
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "PolicyDefinition")
+                    .add(ID, id)
+                    .add("policy", sampleOdrlPolicy())
+                    .build()
+                    .toString();
+
+            context.baseRequest(participantTokenJwt)
+                    .body(requestBody)
+                    .contentType(JSON)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .body(ID, is(id));
+
+            // the same id is available to the other participant: no conflict, no existence oracle
+            context.baseRequest(otherToken)
+                    .body(requestBody)
+                    .contentType(JSON)
+                    .post("/v5/participants/" + otherParticipantId + "/policydefinitions")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .body(ID, is(id));
+
+            context.baseRequest(otherToken)
+                    .get("/v5/participants/" + otherParticipantId + "/policydefinitions/" + id)
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .body(ID, is(id));
+
+            assertThat(store.findById(PARTICIPANT_CONTEXT_ID, id)).isNotNull()
+                    .extracting(PolicyDefinition::getParticipantContextId).isEqualTo(PARTICIPANT_CONTEXT_ID);
+            assertThat(store.findById(otherParticipantId, id)).isNotNull()
+                    .extracting(PolicyDefinition::getParticipantContextId).isEqualTo(otherParticipantId);
+
+            // deleting the policy of one participant leaves the other one untouched
+            context.baseRequest(otherToken)
+                    .delete("/v5/participants/" + otherParticipantId + "/policydefinitions/" + id)
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(204);
+
+            assertThat(store.findById(otherParticipantId, id)).isNull();
+            assertThat(store.findById(PARTICIPANT_CONTEXT_ID, id)).isNotNull();
         }
 
         @Test
@@ -185,7 +242,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
                     .contentType(JSON)
                     .extract().jsonPath().getString(ID);
 
-            var result = store.findById(id);
+            var result = store.findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(result).isNotNull()
                     .extracting(PolicyDefinition::getPolicy).isNotNull()
@@ -537,7 +594,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
                     .then()
                     .statusCode(204);
 
-            var policyDefinition = store.findById(id);
+            var policyDefinition = store.findById(PARTICIPANT_CONTEXT_ID, id);
             assertThat(policyDefinition)
                     .extracting(PolicyDefinition::getPrivateProperties)
                     .asInstanceOf(MAP)

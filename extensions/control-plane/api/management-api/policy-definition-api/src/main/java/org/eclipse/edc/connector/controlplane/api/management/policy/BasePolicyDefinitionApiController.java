@@ -78,7 +78,7 @@ public abstract class BasePolicyDefinitionApiController {
     }
 
     public JsonObject getPolicyDefinition(String id) {
-        var definition = service.findById(id);
+        var definition = service.findById(participantContextId(id), id);
         if (definition == null) {
             throw new ObjectNotFoundException(PolicyDefinition.class, id);
         }
@@ -113,7 +113,7 @@ public abstract class BasePolicyDefinitionApiController {
     }
 
     public void deletePolicyDefinition(String id) {
-        service.deleteById(id)
+        service.deleteById(participantContextId(id), id)
                 .onSuccess(d -> monitor.debug(format("Policy Definition deleted %s", d.getId())))
                 .orElseThrow(exceptionMapper(PolicyDefinition.class, id));
     }
@@ -136,7 +136,7 @@ public abstract class BasePolicyDefinitionApiController {
     }
 
     public JsonObject validatePolicyDefinition(String id) {
-        var definition = service.findById(id);
+        var definition = service.findById(participantContextId(id), id);
         if (definition == null) {
             throw new ObjectNotFoundException(PolicyDefinition.class, id);
         }
@@ -158,7 +158,7 @@ public abstract class BasePolicyDefinitionApiController {
         var planeRequest = transformerRegistry.transform(request, PolicyEvaluationPlanRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        var definition = service.findById(id);
+        var definition = service.findById(participantContextId(id), id);
         if (definition == null) {
             throw new ObjectNotFoundException(PolicyDefinition.class, id);
         }
@@ -168,6 +168,12 @@ public abstract class BasePolicyDefinitionApiController {
 
         return transformerRegistry.transform(plan, JsonObject.class)
                 .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
+    }
+
+    private String participantContextId(String policyDefinitionId) {
+        return participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(PolicyDefinition.class, policyDefinitionId))
+                .getId();
     }
 
 }

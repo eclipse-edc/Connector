@@ -54,6 +54,9 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 public abstract class ContractDefinitionStoreTestBase {
 
+    protected static final String PARTICIPANT_CONTEXT_ID = TestFunctions.PARTICIPANT_CONTEXT_ID;
+    protected static final String ANOTHER_PARTICIPANT_CONTEXT_ID = "anotherParticipantContextId";
+
     protected abstract ContractDefinitionStore getContractDefinitionStore();
 
     protected void saveContractDefinitions(List<ContractDefinition> definitions) {
@@ -88,6 +91,21 @@ public abstract class ContractDefinitionStoreTestBase {
             var result = getContractDefinitionStore().findAll(QuerySpec.max());
 
             assertThat(result).hasSize(1).containsExactly(createContractDefinition("id", "policy", "contract"));
+        }
+
+        @Test
+        void shouldSave_whenSameIdExistsInAnotherParticipantContext() {
+            var definition = createContractDefinition("id", "policy", "contract");
+            var otherDefinition = createContractDefinitionBuilder("id", "otherPolicy", "otherContract", Map.of())
+                    .participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID).build();
+            getContractDefinitionStore().save(definition);
+
+            var saveResult = getContractDefinitionStore().save(otherDefinition);
+
+            assertThat(saveResult).isSucceeded();
+            assertThat(getContractDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, "id")).isEqualTo(definition);
+            assertThat(getContractDefinitionStore().findById(ANOTHER_PARTICIPANT_CONTEXT_ID, "id")).isEqualTo(otherDefinition);
+            assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).hasSize(2);
         }
 
         @Test
@@ -157,6 +175,20 @@ public abstract class ContractDefinitionStoreTestBase {
 
     @Nested
     class Update {
+
+        @Test
+        void shouldNotUpdate_whenSameIdExistsOnlyInAnotherParticipantContext() {
+            var definition = createContractDefinition("id1", "policy", "contract");
+            getContractDefinitionStore().save(definition);
+            var otherDefinition = createContractDefinitionBuilder("id1", "updatedPolicy", "updatedContract", Map.of())
+                    .participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID).build();
+
+            var result = getContractDefinitionStore().update(otherDefinition);
+
+            assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
+            assertThat(getContractDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, "id1")).isEqualTo(definition);
+        }
+
         @Test
         @DisplayName("Update a non-existing Contract Definition")
         void doesNotExist_shouldNotCreate() {
@@ -201,7 +233,7 @@ public abstract class ContractDefinitionStoreTestBase {
             var updated = getContractDefinitionStore().update(definition1);
             Assertions.assertThat(updated).isNotNull();
 
-            var definitionFound = getContractDefinitionStore().findById("id1");
+            var definitionFound = getContractDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, "id1");
 
             assertThat(definitionFound).isNotNull();
             assertThat(definitionFound).usingRecursiveComparison().isEqualTo(definition1);
@@ -221,7 +253,7 @@ public abstract class ContractDefinitionStoreTestBase {
             var updated = getContractDefinitionStore().update(definition1);
             Assertions.assertThat(updated).isNotNull();
 
-            var definitionFound = getContractDefinitionStore().findById("id1");
+            var definitionFound = getContractDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, "id1");
 
             assertThat(definitionFound).isNotNull();
             assertThat(definitionFound).usingRecursiveComparison().isEqualTo(definition1);
@@ -241,7 +273,7 @@ public abstract class ContractDefinitionStoreTestBase {
             var updated = getContractDefinitionStore().update(definition1);
             Assertions.assertThat(updated).isNotNull();
 
-            var definitionFound = getContractDefinitionStore().findById("id1");
+            var definitionFound = getContractDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, "id1");
 
             assertThat(definitionFound).isNotNull();
             assertThat(definitionFound).usingRecursiveComparison().isEqualTo(definition1);
@@ -347,13 +379,13 @@ public abstract class ContractDefinitionStoreTestBase {
 
             var definitionsExpected = createContractDefinitions(10);
 
-            var definition = createContractDefinitionBuilder(UUID.randomUUID().toString()).participantContextId("customParticipantContextId").build();
+            var definition = createContractDefinitionBuilder(UUID.randomUUID().toString()).participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID).build();
 
             saveContractDefinitions(definitionsExpected);
             saveContractDefinitions(List.of(definition));
 
             var spec = QuerySpec.Builder.newInstance()
-                    .filter(filterByParticipantContextId("customParticipantContextId"))
+                    .filter(filterByParticipantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID))
                     .build();
 
             var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
@@ -630,14 +662,34 @@ public abstract class ContractDefinitionStoreTestBase {
             var definition = createContractDefinition(id, "policyId", "contractId");
             getContractDefinitionStore().save(definition);
 
-            var result = getContractDefinitionStore().findById(id);
+            var result = getContractDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(result).isNotNull().isEqualTo(definition);
         }
 
         @Test
         void findById_invalidId() {
-            assertThat(getContractDefinitionStore().findById("invalid-id")).isNull();
+            assertThat(getContractDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, "invalid-id")).isNull();
+        }
+
+        @Test
+        void shouldReturnNull_whenOwnedByAnotherParticipantContext() {
+            var definition = createContractDefinition("definitionId", "policyId", "contractId");
+            getContractDefinitionStore().save(definition);
+
+            assertThat(getContractDefinitionStore().findById(ANOTHER_PARTICIPANT_CONTEXT_ID, "definitionId")).isNull();
+        }
+
+        @Test
+        void shouldReturnOwnDefinition_whenSameIdExistsInTwoParticipantContexts() {
+            var definition = createContractDefinition("definitionId", "policyId", "contractId");
+            var otherDefinition = createContractDefinitionBuilder("definitionId", "otherPolicyId", "otherContractId", Map.of())
+                    .participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID).build();
+            getContractDefinitionStore().save(definition);
+            getContractDefinitionStore().save(otherDefinition);
+
+            assertThat(getContractDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, "definitionId")).isEqualTo(definition);
+            assertThat(getContractDefinitionStore().findById(ANOTHER_PARTICIPANT_CONTEXT_ID, "definitionId")).isEqualTo(otherDefinition);
         }
 
         @Test
@@ -646,7 +698,7 @@ public abstract class ContractDefinitionStoreTestBase {
             var definition = createContractDefinition(id, "policyId", "contractId", Map.of("key1", "value1"));
             getContractDefinitionStore().save(definition);
 
-            var result = getContractDefinitionStore().findById(id);
+            var result = getContractDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(result).isNotNull().isEqualTo(definition);
         }
@@ -661,7 +713,7 @@ public abstract class ContractDefinitionStoreTestBase {
             getContractDefinitionStore().save(definitionExpected);
             assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).hasSize(1);
 
-            var deleted = getContractDefinitionStore().deleteById("test-id1");
+            var deleted = getContractDefinitionStore().deleteById(PARTICIPANT_CONTEXT_ID, "test-id1");
 
             assertThat(deleted.succeeded()).isTrue();
             assertThat(deleted.getContent()).isNotNull().usingRecursiveComparison().isEqualTo(definitionExpected);
@@ -670,9 +722,34 @@ public abstract class ContractDefinitionStoreTestBase {
 
         @Test
         void shouldNotDelete_whenEntityDoesNotExist() {
-            var deleted = getContractDefinitionStore().deleteById("test-id1");
+            var deleted = getContractDefinitionStore().deleteById(PARTICIPANT_CONTEXT_ID, "test-id1");
 
             assertThat(deleted).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
+        }
+
+        @Test
+        void shouldNotDelete_whenOwnedByAnotherParticipantContext() {
+            getContractDefinitionStore().save(createContractDefinition("test-id1", "policy1", "contract1"));
+
+            var deleted = getContractDefinitionStore().deleteById(ANOTHER_PARTICIPANT_CONTEXT_ID, "test-id1");
+
+            assertThat(deleted).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
+            assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).hasSize(1);
+        }
+
+        @Test
+        void shouldDeleteOnlyOwnDefinition_whenSameIdExistsInTwoParticipantContexts() {
+            var definition = createContractDefinition("test-id1", "policy1", "contract1");
+            var otherDefinition = createContractDefinitionBuilder("test-id1", "policy1", "contract1", Map.of())
+                    .participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID).build();
+            getContractDefinitionStore().save(definition);
+            getContractDefinitionStore().save(otherDefinition);
+
+            var deleted = getContractDefinitionStore().deleteById(PARTICIPANT_CONTEXT_ID, "test-id1");
+
+            assertThat(deleted).isSucceeded();
+            assertThat(getContractDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, "test-id1")).isNull();
+            assertThat(getContractDefinitionStore().findById(ANOTHER_PARTICIPANT_CONTEXT_ID, "test-id1")).isEqualTo(otherDefinition);
         }
 
         @Test
@@ -686,7 +763,7 @@ public abstract class ContractDefinitionStoreTestBase {
             getContractDefinitionStore().save(definition2);
             assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).contains(definition1);
 
-            var deletedDefinition = getContractDefinitionStore().deleteById(definition1.getId());
+            var deletedDefinition = getContractDefinitionStore().deleteById(PARTICIPANT_CONTEXT_ID, definition1.getId());
             assertThat(deletedDefinition.succeeded()).isTrue();
             assertThat(deletedDefinition.getContent()).isEqualTo(definition1);
             assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).doesNotContain(definition1);
@@ -698,7 +775,7 @@ public abstract class ContractDefinitionStoreTestBase {
             getContractDefinitionStore().save(definitionExpected);
             assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).hasSize(1);
 
-            var deleted = getContractDefinitionStore().deleteById("test-id1");
+            var deleted = getContractDefinitionStore().deleteById(PARTICIPANT_CONTEXT_ID, "test-id1");
 
             assertThat(deleted.succeeded()).isTrue();
             assertThat(deleted.getContent()).isNotNull().usingRecursiveComparison().isEqualTo(definitionExpected);

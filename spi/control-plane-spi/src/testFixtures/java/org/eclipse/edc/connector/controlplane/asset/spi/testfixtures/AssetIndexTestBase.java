@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
+import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.DisplayName;
@@ -41,6 +42,7 @@ import java.util.stream.IntStream;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
@@ -53,6 +55,9 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
  * unit tests need not inherit this, as they will likely heavily rely on mocks that require specific preparation.
  */
 public abstract class AssetIndexTestBase {
+
+    protected static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
+    protected static final String ANOTHER_PARTICIPANT_CONTEXT_ID = "anotherParticipantContextId";
 
     /**
      * Returns the SuT i.e. the fully constructed instance of the {@link AssetIndex}
@@ -74,7 +79,7 @@ public abstract class AssetIndexTestBase {
         return Asset.Builder.newInstance()
                 .createdAt(Clock.systemUTC().millis())
                 .dataAddress(createDataAddress())
-                .participantContextId("participantContextId")
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .dataplaneMetadata(DataplaneMetadata.Builder.newInstance().property("dataplanePropertyKey", "value").label("label").build());
     }
 
@@ -96,7 +101,7 @@ public abstract class AssetIndexTestBase {
             var assetExpected = createAsset("id1");
             getAssetIndex().create(assetExpected);
 
-            var assetFound = getAssetIndex().findById("id1");
+            var assetFound = getAssetIndex().findById(PARTICIPANT_CONTEXT_ID, "id1");
 
             assertThat(assetFound).isNotNull();
             assertThat(assetFound).usingRecursiveComparison().isEqualTo(assetExpected);
@@ -120,13 +125,27 @@ public abstract class AssetIndexTestBase {
         }
 
         @Test
+        void shouldStore_whenSameIdExistsInAnotherParticipantContext() {
+            var asset = createAsset("id1");
+            var otherAsset = createAssetBuilder("id1").participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID).build();
+            getAssetIndex().create(asset);
+
+            var result = getAssetIndex().create(otherAsset);
+
+            assertThat(result).isSucceeded();
+            assertThat(getAssetIndex().findById(PARTICIPANT_CONTEXT_ID, "id1")).usingRecursiveComparison().isEqualTo(asset);
+            assertThat(getAssetIndex().findById(ANOTHER_PARTICIPANT_CONTEXT_ID, "id1")).usingRecursiveComparison().isEqualTo(otherAsset);
+            assertThat(getAssetIndex().queryAssets(QuerySpec.none())).hasSize(2);
+        }
+
+        @Test
         void shouldCreate_withPrivateProperty() {
             var asset = createAssetBuilder("test-asset").privateProperty("prop1", "val1")
                     .property(Asset.PROPERTY_IS_CATALOG, true)
                     .build();
 
             assertThat(getAssetIndex().create(asset).succeeded()).isTrue();
-            var assetFound = getAssetIndex().findById(asset.getId());
+            var assetFound = getAssetIndex().findById(PARTICIPANT_CONTEXT_ID, asset.getId());
 
             assertThat(assetFound).isNotNull();
             assertThat(assetFound.isCatalog()).isTrue();
@@ -142,26 +161,37 @@ public abstract class AssetIndexTestBase {
             var asset = createAsset("id1");
             getAssetIndex().create(asset);
 
-            var found = getAssetIndex().findById("participantContextId", "id1");
+            var found = getAssetIndex().findById(PARTICIPANT_CONTEXT_ID, "id1");
 
             assertThat(found).isNotNull().usingRecursiveComparison().isEqualTo(asset);
         }
 
         @Test
         void shouldReturnNull_whenAssetBelongsToAnotherParticipantContext() {
-            var asset = createAssetBuilder("id1").participantContextId("anotherParticipantContextId").build();
+            var asset = createAssetBuilder("id1").participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID).build();
             getAssetIndex().create(asset);
 
-            var found = getAssetIndex().findById("participantContextId", "id1");
+            var found = getAssetIndex().findById(PARTICIPANT_CONTEXT_ID, "id1");
 
             assertThat(found).isNull();
         }
 
         @Test
         void shouldReturnNull_whenAssetDoesNotExist() {
-            var found = getAssetIndex().findById("participantContextId", "id1");
+            var found = getAssetIndex().findById(PARTICIPANT_CONTEXT_ID, "id1");
 
             assertThat(found).isNull();
+        }
+
+        @Test
+        void shouldReturnOwnAsset_whenSameIdExistsInTwoParticipantContexts() {
+            var asset = createAssetBuilder("id1").property("owner", "first").build();
+            var otherAsset = createAssetBuilder("id1").property("owner", "second").participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID).build();
+            getAssetIndex().create(asset);
+            getAssetIndex().create(otherAsset);
+
+            assertThat(getAssetIndex().findById(PARTICIPANT_CONTEXT_ID, "id1")).usingRecursiveComparison().isEqualTo(asset);
+            assertThat(getAssetIndex().findById(ANOTHER_PARTICIPANT_CONTEXT_ID, "id1")).usingRecursiveComparison().isEqualTo(otherAsset);
         }
     }
 
@@ -171,7 +201,7 @@ public abstract class AssetIndexTestBase {
         @Test
         @DisplayName("Delete an asset that doesn't exist")
         void doesNotExist() {
-            var assetDeleted = getAssetIndex().deleteById("id1");
+            var assetDeleted = getAssetIndex().deleteById(PARTICIPANT_CONTEXT_ID, "id1");
 
             Assertions.assertThat(assetDeleted).isNotNull().extracting(StoreResult::reason).isEqualTo(NOT_FOUND);
         }
@@ -182,12 +212,37 @@ public abstract class AssetIndexTestBase {
             var asset = createAsset("id1");
             getAssetIndex().create(asset);
 
-            var assetDeleted = getAssetIndex().deleteById("id1");
+            var assetDeleted = getAssetIndex().deleteById(PARTICIPANT_CONTEXT_ID, "id1");
 
-            assertThat(assetDeleted).isNotNull().extracting(StoreResult::succeeded).isEqualTo(true);
+            assertThat(assetDeleted).isSucceeded();
             assertThat(assetDeleted.getContent()).usingRecursiveComparison().isEqualTo(asset);
 
             assertThat(getAssetIndex().queryAssets(QuerySpec.none())).isEmpty();
+        }
+
+        @Test
+        void shouldNotDelete_whenAssetBelongsToAnotherParticipantContext() {
+            var asset = createAsset("id1");
+            getAssetIndex().create(asset);
+
+            var assetDeleted = getAssetIndex().deleteById(ANOTHER_PARTICIPANT_CONTEXT_ID, "id1");
+
+            assertThat(assetDeleted).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
+            assertThat(getAssetIndex().queryAssets(QuerySpec.none())).hasSize(1);
+        }
+
+        @Test
+        void shouldDeleteOnlyOwnAsset_whenSameIdExistsInTwoParticipantContexts() {
+            var asset = createAsset("id1");
+            var otherAsset = createAssetBuilder("id1").participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID).build();
+            getAssetIndex().create(asset);
+            getAssetIndex().create(otherAsset);
+
+            var assetDeleted = getAssetIndex().deleteById(PARTICIPANT_CONTEXT_ID, "id1");
+
+            assertThat(assetDeleted).isSucceeded();
+            assertThat(getAssetIndex().findById(PARTICIPANT_CONTEXT_ID, "id1")).isNull();
+            assertThat(getAssetIndex().findById(ANOTHER_PARTICIPANT_CONTEXT_ID, "id1")).isNotNull();
         }
     }
 
@@ -569,7 +624,7 @@ public abstract class AssetIndexTestBase {
             var asset = createAsset(id);
             getAssetIndex().create(asset);
 
-            var assetFound = getAssetIndex().findById(id);
+            var assetFound = getAssetIndex().findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(assetFound).isNotNull();
             assertThat(assetFound).usingRecursiveComparison().isEqualTo(asset);
@@ -577,7 +632,7 @@ public abstract class AssetIndexTestBase {
 
         @Test
         void shouldReturnNull_whenAssetDoesNotExist() {
-            var result = getAssetIndex().findById("unexistent");
+            var result = getAssetIndex().findById(PARTICIPANT_CONTEXT_ID, "unexistent");
 
             assertThat(result).isNull();
         }
@@ -588,7 +643,7 @@ public abstract class AssetIndexTestBase {
         @Test
         @DisplayName("Find a data address that doesn't exist")
         void doesNotExist() {
-            assertThat(getAssetIndex().resolveForAsset("id1")).isNull();
+            assertThat(getAssetIndex().resolveForAsset(PARTICIPANT_CONTEXT_ID, "id1")).isNull();
         }
 
         @Test
@@ -598,10 +653,17 @@ public abstract class AssetIndexTestBase {
             var dataAddress = createDataAddress();
             getAssetIndex().create(asset);
 
-            var dataAddressFound = getAssetIndex().resolveForAsset("id1");
+            var dataAddressFound = getAssetIndex().resolveForAsset(PARTICIPANT_CONTEXT_ID, "id1");
 
             assertThat(dataAddressFound).isNotNull();
             assertThat(dataAddressFound).usingRecursiveComparison().isEqualTo(dataAddress);
+        }
+
+        @Test
+        void shouldReturnNull_whenAssetBelongsToAnotherParticipantContext() {
+            getAssetIndex().create(createAsset("id1"));
+
+            assertThat(getAssetIndex().resolveForAsset(ANOTHER_PARTICIPANT_CONTEXT_ID, "id1")).isNull();
         }
     }
 
@@ -616,6 +678,18 @@ public abstract class AssetIndexTestBase {
 
             var updated = assetIndex.updateAsset(assetExpected);
             Assertions.assertThat(updated).isNotNull().extracting(StoreResult::succeeded).isEqualTo(false);
+        }
+
+        @Test
+        void shouldNotUpdate_whenAssetWithSameIdExistsOnlyInAnotherParticipantContext() {
+            var assetIndex = getAssetIndex();
+            assetIndex.create(createAsset("id1"));
+            var otherAsset = createAssetBuilder("id1").participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID).property("newKey", "newValue").build();
+
+            var updated = assetIndex.updateAsset(otherAsset);
+
+            assertThat(updated).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
+            assertThat(assetIndex.findById(PARTICIPANT_CONTEXT_ID, "id1").getProperties()).doesNotContainKey("newKey");
         }
 
         @Test
@@ -635,7 +709,7 @@ public abstract class AssetIndexTestBase {
 
             Assertions.assertThat(updated).isNotNull();
 
-            var assetFound = getAssetIndex().findById("id1");
+            var assetFound = getAssetIndex().findById(PARTICIPANT_CONTEXT_ID, "id1");
 
             assertThat(assetFound).isNotNull();
             assertThat(assetFound)
@@ -663,7 +737,7 @@ public abstract class AssetIndexTestBase {
 
             Assertions.assertThat(updated).isNotNull();
 
-            var assetFound = getAssetIndex().findById("id1");
+            var assetFound = getAssetIndex().findById(PARTICIPANT_CONTEXT_ID, "id1");
 
             assertThat(assetFound).isNotNull();
             assertThat(assetFound)
@@ -690,7 +764,7 @@ public abstract class AssetIndexTestBase {
 
             Assertions.assertThat(updated).isNotNull();
 
-            var assetFound = getAssetIndex().findById("id1");
+            var assetFound = getAssetIndex().findById(PARTICIPANT_CONTEXT_ID, "id1");
 
             assertThat(assetFound).isNotNull();
             assertThat(assetFound)
@@ -715,8 +789,8 @@ public abstract class AssetIndexTestBase {
 
             Assertions.assertThat(updated).isNotNull();
 
-            var assetFound = assetIndex.findById("id1");
-            var dataAddressFound = assetIndex.resolveForAsset("id1");
+            var assetFound = assetIndex.findById(PARTICIPANT_CONTEXT_ID, "id1");
+            var dataAddressFound = assetIndex.resolveForAsset(PARTICIPANT_CONTEXT_ID, "id1");
 
             assertThat(assetFound).isNotNull();
             assertThat(dataAddressFound).isNotNull();

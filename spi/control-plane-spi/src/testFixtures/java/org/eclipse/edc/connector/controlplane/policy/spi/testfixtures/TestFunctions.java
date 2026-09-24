@@ -29,6 +29,9 @@ import java.util.stream.IntStream;
 
 
 public class TestFunctions {
+
+    public static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
+
     public static PolicyDefinition createPolicy(String id) {
         return createPolicy(id, null);
     }
@@ -40,7 +43,7 @@ public class TestFunctions {
                 .createdAt(Clock.systemUTC().millis())
                 .id(id)
                 .policy(policy)
-                .participantContextId("participantContext")
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .build();
     }
 
@@ -51,7 +54,7 @@ public class TestFunctions {
                 .createdAt(Clock.systemUTC().millis())
                 .id(id)
                 .policy(policy)
-                .participantContextId("participantContext")
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .build();
     }
 
@@ -63,7 +66,7 @@ public class TestFunctions {
                 .id(id)
                 .policy(policy)
                 .privateProperties(privateProperties)
-                .participantContextId("participantContext")
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .build();
     }
 

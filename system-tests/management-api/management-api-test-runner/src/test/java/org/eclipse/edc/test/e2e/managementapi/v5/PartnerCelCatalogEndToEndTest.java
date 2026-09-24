@@ -107,9 +107,9 @@ public class PartnerCelCatalogEndToEndTest {
             partnerStore.query(QuerySpec.max()).forEach(p -> partnerStore.deleteById(p.getParticipantContextId(), p.getId()));
             groupStore.query(QuerySpec.max()).forEach(g -> groupStore.deleteById(g.getParticipantContextId(), g.getId()));
             celExpressionStore.query(QuerySpec.max()).forEach(e -> celExpressionStore.delete(e.getId()));
-            contractDefinitionStore.findAll(QuerySpec.max()).toList().forEach(cd -> contractDefinitionStore.deleteById(cd.getId()));
-            policyDefinitionStore.findAll(QuerySpec.max()).toList().forEach(pd -> policyDefinitionStore.delete(pd.getId()));
-            assetIndex.queryAssets(QuerySpec.max()).toList().forEach(a -> assetIndex.deleteById(a.getId()));
+            contractDefinitionStore.findAll(QuerySpec.max()).toList().forEach(cd -> contractDefinitionStore.deleteById(cd.getParticipantContextId(), cd.getId()));
+            policyDefinitionStore.findAll(QuerySpec.max()).toList().forEach(pd -> policyDefinitionStore.delete(pd.getParticipantContextId(), pd.getId()));
+            assetIndex.queryAssets(QuerySpec.max()).toList().forEach(a -> assetIndex.deleteById(a.getParticipantContextId(), a.getId()));
             participantContextService.search(QuerySpec.max()).orElseThrow(f -> new AssertionError(f.getFailureDetail()))
                     .forEach(pc -> participantContextService.deleteParticipantContext(pc.getId()).orElseThrow(f -> new AssertionError(f.getFailureDetail())));
         }

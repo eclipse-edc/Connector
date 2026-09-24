@@ -75,7 +75,7 @@ class NoOpDataFlowController implements DataFlowController {
     }
 
     @Override
-    public Set<String> transferTypesFor(String assetId) {
+    public Set<String> transferTypesFor(String participantContextId, String assetId) {
         return Set.of("HttpData-PULL", "NonFinite-PULL");
     }
 }

@@ -117,7 +117,7 @@ public class AssetApiV5EndToEndTest {
                     .statusCode(204)
                     .body(notNullValue());
 
-            var dbAsset = assetIndex.findById(asset.getId());
+            var dbAsset = assetIndex.findById(PARTICIPANT_CONTEXT_ID, asset.getId());
             assertThat(dbAsset).isNotNull();
             assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property",
                     "some-new-value");
@@ -127,6 +127,57 @@ public class AssetApiV5EndToEndTest {
                     .containsEntry(EDC_NAMESPACE + "nested", List.of(Map.of(VALUE, "value")));
 
             assertThat(asset.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID);
+        }
+
+        @Test
+        void createAsset_shouldAllowSameIdInAnotherParticipantContext(ManagementEndToEndV5TestContext context, OauthServer authServer,
+                                                                      AssetIndex assetIndex, ParticipantContextService srv) {
+            var otherParticipantId = UUID.randomUUID().toString();
+            createParticipant(srv, otherParticipantId);
+            var otherToken = authServer.createToken(otherParticipantId);
+            var asset = createAsset().build();
+            var assetJson = createAssetJson(asset);
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .body(ID, is(asset.getId()));
+
+            // the same id is available to the other participant: no conflict, no existence oracle
+            context.baseRequest(otherToken)
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .post("/v5/participants/" + otherParticipantId + "/assets")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .body(ID, is(asset.getId()));
+
+            context.baseRequest(otherToken)
+                    .get("/v5/participants/" + otherParticipantId + "/assets/" + asset.getId())
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .body(ID, is(asset.getId()));
+
+            assertThat(assetIndex.findById(PARTICIPANT_CONTEXT_ID, asset.getId())).isNotNull()
+                    .extracting(Asset::getParticipantContextId).isEqualTo(PARTICIPANT_CONTEXT_ID);
+            assertThat(assetIndex.findById(otherParticipantId, asset.getId())).isNotNull()
+                    .extracting(Asset::getParticipantContextId).isEqualTo(otherParticipantId);
+
+            // deleting the asset of one participant leaves the other one untouched
+            context.baseRequest(otherToken)
+                    .delete("/v5/participants/" + otherParticipantId + "/assets/" + asset.getId())
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(204);
+
+            assertThat(assetIndex.findById(otherParticipantId, asset.getId())).isNull();
+            assertThat(assetIndex.findById(PARTICIPANT_CONTEXT_ID, asset.getId())).isNotNull();
         }
 
         @Test
@@ -145,7 +196,7 @@ public class AssetApiV5EndToEndTest {
                     .statusCode(204)
                     .body(notNullValue());
 
-            var dbAsset = assetIndex.findById(asset.getId());
+            var dbAsset = assetIndex.findById(PARTICIPANT_CONTEXT_ID, asset.getId());
             assertThat(dbAsset).isNotNull();
             assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property",
                     "some-new-value");
@@ -448,7 +499,7 @@ public class AssetApiV5EndToEndTest {
                     .statusCode(200)
                     .body(ID, is(id));
 
-            var asset = assetIndex.findById(id);
+            var asset = assetIndex.findById(PARTICIPANT_CONTEXT_ID, id);
             assertThat(asset).isNotNull();
             assertThat(asset.isCatalog()).isFalse();
             assertThat(asset.getProperty(DCT_CONFORMS_TO_ATTRIBUTE)).isEqualTo(Map.of(ID, "http://example.com/spec"));
@@ -490,7 +541,7 @@ public class AssetApiV5EndToEndTest {
                     .statusCode(200)
                     .body(ID, is(id));
 
-            var asset = assetIndex.findById(id);
+            var asset = assetIndex.findById(PARTICIPANT_CONTEXT_ID, id);
             assertThat(asset).isNotNull();
             assertThat(asset.getDataplaneMetadata()).isNotNull();
             assertThat(asset.getDataplaneMetadata().getProfiles()).containsExactly("profile1", "profile2");
@@ -559,14 +610,14 @@ public class AssetApiV5EndToEndTest {
                     .statusCode(200)
                     .body(ID, is(id));
 
-            var asset = assetIndex.findById(id);
+            var asset = assetIndex.findById(PARTICIPANT_CONTEXT_ID, id);
             assertThat(asset).isNotNull();
             // make sure unprefixed keys are caught and prefixed with the EDC_NAMESPACE ns.
             assertThat(asset.getProperties().keySet())
                     .hasSize(6)
                     .allMatch(key -> key.startsWith(EDC_NAMESPACE));
 
-            var dataAddress = assetIndex.resolveForAsset(asset.getId());
+            var dataAddress = assetIndex.resolveForAsset(PARTICIPANT_CONTEXT_ID, asset.getId());
             assertThat(dataAddress).isNotNull();
             assertThat(dataAddress.getProperties().keySet())
                     .hasSize(2)
@@ -605,7 +656,7 @@ public class AssetApiV5EndToEndTest {
                     .body("properties.endpointURL", equalTo("http://catalog-url"))
                     .body("properties.format", equalTo("http://format"));
 
-            var asset = assetIndex.findById(id);
+            var asset = assetIndex.findById(PARTICIPANT_CONTEXT_ID, id);
             assertThat(asset).isNotNull();
             assertThat(asset.isCatalog()).isTrue();
             assertThat(asset.getPropertyAsString(DCAT_ENDPOINT_URL_ATTRIBUTE)).isNotNull();
@@ -642,7 +693,7 @@ public class AssetApiV5EndToEndTest {
                     .statusCode(200)
                     .body(ID, is(id));
 
-            var asset = index.findById(id);
+            var asset = index.findById(PARTICIPANT_CONTEXT_ID, id);
             assertThat(asset.isCatalog()).isTrue();
 
             context.baseRequest(participantTokenJwt)
@@ -854,7 +905,7 @@ public class AssetApiV5EndToEndTest {
                     .log().ifValidationFails()
                     .statusCode(403);
 
-            assertThat(assetIndex.findById(asset.getId())).isNotNull();
+            assertThat(assetIndex.findById(PARTICIPANT_CONTEXT_ID, asset.getId())).isNotNull();
         }
 
         @Test
@@ -868,7 +919,7 @@ public class AssetApiV5EndToEndTest {
                     .log().ifValidationFails()
                     .statusCode(204);
 
-            assertThat(assetIndex.findById(asset.getId())).isNull();
+            assertThat(assetIndex.findById(PARTICIPANT_CONTEXT_ID, asset.getId())).isNull();
         }
 
         @Test
@@ -885,7 +936,7 @@ public class AssetApiV5EndToEndTest {
                     .log().ifValidationFails()
                     .statusCode(409);
 
-            assertThat(assetIndex.findById(asset.getId())).isNotNull();
+            assertThat(assetIndex.findById(PARTICIPANT_CONTEXT_ID, asset.getId())).isNotNull();
         }
 
         @Test
@@ -903,7 +954,7 @@ public class AssetApiV5EndToEndTest {
                     .log().ifValidationFails()
                     .statusCode(204);
 
-            assertThat(assetIndex.findById(asset.getId())).isNull();
+            assertThat(assetIndex.findById(PARTICIPANT_CONTEXT_ID, asset.getId())).isNull();
         }
 
         @Test
@@ -923,7 +974,7 @@ public class AssetApiV5EndToEndTest {
                     .log().ifValidationFails()
                     .statusCode(204);
 
-            assertThat(assetIndex.findById(asset.getId())).isNull();
+            assertThat(assetIndex.findById(PARTICIPANT_CONTEXT_ID, asset.getId())).isNull();
 
             participantContextService.deleteParticipantContext(otherParticipantId);
         }

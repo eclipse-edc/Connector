@@ -62,8 +62,8 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Override
-    public Asset findById(String assetId) {
-        return transactionContext.execute(() -> index.findById(assetId));
+    public Asset findById(String participantContextId, String assetId) {
+        return transactionContext.execute(() -> index.findById(participantContextId, assetId));
     }
 
     @Override
@@ -92,10 +92,10 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Override
-    public ServiceResult<Asset> delete(String assetId) {
+    public ServiceResult<Asset> delete(String participantContextId, String assetId) {
         return transactionContext.execute(() -> {
 
-            var asset = index.findById(assetId);
+            var asset = index.findById(participantContextId, assetId);
             if (asset == null) {
                 return ServiceResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId));
             }
@@ -104,7 +104,7 @@ public class AssetServiceImpl implements AssetService {
                     .filter(List.of(
                             new Criterion(ASSET_ID_QUERY, "=", assetId),
                             new Criterion(NEGOTIATION_TYPE_QUERY, "=", PROVIDER.name()),
-                            filterByParticipantContextId(asset.getParticipantContextId())))
+                            filterByParticipantContextId(participantContextId)))
                     .build();
 
             try (var negotiationsOnAsset = contractNegotiationStore.queryNegotiations(query)) {
@@ -113,7 +113,7 @@ public class AssetServiceImpl implements AssetService {
                 }
             }
 
-            var deleted = index.deleteById(assetId);
+            var deleted = index.deleteById(participantContextId, assetId);
             deleted.onSuccess(a -> observable.invokeForEach(l -> l.deleted(a)));
             return ServiceResult.from(deleted);
         });

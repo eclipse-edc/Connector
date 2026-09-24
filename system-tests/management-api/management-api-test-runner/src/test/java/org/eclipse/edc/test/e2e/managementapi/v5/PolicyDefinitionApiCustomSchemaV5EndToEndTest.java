@@ -73,7 +73,7 @@ public class PolicyDefinitionApiCustomSchemaV5EndToEndTest {
             participantContextService.deleteParticipantContext(PARTICIPANT_CONTEXT_ID)
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
-            store.findAll(QuerySpec.max()).forEach(pd -> store.delete(pd.getId()));
+            store.findAll(QuerySpec.max()).forEach(pd -> store.delete(pd.getParticipantContextId(), pd.getId()));
         }
 
         @Test

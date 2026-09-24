@@ -55,6 +55,9 @@ public class PolicyDefinitionApiV4EndToEndTest {
     @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
 
+        // the v4 management api operates on the runtime's single participant context, that is derived from edc.participant.id
+        private static final String PARTICIPANT_CONTEXT_ID = "anonymous";
+
         @Test
         void shouldStorePolicyDefinition(ManagementEndToEndTestContext context) {
             var requestBody = createObjectBuilder()
@@ -107,7 +110,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .contentType(JSON)
                     .extract().jsonPath().getString(ID);
 
-            var result = store.findById(id);
+            var result = store.findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(result).isNotNull()
                     .extracting(PolicyDefinition::getPolicy).isNotNull()
@@ -209,7 +212,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .then()
                     .statusCode(204);
 
-            var policyDef = store.findById(id);
+            var policyDef = store.findById(PARTICIPANT_CONTEXT_ID, id);
             assertThat(policyDef)
                     .extracting(PolicyDefinition::getPrivateProperties)
                     .asInstanceOf(MAP)

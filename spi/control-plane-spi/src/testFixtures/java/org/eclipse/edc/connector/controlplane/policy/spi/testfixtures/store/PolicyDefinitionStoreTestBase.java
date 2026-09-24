@@ -51,6 +51,9 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 public abstract class PolicyDefinitionStoreTestBase {
 
+    protected static final String PARTICIPANT_CONTEXT_ID = TestFunctions.PARTICIPANT_CONTEXT_ID;
+    protected static final String ANOTHER_PARTICIPANT_CONTEXT_ID = "anotherParticipantContextId";
+
     protected abstract PolicyDefinitionStore getPolicyDefinitionStore();
 
     protected Constraint atomicConstraint(String left, Operator operator, String right) {
@@ -64,7 +67,7 @@ public abstract class PolicyDefinitionStoreTestBase {
     protected PolicyDefinition.Builder policyDefinitionBuilder() {
         return PolicyDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .participantContextId(UUID.randomUUID().toString());
+                .participantContextId(PARTICIPANT_CONTEXT_ID);
     }
 
     @Nested
@@ -77,7 +80,7 @@ public abstract class PolicyDefinitionStoreTestBase {
 
             getPolicyDefinitionStore().create(policy);
 
-            var policyFromDb = getPolicyDefinitionStore().findById(policy.getId());
+            var policyFromDb = getPolicyDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, policy.getId());
             assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
         }
 
@@ -86,14 +89,14 @@ public abstract class PolicyDefinitionStoreTestBase {
         void alreadyExists() {
             var id = getRandomId();
             var policy1 = PolicyDefinition.Builder.newInstance()
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .policy(Policy.Builder.newInstance()
                             .target("Target1")
                             .build())
                     .id(id)
                     .build();
             var policy2 = PolicyDefinition.Builder.newInstance()
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .policy(Policy.Builder.newInstance()
                             .target("Target2")
                             .build())
@@ -116,13 +119,31 @@ public abstract class PolicyDefinitionStoreTestBase {
         }
 
         @Test
+        void shouldCreate_whenSameIdExistsInAnotherParticipantContext() {
+            var id = getRandomId();
+            var policy = createPolicyDef(id, "target");
+            var otherPolicy = PolicyDefinition.Builder.newInstance().id(id)
+                    .participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID)
+                    .policy(Policy.Builder.newInstance().target("otherTarget").build()).build();
+            var store = getPolicyDefinitionStore();
+            store.create(policy);
+
+            var result = store.create(otherPolicy);
+
+            assertThat(result.succeeded()).isTrue();
+            assertThat(store.findById(PARTICIPANT_CONTEXT_ID, id)).usingRecursiveComparison().isEqualTo(policy);
+            assertThat(store.findById(ANOTHER_PARTICIPANT_CONTEXT_ID, id)).usingRecursiveComparison().isEqualTo(otherPolicy);
+            assertThat(store.findAll(QuerySpec.max())).hasSize(2);
+        }
+
+        @Test
         @DisplayName("Save a single policy that does not exist")
         void notExisting_with_privateProperties() {
             var policy = TestFunctions.createPolicy(getRandomId(), null, Map.of("key1", "value1", "key2", "value2"));
 
             getPolicyDefinitionStore().create(policy);
 
-            var policyFromDb = getPolicyDefinitionStore().findById(policy.getId());
+            var policyFromDb = getPolicyDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, policy.getId());
             assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
 
             assertThat(policyFromDb.getPrivateProperties()).hasSize(2);
@@ -137,7 +158,7 @@ public abstract class PolicyDefinitionStoreTestBase {
 
             getPolicyDefinitionStore().create(policy);
 
-            var policyFromDb = getPolicyDefinitionStore().findById(policy.getId());
+            var policyFromDb = getPolicyDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, policy.getId());
             assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
 
             assertThat(policyFromDb.getPolicy().getProfiles()).hasSize(1);
@@ -157,6 +178,21 @@ public abstract class PolicyDefinitionStoreTestBase {
             var updated = getPolicyDefinitionStore().update(policy);
             assertThat(updated).isNotNull().extracting(StoreResult::succeeded).isEqualTo(false);
             assertThat(updated.reason()).isEqualTo(NOT_FOUND);
+        }
+
+        @Test
+        void shouldNotUpdate_whenSameIdExistsOnlyInAnotherParticipantContext() {
+            var id = getRandomId();
+            var store = getPolicyDefinitionStore();
+            store.create(createPolicyDef(id, "target"));
+            var otherPolicy = PolicyDefinition.Builder.newInstance().id(id)
+                    .participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID)
+                    .policy(Policy.Builder.newInstance().target("updatedTarget").build()).build();
+
+            var updated = store.update(otherPolicy);
+
+            assertThat(updated.reason()).isEqualTo(NOT_FOUND);
+            assertThat(store.findById(PARTICIPANT_CONTEXT_ID, id).getPolicy().getTarget()).isEqualTo("target");
         }
 
         @Test
@@ -198,7 +234,7 @@ public abstract class PolicyDefinitionStoreTestBase {
             var updated = getPolicyDefinitionStore().update(policy);
             assertThat(updated).isNotNull();
 
-            var definitionFound = getPolicyDefinitionStore().findById(id);
+            var definitionFound = getPolicyDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(definitionFound).isNotNull();
             assertThat(definitionFound).usingRecursiveComparison().isEqualTo(policy);
@@ -214,14 +250,14 @@ public abstract class PolicyDefinitionStoreTestBase {
             var created = getPolicyDefinitionStore().create(policy);
             assertThat(created).isNotNull();
 
-            var definitionFound = getPolicyDefinitionStore().findById(id);
+            var definitionFound = getPolicyDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(definitionFound).isNotNull();
             assertThat(definitionFound).usingRecursiveComparison().isEqualTo(policy);
 
             policy.getPrivateProperties().remove("newKey");
             var updated = getPolicyDefinitionStore().update(policy);
-            definitionFound = getPolicyDefinitionStore().findById(id);
+            definitionFound = getPolicyDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, id);
             assertThat(updated).isNotNull();
             assertThat(definitionFound).isNotNull();
             assertThat(definitionFound).usingRecursiveComparison().isEqualTo(policy);
@@ -237,14 +273,14 @@ public abstract class PolicyDefinitionStoreTestBase {
             var created = getPolicyDefinitionStore().create(policy);
             assertThat(created).isNotNull();
 
-            var definitionFound = getPolicyDefinitionStore().findById(id);
+            var definitionFound = getPolicyDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(definitionFound).isNotNull();
             assertThat(definitionFound).usingRecursiveComparison().isEqualTo(policy);
 
             policy.getPrivateProperties().put("newKey", "newValue");
             var updated = getPolicyDefinitionStore().update(policy);
-            definitionFound = getPolicyDefinitionStore().findById(id);
+            definitionFound = getPolicyDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, id);
             assertThat(updated).isNotNull();
             assertThat(definitionFound).isNotNull();
             assertThat(definitionFound).usingRecursiveComparison().isEqualTo(policy);
@@ -320,7 +356,7 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .duty(updatedDuty)
                     .build();
 
-            var result = store.update(PolicyDefinition.Builder.newInstance().id(policyId).policy(updatedPolicy).build());
+            var result = store.update(PolicyDefinition.Builder.newInstance().id(policyId).participantContextId(PARTICIPANT_CONTEXT_ID).policy(updatedPolicy).build());
             assertThat(result.succeeded()).isTrue();
             var content = result.getContent().getPolicy();
             assertThat(content).isEqualTo(updatedPolicy);
@@ -339,7 +375,7 @@ public abstract class PolicyDefinitionStoreTestBase {
             var policy = TestFunctions.createPolicy(getRandomId());
             getPolicyDefinitionStore().create(policy);
 
-            var policyFromDb = getPolicyDefinitionStore().findById(policy.getId());
+            var policyFromDb = getPolicyDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, policy.getId());
 
             assertThat(policy).usingRecursiveComparison().isEqualTo(policyFromDb);
         }
@@ -347,7 +383,7 @@ public abstract class PolicyDefinitionStoreTestBase {
         @Test
         @DisplayName("Find policy by ID when not exists")
         void whenNonexistent() {
-            assertThat(getPolicyDefinitionStore().findById("nonexistent")).isNull();
+            assertThat(getPolicyDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, "nonexistent")).isNull();
         }
 
         @Test
@@ -365,7 +401,21 @@ public abstract class PolicyDefinitionStoreTestBase {
             var policy = TestFunctions.createPolicy(getRandomId());
             getPolicyDefinitionStore().create(policy);
 
-            assertThat(getPolicyDefinitionStore().findById("anotherParticipantContext", policy.getId())).isNull();
+            assertThat(getPolicyDefinitionStore().findById(ANOTHER_PARTICIPANT_CONTEXT_ID, policy.getId())).isNull();
+        }
+
+        @Test
+        void shouldReturnOwnPolicy_whenSameIdExistsInTwoParticipantContexts() {
+            var id = getRandomId();
+            var policy = createPolicyDef(id, "target");
+            var otherPolicy = PolicyDefinition.Builder.newInstance().id(id)
+                    .participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID)
+                    .policy(Policy.Builder.newInstance().target("otherTarget").build()).build();
+            getPolicyDefinitionStore().create(policy);
+            getPolicyDefinitionStore().create(otherPolicy);
+
+            assertThat(getPolicyDefinitionStore().findById(PARTICIPANT_CONTEXT_ID, id)).usingRecursiveComparison().isEqualTo(policy);
+            assertThat(getPolicyDefinitionStore().findById(ANOTHER_PARTICIPANT_CONTEXT_ID, id)).usingRecursiveComparison().isEqualTo(otherPolicy);
         }
     }
 
@@ -431,7 +481,7 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .assignee("test-assignee")
                     .build();
             var policyDef1 = PolicyDefinition.Builder.newInstance().id("test-policy")
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .policy(policy).build();
             getPolicyDefinitionStore().create(policyDef1);
 
@@ -462,7 +512,7 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .build();
 
             var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy")
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .policy(p).build();
             getPolicyDefinitionStore().create(policyDef);
 
@@ -490,7 +540,7 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .build();
 
             var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy")
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .policy(p).build();
             getPolicyDefinitionStore().create(policyDef);
 
@@ -509,7 +559,7 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .build();
 
             var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy")
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .policy(p).build();
             getPolicyDefinitionStore().create(policyDef);
 
@@ -537,7 +587,7 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .build();
 
             var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy")
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .policy(p).build();
             getPolicyDefinitionStore().create(policyDef);
 
@@ -556,7 +606,7 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .build();
 
             var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy")
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .policy(p).build();
             getPolicyDefinitionStore().create(policyDef);
             getPolicyDefinitionStore().create(TestFunctions.createPolicy("another-policy"));
@@ -585,7 +635,7 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .build();
 
             var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy")
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .policy(p).build();
             getPolicyDefinitionStore().create(policyDef);
 
@@ -603,7 +653,7 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .build();
 
             var policyDef1 = PolicyDefinition.Builder.newInstance().id("test-policy")
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .policy(p1).build();
             var p2 = TestFunctions.createPolicyBuilder("test-policy")
                     .assigner("another-test-assigner")
@@ -611,7 +661,7 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .build();
 
             var policyDef2 = PolicyDefinition.Builder.newInstance().id("test-policy2")
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .policy(p2).build();
             getPolicyDefinitionStore().create(policyDef1);
             getPolicyDefinitionStore().create(policyDef2);
@@ -631,7 +681,7 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .build();
 
             var policyDef1 = PolicyDefinition.Builder.newInstance().id("test-policy")
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .policy(policy).build();
             getPolicyDefinitionStore().create(policyDef1);
 
@@ -650,13 +700,13 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .build();
 
             var policyDef = PolicyDefinition.Builder.newInstance().id("test-policy").policy(p)
-                    .participantContextId("customParticipantContextId")
+                    .participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID)
                     .build();
 
             getPolicyDefinitionStore().create(policyDef);
 
             // query by prohibition assignee
-            var query = createQuery(filterByParticipantContextId("customParticipantContextId"));
+            var query = createQuery(filterByParticipantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID));
             var result = getPolicyDefinitionStore().findAll(query);
             assertThat(result).hasSize(1)
                     .usingRecursiveFieldByFieldElementComparator()
@@ -832,10 +882,10 @@ public abstract class PolicyDefinitionStoreTestBase {
             var store = getPolicyDefinitionStore();
             store.create(policy);
 
-            var result = store.delete(policy.getId());
+            var result = store.delete(PARTICIPANT_CONTEXT_ID, policy.getId());
             assertThat(result.succeeded()).isTrue();
             assertThat(result.getContent()).usingRecursiveComparison().isEqualTo(policy);
-            assertThat(store.findById(policy.getId())).isNull();
+            assertThat(store.findById(PARTICIPANT_CONTEXT_ID, policy.getId())).isNull();
         }
 
         @Test
@@ -845,16 +895,44 @@ public abstract class PolicyDefinitionStoreTestBase {
             var store = getPolicyDefinitionStore();
             store.create(policy);
 
-            var result = store.delete(policy.getId());
+            var result = store.delete(PARTICIPANT_CONTEXT_ID, policy.getId());
             assertThat(result.succeeded()).isTrue();
             assertThat(result.getContent()).usingRecursiveComparison().isEqualTo(policy);
-            assertThat(store.findById(policy.getId())).isNull();
+            assertThat(store.findById(PARTICIPANT_CONTEXT_ID, policy.getId())).isNull();
+        }
+
+        @Test
+        void shouldNotDelete_whenOwnedByAnotherParticipantContext() {
+            var policy = TestFunctions.createPolicy(getRandomId());
+            var store = getPolicyDefinitionStore();
+            store.create(policy);
+
+            var result = store.delete(ANOTHER_PARTICIPANT_CONTEXT_ID, policy.getId());
+
+            assertThat(result.reason()).isEqualTo(NOT_FOUND);
+            assertThat(store.findById(PARTICIPANT_CONTEXT_ID, policy.getId())).isNotNull();
+        }
+
+        @Test
+        void shouldDeleteOnlyOwnPolicy_whenSameIdExistsInTwoParticipantContexts() {
+            var id = getRandomId();
+            var store = getPolicyDefinitionStore();
+            store.create(createPolicyDef(id, "target"));
+            store.create(PolicyDefinition.Builder.newInstance().id(id)
+                    .participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID)
+                    .policy(Policy.Builder.newInstance().target("otherTarget").build()).build());
+
+            var result = store.delete(PARTICIPANT_CONTEXT_ID, id);
+
+            assertThat(result.succeeded()).isTrue();
+            assertThat(store.findById(PARTICIPANT_CONTEXT_ID, id)).isNull();
+            assertThat(store.findById(ANOTHER_PARTICIPANT_CONTEXT_ID, id)).isNotNull();
         }
 
         @Test
         @DisplayName("Delete a non existing policy")
         void whenNonexistent() {
-            assertThat(getPolicyDefinitionStore().delete("nonexistent"))
+            assertThat(getPolicyDefinitionStore().delete(PARTICIPANT_CONTEXT_ID, "nonexistent"))
                     .isNotNull()
                     .extracting(StoreResult::reason)
                     .isEqualTo(NOT_FOUND);
@@ -873,7 +951,7 @@ public abstract class PolicyDefinitionStoreTestBase {
 
     private PolicyDefinition createPolicyDef(String id, String target) {
         return PolicyDefinition.Builder.newInstance().id(id)
-                .participantContextId("participantContextId")
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .policy(Policy.Builder.newInstance().target(target).build()).build();
     }
 

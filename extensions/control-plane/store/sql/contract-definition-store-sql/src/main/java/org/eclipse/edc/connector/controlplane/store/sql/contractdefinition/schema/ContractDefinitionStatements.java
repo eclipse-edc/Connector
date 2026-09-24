@@ -59,14 +59,26 @@ public interface ContractDefinitionStatements extends SqlStatements {
         return "participant_context_id";
     }
 
+    /**
+     * DELETE statement. Parameters: participant context id and definition id.
+     */
     String getDeleteByIdTemplate();
 
+    /**
+     * SELECT statement for a single definition. Parameters: participant context id and definition id.
+     */
     String getFindByTemplate();
 
     String getInsertTemplate();
 
+    /**
+     * SELECT COUNT statement. Parameters: participant context id and definition id.
+     */
     String getCountTemplate();
 
+    /**
+     * UPDATE statement. Parameters: the updated columns, then participant context id and definition id.
+     */
     String getUpdateTemplate();
 
     SqlQueryStatement createQuery(QuerySpec querySpec);

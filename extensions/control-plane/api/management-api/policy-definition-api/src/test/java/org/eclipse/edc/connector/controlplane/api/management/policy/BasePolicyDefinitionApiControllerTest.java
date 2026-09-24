@@ -176,19 +176,19 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
     @Test
     void delete_shouldCallService() {
         var policyDefinition = createPolicyDefinition().build();
-        when(service.deleteById(any())).thenReturn(ServiceResult.success(policyDefinition));
+        when(service.deleteById(any(), any())).thenReturn(ServiceResult.success(policyDefinition));
 
         baseRequest()
                 .delete("/id")
                 .then()
                 .statusCode(204);
 
-        verify(service).deleteById("id");
+        verify(service).deleteById(participantContext.getId(), "id");
     }
 
     @Test
     void delete_shouldReturnNotFound_whenNotFound() {
-        when(service.deleteById(any())).thenReturn(ServiceResult.notFound("not found"));
+        when(service.deleteById(any(), any())).thenReturn(ServiceResult.notFound("not found"));
 
         baseRequest()
                 .delete("/id")
@@ -288,7 +288,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
     void get_shouldReturnPolicyDefinition() {
         var policyDefinition = createPolicyDefinition().build();
         var expandedBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
-        when(service.findById(any())).thenReturn(policyDefinition);
+        when(service.findById(any(), any())).thenReturn(policyDefinition);
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedBody));
 
         baseRequest()
@@ -298,13 +298,13 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
                 .contentType(JSON)
                 .body("id", is("id"))
                 .body("createdAt", is(1234));
-        verify(service).findById("id");
+        verify(service).findById(participantContext.getId(), "id");
         verify(transformerRegistry).transform(policyDefinition, JsonObject.class);
     }
 
     @Test
     void get_shouldReturnNotFound_whenNotFound() {
-        when(service.findById(any())).thenReturn(null);
+        when(service.findById(any(), any())).thenReturn(null);
 
         baseRequest()
                 .get("/id")
@@ -316,7 +316,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
 
     @Test
     void get_shouldReturnNotFound_whenTransformFails() {
-        when(service.findById(any())).thenReturn(createPolicyDefinition().build());
+        when(service.findById(any(), any())).thenReturn(createPolicyDefinition().build());
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
 
         baseRequest()
@@ -447,7 +447,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
 
     @Test
     void validate_shouldReturnNotFound_whenNotFound() {
-        when(service.findById(any())).thenReturn(null);
+        when(service.findById(any(), any())).thenReturn(null);
 
         baseRequest()
                 .contentType(JSON)
@@ -462,7 +462,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
 
         var policyDefinition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
 
-        when(service.findById(any())).thenReturn(policyDefinition);
+        when(service.findById(any(), any())).thenReturn(policyDefinition);
         when(service.validate(policyDefinition.getPolicy())).thenReturn(ServiceResult.success());
         when(transformerRegistry.transform(any(PolicyValidationResult.class), eq(JsonObject.class))).then(answer -> {
             PolicyValidationResult result = answer.getArgument(0);
@@ -489,7 +489,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
         var policyDefinition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
 
 
-        when(service.findById(any())).thenReturn(policyDefinition);
+        when(service.findById(any(), any())).thenReturn(policyDefinition);
         when(service.validate(policyDefinition.getPolicy())).thenReturn(ServiceResult.badRequest(List.of("error1", "error2")));
         when(transformerRegistry.transform(any(PolicyValidationResult.class), eq(JsonObject.class))).then(answer -> {
             PolicyValidationResult result = answer.getArgument(0);
@@ -520,7 +520,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
         var body = Json.createObjectBuilder().add(TYPE, EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM).add("policyScope", policyScope).build();
 
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(service.findById(any())).thenReturn(policyDefinition);
+        when(service.findById(any(), any())).thenReturn(policyDefinition);
         when(service.createEvaluationPlan(policyScope, policyDefinition.getPolicy())).thenReturn(ServiceResult.success(plan));
 
         when(transformerRegistry.transform(any(JsonObject.class), eq(PolicyEvaluationPlanRequest.class)))
@@ -544,7 +544,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
         var body = Json.createObjectBuilder().add(TYPE, EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM).add("policyScope", policyScope).build();
 
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(service.findById(any())).thenReturn(null);
+        when(service.findById(any(), any())).thenReturn(null);
         when(transformerRegistry.transform(any(JsonObject.class), eq(PolicyEvaluationPlanRequest.class)))
                 .thenReturn(Result.success(new PolicyEvaluationPlanRequest(policyScope)));
 
@@ -563,7 +563,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
         var body = Json.createObjectBuilder().add(TYPE, EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM).add("policyScope", policyScope).build();
 
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("failure", "failure path")));
-        when(service.findById(any())).thenReturn(null);
+        when(service.findById(any(), any())).thenReturn(null);
         when(transformerRegistry.transform(any(JsonObject.class), eq(PolicyEvaluationPlanRequest.class)))
                 .thenReturn(Result.success(new PolicyEvaluationPlanRequest(policyScope)));
 

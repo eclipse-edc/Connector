@@ -106,9 +106,12 @@ public interface DataFlowController {
     Set<String> transferTypesFor(Asset asset);
 
     /**
-     * Returns transfer types that the controller can handle for the specified Asset id.
+     * Returns transfer types that the controller can handle for the specified Asset id within the given participant
+     * context.
      *
-     * @return transfer type set.
+     * @param participantContextId the id of the participant context that owns the asset.
+     * @param assetId              the asset id.
+     * @return transfer type set, empty if the asset does not exist in the participant context.
      */
-    Set<String> transferTypesFor(String assetId);
+    Set<String> transferTypesFor(String participantContextId, String assetId);
 }

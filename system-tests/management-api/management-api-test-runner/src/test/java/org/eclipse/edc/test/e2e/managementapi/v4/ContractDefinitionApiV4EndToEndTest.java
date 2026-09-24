@@ -57,6 +57,9 @@ public class ContractDefinitionApiV4EndToEndTest {
     @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
 
+        // the v4 management api operates on the runtime's single participant context, that is derived from edc.participant.id
+        private static final String PARTICIPANT_CONTEXT_ID = "anonymous";
+
         @Test
         void queryContractDefinitions_noQuerySpec(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
@@ -172,7 +175,7 @@ public class ContractDefinitionApiV4EndToEndTest {
                     .statusCode(200)
                     .body("@id", equalTo(id));
 
-            var actual = store.findById(id);
+            var actual = store.findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(actual.getId()).matches(id);
             assertThat(actual.getParticipantContextId()).isNotNull();
@@ -190,7 +193,7 @@ public class ContractDefinitionApiV4EndToEndTest {
                     .then()
                     .statusCode(204);
 
-            var actual = store.findById(id);
+            var actual = store.findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(actual).isNull();
         }
@@ -212,7 +215,7 @@ public class ContractDefinitionApiV4EndToEndTest {
                     .then()
                     .statusCode(204);
 
-            var actual = store.findById(id);
+            var actual = store.findById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(actual.getAccessPolicyId()).isEqualTo("new-policy");
         }
@@ -256,7 +259,7 @@ public class ContractDefinitionApiV4EndToEndTest {
                     .id(id)
                     .accessPolicyId(UUID.randomUUID().toString())
                     .contractPolicyId(UUID.randomUUID().toString())
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .assetsSelectorCriterion(criterion("foo", "=", "bar"))
                     .assetsSelectorCriterion(criterion("bar", "=", "baz"));
         }

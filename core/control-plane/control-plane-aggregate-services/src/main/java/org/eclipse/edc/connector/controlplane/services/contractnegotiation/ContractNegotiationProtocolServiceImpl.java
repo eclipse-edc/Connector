@@ -242,7 +242,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     private ServiceResult<ValidatableConsumerOffer> fetchValidatableOffer(ParticipantContext participantContext, ContractRequestMessage message) {
         var offerId = message.getContractOffer().getId();
 
-        var result = consumerOfferResolver.resolveOffer(offerId);
+        var result = consumerOfferResolver.resolveOffer(participantContext.getId(), offerId);
 
         if (result.succeeded() && participantContext.getId().equals(result.getContent().getContractDefinition().getParticipantContextId())) {
             return result;

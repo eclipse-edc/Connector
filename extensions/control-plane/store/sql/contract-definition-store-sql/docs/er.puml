@@ -1,5 +1,6 @@
 @startuml
 entity edc_contract_definitions {
+  * participant_context_id: string <<PK>>
   * contract_definition_id: string <<PK>>
   --
   * access_policy: string <<json>>

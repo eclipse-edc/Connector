@@ -17,13 +17,14 @@
 -- table: edc_asset
 CREATE TABLE IF NOT EXISTS edc_asset
 (
-    asset_id                VARCHAR PRIMARY KEY,
+    asset_id                VARCHAR NOT NULL,
     created_at              BIGINT  NOT NULL,
     properties              JSON    DEFAULT '{}',
     private_properties      JSON    DEFAULT '{}',
     data_address            JSON    DEFAULT '{}',
     participant_context_id  VARCHAR NOT NULL,
-    dataplane_metadata      JSON
+    dataplane_metadata      JSON,
+    PRIMARY KEY (participant_context_id, asset_id)
 );
 
 COMMENT ON COLUMN edc_asset.properties IS 'Asset properties serialized as JSON';

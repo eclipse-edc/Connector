@@ -19,6 +19,8 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
+import static org.eclipse.edc.sql.statement.SqlExecuteStatement.equalTo;
+
 public class BaseSqlDialectStatements implements SqlPolicyStoreStatements {
 
     protected final SqlOperatorTranslator operatorTranslator;
@@ -65,13 +67,13 @@ public class BaseSqlDialectStatements implements SqlPolicyStoreStatements {
                 .column(getTargetColumn())
                 .column(getTypeColumn())
                 .jsonColumn(getPrivatePropertiesColumn())
-                .update(getPolicyTable(), getPolicyIdColumn());
+                .update(getPolicyTable(), equalTo(getParticipantContextIdColumn()), equalTo(getPolicyIdColumn()));
 
     }
 
     @Override
     public String getDeleteTemplate() {
-        return executeStatement().delete(getPolicyTable(), getPolicyIdColumn());
+        return executeStatement().delete(getPolicyTable(), equalTo(getParticipantContextIdColumn()), equalTo(getPolicyIdColumn()));
     }
 
     @Override

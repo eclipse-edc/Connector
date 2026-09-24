@@ -66,7 +66,7 @@ public class AssetEventDispatchTest {
     void shouldDispatchEventsOnAssetCreationAndDeletion(AssetService service, EventRouter eventRouter) {
         eventRouter.register(AssetEvent.class, eventSubscriber);
         var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        var asset = Asset.Builder.newInstance().id("assetId").dataAddress(dataAddress).build();
+        var asset = Asset.Builder.newInstance().id("assetId").participantContextId("participantContextId").dataAddress(dataAddress).build();
 
         service.create(asset);
         await().untilAsserted(() -> {
@@ -74,7 +74,7 @@ public class AssetEventDispatchTest {
         });
 
 
-        service.delete(asset.getId());
+        service.delete(asset.getParticipantContextId(), asset.getId());
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(AssetDeleted.class)));
         });

@@ -58,9 +58,9 @@ class ConsumerOfferResolverImplTest {
 
         when(policyStore.findById(contractDefinition.getParticipantContextId(), contractDefinition.getAccessPolicyId())).thenReturn(accessPolicyDef);
         when(policyStore.findById(contractDefinition.getParticipantContextId(), contractDefinition.getContractPolicyId())).thenReturn(contractPolicyDef);
-        when(definitionStore.findById(contractDefinition.getId())).thenReturn(contractDefinition);
+        when(definitionStore.findById(contractDefinition.getParticipantContextId(), contractDefinition.getId())).thenReturn(contractDefinition);
 
-        var validatableOfferResult = validatableConsumerOfferResolver.resolveOffer(offerId.toString());
+        var validatableOfferResult = validatableConsumerOfferResolver.resolveOffer("participantContextId", offerId.toString());
 
         assertThat(validatableOfferResult).isSucceeded().satisfies(consumerOffer -> {
             assertThat(consumerOffer.getOfferId()).usingRecursiveComparison().isEqualTo(offerId);
@@ -71,20 +71,20 @@ class ConsumerOfferResolverImplTest {
 
         verify(policyStore).findById(contractDefinition.getParticipantContextId(), contractDefinition.getAccessPolicyId());
         verify(policyStore).findById(contractDefinition.getParticipantContextId(), contractDefinition.getContractPolicyId());
-        verify(definitionStore).findById(any());
+        verify(definitionStore).findById(any(), any());
     }
 
     @Test
     void resolveOffer_shouldReturnNotFound_whenContractDefinitionNotFound() {
         var offerId = ContractOfferId.create("1", "1");
 
-        when(definitionStore.findById(any())).thenReturn(null);
+        when(definitionStore.findById(any(), any())).thenReturn(null);
 
-        var validatableOfferResult = validatableConsumerOfferResolver.resolveOffer(offerId.toString());
+        var validatableOfferResult = validatableConsumerOfferResolver.resolveOffer("participantContextId", offerId.toString());
 
         assertThat(validatableOfferResult).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
 
-        verify(definitionStore).findById(any());
+        verify(definitionStore).findById(any(), any());
     }
 
     @Test
@@ -94,15 +94,15 @@ class ConsumerOfferResolverImplTest {
         var accessPolicy = Policy.Builder.newInstance().build();
         var accessPolicyDef = PolicyDefinition.Builder.newInstance().policy(accessPolicy).build();
 
-        when(definitionStore.findById(contractDefinition.getId())).thenReturn(contractDefinition);
+        when(definitionStore.findById(contractDefinition.getParticipantContextId(), contractDefinition.getId())).thenReturn(contractDefinition);
         when(policyStore.findById(contractDefinition.getParticipantContextId(), contractDefinition.getAccessPolicyId())).thenReturn(accessPolicyDef);
         when(policyStore.findById(contractDefinition.getParticipantContextId(), contractDefinition.getContractPolicyId())).thenReturn(null);
 
-        var validatableOfferResult = validatableConsumerOfferResolver.resolveOffer(offerId.toString());
+        var validatableOfferResult = validatableConsumerOfferResolver.resolveOffer("participantContextId", offerId.toString());
 
         assertThat(validatableOfferResult).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
 
-        verify(definitionStore).findById(any());
+        verify(definitionStore).findById(any(), any());
     }
 
     @Test
@@ -110,20 +110,20 @@ class ConsumerOfferResolverImplTest {
         var contractDefinition = createContractDefinition();
         var offerId = ContractOfferId.create(contractDefinition.getId(), "1");
 
-        when(definitionStore.findById(contractDefinition.getId())).thenReturn(contractDefinition);
+        when(definitionStore.findById(contractDefinition.getParticipantContextId(), contractDefinition.getId())).thenReturn(contractDefinition);
         when(policyStore.findById(contractDefinition.getParticipantContextId(), contractDefinition.getAccessPolicyId())).thenReturn(null);
 
-        var validatableOfferResult = validatableConsumerOfferResolver.resolveOffer(offerId.toString());
+        var validatableOfferResult = validatableConsumerOfferResolver.resolveOffer("participantContextId", offerId.toString());
 
         assertThat(validatableOfferResult).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
 
-        verify(definitionStore).findById(any());
+        verify(definitionStore).findById(any(), any());
     }
 
     @Test
     void resolveOffer_shouldReturnBadRequest_whenOfferIdParseFails() {
 
-        var validatableOfferResult = validatableConsumerOfferResolver.resolveOffer("malformed");
+        var validatableOfferResult = validatableConsumerOfferResolver.resolveOffer("participantContextId", "malformed");
 
         assertThat(validatableOfferResult).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
 

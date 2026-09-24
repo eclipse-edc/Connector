@@ -80,7 +80,7 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
 
         getPolicyDefinitionStore().create(policyDefinition);
 
-        var policyFromDb = getPolicyDefinitionStore().findById(policyDefinition.getId());
+        var policyFromDb = getPolicyDefinitionStore().findById(policyDefinition.getParticipantContextId(), policyDefinition.getId());
 
         assertThat(policyFromDb.getPolicy().getPermissions().get(0).getAction().getConstraint())
                 .isInstanceOfSatisfying(AtomicConstraint.class, constraint -> {

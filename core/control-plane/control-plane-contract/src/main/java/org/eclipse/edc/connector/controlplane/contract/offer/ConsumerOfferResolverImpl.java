@@ -36,7 +36,7 @@ public class ConsumerOfferResolverImpl implements ConsumerOfferResolver {
     }
 
     @Override
-    public @NotNull ServiceResult<ValidatableConsumerOffer> resolveOffer(String offerId) {
+    public @NotNull ServiceResult<ValidatableConsumerOffer> resolveOffer(String participantContextId, String offerId) {
         var parsedResult = ContractOfferId.parseId(offerId);
 
         if (parsedResult.failed()) {
@@ -45,12 +45,11 @@ public class ConsumerOfferResolverImpl implements ConsumerOfferResolver {
 
         var parsedOfferId = parsedResult.getContent();
         var definitionId = parsedOfferId.definitionPart();
-        var contractDefinition = contractDefinitionStore.findById(definitionId);
+        var contractDefinition = contractDefinitionStore.findById(participantContextId, definitionId);
         if (contractDefinition == null) {
             return ServiceResult.notFound(format("Contract definition with id %s not found", definitionId));
         }
 
-        var participantContextId = contractDefinition.getParticipantContextId();
         var accessPolicy = policyDefinitionStore.findById(participantContextId, contractDefinition.getAccessPolicyId());
         if (accessPolicy == null) {
             return ServiceResult.notFound(format("Policy with id %s not found", contractDefinition.getAccessPolicyId()));

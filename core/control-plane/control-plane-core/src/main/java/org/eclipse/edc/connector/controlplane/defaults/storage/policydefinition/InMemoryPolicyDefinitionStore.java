@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.defaults.storage.policydefinition;
 
+import org.eclipse.edc.connector.controlplane.defaults.storage.ParticipantResourceKey;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
@@ -31,11 +32,12 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 
 /**
- * An in-memory, threadsafe policy store. This implementation is intended for testing purposes only.
+ * An in-memory, threadsafe policy store, keyed by participant context id and policy id. This implementation is intended
+ * for testing purposes only.
  */
 public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
 
-    private final Map<String, PolicyDefinition> policiesById = new ConcurrentHashMap<>();
+    private final Map<ParticipantResourceKey, PolicyDefinition> policiesById = new ConcurrentHashMap<>();
     private final QueryResolver<PolicyDefinition> queryResolver;
 
     public InMemoryPolicyDefinitionStore(CriterionOperatorRegistry criterionToPredicateConverter) {
@@ -43,9 +45,9 @@ public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
     }
 
     @Override
-    public PolicyDefinition findById(String policyId) {
+    public PolicyDefinition findById(String participantContextId, String policyId) {
         try {
-            return policiesById.get(policyId);
+            return policiesById.get(ParticipantResourceKey.of(participantContextId, policyId));
         } catch (Exception e) {
             throw new EdcPersistenceException(format("Finding policy by id %s failed.", policyId), e);
         }
@@ -58,7 +60,7 @@ public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
 
     @Override
     public StoreResult<PolicyDefinition> create(PolicyDefinition policy) {
-        var prev = policiesById.putIfAbsent(policy.getId(), policy);
+        var prev = policiesById.putIfAbsent(ParticipantResourceKey.of(policy.getParticipantContextId(), policy.getId()), policy);
         return Optional.ofNullable(prev)
                 .map(a -> StoreResult.<PolicyDefinition>alreadyExists(format(POLICY_ALREADY_EXISTS, policy.getId())))
                 .orElse(StoreResult.success(policy));
@@ -67,15 +69,15 @@ public class InMemoryPolicyDefinitionStore implements PolicyDefinitionStore {
 
     @Override
     public StoreResult<PolicyDefinition> update(PolicyDefinition policy) {
-        var prev = policiesById.replace(policy.getId(), policy);
+        var prev = policiesById.replace(ParticipantResourceKey.of(policy.getParticipantContextId(), policy.getId()), policy);
         return Optional.ofNullable(prev)
                 .map(a -> StoreResult.success(policy))
                 .orElse(StoreResult.notFound(format(POLICY_NOT_FOUND, policy.getId())));
     }
 
     @Override
-    public StoreResult<PolicyDefinition> delete(String policyId) {
-        var prev = policiesById.remove(policyId);
+    public StoreResult<PolicyDefinition> delete(String participantContextId, String policyId) {
+        var prev = policiesById.remove(ParticipantResourceKey.of(participantContextId, policyId));
         return Optional.ofNullable(prev)
                 .map(StoreResult::success)
                 .orElse(StoreResult.notFound(format(POLICY_NOT_FOUND, policyId)));

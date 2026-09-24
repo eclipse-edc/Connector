@@ -267,8 +267,8 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
     }
 
     @Override
-    public Set<String> transferTypesFor(String assetId) {
-        return Optional.ofNullable(assetIndex.findById(assetId))
+    public Set<String> transferTypesFor(String participantContextId, String assetId) {
+        return Optional.ofNullable(assetIndex.findById(participantContextId, assetId))
                 .map(this::transferTypesFor)
                 .orElseGet(Collections::emptySet);
     }

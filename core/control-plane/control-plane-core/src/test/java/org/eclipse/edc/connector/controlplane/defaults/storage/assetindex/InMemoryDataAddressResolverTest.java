@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 class InMemoryDataAddressResolverTest {
+    private static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
     private InMemoryAssetIndex resolver;
 
     @BeforeEach
@@ -41,33 +42,43 @@ class InMemoryDataAddressResolverTest {
     void resolveForAsset() {
         var id = UUID.randomUUID().toString();
         var address = createDataAddress();
-        var testAsset = Asset.Builder.newInstance().id(id).property(EDC_NAMESPACE + "name", "foobar")
+        var testAsset = Asset.Builder.newInstance().id(id).participantContextId(PARTICIPANT_CONTEXT_ID).property(EDC_NAMESPACE + "name", "foobar")
                 .dataAddress(address).build();
         resolver.create(testAsset);
 
-        assertThat(resolver.resolveForAsset(testAsset.getId())).isEqualTo(address);
+        assertThat(resolver.resolveForAsset(PARTICIPANT_CONTEXT_ID, testAsset.getId())).isEqualTo(address);
     }
 
     @Test
     void resolveForAsset_assetNull_raisesException() {
         var id = UUID.randomUUID().toString();
         var address = createDataAddress();
-        var testAsset = Asset.Builder.newInstance().id(id).property(EDC_NAMESPACE + "name", "foobar")
+        var testAsset = Asset.Builder.newInstance().id(id).participantContextId(PARTICIPANT_CONTEXT_ID).property(EDC_NAMESPACE + "name", "foobar")
                 .dataAddress(address).build();
         resolver.create(testAsset);
 
-        assertThatThrownBy(() -> resolver.resolveForAsset(null)).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> resolver.resolveForAsset(PARTICIPANT_CONTEXT_ID, null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void resolveForAsset_whenAssetDeleted_raisesException() {
         var address = createDataAddress();
-        var testAsset = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).property(EDC_NAMESPACE + "name", "foobar")
+        var testAsset = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).participantContextId(PARTICIPANT_CONTEXT_ID).property(EDC_NAMESPACE + "name", "foobar")
                 .dataAddress(address).build();
         resolver.create(testAsset);
-        resolver.deleteById(testAsset.getId());
+        resolver.deleteById(PARTICIPANT_CONTEXT_ID, testAsset.getId());
 
-        assertThat(resolver.resolveForAsset(testAsset.getId())).isNull();
+        assertThat(resolver.resolveForAsset(PARTICIPANT_CONTEXT_ID, testAsset.getId())).isNull();
+    }
+
+    @Test
+    void resolveForAsset_whenAssetBelongsToAnotherParticipantContext_returnsNull() {
+        var address = createDataAddress();
+        var testAsset = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).participantContextId(PARTICIPANT_CONTEXT_ID)
+                .dataAddress(address).build();
+        resolver.create(testAsset);
+
+        assertThat(resolver.resolveForAsset("anotherParticipantContextId", testAsset.getId())).isNull();
     }
 
     private DataAddress createDataAddress() {

@@ -94,8 +94,11 @@ public abstract class BaseAssetApiController {
     }
 
     public JsonObject getAsset(String id) {
+        var participantContext = participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(Asset.class, id));
+
         var asset = of(id)
-                .map(it -> service.findById(id))
+                .map(it -> service.findById(participantContext.getId(), id))
                 .orElseThrow(() -> new ObjectNotFoundException(Asset.class, id));
 
         return transformerRegistry.transform(asset, JsonObject.class)
@@ -104,7 +107,10 @@ public abstract class BaseAssetApiController {
     }
 
     public void removeAsset(String id) {
-        service.delete(id).orElseThrow(exceptionMapper(Asset.class, id));
+        var participantContext = participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(Asset.class, id));
+
+        service.delete(participantContext.getId(), id).orElseThrow(exceptionMapper(Asset.class, id));
     }
 
     public void updateAsset(JsonObject assetJson) {

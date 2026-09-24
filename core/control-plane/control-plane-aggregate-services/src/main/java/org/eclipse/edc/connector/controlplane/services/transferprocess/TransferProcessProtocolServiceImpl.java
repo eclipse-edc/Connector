@@ -156,7 +156,8 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @NotNull
     private ServiceResult<TransferProcess> requestedAction(ParticipantContext participantContext, TransferRequestMessage message, ClaimTokenContext context) {
         var transferType = message.getTransferType();
-        var supportedTransferTypes = dataFlowController.transferTypesFor(context.agreement().getAssetId());
+        var agreement = context.agreement();
+        var supportedTransferTypes = dataFlowController.transferTypesFor(agreement.getParticipantContextId(), agreement.getAssetId());
         if (!supportedTransferTypes.contains(transferType)) {
             return ServiceResult.badRequest("TransferType %s is not supported".formatted(transferType));
         }

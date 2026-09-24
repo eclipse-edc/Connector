@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS edc_policydefinitions
     policy_type           VARCHAR NOT NULL,
     private_properties    JSON,
     participant_context_id VARCHAR NOT NULL,
-    PRIMARY KEY (policy_id)
+    PRIMARY KEY (participant_context_id, policy_id)
 );
 
 COMMENT ON COLUMN edc_policydefinitions.permissions IS 'Java List<Permission> serialized as JSON';
@@ -37,6 +37,3 @@ COMMENT ON COLUMN edc_policydefinitions.prohibitions IS 'Java List<Prohibition> 
 COMMENT ON COLUMN edc_policydefinitions.duties IS 'Java List<Duty> serialized as JSON';
 COMMENT ON COLUMN edc_policydefinitions.profiles IS 'Java List<String> serialized as JSON';
 COMMENT ON COLUMN edc_policydefinitions.policy_type IS 'Java PolicyType serialized as JSON';
-
-CREATE UNIQUE INDEX IF NOT EXISTS edc_policydefinitions_id_uindex
-    ON edc_policydefinitions (policy_id);
