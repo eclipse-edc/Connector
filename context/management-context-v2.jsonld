@@ -554,6 +554,10 @@
           "@id": "edc:actions",
           "@container": "@set"
         },
+        "supportedOperators": {
+          "@id": "edc:supportedOperators",
+          "@container": "@set"
+        },
         "expression": "edc:expression",
         "description": "edc:description"
       }
