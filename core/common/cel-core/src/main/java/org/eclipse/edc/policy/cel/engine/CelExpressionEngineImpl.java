@@ -103,6 +103,11 @@ public class CelExpressionEngineImpl implements CelExpressionEngine {
     }
 
     @Override
+    public boolean canEvaluate(String leftOperand, Operator operator) {
+        return fetch(leftOperand).stream().anyMatch(expr -> expr.supportsOperator(operator));
+    }
+
+    @Override
     public Set<String> evaluationScopes(String leftOperand) {
         return Stream.concat(fetch(leftOperand).stream(), fetchByAction(leftOperand).stream())
                 .flatMap(expr -> expr.getScopes().stream())
@@ -119,16 +124,22 @@ public class CelExpressionEngineImpl implements CelExpressionEngine {
 
     @Override
     public ServiceResult<Boolean> evaluateExpression(Object leftOperand, Operator operator, Object rightOperand, Map<String, Object> params) {
-        var compileResult = fetchAndCompile(leftOperand.toString());
+        var registered = fetch(leftOperand.toString());
+        if (registered.isEmpty()) {
+            monitor.severe("No expressions registered for left operand: " + leftOperand);
+            return ServiceResult.badRequest("No expressions registered for left operand: " + leftOperand);
+        }
+        var supported = registered.stream().filter(expr -> expr.supportsOperator(operator)).toList();
+        if (supported.isEmpty()) {
+            monitor.severe("No expressions registered for left operand: " + leftOperand + " supporting operator: " + operator.name());
+            return ServiceResult.badRequest("No expressions registered for left operand: " + leftOperand + " supporting operator: " + operator.name());
+        }
+        var compileResult = compileAll(supported);
         if (compileResult.failed()) {
             monitor.severe("Failed to compile expressions for left operand: " + leftOperand + ". Reason: " + compileResult.getFailureDetail());
             return ServiceResult.badRequest("Failed to compile expressions for left operand: " + leftOperand + ". Reason: " + compileResult.getFailureDetail());
         }
         var expressions = compileResult.getContent();
-        if (expressions.isEmpty()) {
-            monitor.severe("No expressions registered for left operand: " + leftOperand);
-            return ServiceResult.badRequest("No expressions registered for left operand: " + leftOperand);
-        }
         var result = true;
         for (var ast : expressions) {
             var evaluationResult = evaluateAst(ast, leftOperand, operator, rightOperand, params);
@@ -150,7 +161,7 @@ public class CelExpressionEngineImpl implements CelExpressionEngine {
             var program = environment().runtime().createProgram(ast);
             Map<String, Object> newParams = new HashMap<>();
             newParams.put("now", ProtoTimeUtils.now());
-            newParams.put("this", Map.of("leftOperand", leftOperand, "operator", operator.name(), "rightOperand", rightOperand));
+            newParams.put("this", Map.of("leftOperand", leftOperand, "operator", operator.name(), "odrlOperator", odrlOperator(operator), "rightOperand", rightOperand));
             newParams.put("ctx", params);
 
             return Result.success((Boolean) program.eval(newParams));
@@ -160,8 +171,17 @@ public class CelExpressionEngineImpl implements CelExpressionEngine {
         }
     }
 
-    private Result<List<CelAbstractSyntaxTree>> fetchAndCompile(String leftOperand) {
-        return fetch(leftOperand).stream()
+    /**
+     * The ODRL operator name without the namespace (e.g. "eq", "isPartOf"), so that the deprecated {@link Operator#IN}
+     * and {@link Operator#IS_PART_OF} are indistinguishable in expressions.
+     */
+    private String odrlOperator(Operator operator) {
+        var iri = operator.getOdrlRepresentation();
+        return iri.substring(iri.lastIndexOf('/') + 1);
+    }
+
+    private Result<List<CelAbstractSyntaxTree>> compileAll(List<CelExpression> expressions) {
+        return expressions.stream()
                 .map(expr -> compile(expr.getExpression()))
                 .collect(Result.collector());
     }

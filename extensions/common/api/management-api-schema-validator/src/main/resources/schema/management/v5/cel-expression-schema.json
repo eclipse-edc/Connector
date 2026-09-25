@@ -44,6 +44,28 @@
             "type": "string"
           },
           "uniqueItems": true
+        },
+        "supportedOperators": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "EQ",
+              "NEQ",
+              "GT",
+              "GEQ",
+              "LT",
+              "LEQ",
+              "IS_PART_OF",
+              "IN",
+              "HAS_PART",
+              "IS_A",
+              "IS_ALL_OF",
+              "IS_ANY_OF",
+              "IS_NONE_OF"
+            ]
+          },
+          "uniqueItems": true
         }
       },
       "required": [

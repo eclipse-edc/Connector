@@ -19,6 +19,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.policy.cel.model.CelExpression;
+import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +31,7 @@ import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_DESC
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_EXPRESSION_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_LEFT_OPERAND_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_SCOPES_IRI;
+import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_SUPPORTED_OPERATORS_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_TYPE_IRI;
 
 public class JsonObjectFromCelExpressionTransformer extends JsonLdFromModelTransformer<CelExpression, JsonObject> {
@@ -51,6 +53,7 @@ public class JsonObjectFromCelExpressionTransformer extends JsonLdFromModelTrans
                 .add(CEL_EXPRESSION_DESCRIPTION_IRI, celExpression.getDescription())
                 .add(CEL_EXPRESSION_SCOPES_IRI, Json.createArrayBuilder(celExpression.getScopes()))
                 .add(CEL_EXPRESSION_ACTIONS_IRI, Json.createArrayBuilder(celExpression.getActions()))
+                .add(CEL_EXPRESSION_SUPPORTED_OPERATORS_IRI, Json.createArrayBuilder(celExpression.getSupportedOperators().stream().map(Operator::toJson).toList()))
                 .build();
     }
 }

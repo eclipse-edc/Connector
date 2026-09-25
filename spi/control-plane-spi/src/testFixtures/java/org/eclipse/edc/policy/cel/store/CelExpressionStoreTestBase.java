@@ -15,6 +15,7 @@
 package org.eclipse.edc.policy.cel.store;
 
 import org.eclipse.edc.policy.cel.model.CelExpression;
+import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.api.Test;
@@ -138,6 +139,33 @@ public abstract class CelExpressionStoreTestBase {
     }
 
     @Test
+    void create_withSupportedOperators() {
+        var expr = celExpressionBuilder("expr")
+                .supportedOperators(Set.of(Operator.EQ, Operator.IS_PART_OF))
+                .build();
+
+        assertThat(getStore().create(expr)).isSucceeded();
+
+        assertThat(getStore().query(QuerySpec.max())).singleElement()
+                .extracting(CelExpression::getSupportedOperators)
+                .isEqualTo(Set.of(Operator.EQ, Operator.IS_PART_OF));
+    }
+
+    @Test
+    void update_withSupportedOperators() {
+        getStore().create(celExpression("expr"));
+
+        var newExpr = celExpressionBuilder("expr")
+                .supportedOperators(Set.of(Operator.NEQ))
+                .build();
+        assertThat(getStore().update(newExpr)).isSucceeded();
+
+        assertThat(getStore().query(QuerySpec.max())).singleElement()
+                .extracting(CelExpression::getSupportedOperators)
+                .isEqualTo(Set.of(Operator.NEQ));
+    }
+
+    @Test
     void update_whenNotExists() {
         var expr = celExpression("another-id");
 
@@ -162,6 +190,13 @@ public abstract class CelExpressionStoreTestBase {
 
     private CelExpression celExpression(String id) {
         return celExpression(id, "leftOperand");
+    }
+
+    private CelExpression.Builder celExpressionBuilder(String id) {
+        return CelExpression.Builder.newInstance().id(id)
+                .leftOperand("leftOperand")
+                .expression("expression")
+                .description("description");
     }
 
     private CelExpression celExpression(String id, String leftOperand, String action) {

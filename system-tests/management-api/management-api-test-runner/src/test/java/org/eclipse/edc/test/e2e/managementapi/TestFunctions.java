@@ -246,6 +246,7 @@ public class TestFunctions {
                 .add("description", "A CEL expression for testing")
                 .add("scopes", createArrayBuilder().add("scope1").add("scope2").build())
                 .add("actions", createArrayBuilder().add("action1").add("action2").build())
+                .add("supportedOperators", createArrayBuilder().add("EQ").add("IS_PART_OF").build())
                 .build();
     }
 

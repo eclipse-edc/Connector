@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.test.e2e.managementapi.v5;
 
+import jakarta.json.JsonObject;
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.api.authentication.OauthServer;
 import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
@@ -26,6 +27,7 @@ import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.policy.cel.model.CelExpression;
 import org.eclipse.edc.policy.cel.service.CelPolicyExpressionService;
 import org.eclipse.edc.policy.cel.store.CelExpressionStore;
+import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.Runtimes;
@@ -39,19 +41,23 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.createParticipant;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.jsonLdContext;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesRegex;
@@ -68,10 +74,30 @@ public class CelExpressionApiV5EndToEndTest {
         protected String adminToken;
 
         private CelExpression expression(String leftOperand, String expr) {
+            return expressionBuilder(leftOperand, expr).build();
+        }
+
+        private CelExpression.Builder expressionBuilder(String leftOperand, String expr) {
             return CelExpression.Builder.newInstance().id(UUID.randomUUID().toString())
                     .leftOperand(leftOperand)
                     .expression(expr)
-                    .description("description")
+                    .description("description");
+        }
+
+        private JsonObject policyDefinition(String leftOperand, String operator) {
+            return createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "PolicyDefinition")
+                    .add("policy", createObjectBuilder()
+                            .add(TYPE, "Set")
+                            .add("permission", createArrayBuilder()
+                                    .add(createObjectBuilder()
+                                            .add("action", "use")
+                                            .add("constraint", createArrayBuilder()
+                                                    .add(createObjectBuilder()
+                                                            .add("leftOperand", leftOperand)
+                                                            .add("operator", operator)
+                                                            .add("rightOperand", "value"))))))
                     .build();
         }
 
@@ -115,6 +141,117 @@ public class CelExpressionApiV5EndToEndTest {
                         Assertions.assertThat(c.getId()).isEqualTo(id);
                     });
 
+        }
+
+        @Test
+        void create_withSupportedOperators(ManagementEndToEndV5TestContext context, CelPolicyExpressionService service) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "CelExpression")
+                    .add("leftOperand", "leftOperand")
+                    .add("expression", "ctx.agent.id == 'agent-123'")
+                    .add("description", "desc")
+                    .add("supportedOperators", createArrayBuilder().add("EQ").add("IS_PART_OF"))
+                    .build();
+
+            var id = context.baseRequest(adminToken)
+                    .body(requestBody.toString())
+                    .contentType(JSON)
+                    .post("/v5/celexpressions")
+                    .then()
+                    .log().ifValidationFails()
+                    .contentType(JSON)
+                    .statusCode(200)
+                    .extract().jsonPath().getString(ID);
+
+            assertThat(service.findById(id)).isSucceeded()
+                    .satisfies(c -> Assertions.assertThat(c.getSupportedOperators()).containsExactlyInAnyOrder(Operator.EQ, Operator.IS_PART_OF));
+
+            context.baseRequest(adminToken)
+                    .contentType(JSON)
+                    .get("/v5/celexpressions/" + id)
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body("supportedOperators", containsInAnyOrder("EQ", "IS_PART_OF"));
+        }
+
+        @Test
+        void create_withInvalidSupportedOperator(ManagementEndToEndV5TestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "CelExpression")
+                    .add("leftOperand", "leftOperand")
+                    .add("expression", "ctx.agent.id == 'agent-123'")
+                    .add("description", "desc")
+                    .add("supportedOperators", createArrayBuilder().add("eq"))
+                    .build();
+
+            context.baseRequest(adminToken)
+                    .body(requestBody.toString())
+                    .contentType(JSON)
+                    .post("/v5/celexpressions")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(400);
+        }
+
+        @Test
+        void createPolicyDefinition_whenOperatorSupported(ManagementEndToEndV5TestContext context, OauthServer authServer, CelExpressionStore store) {
+            var leftOperand = EDC_NAMESPACE + "celOperand-" + UUID.randomUUID();
+            store.create(expressionBuilder(leftOperand, "this.rightOperand == 'value'")
+                            .supportedOperators(Set.of(Operator.EQ, Operator.IS_PART_OF))
+                            .build())
+                    .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+
+            context.baseRequest(authServer.createToken(PARTICIPANT_CONTEXT_ID))
+                    .body(policyDefinition(leftOperand, "eq").toString())
+                    .contentType(JSON)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200);
+        }
+
+        @Test
+        void createPolicyDefinition_whenOperatorNotSupported(ManagementEndToEndV5TestContext context, OauthServer authServer, CelExpressionStore store) {
+            var leftOperand = EDC_NAMESPACE + "celOperand-" + UUID.randomUUID();
+            store.create(expressionBuilder(leftOperand, "this.rightOperand == 'value'")
+                            .supportedOperators(Set.of(Operator.EQ, Operator.IS_PART_OF))
+                            .build())
+                    .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+
+            context.baseRequest(authServer.createToken(PARTICIPANT_CONTEXT_ID))
+                    .body(policyDefinition(leftOperand, "neq").toString())
+                    .contentType(JSON)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(400)
+                    .contentType(JSON)
+                    .body("size()", is(1))
+                    .body("[0].message", is("No CEL expression registered for left operand '%s' supports operator 'NEQ'".formatted(leftOperand)));
+        }
+
+        @Test
+        void createPolicyDefinition_whenAnyExpressionSupportsOperator(ManagementEndToEndV5TestContext context, OauthServer authServer, CelExpressionStore store) {
+            var leftOperand = EDC_NAMESPACE + "celOperand-" + UUID.randomUUID();
+            store.create(expressionBuilder(leftOperand, "this.rightOperand == 'value'")
+                            .supportedOperators(Set.of(Operator.EQ))
+                            .build())
+                    .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+            store.create(expressionBuilder(leftOperand, "this.rightOperand != 'value'")
+                            .supportedOperators(Set.of(Operator.NEQ))
+                            .build())
+                    .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+
+            context.baseRequest(authServer.createToken(PARTICIPANT_CONTEXT_ID))
+                    .body(policyDefinition(leftOperand, "neq").toString())
+                    .contentType(JSON)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200);
         }
 
         @Test

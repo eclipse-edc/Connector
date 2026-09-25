@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.cel.from;
 
 import jakarta.json.Json;
 import org.eclipse.edc.policy.cel.model.CelExpression;
+import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_DESC
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_EXPRESSION_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_LEFT_OPERAND_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_SCOPES_IRI;
+import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_SUPPORTED_OPERATORS_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_TYPE_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.MATCH_ALL_SCOPE;
 import static org.mockito.Mockito.mock;
@@ -54,6 +56,7 @@ class JsonObjectFromCelExpressionTransformerTest {
                 .description("Check if user is admin")
                 .scopes(Set.of("read", "write"))
                 .actions(Set.of("use", "access"))
+                .supportedOperators(Set.of(Operator.EQ, Operator.IS_PART_OF))
                 .build();
 
         var result = transformer.transform(celExpression, context);
@@ -71,6 +74,9 @@ class JsonObjectFromCelExpressionTransformerTest {
         assertThat(result.getJsonArray(CEL_EXPRESSION_ACTIONS_IRI))
                 .hasSize(2)
                 .containsExactlyInAnyOrder(Json.createValue("use"), Json.createValue("access"));
+
+        assertThat(result.getJsonArray(CEL_EXPRESSION_SUPPORTED_OPERATORS_IRI))
+                .containsExactlyInAnyOrder(Json.createValue("EQ"), Json.createValue("IS_PART_OF"));
     }
 
     @Test
@@ -87,5 +93,6 @@ class JsonObjectFromCelExpressionTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getJsonArray(CEL_EXPRESSION_SCOPES_IRI))
                 .contains(Json.createValue(MATCH_ALL_SCOPE));
+        assertThat(result.getJsonArray(CEL_EXPRESSION_SUPPORTED_OPERATORS_IRI)).isEmpty();
     }
 }

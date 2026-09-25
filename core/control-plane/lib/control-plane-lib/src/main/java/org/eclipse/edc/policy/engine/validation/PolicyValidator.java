@@ -136,9 +136,11 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
         if (functions.isEmpty()) {
             return Result.failure("leftOperand '%s' is not bound to any functions: Rule { %s }".formatted(leftOperand, rule));
         } else {
-            return functions.stream()
+            var result = functions.stream()
                     .map(f -> f.validate(leftOperand, operator, rightOperand, rule))
                     .reduce(Result.success(), Result::merge);
+            // the same function may be registered in multiple policy contexts, report each failure only once
+            return result.failed() ? Result.failure(result.getFailureMessages().stream().distinct().toList()) : result;
         }
     }
 

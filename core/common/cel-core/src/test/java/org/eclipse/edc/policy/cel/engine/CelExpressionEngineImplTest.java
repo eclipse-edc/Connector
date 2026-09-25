@@ -84,6 +84,45 @@ public class CelExpressionEngineImplTest {
     }
 
     @Test
+    void evaluateExpression_whenOperatorSupported() {
+        when(store.query(any())).thenReturn(List.of(expressionBuilder("true").supportedOperators(Set.of(Operator.EQ)).build()));
+
+        var result = registry.evaluateExpression("test", Operator.EQ, "null", createParams("agent-123"));
+
+        assertThat(result).isSucceeded().isEqualTo(true);
+    }
+
+    @Test
+    void evaluateExpression_whenOperatorNotSupported_shouldFail() {
+        when(store.query(any())).thenReturn(List.of(expressionBuilder("true").supportedOperators(Set.of(Operator.EQ)).build()));
+
+        var result = registry.evaluateExpression("test", Operator.NEQ, "null", createParams("agent-123"));
+
+        assertThat(result).isFailed().detail().contains("NEQ");
+    }
+
+    @Test
+    void evaluateExpression_shouldSkipExpressionsNotSupportingOperator() {
+        when(store.query(any())).thenReturn(List.of(
+                expressionBuilder("false").supportedOperators(Set.of(Operator.IS_PART_OF)).build(),
+                expressionBuilder("true").supportedOperators(Set.of(Operator.EQ)).build(),
+                expression("true")));
+
+        var result = registry.evaluateExpression("test", Operator.EQ, "null", createParams("agent-123"));
+
+        assertThat(result).isSucceeded().isEqualTo(true);
+    }
+
+    @Test
+    void evaluateExpression_shouldTreatInAsIsPartOf() {
+        when(store.query(any())).thenReturn(List.of(expressionBuilder("this.operator == 'IN'").supportedOperators(Set.of(Operator.IS_PART_OF)).build()));
+
+        var result = registry.evaluateExpression("test", Operator.IN, "null", createParams("agent-123"));
+
+        assertThat(result).isSucceeded().isEqualTo(true);
+    }
+
+    @Test
     void evaluateExpression_credential() {
 
         var params = createParams("agent-123");
@@ -158,8 +197,20 @@ public class CelExpressionEngineImplTest {
         assertThat(result.getContent()).isEqualTo(expectedEvaluation);
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(OperatorProvider.class)
+    void evaluateExpression_withOperator(Operator operator, String expectedName, String expectedOdrlName) {
+        var expression = "this.operator == '%s' && this.odrlOperator == '%s'".formatted(expectedName, expectedOdrlName);
+        when(store.query(any())).thenReturn(List.of(expression(expression)));
+
+        var result = registry.evaluateExpression("test", operator, "null", createParams("agent-123"));
+
+        assertThat(result).isSucceeded();
+        assertThat(result.getContent()).isTrue();
+    }
+
     /**
-     * The CEL environment must be built lazily: extensions register their functions during initialization, which
+     * The CEL environment must be built lazily:extensions register their functions during initialization, which
      * happens after the engine is constructed — as it is here, in the field initializer.
      */
     @Test
@@ -280,6 +331,31 @@ public class CelExpressionEngineImplTest {
     }
 
     @Test
+    void canEvaluate_withOperator() {
+        when(store.query(any())).thenReturn(List.of(
+                expressionBuilder("true").supportedOperators(Set.of(Operator.EQ)).build(),
+                expressionBuilder("true").supportedOperators(Set.of(Operator.IS_PART_OF)).build()));
+
+        assertThat(registry.canEvaluate("test", Operator.EQ)).isTrue();
+        assertThat(registry.canEvaluate("test", Operator.IN)).isTrue();
+        assertThat(registry.canEvaluate("test", Operator.NEQ)).isFalse();
+    }
+
+    @Test
+    void canEvaluate_withOperator_whenNoneConfigured() {
+        when(store.query(any())).thenReturn(List.of(expression("true")));
+
+        assertThat(registry.canEvaluate("test", Operator.NEQ)).isTrue();
+    }
+
+    @Test
+    void canEvaluate_withOperator_noMatching() {
+        when(store.query(any())).thenReturn(List.of());
+
+        assertThat(registry.canEvaluate("test", Operator.EQ)).isFalse();
+    }
+
+    @Test
     void canEvaluate_noMatching() {
         when(store.query(any())).thenReturn(List.of());
 
@@ -338,6 +414,19 @@ public class CelExpressionEngineImplTest {
             return Stream.of(
                     arguments("2022-01-01T00:00:00Z", true),
                     arguments("2024-01-01T00:00:00Z", false)
+            );
+        }
+    }
+
+    private static class OperatorProvider implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(Operator.EQ, "EQ", "eq"),
+                    arguments(Operator.GEQ, "GEQ", "gteq"),
+                    arguments(Operator.IS_PART_OF, "IS_PART_OF", "isPartOf"),
+                    arguments(Operator.IN, "IN", "isPartOf"),
+                    arguments(Operator.IS_ANY_OF, "IS_ANY_OF", "isAnyOf")
             );
         }
     }

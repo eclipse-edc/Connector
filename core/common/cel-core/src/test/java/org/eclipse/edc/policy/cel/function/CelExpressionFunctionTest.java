@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -83,5 +84,23 @@ public class CelExpressionFunctionTest {
 
         assertThat(result).isTrue();
 
+    }
+
+    @Test
+    void validate_whenOperatorSupported() {
+        when(engine.canEvaluate("arg1", Operator.EQ)).thenReturn(true);
+
+        var result = function.validate("arg1", Operator.EQ, "arg2", null);
+
+        assertThat(result).isSucceeded();
+    }
+
+    @Test
+    void validate_whenOperatorNotSupported() {
+        when(engine.canEvaluate("arg1", Operator.NEQ)).thenReturn(false);
+
+        var result = function.validate("arg1", Operator.NEQ, "arg2", null);
+
+        assertThat(result).isFailed().detail().contains("arg1").contains("NEQ");
     }
 }
