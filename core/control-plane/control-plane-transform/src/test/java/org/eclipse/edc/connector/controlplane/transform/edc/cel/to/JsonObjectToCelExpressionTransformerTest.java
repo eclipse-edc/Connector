@@ -15,6 +15,8 @@
 package org.eclipse.edc.connector.controlplane.transform.edc.cel.to;
 
 import jakarta.json.Json;
+import org.eclipse.edc.policy.model.Operator;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,8 +29,12 @@ import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_DESC
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_EXPRESSION_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_LEFT_OPERAND_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_SCOPES_IRI;
+import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_SUPPORTED_OPERATORS_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.MATCH_ALL_SCOPE;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class JsonObjectToCelExpressionTransformerTest {
 
@@ -54,6 +60,9 @@ class JsonObjectToCelExpressionTransformerTest {
                 .add(CEL_EXPRESSION_ACTIONS_IRI, Json.createArrayBuilder()
                         .add(Json.createObjectBuilder().add(VALUE, "use"))
                         .add(Json.createObjectBuilder().add(VALUE, "access")))
+                .add(CEL_EXPRESSION_SUPPORTED_OPERATORS_IRI, Json.createArrayBuilder()
+                        .add(Json.createObjectBuilder().add(VALUE, "EQ"))
+                        .add(Json.createObjectBuilder().add(VALUE, "IN")))
                 .build();
 
         var result = transformer.transform(json, context);
@@ -65,6 +74,7 @@ class JsonObjectToCelExpressionTransformerTest {
         assertThat(result.getDescription()).isEqualTo("Check if user is admin");
         assertThat(result.getScopes()).containsExactlyInAnyOrder("read", "write");
         assertThat(result.getActions()).containsExactlyInAnyOrder("use", "access");
+        assertThat(result.getSupportedOperators()).containsExactlyInAnyOrder(Operator.EQ, Operator.IS_PART_OF);
     }
 
     @Test
@@ -94,6 +104,25 @@ class JsonObjectToCelExpressionTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getScopes()).containsExactly(MATCH_ALL_SCOPE);
+        assertThat(result.getSupportedOperators()).isEmpty();
+    }
+
+    @Test
+    void transform_shouldReportProblem_whenOperatorInvalid() {
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
+        var json = Json.createObjectBuilder()
+                .add(ID, "test-id")
+                .add(CEL_EXPRESSION_LEFT_OPERAND_IRI, "user.role")
+                .add(CEL_EXPRESSION_EXPRESSION_IRI, "== 'admin'")
+                .add(CEL_EXPRESSION_DESCRIPTION_IRI, "description")
+                .add(CEL_EXPRESSION_SUPPORTED_OPERATORS_IRI, Json.createArrayBuilder()
+                        .add(Json.createObjectBuilder().add(VALUE, "eq")))
+                .build();
+
+        var result = transformer.transform(json, context);
+
+        assertThat(result).isNull();
+        verify(context).reportProblem(any());
     }
 
 }

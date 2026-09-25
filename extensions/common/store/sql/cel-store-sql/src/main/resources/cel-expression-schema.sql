@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS edc_cel_expression
     expression             TEXT NOT NULL,
     description            TEXT NOT NULL,
     actions                JSON DEFAULT '[]',
+    supported_operators    JSON DEFAULT '[]',
     created_date           BIGINT              NOT NULL, -- POSIX timestamp of the creation of the PC
     last_modified_date     BIGINT              NOT NULL       -- POSIX timestamp of the last modified date
 );

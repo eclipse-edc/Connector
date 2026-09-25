@@ -14,9 +14,11 @@
 
 package org.eclipse.edc.policy.cel.store.sql;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.policy.cel.model.CelExpression;
 import org.eclipse.edc.policy.cel.store.CelExpressionStore;
+import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -32,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
+import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.spi.result.StoreResult.alreadyExists;
 import static org.eclipse.edc.spi.result.StoreResult.success;
 
@@ -40,6 +43,9 @@ import static org.eclipse.edc.spi.result.StoreResult.success;
  * SQL-based {@link CelExpression} store intended for use with PostgreSQL
  */
 public class SqlCelExpressionStore extends AbstractSqlStore implements CelExpressionStore {
+
+    private static final TypeReference<List<Operator>> OPERATORS_TYPE = new TypeReference<>() {
+    };
 
     private final CelExpressionStoreStatements statements;
 
@@ -58,6 +64,9 @@ public class SqlCelExpressionStore extends AbstractSqlStore implements CelExpres
         var id = resultSet.getString(statements.getIdColumn());
         List<String> scopes = fromJson(resultSet.getString(statements.getScopesColumn()), getTypeRef());
         List<String> actions = fromJson(resultSet.getString(statements.getActionsColumn()), getTypeRef());
+        var supportedOperators = ofNullable(resultSet.getString(statements.getSupportedOperatorsColumn()))
+                .map(json -> fromJson(json, OPERATORS_TYPE))
+                .orElse(List.of());
         var leftOperand = resultSet.getString(statements.getLeftOperandColumn());
         var expression = resultSet.getString(statements.getExpressionColumn());
         var description = resultSet.getString(statements.getDescriptionColumn());
@@ -73,6 +82,7 @@ public class SqlCelExpressionStore extends AbstractSqlStore implements CelExpres
                 .createdAt(created)
                 .updatedAt(lastModified)
                 .actions(new HashSet<>(actions))
+                .supportedOperators(new HashSet<>(supportedOperators))
                 .build();
     }
 
@@ -92,6 +102,7 @@ public class SqlCelExpressionStore extends AbstractSqlStore implements CelExpres
                         expression.getDescription(),
                         toJson(expression.getScopes()),
                         toJson(expression.getActions()),
+                        toJson(expression.getSupportedOperators()),
                         expression.getCreatedAt(),
                         expression.getUpdatedAt()
                 );
@@ -115,6 +126,7 @@ public class SqlCelExpressionStore extends AbstractSqlStore implements CelExpres
                             expression.getDescription(),
                             toJson(expression.getScopes()),
                             toJson(expression.getActions()),
+                            toJson(expression.getSupportedOperators()),
                             expression.getCreatedAt(),
                             expression.getUpdatedAt(),
                             expression.getId());

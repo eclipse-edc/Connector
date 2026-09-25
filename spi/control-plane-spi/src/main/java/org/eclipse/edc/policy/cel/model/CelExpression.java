@@ -14,12 +14,14 @@
 
 package org.eclipse.edc.policy.cel.model;
 
+import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.spi.entity.Entity;
 
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
@@ -41,6 +43,8 @@ public class CelExpression extends Entity {
     public static final String CEL_EXPRESSION_DESCRIPTION_IRI = EDC_NAMESPACE + CEL_EXPRESSION_DESCRIPTION_TERM;
     public static final String CEL_EXPRESSION_ACTIONS_TERM = "actions";
     public static final String CEL_EXPRESSION_ACTIONS_IRI = EDC_NAMESPACE + CEL_EXPRESSION_ACTIONS_TERM;
+    public static final String CEL_EXPRESSION_SUPPORTED_OPERATORS_TERM = "supportedOperators";
+    public static final String CEL_EXPRESSION_SUPPORTED_OPERATORS_IRI = EDC_NAMESPACE + CEL_EXPRESSION_SUPPORTED_OPERATORS_TERM;
     public static final String MATCH_ALL_SCOPE = "*.";
 
     private Set<String> scopes = new HashSet<>();
@@ -48,6 +52,7 @@ public class CelExpression extends Entity {
     private String expression;
     private String description;
     private Set<String> actions = new HashSet<>();
+    private Set<Operator> supportedOperators = new HashSet<>();
 
     private long updatedAt;
 
@@ -61,6 +66,28 @@ public class CelExpression extends Entity {
 
     public Set<String> getActions() {
         return actions;
+    }
+
+    /**
+     * The operators this expression can be evaluated with. An empty set means any operator is supported.
+     */
+    public Set<Operator> getSupportedOperators() {
+        return supportedOperators;
+    }
+
+    /**
+     * Whether this expression can be evaluated with the given operator. The deprecated {@link Operator#IN} is
+     * treated as {@link Operator#IS_PART_OF}.
+     *
+     * @param operator the constraint operator
+     * @return true if no operators are configured or the operator is one of them
+     */
+    public boolean supportsOperator(Operator operator) {
+        return supportedOperators.isEmpty() || supportedOperators.contains(normalize(operator));
+    }
+
+    private static Operator normalize(Operator operator) {
+        return operator == Operator.IN ? Operator.IS_PART_OF : operator;
     }
 
     public String getDescription() {
@@ -104,6 +131,11 @@ public class CelExpression extends Entity {
             return this;
         }
 
+        public Builder supportedOperators(Set<Operator> supportedOperators) {
+            entity.supportedOperators = supportedOperators;
+            return this;
+        }
+
         public Builder leftOperand(String leftOperand) {
             entity.leftOperand = leftOperand;
             return this;
@@ -136,6 +168,10 @@ public class CelExpression extends Entity {
             if (entity.getUpdatedAt() == 0L) {
                 entity.updatedAt = entity.getCreatedAt();
             }
+
+            entity.supportedOperators = entity.supportedOperators == null ? new HashSet<>() : entity.supportedOperators.stream()
+                    .map(CelExpression::normalize)
+                    .collect(Collectors.toCollection(HashSet::new));
 
             if (entity.scopes.isEmpty()) {
                 entity.scopes.add(MATCH_ALL_SCOPE);

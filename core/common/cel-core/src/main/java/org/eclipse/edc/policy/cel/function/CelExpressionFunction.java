@@ -20,6 +20,7 @@ import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Rule;
+import org.eclipse.edc.spi.result.Result;
 
 public record CelExpressionFunction<C extends PolicyContext, R extends Rule>(
         CelExpressionEngine engine,
@@ -44,6 +45,14 @@ public record CelExpressionFunction<C extends PolicyContext, R extends Rule>(
     @Override
     public boolean canHandle(Object leftOperand) {
         return engine.canEvaluate(leftOperand.toString());
+    }
+
+    @Override
+    public Result<Void> validate(Object leftOperand, Operator operator, Object rightOperand, R rule) {
+        if (engine.canEvaluate(leftOperand.toString(), operator)) {
+            return Result.success();
+        }
+        return Result.failure("No CEL expression registered for left operand '%s' supports operator '%s'".formatted(leftOperand, operator.name()));
     }
 
 }

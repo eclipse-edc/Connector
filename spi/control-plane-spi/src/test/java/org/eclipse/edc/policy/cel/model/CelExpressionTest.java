@@ -14,8 +14,10 @@
 
 package org.eclipse.edc.policy.cel.model;
 
+import org.eclipse.edc.policy.model.Operator;
 import org.junit.jupiter.api.Test;
 
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,5 +64,39 @@ class CelExpressionTest {
                 .build();
 
         assertThat(first.getId()).isNotEqualTo(second.getId());
+    }
+
+    @Test
+    void supportsOperator_whenNoneConfigured_shouldSupportAll() {
+        var expression = expression(Set.of());
+
+        assertThat(Operator.values()).allMatch(expression::supportsOperator);
+    }
+
+    @Test
+    void supportsOperator_whenConfigured_shouldSupportOnlyThose() {
+        var expression = expression(Set.of(Operator.EQ, Operator.IS_PART_OF));
+
+        assertThat(expression.supportsOperator(Operator.EQ)).isTrue();
+        assertThat(expression.supportsOperator(Operator.IS_PART_OF)).isTrue();
+        assertThat(expression.supportsOperator(Operator.NEQ)).isFalse();
+    }
+
+    @Test
+    void supportsOperator_shouldTreatInAsIsPartOf() {
+        assertThat(expression(Set.of(Operator.IS_PART_OF)).supportsOperator(Operator.IN)).isTrue();
+
+        var legacy = expression(Set.of(Operator.IN));
+        assertThat(legacy.getSupportedOperators()).containsExactly(Operator.IS_PART_OF);
+        assertThat(legacy.supportsOperator(Operator.IS_PART_OF)).isTrue();
+    }
+
+    private CelExpression expression(Set<Operator> supportedOperators) {
+        return CelExpression.Builder.newInstance()
+                .leftOperand("leftOperand")
+                .expression("true")
+                .description("description")
+                .supportedOperators(supportedOperators)
+                .build();
     }
 }

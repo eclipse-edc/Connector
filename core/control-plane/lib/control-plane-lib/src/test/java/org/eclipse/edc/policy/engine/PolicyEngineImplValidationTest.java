@@ -146,6 +146,33 @@ class PolicyEngineImplValidationTest {
 
     }
 
+    @Test
+    void validate_shouldReportFailureOnce_whenDynamicFunctionRegisteredInMultipleContexts() {
+        var leftOperand = "foo";
+        var constraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression(leftOperand))
+                .operator(EQ)
+                .rightExpression(new LiteralExpression("bar"))
+                .build();
+        var permission = Permission.Builder.newInstance().constraint(constraint).action(Action.Builder.newInstance().type("use").build()).build();
+        var policy = Policy.Builder.newInstance().permission(permission).build();
+
+        DynamicAtomicConstraintRuleFunction<Permission, PolicyContext> function = mock();
+        when(function.canHandle(leftOperand)).thenReturn(true);
+        when(function.validate(any(), any(), any(), any())).thenReturn(Result.failure("operator not supported"));
+        DynamicAtomicConstraintRuleFunction<Permission, OtherContext> sameFunctionOtherContext = mock();
+        when(sameFunctionOtherContext.canHandle(leftOperand)).thenReturn(true);
+        when(sameFunctionOtherContext.validate(any(), any(), any(), any())).thenReturn(Result.failure("operator not supported"));
+
+        bindingRegistry.dynamicBind(s -> Set.of(ALL_SCOPES));
+        policyEngine.registerFunction(PolicyContext.class, Permission.class, function);
+        policyEngine.registerFunction(OtherContext.class, Permission.class, sameFunctionOtherContext);
+
+        var result = policyEngine.validate(policy);
+
+        assertThat(result).isFailed().messages().containsExactly("operator not supported");
+    }
+
     @ParameterizedTest
     @ArgumentsSource(PolicyProvider.class)
     void validate_withDynamicFunction(Policy policy, Class<Rule> ruleClass, String key) {
@@ -314,5 +341,8 @@ class PolicyEngineImplValidationTest {
                     .rightExpression(right)
                     .build();
         }
+    }
+
+    private interface OtherContext extends PolicyContext {
     }
 }

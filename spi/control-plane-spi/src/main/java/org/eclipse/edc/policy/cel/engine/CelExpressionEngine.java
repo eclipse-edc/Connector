@@ -35,6 +35,16 @@ public interface CelExpressionEngine {
     boolean canEvaluate(String leftOperand);
 
     /**
+     * Checks if the engine can evaluate the given left operand with the given operator, i.e. at least one expression
+     * registered for the left operand supports the operator.
+     *
+     * @param leftOperand the left operand to check
+     * @param operator    the constraint operator
+     * @return true if the engine can evaluate the left operand with the operator, false otherwise
+     */
+    boolean canEvaluate(String leftOperand, Operator operator);
+
+    /**
      * Retrieves the evaluation scopes for the given left operand.
      *
      * @param leftOperand the left operand
