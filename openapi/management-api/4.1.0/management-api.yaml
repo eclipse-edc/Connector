@@ -7248,6 +7248,9 @@ components:
       example:
         leftOperand: leftOperand
         expression: expression
+        supportedOperators:
+        - EQ
+        - EQ
         '@type': '@type'
         description: description
         '@id': '@id'
@@ -7296,6 +7299,25 @@ components:
           type: array
           items:
             type: string
+        supportedOperators:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            enum:
+            - EQ
+            - NEQ
+            - GT
+            - GEQ
+            - LT
+            - LEQ
+            - IS_PART_OF
+            - IN
+            - HAS_PART
+            - IS_A
+            - IS_ALL_OF
+            - IS_ANY_OF
+            - IS_NONE_OF
     JsonValue:
       type: object
       properties:
