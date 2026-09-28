@@ -26,10 +26,8 @@ maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.22.3, Apache-2.
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.18.3, Apache-2.0, approved, #16370
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.19.2, Apache-2.0, approved, #21912
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.22.3, Apache-2.0, approved, #28622
-maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.22.2, Apache-2.0, approved, #29009
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.22.3, Apache-2.0, approved, #29009
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.19.2, Apache-2.0, approved, #23299
-maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.22.2, Apache-2.0, approved, #29010
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.22.3, Apache-2.0, approved, #29010
 maven/mavencentral/com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-base/2.22.3, Apache-2.0, approved, #29012
 maven/mavencentral/com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-json-provider/2.19.2, Apache-2.0, approved, #20839
