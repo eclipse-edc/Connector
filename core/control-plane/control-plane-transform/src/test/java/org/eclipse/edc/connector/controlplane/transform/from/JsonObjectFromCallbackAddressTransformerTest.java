@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,15 +8,16 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
-package org.eclipse.edc.api.transformer;
+package org.eclipse.edc.connector.controlplane.transform.from;
 
 
 import jakarta.json.Json;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
+import org.assertj.core.api.Assertions;
+import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,12 +25,11 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 import java.util.Set;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.AUTH_CODE_ID;
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.AUTH_KEY;
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
+import static org.eclipse.edc.controlplane.CallbackAddress.AUTH_CODE_ID;
+import static org.eclipse.edc.controlplane.CallbackAddress.AUTH_KEY;
+import static org.eclipse.edc.controlplane.CallbackAddress.EVENTS;
+import static org.eclipse.edc.controlplane.CallbackAddress.IS_TRANSACTIONAL;
+import static org.eclipse.edc.controlplane.CallbackAddress.URI;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectFromCallbackAddressTransformerTest {
@@ -52,12 +52,12 @@ class JsonObjectFromCallbackAddressTransformerTest {
                 .build();
 
         var json = transformer.transform(callbackAddr, mock(TransformerContext.class));
-        assertThat(json).isNotNull();
-        assertThat(json.getJsonString(URI).getString()).isEqualTo("http://test.local");
-        assertThat(json.get(IS_TRANSACTIONAL).toString()).isEqualTo("true");
-        assertThat(json.getJsonArray(EVENTS)).hasSize(3);
-        assertThat(json.getJsonString(AUTH_KEY).getString()).isEqualTo("key");
-        assertThat(json.getJsonString(AUTH_CODE_ID).getString()).isEqualTo("codeId");
+        Assertions.assertThat(json).isNotNull();
+        Assertions.assertThat(json.getJsonString(URI).getString()).isEqualTo("http://test.local");
+        Assertions.assertThat(json.get(IS_TRANSACTIONAL).toString()).isEqualTo("true");
+        Assertions.assertThat(json.getJsonArray(EVENTS)).hasSize(3);
+        Assertions.assertThat(json.getJsonString(AUTH_KEY).getString()).isEqualTo("key");
+        Assertions.assertThat(json.getJsonString(AUTH_CODE_ID).getString()).isEqualTo("codeId");
 
     }
 }

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.defaults.callback;
 
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
+import org.eclipse.edc.controlplane.CallbackAddress;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;

@@ -16,9 +16,9 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

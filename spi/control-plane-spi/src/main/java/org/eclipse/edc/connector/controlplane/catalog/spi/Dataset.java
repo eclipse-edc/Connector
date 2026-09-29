@@ -16,11 +16,11 @@ package org.eclipse.edc.connector.controlplane.catalog.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.Polymorphic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,7 +36,8 @@ import static java.util.UUID.randomUUID;
  */
 @JsonDeserialize(builder = Dataset.Builder.class)
 @JsonTypeName("dataspaceconnector:dataset")
-public class Dataset implements Polymorphic {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "edctype")
+public class Dataset {
 
     /**
      * Policies under which this Dataset is available.

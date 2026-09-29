@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
+import org.eclipse.edc.controlplane.CallbackAddress;
 
 import java.util.ArrayList;
 import java.util.List;

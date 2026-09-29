@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation;
 
-import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
+import org.eclipse.edc.controlplane.ErrorMessage;
 
 /**
- * Represents an error message specific to the dps negotiation requests .
+ * Represents an error message specific to the dsp negotiation requests .
  * This class extends the generic {@link ErrorMessage} to provide additional
  * context and functionality specific to negotiation-related errors.
  */

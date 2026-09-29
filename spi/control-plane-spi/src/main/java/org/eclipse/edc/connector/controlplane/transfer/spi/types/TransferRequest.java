@@ -16,7 +16,7 @@
 package org.eclipse.edc.connector.controlplane.transfer.spi.types;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
+import org.eclipse.edc.controlplane.CallbackAddress;
 
 import java.util.ArrayList;
 import java.util.HashMap;

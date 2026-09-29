@@ -15,10 +15,8 @@
 package org.eclipse.edc.connector.controlplane.transfer;
 
 import org.eclipse.edc.connector.controlplane.transfer.dataaddress.VaultDataAddressStore;
-import org.eclipse.edc.connector.controlplane.transfer.flow.TransferTypeParserImpl;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -58,11 +56,6 @@ public class TransferProcessDefaultServicesExtension implements ServiceExtension
     @Provider(isDefault = true)
     public TransferProcessPendingGuard pendingGuard() {
         return it -> false;
-    }
-
-    @Provider
-    public TransferTypeParser transferTypeParser() {
-        return new TransferTypeParserImpl();
     }
 
     @Provider

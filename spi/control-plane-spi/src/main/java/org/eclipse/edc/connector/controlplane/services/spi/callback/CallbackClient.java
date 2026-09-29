@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.controlplane.services.spi.callback;
 
+import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 /**
  * Client for dispatching events to callback endpoints.

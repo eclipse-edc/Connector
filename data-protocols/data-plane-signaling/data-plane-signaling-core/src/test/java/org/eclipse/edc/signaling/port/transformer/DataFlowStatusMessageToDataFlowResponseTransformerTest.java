@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.signaling.port.transformer;
 
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.signaling.domain.DspDataAddress;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 

@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
@@ -32,7 +33,6 @@ import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.Runtimes;
 import org.hamcrest.CoreMatchers;

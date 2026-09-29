@@ -18,8 +18,8 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferRequestMessageTransformer;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,6 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectFromTransferRequestMessageTransformerTest {
 
-    private final String dataAddressKey = "testDataAddressKey";
     private final String dataAddressType = "testDataAddressType";
     private final String protocol = "testProtocol";
     private final String contractId = "testContractId";
@@ -64,7 +63,6 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
     @BeforeEach
     void setUp() {
         var dataAddressJson = Json.createObjectBuilder()
-                .add("keyName", dataAddressKey)
                 .add("type", dataAddressType)
                 .build();
 
@@ -90,7 +88,6 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
         assertThat(result.getJsonObject(DCT_FORMAT_ATTRIBUTE).getString(ID)).isEqualTo(dataAddressType);
         assertThat(result.getJsonString(toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM)).getString()).isEqualTo(callbackAddress);
         assertThat(result.getJsonObject(toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM)).getString(ID)).isEqualTo("consumerPid");
-        assertThat(result.getJsonObject(toIri(DSPACE_PROPERTY_DATA_ADDRESS_TERM)).getString("keyName")).isEqualTo(dataAddressKey);
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -144,7 +141,6 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
 
     private DataAddress buildTestDataAddress() {
         return DataAddress.Builder.newInstance()
-                .keyName(dataAddressKey)
                 .type(dataAddressType)
                 .build();
     }

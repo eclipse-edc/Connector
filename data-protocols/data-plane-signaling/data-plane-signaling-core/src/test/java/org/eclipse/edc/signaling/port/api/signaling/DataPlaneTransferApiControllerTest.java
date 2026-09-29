@@ -21,12 +21,12 @@ import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneIn
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorization;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.BeforeEach;

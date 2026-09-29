@@ -20,14 +20,14 @@ import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackClient;
+import org.eclipse.edc.controlplane.CallbackAddress;
+import org.eclipse.edc.controlplane.CallbackAddresses;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantEvent;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.event.CallbackAddresses;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;

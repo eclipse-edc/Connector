@@ -15,8 +15,8 @@
 package org.eclipse.edc.api.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.spi.query.SortOrder;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.List;
 

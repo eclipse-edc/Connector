@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.services.spi.callback;
 
+import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.List;
 

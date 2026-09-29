@@ -18,8 +18,8 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.jsonld.spi.PropertyAndTypeNames;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

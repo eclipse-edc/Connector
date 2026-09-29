@@ -30,12 +30,12 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
 import org.junit.jupiter.api.BeforeEach;

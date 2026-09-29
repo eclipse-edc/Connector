@@ -36,6 +36,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
@@ -57,7 +58,6 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;

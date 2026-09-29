@@ -17,8 +17,8 @@ package org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.policy.cel.model.CelExpressionTestResponse;
 import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
@@ -40,7 +41,6 @@ import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.List;
 import java.util.Map;

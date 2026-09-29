@@ -17,8 +17,8 @@ package org.eclipse.edc.api.management.schema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.List;
 import java.util.Set;

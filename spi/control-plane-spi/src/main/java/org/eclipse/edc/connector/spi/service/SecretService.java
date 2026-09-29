@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.spi.service;
 
+import org.eclipse.edc.controlplane.Secret;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.types.domain.secret.Secret;
 
 public interface SecretService {
 

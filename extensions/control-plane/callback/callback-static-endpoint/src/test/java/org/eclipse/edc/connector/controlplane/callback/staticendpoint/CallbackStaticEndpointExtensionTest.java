@@ -16,11 +16,11 @@ package org.eclipse.edc.connector.controlplane.callback.staticendpoint;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry;
+import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

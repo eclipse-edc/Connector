@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.protocol.dsp.http.spi.message;
 
+import org.eclipse.edc.controlplane.ErrorMessage;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextSupplier;
-import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 
 import java.util.function.Supplier;
 

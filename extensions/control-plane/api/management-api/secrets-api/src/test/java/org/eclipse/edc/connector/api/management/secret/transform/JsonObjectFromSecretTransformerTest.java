@@ -17,17 +17,17 @@ package org.eclipse.edc.connector.api.management.secret.transform;
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
-import org.eclipse.edc.spi.types.domain.secret.Secret;
+import org.eclipse.edc.controlplane.Secret;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.controlplane.Secret.EDC_SECRET_TYPE;
+import static org.eclipse.edc.controlplane.Secret.EDC_SECRET_VALUE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE;
-import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
 import static org.mockito.Mockito.mock;
 
 

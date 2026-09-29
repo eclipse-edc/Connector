@@ -16,9 +16,9 @@ package org.eclipse.edc.connector.controlplane.services.secret;
 
 import org.eclipse.edc.connector.secret.spi.observe.SecretObservable;
 import org.eclipse.edc.connector.spi.service.SecretService;
+import org.eclipse.edc.controlplane.Secret;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.types.domain.secret.Secret;
 
 import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.spi.result.ServiceResult.badRequest;

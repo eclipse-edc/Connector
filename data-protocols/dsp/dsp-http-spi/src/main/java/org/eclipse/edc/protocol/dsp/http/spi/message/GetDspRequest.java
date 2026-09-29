@@ -16,8 +16,8 @@
 
 package org.eclipse.edc.protocol.dsp.http.spi.message;
 
+import org.eclipse.edc.controlplane.ErrorMessage;
 import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
-import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 
 public class GetDspRequest<I extends ProtocolRemoteMessage, R, E extends ErrorMessage> extends DspRequest<I, R, E> {
 

@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.callback.dispatcher;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessCompleted;
+import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
@@ -23,7 +24,6 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;

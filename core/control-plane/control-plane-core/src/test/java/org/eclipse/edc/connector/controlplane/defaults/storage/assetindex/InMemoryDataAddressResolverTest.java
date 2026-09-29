@@ -16,8 +16,8 @@ package org.eclipse.edc.connector.controlplane.defaults.storage.assetindex;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.query.asset.AssetPropertyLookup;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -83,7 +83,6 @@ class InMemoryDataAddressResolverTest {
 
     private DataAddress createDataAddress() {
         return DataAddress.Builder.newInstance()
-                .keyName("test-keyname")
                 .type("type")
                 .build();
     }

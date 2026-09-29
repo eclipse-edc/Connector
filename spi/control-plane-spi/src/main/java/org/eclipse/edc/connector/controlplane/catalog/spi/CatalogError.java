@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.controlplane.catalog.spi;
 
-import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
+import org.eclipse.edc.controlplane.ErrorMessage;
 
 /**
- * Represents an error message specific to the dps catalog requests .
+ * Represents an error message specific to the dsp catalog requests .
  * This class extends the generic {@link ErrorMessage} to provide additional
  * context and functionality specific to catalog-related errors.
  */

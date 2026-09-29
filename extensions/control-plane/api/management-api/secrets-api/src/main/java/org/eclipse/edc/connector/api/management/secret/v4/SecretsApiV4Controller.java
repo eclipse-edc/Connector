@@ -30,7 +30,7 @@ import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.validation.SchemaType;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE_TERM;
+import static org.eclipse.edc.controlplane.Secret.EDC_SECRET_TYPE_TERM;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)

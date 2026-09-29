@@ -16,11 +16,11 @@ package org.eclipse.edc.connector.controlplane.transfer.spi.event;
 
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.controlplane.CallbackAddress;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

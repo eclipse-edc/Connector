@@ -14,8 +14,10 @@
 
 package org.eclipse.edc.transform.transformer.dspace;
 
+import org.eclipse.edc.controlplane.DataAddress;
+
 /**
- * Contains constants specifically intended for serializing a {@link org.eclipse.edc.spi.types.domain.DataAddress}
+ * Contains constants specifically intended for serializing a {@link DataAddress}
  * to JSON-LD using the `dspace:` prefix format.
  */
 public interface DataAddressDspaceSerialization {

@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.spi.types;
 
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 
 /**
  * Represents a store for managing {@link DataAddress} entries associated with {@link TransferProcess} instances.

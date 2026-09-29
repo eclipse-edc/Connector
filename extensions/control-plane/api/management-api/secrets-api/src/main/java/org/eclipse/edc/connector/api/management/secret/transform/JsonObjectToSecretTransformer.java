@@ -16,14 +16,14 @@ package org.eclipse.edc.connector.api.management.secret.transform;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.controlplane.Secret;
 import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
-import org.eclipse.edc.spi.types.domain.secret.Secret;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.controlplane.Secret.EDC_SECRET_VALUE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
 
 
 public class JsonObjectToSecretTransformer extends JsonLdToModelTransformer<JsonObject, Secret> {

@@ -17,8 +17,8 @@ package org.eclipse.edc.connector.controlplane.transfer.spi.testfixtures.store;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
+import org.eclipse.edc.controlplane.CallbackAddress;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;

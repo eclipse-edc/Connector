@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol;
 
-import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
+import org.eclipse.edc.controlplane.ErrorMessage;
 
 /**
- * Represents an error message specific to the dps transfer requests .
+ * Represents an error message specific to the dsp transfer requests .
  * This class extends the generic {@link ErrorMessage} to provide additional
  * context and functionality specific to transfer-related errors.
  */

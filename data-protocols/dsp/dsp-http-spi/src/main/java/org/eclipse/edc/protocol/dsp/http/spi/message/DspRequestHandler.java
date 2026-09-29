@@ -16,8 +16,8 @@
 package org.eclipse.edc.protocol.dsp.http.spi.message;
 
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.controlplane.ErrorMessage;
 import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
-import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 
 /**
  * Handles incoming DSP requests

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,12 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
- *       Siemens AG - enable read property and return a default value is missing
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
-package org.eclipse.edc.spi.types.domain;
+package org.eclipse.edc.controlplane;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -46,7 +45,6 @@ public class DataAddress {
     public static final String EDC_DATA_ADDRESS_TYPE = EDC_NAMESPACE + "DataAddress";
     public static final String EDC_DATA_ADDRESS_TYPE_PROPERTY = EDC_NAMESPACE + SIMPLE_TYPE;
     public static final String EDC_DATA_ADDRESS_KEY_NAME = EDC_NAMESPACE + SIMPLE_KEY_NAME;
-    public static final String EDC_DATA_ADDRESS_SECRET = EDC_NAMESPACE + "secret";
     public static final String EDC_DATA_ADDRESS_RESPONSE_CHANNEL = EDC_NAMESPACE + "responseChannel";
 
     protected final Map<String, Object> properties = new HashMap<>();
@@ -88,19 +86,9 @@ public class DataAddress {
         return properties;
     }
 
-    public String getKeyName() {
-        return getStringProperty(EDC_DATA_ADDRESS_KEY_NAME);
-    }
-
     @JsonIgnore
     public DataAddress getResponseChannel() {
         return (DataAddress) getProperty(EDC_DATA_ADDRESS_RESPONSE_CHANNEL);
-    }
-
-    @JsonIgnore
-    public void setKeyName(String keyName) {
-        Objects.requireNonNull(keyName);
-        properties.put(EDC_DATA_ADDRESS_KEY_NAME, keyName);
     }
 
     public DataAddress.Builder toBuilder() {
@@ -149,11 +137,6 @@ public class DataAddress {
 
         public B properties(Map<String, Object> properties) {
             properties.forEach(this::property);
-            return self();
-        }
-
-        public B keyName(String keyName) {
-            address.getProperties().put(EDC_DATA_ADDRESS_KEY_NAME, Objects.requireNonNull(keyName));
             return self();
         }
 

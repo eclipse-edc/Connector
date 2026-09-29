@@ -23,10 +23,10 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
+import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.entity.StatefulEntity;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

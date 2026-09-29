@@ -18,8 +18,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.participantcontext.spi.types.AbstractParticipantResource;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.HashMap;
 import java.util.Map;

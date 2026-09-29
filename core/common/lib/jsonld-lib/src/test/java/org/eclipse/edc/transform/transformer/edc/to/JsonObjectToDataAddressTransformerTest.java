@@ -16,9 +16,9 @@ package org.eclipse.edc.transform.transformer.edc.to;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,7 +76,6 @@ class JsonObjectToDataAddressTransformerTest {
         var dataAddress = transformer.transform(json, transformerContext);
         assertThat(dataAddress).isNotNull();
         assertThat(dataAddress.getType()).isEqualTo(TEST_TYPE);
-        assertThat(dataAddress.getKeyName()).isEqualTo(TEST_KEY_NAME);
     }
 
     @Test

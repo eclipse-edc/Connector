@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.controlplane.transfer.spi.event;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.controlplane.DataAddress;
 
 /**
  * This event is raised when the TransferProcess has been started.

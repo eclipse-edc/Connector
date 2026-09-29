@@ -16,13 +16,13 @@ package org.eclipse.edc.connector.controlplane.callback.dispatcher;
 
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackClient;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry;
+import org.eclipse.edc.controlplane.CallbackAddress;
+import org.eclipse.edc.controlplane.CallbackAddresses;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.event.CallbackAddresses;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.List;
 import java.util.stream.Collectors;
