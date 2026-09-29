@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transfer.spi.types;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
-import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.controlplane.DataAddress;
 
 /**
  * A Response for {@link DataFlowController#start} and {@link DataFlowController#prepare} operation

@@ -35,8 +35,8 @@ import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE;
+import static org.eclipse.edc.controlplane.DataAddress.EDC_DATA_ADDRESS_TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
-import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE;
 
 @Extension(value = AssetApiExtension.NAME)
 public class AssetApiExtension implements ServiceExtension {

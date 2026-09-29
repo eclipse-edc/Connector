@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Amadeus
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,12 +8,13 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Amadeus - Initial API and Implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
-package org.eclipse.edc.spi.types.domain.secret;
+package org.eclipse.edc.controlplane.domain;
 
+import org.eclipse.edc.controlplane.Secret;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;

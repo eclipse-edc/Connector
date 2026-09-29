@@ -18,8 +18,8 @@ import org.eclipse.edc.connector.secret.spi.event.SecretCreated;
 import org.eclipse.edc.connector.secret.spi.event.SecretDeleted;
 import org.eclipse.edc.connector.secret.spi.event.SecretUpdated;
 import org.eclipse.edc.connector.secret.spi.observe.SecretListener;
+import org.eclipse.edc.controlplane.Secret;
 import org.eclipse.edc.spi.event.EventRouter;
-import org.eclipse.edc.spi.types.domain.secret.Secret;
 
 /**
  * Listener responsible for creating and publishing events regarding Secret state changes

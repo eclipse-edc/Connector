@@ -19,7 +19,7 @@ import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
+import static org.eclipse.edc.controlplane.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 
 public class DataAddressValidator {
     public static Validator<JsonObject> instance() {

@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.asset.spi.index;
 
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 
 /**
  * Resolves a {@link DataAddress} that is associated with an Asset.

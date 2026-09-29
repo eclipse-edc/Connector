@@ -15,8 +15,8 @@
 package org.eclipse.edc.protocol.dsp.http.spi.message;
 
 import jakarta.json.JsonObject;
+import org.eclipse.edc.controlplane.ErrorMessage;
 import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
-import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 
 /**
  * Defines an incoming DSP message as a remote message type.

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,12 +8,13 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
-package org.eclipse.edc.spi.types.domain;
+package org.eclipse.edc.controlplane.domain;
 
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.junit.jupiter.api.Test;
 
@@ -25,8 +26,8 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.controlplane.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 
 class DataAddressTest {
 
@@ -40,7 +41,6 @@ class DataAddressTest {
 
         var dataAddress = DataAddress.Builder.newInstance()
                 .type("test")
-                .keyName("somekey")
                 .responseChannel(responseChannelMap)
                 .property("foo", "bar").build();
         var writer = new StringWriter();
@@ -64,7 +64,6 @@ class DataAddressTest {
         var mapper = new JacksonTypeManager().getMapper();
         var dataAddress = DataAddress.Builder.newInstance()
                 .type("test")
-                .keyName("somekey")
                 .property("foo", "bar")
                 .property("complexJsonObject", DataAddress.Builder.newInstance().property(EDC_DATA_ADDRESS_TYPE_PROPERTY, "AmazonS3").build())
                 .property("complexJsonArray", List.of("string1", "string2"))
@@ -87,7 +86,6 @@ class DataAddressTest {
     @Test
     void verifyNoTypeThrowsException() {
         assertThatNullPointerException().isThrownBy(() -> DataAddress.Builder.newInstance()
-                        .keyName("somekey")
                         .property("foo", "bar")
                         .build())
                 .withMessageContaining("DataAddress builder missing Type property.");
@@ -95,14 +93,13 @@ class DataAddressTest {
 
     @Test
     void verifyNullKeyThrowsException() {
-        assertThatThrownBy(() -> DataAddress.Builder.newInstance().type("sometype").keyName("somekey").property(null, "bar").build())
+        assertThatThrownBy(() -> DataAddress.Builder.newInstance().type("sometype").property(null, "bar").build())
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("Property key null.");
 
 
         assertThatNullPointerException().isThrownBy(() -> DataAddress.Builder.newInstance()
                         .type("sometype")
-                        .keyName("somekey")
                         .property(null, "bar")
                         .build())
                 .withMessageContaining("Property key null.");

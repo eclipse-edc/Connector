@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.secret.spi.observe;
 
+import org.eclipse.edc.controlplane.Secret;
 import org.eclipse.edc.spi.observe.Observable;
-import org.eclipse.edc.spi.types.domain.secret.Secret;
 
 /**
  * Interface implemented by listeners registered to observe secret state changes via {@link Observable#registerListener}.

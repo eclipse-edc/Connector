@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transfer.spi.observe;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.controlplane.DataAddress;
 
 /**
  * Additional data when calling {@link TransferProcessListener#started} not stored in the {@link TransferProcess}

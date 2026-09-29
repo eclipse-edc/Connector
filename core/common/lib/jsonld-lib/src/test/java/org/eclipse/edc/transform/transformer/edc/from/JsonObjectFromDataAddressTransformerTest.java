@@ -19,9 +19,9 @@ import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,11 +32,10 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.controlplane.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
+import static org.eclipse.edc.controlplane.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_KEY_NAME;
-import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
-import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
@@ -49,7 +48,6 @@ class JsonObjectFromDataAddressTransformerTest {
     private static final String TEST_KEY = "region";
     private static final String TEST_VALUE = "europe";
     private final String type = "testType";
-    private final String key = "testKey";
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
     private final TypeManager typeManager = mock();
@@ -69,7 +67,6 @@ class JsonObjectFromDataAddressTransformerTest {
                 .build();
         var message = DataAddress.Builder.newInstance()
                 .type(type)
-                .keyName(key)
                 .property("string", "test")
                 .property("integer", 123)
                 .property("whatAboutDouble", 123.456)
@@ -93,7 +90,6 @@ class JsonObjectFromDataAddressTransformerTest {
         var expectedJson = jsonObject()
                 .add(TYPE, EDC_NAMESPACE + "DataAddress")
                 .add(EDC_DATA_ADDRESS_TYPE_PROPERTY, type)
-                .add(EDC_DATA_ADDRESS_KEY_NAME, key)
                 .add("string", "test")
                 .add("integer", 123)
                 .add("whatAboutDouble", 123.456)
@@ -131,7 +127,6 @@ class JsonObjectFromDataAddressTransformerTest {
 
         var rootDataAddress = DataAddress.Builder.newInstance()
                 .type(type)
-                .keyName(key)
                 .property("nestedDataAddress", innerDataAddress)
                 .build();
 
@@ -151,7 +146,6 @@ class JsonObjectFromDataAddressTransformerTest {
         var schema = "https://some.custom.org/schema/";
         var message = DataAddress.Builder.newInstance()
                 .type(type)
-                .keyName(key)
                 .property(schema + TEST_KEY, TEST_VALUE)
                 .build();
 

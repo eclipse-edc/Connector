@@ -15,9 +15,7 @@
 package org.eclipse.edc.api;
 
 import jakarta.json.Json;
-import org.eclipse.edc.api.transformer.JsonObjectFromCallbackAddressTransformer;
 import org.eclipse.edc.api.transformer.JsonObjectFromIdResponseTransformer;
-import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
@@ -54,9 +52,7 @@ public class ApiCoreExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var jsonFactory = Json.createBuilderFactory(Map.of());
 
-        transformerRegistry.register(new JsonObjectFromCallbackAddressTransformer(jsonFactory));
         transformerRegistry.register(new JsonObjectFromIdResponseTransformer(jsonFactory));
-        transformerRegistry.register(new JsonObjectToCallbackAddressTransformer());
 
         validatorRegistry.register(EDC_QUERY_SPEC_TYPE, QuerySpecValidator.instance(criterionOperatorRegistry));
     }

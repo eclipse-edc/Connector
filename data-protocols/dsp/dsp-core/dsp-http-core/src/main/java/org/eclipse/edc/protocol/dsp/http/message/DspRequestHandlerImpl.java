@@ -19,6 +19,7 @@ package org.eclipse.edc.protocol.dsp.http.message;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.controlplane.ErrorMessage;
 import org.eclipse.edc.controlplane.ProcessRemoteMessage;
 import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
@@ -31,7 +32,6 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
-import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.jetbrains.annotations.NotNull;
 

@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowRespons
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessAck;
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
 import org.eclipse.edc.controlplane.tasks.Task;
 import org.eclipse.edc.controlplane.tasks.TaskService;
@@ -47,7 +48,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -140,7 +140,7 @@ class TransferProcessTaskExecutorImplTest {
     void handle(TransferProcessTaskPayload payload, TransferProcessStates expectedState) {
 
         var contractId = "contractId";
-        var dataAddress = DataAddress.Builder.newInstance().type("any").keyName("keyName").build();
+        var dataAddress = DataAddress.Builder.newInstance().type("any").build();
 
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
         when(dataFlowController.started(any())).thenReturn(StatusResult.success());

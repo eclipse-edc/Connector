@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,27 +8,27 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
-package org.eclipse.edc.api.transformer;
+package org.eclipse.edc.connector.controlplane.transform.to;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.AUTH_CODE_ID;
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.AUTH_KEY;
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
+import static org.eclipse.edc.controlplane.CallbackAddress.AUTH_CODE_ID;
+import static org.eclipse.edc.controlplane.CallbackAddress.AUTH_KEY;
+import static org.eclipse.edc.controlplane.CallbackAddress.EVENTS;
+import static org.eclipse.edc.controlplane.CallbackAddress.IS_TRANSACTIONAL;
+import static org.eclipse.edc.controlplane.CallbackAddress.URI;
 
 public class JsonObjectToCallbackAddressTransformer extends JsonLdToModelTransformer<JsonObject, CallbackAddress> {
 

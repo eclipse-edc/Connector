@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.spi.event;
 
+import org.eclipse.edc.controlplane.CallbackAddress;
+import org.eclipse.edc.controlplane.CallbackAddresses;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantEvent;
-import org.eclipse.edc.spi.event.CallbackAddresses;
 import org.eclipse.edc.spi.event.Event;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.ArrayList;
 import java.util.List;

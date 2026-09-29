@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.spi.types.command;
 
+import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.spi.command.EntityCommand;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 
 /**
  * Informs the transfer process that the startup phase has been completed

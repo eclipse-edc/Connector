@@ -20,7 +20,7 @@ import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
+import static org.eclipse.edc.controlplane.Secret.EDC_SECRET_VALUE;
 
 /**
  * Contains the SecretEntryDto validator definition
