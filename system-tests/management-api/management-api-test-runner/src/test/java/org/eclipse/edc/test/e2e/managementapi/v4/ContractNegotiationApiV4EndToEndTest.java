@@ -104,7 +104,9 @@ public class ContractNegotiationApiV4EndToEndTest {
             assertThat(jsonPath.getString("[0].protocol")).isEqualTo(DATASPACE_PROTOCOL_HTTP_V_2025_1);
             assertThat(jsonPath.getString("[1].protocol")).isEqualTo(DATASPACE_PROTOCOL_HTTP_V_2025_1);
             assertThat(jsonPath.getString("[0].@type")).isEqualTo("ContractNegotiation");
+            assertThat(jsonPath.getString("[0].policy.@type")).isEqualTo("Set");
             assertThat(jsonPath.getString("[1].@type")).isEqualTo("ContractNegotiation");
+            assertThat(jsonPath.getString("[1].policy.@type")).isEqualTo("Set");
             assertThat(jsonPath.getList("[0].@context")).contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2);
             assertThat(jsonPath.getList("[1].@context")).contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2);
 
