@@ -18,17 +18,13 @@ package org.eclipse.edc.connector.core;
 import org.eclipse.edc.connector.core.agent.ParticipantAgentServiceImpl;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.policy.engine.PolicyEngineImpl;
-import org.eclipse.edc.policy.engine.RuleBindingRegistryImpl;
-import org.eclipse.edc.policy.engine.ScopeFilter;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
-import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
 @Extension(value = CoreServicesExtension.NAME)
@@ -38,17 +34,12 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Inject
     private TypeManager typeManager;
-
+    @Inject
     private RuleBindingRegistry ruleBindingRegistry;
 
     @Override
     public String name() {
         return NAME;
-    }
-
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        ruleBindingRegistry = new RuleBindingRegistryImpl();
     }
 
     @Override
@@ -62,15 +53,8 @@ public class CoreServicesExtension implements ServiceExtension {
     }
 
     @Provider
-    public RuleBindingRegistry ruleBindingRegistry() {
-        return ruleBindingRegistry;
-    }
-
-    @Provider
     public PolicyEngine policyEngine() {
-        var scopeFilter = new ScopeFilter(ruleBindingRegistry);
-        var ruleValidator = new RuleValidator(ruleBindingRegistry);
-        return new PolicyEngineImpl(scopeFilter, ruleValidator);
+        return new PolicyEngineImpl(ruleBindingRegistry);
     }
 
 }

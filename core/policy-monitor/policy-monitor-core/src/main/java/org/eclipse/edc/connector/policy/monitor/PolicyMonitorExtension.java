@@ -25,7 +25,6 @@ import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.connector.policy.monitor.subscriber.StartMonitoring;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
-import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -71,8 +70,6 @@ public class PolicyMonitorExtension implements ServiceExtension {
     @Inject
     private PolicyMonitorStore policyMonitorStore;
     @Inject
-    private RuleBindingRegistry ruleBindingRegistry;
-    @Inject
     private TransactionContext transactionContext;
 
     private PolicyMonitorManager manager;
@@ -80,8 +77,8 @@ public class PolicyMonitorExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         policyEngine.registerScope(POLICY_MONITOR_SCOPE, PolicyMonitorContext.class);
-        ruleBindingRegistry.bind(ODRL_USE_ACTION_ATTRIBUTE, POLICY_MONITOR_SCOPE);
-        ruleBindingRegistry.bind(CONTRACT_EXPIRY_EVALUATION_KEY, POLICY_MONITOR_SCOPE);
+        policyEngine.bindScope(ODRL_USE_ACTION_ATTRIBUTE, POLICY_MONITOR_SCOPE);
+        policyEngine.bindScope(CONTRACT_EXPIRY_EVALUATION_KEY, POLICY_MONITOR_SCOPE);
         policyEngine.registerFunction(PolicyMonitorContext.class, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY, new ContractExpiryCheckFunction<>());
 
         var policyMonitor = new PolicyMonitor(policyMonitorStore, telemetry, transferProcessService,

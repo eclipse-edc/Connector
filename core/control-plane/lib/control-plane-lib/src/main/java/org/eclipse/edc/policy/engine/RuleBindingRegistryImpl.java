@@ -49,7 +49,7 @@ public class RuleBindingRegistryImpl implements RuleBindingRegistry {
             return true;
         }
         var delimitedScope = scope + DELIMITER;
-        for (String boundScope : boundScopes) {
+        for (var boundScope : boundScopes) {
             if (delimitedScope.startsWith(boundScope)) {
                 return true;
             }
@@ -58,10 +58,14 @@ public class RuleBindingRegistryImpl implements RuleBindingRegistry {
     }
 
     @Override
-    public Set<String> bindings(String ruleType) {
+    public boolean isBounded(String ruleType) {
+        return !bindings(ruleType).isEmpty();
+    }
+
+    private Set<String> bindings(String ruleType) {
         var boundScopes = ruleBindings.get(ruleType);
         if (boundScopes == null) {
-            boundScopes = dynamicBinders.stream()
+            return dynamicBinders.stream()
                     .flatMap(binder -> binder.apply(ruleType).stream())
                     .collect(Collectors.toSet());
         }

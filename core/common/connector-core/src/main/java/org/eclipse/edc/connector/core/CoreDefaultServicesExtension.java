@@ -17,6 +17,8 @@ package org.eclipse.edc.connector.core;
 import org.eclipse.edc.connector.core.profile.DataspaceProfileContextRegistryImpl;
 import org.eclipse.edc.participant.spi.NoOpParticipantIdMapper;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
+import org.eclipse.edc.policy.engine.RuleBindingRegistryImpl;
+import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -43,5 +45,10 @@ public class CoreDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public DataspaceProfileContextRegistry dataspaceProfileContextRegistry() {
         return new DataspaceProfileContextRegistryImpl();
+    }
+
+    @Provider
+    public RuleBindingRegistry ruleBindingRegistry() {
+        return new RuleBindingRegistryImpl();
     }
 }

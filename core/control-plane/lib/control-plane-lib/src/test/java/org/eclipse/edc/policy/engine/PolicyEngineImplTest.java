@@ -21,8 +21,6 @@ import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.PolicyRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
-import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
-import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Duty;
@@ -64,12 +62,10 @@ class PolicyEngineImplTest {
     private static final String PARENT_SCOPE = "parent";
     private static final String CHILD_SCOPE = "parent.child";
     private static final String FOO_SCOPE = "foo";
-    private final RuleBindingRegistry bindingRegistry = new RuleBindingRegistryImpl();
-    private PolicyEngine policyEngine;
+    private final PolicyEngine policyEngine = new PolicyEngineImpl(new RuleBindingRegistryImpl());
 
     @BeforeEach
     void setUp() {
-        policyEngine = new PolicyEngineImpl(new ScopeFilter(bindingRegistry), new RuleValidator(bindingRegistry));
         policyEngine.registerScope(TEST_SCOPE, TestContext.class);
         policyEngine.registerScope(PARENT_SCOPE, ParentContext.class);
         policyEngine.registerScope(CHILD_SCOPE, ChildContext.class);
@@ -90,7 +86,7 @@ class PolicyEngineImplTest {
     @Test
     void validateUnsatisfiedDuty() {
         var context = new TestContext();
-        bindingRegistry.bind("foo", ALL_SCOPES);
+        policyEngine.bindScope("foo", ALL_SCOPES);
 
         policyEngine.registerFunction(TestContext.class, Duty.class, "foo", (op, rv, duty, ctx) -> false);
 
@@ -110,7 +106,7 @@ class PolicyEngineImplTest {
     void validateRuleOutOfScope() {
         // Verifies that a rule will be filtered if its action is not registered. The constraint is registered but should be filtered since it is contained in the permission.
         // If the permission is not properly filtered, the constraint will not be fulfilled and raise an exception.
-        bindingRegistry.bind("foo", ALL_SCOPES);
+        policyEngine.bindScope("foo", ALL_SCOPES);
         var context = new TestContext();
 
         var left = new LiteralExpression("foo");
@@ -129,7 +125,7 @@ class PolicyEngineImplTest {
 
     @Test
     void validateNotGrantedPermission() {
-        bindingRegistry.bind("foo", ALL_SCOPES);
+        policyEngine.bindScope("foo", ALL_SCOPES);
 
         policyEngine.registerFunction(TestContext.class, Permission.class, "foo", (op, rv, duty, context) -> false);
         var context = new TestContext();
@@ -148,7 +144,7 @@ class PolicyEngineImplTest {
 
     @Test
     void validateTriggeredProhibition() {
-        bindingRegistry.bind("foo", ALL_SCOPES);
+        policyEngine.bindScope("foo", ALL_SCOPES);
 
         policyEngine.registerFunction(PolicyContext.class, Prohibition.class, "foo", (op, rv, duty, context) -> true);
         var context = new TestContext();
@@ -163,7 +159,7 @@ class PolicyEngineImplTest {
 
     @Test
     void validateConstraintFunctionOutOfScope() {
-        bindingRegistry.bind("foo", ALL_SCOPES);
+        policyEngine.bindScope("foo", ALL_SCOPES);
 
         policyEngine.registerFunction(FooContext.class, Prohibition.class, "foo", (op, rv, duty, context) -> fail("Foo prohibition should be out of scope"));
         policyEngine.registerFunction(TestContext.class, Prohibition.class, "foo", (op, rv, duty, context) -> true);
@@ -179,7 +175,7 @@ class PolicyEngineImplTest {
 
     @Test
     void validateRuleFunctionOutOfScope() {
-        bindingRegistry.bind("foo", ALL_SCOPES);
+        policyEngine.bindScope("foo", ALL_SCOPES);
 
         var action = Action.Builder.newInstance().type("use").build();
 
@@ -199,7 +195,7 @@ class PolicyEngineImplTest {
 
     @Test
     void validateAllScopesPreFunctionalValidator() {
-        bindingRegistry.bind("foo", ALL_SCOPES);
+        policyEngine.bindScope("foo", ALL_SCOPES);
 
         PolicyValidatorRule<PolicyContext> function = (policy, context) -> false;
         policyEngine.registerPreValidator(PolicyContext.class, function);
@@ -214,7 +210,7 @@ class PolicyEngineImplTest {
 
     @Test
     void validateAllScopesPostFunctionalValidator() {
-        bindingRegistry.bind("foo", ALL_SCOPES);
+        policyEngine.bindScope("foo", ALL_SCOPES);
 
         PolicyValidatorRule<PolicyContext> function = (policy, context) -> false;
         policyEngine.registerPostValidator(PolicyContext.class, function);
@@ -231,7 +227,7 @@ class PolicyEngineImplTest {
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
     void validateAllScopesPrePostValidator(boolean preValidation) {
-        bindingRegistry.bind("foo", ALL_SCOPES);
+        policyEngine.bindScope("foo", ALL_SCOPES);
 
         if (preValidation) {
             policyEngine.registerPreValidator(PolicyContext.class, (policy, context) -> false);
@@ -249,7 +245,7 @@ class PolicyEngineImplTest {
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
     void validateScopedPrePostValidator(boolean preValidation) {
-        bindingRegistry.bind("foo", TEST_SCOPE);
+        policyEngine.bindScope("foo", TEST_SCOPE);
 
         if (preValidation) {
             policyEngine.registerPreValidator(TestContext.class, (policy, context) -> false);
@@ -268,7 +264,7 @@ class PolicyEngineImplTest {
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
     void validateOutOfScopedPrePostValidator(boolean preValidation) {
-        bindingRegistry.bind("foo", TEST_SCOPE);
+        policyEngine.bindScope("foo", TEST_SCOPE);
 
         if (preValidation) {
             policyEngine.registerPreValidator(FooContext.class, (policy, context) -> false);
@@ -288,7 +284,7 @@ class PolicyEngineImplTest {
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
     void validateHierarchicalScopedNotFiredPrePostValidator(boolean preValidation) {
-        bindingRegistry.bind("foo", TEST_SCOPE);
+        policyEngine.bindScope("foo", TEST_SCOPE);
 
         if (preValidation) {
             policyEngine.registerPreValidator(ChildContext.class, (policy, context) -> false);
@@ -308,7 +304,7 @@ class PolicyEngineImplTest {
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
     void validateHierarchicalScopedFiredPrePostValidator(boolean preValidation) {
-        bindingRegistry.bind("foo", PARENT_SCOPE);
+        policyEngine.bindScope("foo", PARENT_SCOPE);
 
         if (preValidation) {
             policyEngine.registerPreValidator(ParentContext.class, (policy, context) -> false);
@@ -327,7 +323,7 @@ class PolicyEngineImplTest {
     @ParameterizedTest
     @ArgumentsSource(PolicyProvider.class)
     void shouldTriggerDynamicFunction_whenWildcardScope(Policy policy, Class<Rule> ruleClass, boolean evaluateReturn) {
-        bindingRegistry.dynamicBind((key) -> Set.of(TEST_SCOPE));
+        policyEngine.dynamicScopeBinder((key) -> Set.of(TEST_SCOPE));
 
         var context = new TestContext();
         DynamicAtomicConstraintRuleFunction<Rule, PolicyContext> function = mock();
@@ -347,7 +343,7 @@ class PolicyEngineImplTest {
     @ParameterizedTest
     @ArgumentsSource(PolicyProvider.class)
     void shouldTriggerDynamicFunction_whenExplicitScope(Policy policy, Class<Rule> ruleClass, boolean evaluateReturn) {
-        bindingRegistry.dynamicBind((key) -> Set.of(TEST_SCOPE));
+        policyEngine.dynamicScopeBinder((key) -> Set.of(TEST_SCOPE));
 
         var context = new TestContext();
         DynamicAtomicConstraintRuleFunction<Rule, TestContext> function = mock();
@@ -367,9 +363,9 @@ class PolicyEngineImplTest {
     @ParameterizedTest
     @ArgumentsSource(PolicyProvider.class)
     void shouldNotTriggerDynamicFunction_whenBindAlreadyAvailable(Policy policy, Class<Rule> ruleClass) {
-        bindingRegistry.bind("foo", ALL_SCOPES);
+        policyEngine.bindScope("foo", ALL_SCOPES);
         policyEngine.registerFunction(PolicyContext.class, ruleClass, "foo", (op, rv, duty, context) -> !ruleClass.isAssignableFrom(Prohibition.class));
-        bindingRegistry.dynamicBind((key) -> Set.of(TEST_SCOPE));
+        policyEngine.dynamicScopeBinder((key) -> Set.of(TEST_SCOPE));
 
         var context = new TestContext();
         DynamicAtomicConstraintRuleFunction<Rule, PolicyContext> function = mock();
@@ -385,7 +381,7 @@ class PolicyEngineImplTest {
     @ParameterizedTest
     @ArgumentsSource(PolicyProvider.class)
     void shouldNotTriggerDynamicFunction_whenDifferentScope(Policy policy, Class<Rule> ruleClass, boolean evaluateReturn) {
-        bindingRegistry.dynamicBind((key) -> Set.of(TEST_SCOPE));
+        policyEngine.dynamicScopeBinder((key) -> Set.of(TEST_SCOPE));
 
         var context = new FooContext();
         DynamicAtomicConstraintRuleFunction<Rule, TestContext> function = mock();
@@ -406,7 +402,7 @@ class PolicyEngineImplTest {
 
         @Test
         void shouldUseTypedContextOnAtomicConstraintFunction() {
-            bindingRegistry.bind("foo", ALL_SCOPES);
+            policyEngine.bindScope("foo", ALL_SCOPES);
 
             var left = new LiteralExpression("foo");
             var right = new LiteralExpression("bar");
@@ -428,7 +424,7 @@ class PolicyEngineImplTest {
 
         @Test
         void shouldUseTypedContextOnDynamicConstraintFunction() {
-            bindingRegistry.bind("foo", ALL_SCOPES);
+            policyEngine.bindScope("foo", ALL_SCOPES);
 
             var left = new LiteralExpression("foo");
             var right = new LiteralExpression("bar");
@@ -451,7 +447,7 @@ class PolicyEngineImplTest {
 
         @Test
         void shouldUseTypedContextOnRuleFunction() {
-            bindingRegistry.bind("foo", ALL_SCOPES);
+            policyEngine.bindScope("foo", ALL_SCOPES);
 
             var left = new LiteralExpression("foo");
             var right = new LiteralExpression("bar");
@@ -473,7 +469,7 @@ class PolicyEngineImplTest {
 
         @Test
         void validateChildScopeNotVisible() {
-            bindingRegistry.bind("foo", ALL_SCOPES);
+            policyEngine.bindScope("foo", ALL_SCOPES);
 
             AtomicConstraintRuleFunction<Prohibition, ParentContext> parentFunction = mock();
             when(parentFunction.evaluate(any(), any(), any(), any())).thenReturn(true);
@@ -494,7 +490,7 @@ class PolicyEngineImplTest {
 
         @Test
         void validateScopeIsInheritedByChildren() {
-            bindingRegistry.bind("foo", ALL_SCOPES);
+            policyEngine.bindScope("foo", ALL_SCOPES);
             AtomicConstraintRuleFunction<Prohibition, ParentContext> parentFunction = mock();
             when(parentFunction.evaluate(any(), any(), any(), any())).thenReturn(true);
             policyEngine.registerFunction(ParentContext.class, Prohibition.class, "foo", parentFunction);

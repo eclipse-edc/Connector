@@ -20,13 +20,11 @@ import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.PolicyRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
-import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.spi.plan.step.AtomicConstraintStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.MultiplicityConstraintStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.RuleStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.ValidatorStep;
-import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
@@ -65,7 +63,6 @@ class PolicyEngineImplPlannerTest {
 
     private static final String TEST_SCOPE = "test";
 
-    private final RuleBindingRegistry bindingRegistry = new RuleBindingRegistryImpl();
     private PolicyEngine policyEngine;
 
     private static AtomicConstraint atomicConstraint(String key, String value) {
@@ -80,7 +77,7 @@ class PolicyEngineImplPlannerTest {
 
     @BeforeEach
     void setUp() {
-        policyEngine = new PolicyEngineImpl(new ScopeFilter(bindingRegistry), new RuleValidator(bindingRegistry));
+        policyEngine = new PolicyEngineImpl(new RuleBindingRegistryImpl());
         policyEngine.registerScope("test", TestContext.class);
     }
 
@@ -91,8 +88,8 @@ class PolicyEngineImplPlannerTest {
         @ArgumentsSource(SimplePolicyProvider.class)
         void withRule(Policy policy, Class<Rule> ruleClass, String action, String key, Function<PolicyEvaluationPlan, List<RuleStep<? extends Rule>>> stepsProvider) {
 
-            bindingRegistry.bind(action, TEST_SCOPE);
-            bindingRegistry.bind(key, TEST_SCOPE);
+            policyEngine.bindScope(action, TEST_SCOPE);
+            policyEngine.bindScope(key, TEST_SCOPE);
 
             policyEngine.registerFunction(TestContext.class, ruleClass, key, (op, rv, r, ctx) -> true);
 
@@ -131,8 +128,8 @@ class PolicyEngineImplPlannerTest {
                 }
             };
 
-            bindingRegistry.bind(action, TEST_SCOPE);
-            bindingRegistry.bind(key, TEST_SCOPE);
+            policyEngine.bindScope(action, TEST_SCOPE);
+            policyEngine.bindScope(key, TEST_SCOPE);
 
             policyEngine.registerFunction(TestContext.class, ruleClass, function);
 
@@ -161,8 +158,8 @@ class PolicyEngineImplPlannerTest {
 
             PolicyRuleFunction<Rule, TestContext> function = mock();
 
-            bindingRegistry.bind(action, TEST_SCOPE);
-            bindingRegistry.bind(key, TEST_SCOPE);
+            policyEngine.bindScope(action, TEST_SCOPE);
+            policyEngine.bindScope(key, TEST_SCOPE);
 
             policyEngine.registerFunction(TestContext.class, ruleClass, function);
             policyEngine.registerFunction(TestContext.class, ruleClass, function);
@@ -189,8 +186,8 @@ class PolicyEngineImplPlannerTest {
         @ArgumentsSource(SimplePolicyProvider.class)
         void withRuleAndRuleFunctionNotBound(Policy policy, Class<Rule> ruleClass, String action, String key, Function<PolicyEvaluationPlan, List<RuleStep<? extends Rule>>> stepsProvider) {
 
-            bindingRegistry.bind(action, TEST_SCOPE);
-            bindingRegistry.bind(key, TEST_SCOPE);
+            policyEngine.bindScope(action, TEST_SCOPE);
+            policyEngine.bindScope(key, TEST_SCOPE);
 
             PolicyRuleFunction<Rule, UnboundedContext> function = mock();
             policyEngine.registerFunction(UnboundedContext.class, ruleClass, function);
@@ -216,8 +213,8 @@ class PolicyEngineImplPlannerTest {
             var permission = Permission.Builder.newInstance().constraint(constraint).duty(duty).action(action).build();
             var policy = Policy.Builder.newInstance().permission(permission).build();
 
-            bindingRegistry.bind(actionType, TEST_SCOPE);
-            bindingRegistry.bind(key, TEST_SCOPE);
+            policyEngine.bindScope(actionType, TEST_SCOPE);
+            policyEngine.bindScope(key, TEST_SCOPE);
 
             policyEngine.registerFunction(TestContext.class, Duty.class, key, (op, rv, r, ctx) -> true);
 
@@ -275,7 +272,7 @@ class PolicyEngineImplPlannerTest {
         @Test
         void shouldIgnorePermissionStep_whenActionNotBound() {
 
-            bindingRegistry.bind("foo", TEST_SCOPE);
+            policyEngine.bindScope("foo", TEST_SCOPE);
 
             var constraint = atomicConstraint("foo", "bar");
 
@@ -301,7 +298,7 @@ class PolicyEngineImplPlannerTest {
         @Test
         void shouldIgnoreAtomicConstraintStep_whenLeftExpressionNotScopeBound() {
 
-            bindingRegistry.bind("action", TEST_SCOPE);
+            policyEngine.bindScope("action", TEST_SCOPE);
 
             var constraint = atomicConstraint("foo", "bar");
             var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("action").build()).constraint(constraint).build();
@@ -324,8 +321,8 @@ class PolicyEngineImplPlannerTest {
         @Test
         void shouldIgnoreAtomicConstraintStep_whenLeftExpressionNotFunctionBound() {
 
-            bindingRegistry.bind("action", TEST_SCOPE);
-            bindingRegistry.bind("foo", TEST_SCOPE);
+            policyEngine.bindScope("action", TEST_SCOPE);
+            policyEngine.bindScope("foo", TEST_SCOPE);
 
             var constraint = atomicConstraint("foo", "bar");
             var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("action").build()).constraint(constraint).build();
@@ -353,8 +350,8 @@ class PolicyEngineImplPlannerTest {
 
             when(function.canHandle(any())).thenReturn(true);
 
-            bindingRegistry.bind("action", TEST_SCOPE);
-            bindingRegistry.bind("foo", TEST_SCOPE);
+            policyEngine.bindScope("action", TEST_SCOPE);
+            policyEngine.bindScope("foo", TEST_SCOPE);
 
             var constraint = atomicConstraint("foo", "bar");
             var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("action").build()).constraint(constraint).build();
@@ -384,8 +381,8 @@ class PolicyEngineImplPlannerTest {
         @ParameterizedTest
         @ArgumentsSource(MultiplicityPolicyProvider.class)
         void shouldEvaluate_withMultiplicityConstraint(Policy policy, Class<Rule> ruleClass, String action, String key, Function<PolicyEvaluationPlan, List<RuleStep<? extends Rule>>> stepsProvider) {
-            bindingRegistry.bind(key, TEST_SCOPE);
-            bindingRegistry.bind(action, TEST_SCOPE);
+            policyEngine.bindScope(key, TEST_SCOPE);
+            policyEngine.bindScope(action, TEST_SCOPE);
 
             policyEngine.registerFunction(TestContext.class, ruleClass, key, (op, rv, r, ctx) -> true);
 

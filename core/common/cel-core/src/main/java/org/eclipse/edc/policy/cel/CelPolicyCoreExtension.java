@@ -39,7 +39,6 @@ import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.ParticipantContextPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
-import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Prohibition;
@@ -77,10 +76,6 @@ public class CelPolicyCoreExtension implements ServiceExtension {
 
     private CelExpressionEngine celExpressionEngine;
 
-    @Inject
-    private RuleBindingRegistry ruleBindingRegistry;
-
-
     private CelParticipantAgentClaimMapperRegistry claimMapperRegistry;
 
     private CelFunctionRegistry celFunctionRegistry;
@@ -97,7 +92,7 @@ public class CelPolicyCoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
 
-        ruleBindingRegistry.dynamicBind(policyExpressionEngine()::evaluationScopes);
+        policyEngine.dynamicScopeBinder(policyExpressionEngine()::evaluationScopes);
 
         List.of(Permission.class, Duty.class, Prohibition.class).forEach(c -> {
             var transferMapper = new TransferProcessContextMapper(new AgreementContextMapper(), new ParticipantAgentContextMapper<>(claimMapperRegistry()));
@@ -109,7 +104,7 @@ public class CelPolicyCoreExtension implements ServiceExtension {
         });
 
         List.of(CATALOG_SCOPE, TRANSFER_SCOPE, NEGOTIATION_SCOPE, POLICY_MONITOR_SCOPE).forEach(scope -> {
-            ruleBindingRegistry.bind(ODRL_SCHEMA + "use", scope);
+            policyEngine.bindScope(ODRL_SCHEMA + "use", scope);
         });
 
     }
