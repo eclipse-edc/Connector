@@ -34,7 +34,6 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
-import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
@@ -81,10 +80,10 @@ public class CatalogApiV5MultiProfileEndToEndTest {
         private static final AtomicConstraintRuleFunction<Permission, CatalogPolicyContext> POLICY_FUNCTION = mock();
 
         @BeforeAll
-        static void setup(PolicyEngine policyEngine, RuleBindingRegistry ruleBindingRegistry) {
+        static void setup(PolicyEngine policyEngine) {
 
-            ruleBindingRegistry.bind("use", "catalog");
-            ruleBindingRegistry.bind("profile", "catalog");
+            policyEngine.bindScope("use", "catalog");
+            policyEngine.bindScope("profile", "catalog");
 
             policyEngine.registerFunction(CatalogPolicyContext.class, Permission.class, "profile", POLICY_FUNCTION);
         }

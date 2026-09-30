@@ -22,6 +22,9 @@ import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.Result;
 
+import java.util.Set;
+import java.util.function.Function;
+
 /**
  * Evaluates policies.
  * <p>
@@ -45,12 +48,6 @@ public interface PolicyEngine {
      * Scope delimiter.
      */
     String DELIMITER = ".";
-
-    /**
-     * Returns a filtered policy for the scope. This involves recursively removing rules and constraints not bound to the scope and returning a modified copy of the unfiltered
-     * policy.
-     */
-    Policy filter(Policy policy, String scope);
 
     /**
      * Evaluates the given policy with a specific context.
@@ -109,4 +106,14 @@ public interface PolicyEngine {
      */
     <C extends PolicyContext> void registerPostValidator(Class<C> contextType, PolicyValidatorRule<C> validator);
 
+    /**
+     * Binds a rule type to the scope. A rule type has two manifestations: (1) The type of {@link Action} specified by a rule; or (2) The left-hand operand of an
+     * {@link AtomicConstraint} contained in the rule.
+     */
+    void bindScope(String ruleType, String scope);
+
+    /**
+     * Register a dynamic binder that will be invoked as fallback if the rule type is not found in the registry
+     */
+    void dynamicScopeBinder(Function<String, Set<String>> binder);
 }

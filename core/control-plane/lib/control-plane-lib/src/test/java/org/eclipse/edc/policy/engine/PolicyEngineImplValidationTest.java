@@ -18,8 +18,6 @@ import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
-import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
-import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
@@ -32,7 +30,6 @@ import org.eclipse.edc.policy.model.Prohibition;
 import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.policy.model.XoneConstraint;
 import org.eclipse.edc.spi.result.Result;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -53,13 +50,7 @@ import static org.mockito.Mockito.when;
 
 class PolicyEngineImplValidationTest {
 
-    private final RuleBindingRegistry bindingRegistry = new RuleBindingRegistryImpl();
-    private PolicyEngine policyEngine;
-
-    @BeforeEach
-    void setUp() {
-        policyEngine = new PolicyEngineImpl(new ScopeFilter(bindingRegistry), new RuleValidator(bindingRegistry));
-    }
+    private final PolicyEngine policyEngine = new PolicyEngineImpl(new RuleBindingRegistryImpl());
 
     @Test
     void validateEmptyPolicy() {
@@ -107,9 +98,7 @@ class PolicyEngineImplValidationTest {
     @ParameterizedTest
     @ArgumentsSource(PolicyProvider.class)
     void validate(Policy policy, Class<Rule> ruleClass, String key) {
-
-
-        bindingRegistry.bind(key, ALL_SCOPES);
+        policyEngine.bindScope(key, ALL_SCOPES);
         policyEngine.registerFunction(PolicyContext.class, ruleClass, key, (op, rv, duty, ctx) -> true);
 
         var result = policyEngine.validate(policy);
@@ -135,7 +124,7 @@ class PolicyEngineImplValidationTest {
 
         when(function.validate(any(), any(), any(), any())).thenReturn(Result.success());
 
-        bindingRegistry.dynamicBind(s -> Set.of(ALL_SCOPES));
+        policyEngine.dynamicScopeBinder(s -> Set.of(ALL_SCOPES));
         policyEngine.registerFunction(PolicyContext.class, Duty.class, function);
 
         var result = policyEngine.validate(policy);
@@ -164,7 +153,7 @@ class PolicyEngineImplValidationTest {
         when(sameFunctionOtherContext.canHandle(leftOperand)).thenReturn(true);
         when(sameFunctionOtherContext.validate(any(), any(), any(), any())).thenReturn(Result.failure("operator not supported"));
 
-        bindingRegistry.dynamicBind(s -> Set.of(ALL_SCOPES));
+        policyEngine.dynamicScopeBinder(s -> Set.of(ALL_SCOPES));
         policyEngine.registerFunction(PolicyContext.class, Permission.class, function);
         policyEngine.registerFunction(OtherContext.class, Permission.class, sameFunctionOtherContext);
 
@@ -183,7 +172,7 @@ class PolicyEngineImplValidationTest {
 
         when(function.validate(any(), any(), any(), any())).thenReturn(Result.success());
 
-        bindingRegistry.dynamicBind(s -> Set.of(ALL_SCOPES));
+        policyEngine.dynamicScopeBinder(s -> Set.of(ALL_SCOPES));
         policyEngine.registerFunction(PolicyContext.class, ruleClass, function);
 
         var result = policyEngine.validate(policy);
@@ -200,7 +189,7 @@ class PolicyEngineImplValidationTest {
 
         when(function.canHandle(key)).thenReturn(false);
 
-        bindingRegistry.dynamicBind(s -> Set.of(ALL_SCOPES));
+        policyEngine.dynamicScopeBinder(s -> Set.of(ALL_SCOPES));
         policyEngine.registerFunction(PolicyContext.class, ruleClass, function);
 
         var result = policyEngine.validate(policy);
@@ -221,7 +210,7 @@ class PolicyEngineImplValidationTest {
 
         when(function.validate(any(), any(), any(), any())).thenReturn(Result.failure("Dynamic function validation failure"));
 
-        bindingRegistry.dynamicBind(s -> Set.of(ALL_SCOPES));
+        policyEngine.dynamicScopeBinder(s -> Set.of(ALL_SCOPES));
         policyEngine.registerFunction(PolicyContext.class, ruleClass, function);
 
         var result = policyEngine.validate(policy);
@@ -239,7 +228,7 @@ class PolicyEngineImplValidationTest {
 
         when(function.validate(any(), any(), any())).thenReturn(Result.failure("Function validation failure"));
 
-        bindingRegistry.bind(key, ALL_SCOPES);
+        policyEngine.bindScope(key, ALL_SCOPES);
         policyEngine.registerFunction(PolicyContext.class, ruleClass, key, function);
 
         var result = policyEngine.validate(policy);
@@ -262,7 +251,7 @@ class PolicyEngineImplValidationTest {
 
         when(function.validate(any(), any(), any())).thenReturn(Result.success());
 
-        bindingRegistry.bind("foo", ALL_SCOPES);
+        policyEngine.bindScope("foo", ALL_SCOPES);
         policyEngine.registerFunction(PolicyContext.class, Permission.class, "foo", function);
 
         var result = policyEngine.validate(policy);
@@ -278,7 +267,7 @@ class PolicyEngineImplValidationTest {
 
 
         for (var key : keys) {
-            bindingRegistry.bind(key, ALL_SCOPES);
+            policyEngine.bindScope(key, ALL_SCOPES);
             policyEngine.registerFunction(PolicyContext.class, ruleClass, key, (op, rv, duty, ctx) -> true);
         }
 

@@ -17,6 +17,7 @@ package org.eclipse.edc.policy.engine.validation;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
+import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
@@ -60,7 +61,7 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
 
     private final Map<String, List<ConstraintFunctionEntry<Rule, ? extends PolicyContext>>> constraintFunctions = new TreeMap<>();
     private final List<DynamicAtomicConstraintFunctionEntry<Rule, ? extends PolicyContext>> dynamicConstraintFunctions = new ArrayList<>();
-    private RuleValidator ruleValidator;
+    private RuleBindingRegistry ruleBindingRegistry;
 
     public Result<Void> validate(Policy policy) {
         return policy.accept(this);
@@ -124,7 +125,7 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
     }
 
     private Result<Void> validateLeftExpression(Rule rule, String leftOperand) {
-        if (!ruleValidator.isBounded(leftOperand)) {
+        if (!ruleBindingRegistry.isBounded(leftOperand)) {
             return Result.failure("leftOperand '%s' is not bound to any scopes: Rule { %s } ".formatted(leftOperand, rule));
         } else {
             return Result.success();
@@ -158,7 +159,7 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
     }
 
     private Result<Void> validateAction(Rule rule) {
-        if (rule.getAction() != null && !ruleValidator.isBounded(rule.getAction().getType())) {
+        if (rule.getAction() != null && !ruleBindingRegistry.isBounded(rule.getAction().getType())) {
             return Result.failure("action '%s' is not bound to any scopes: Rule { %s }".formatted(rule.getAction().getType(), rule));
         } else {
             return Result.success();
@@ -206,8 +207,8 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
             return new PolicyValidator.Builder();
         }
 
-        public Builder ruleValidator(RuleValidator ruleValidator) {
-            validator.ruleValidator = ruleValidator;
+        public Builder ruleBindingRegistry(RuleBindingRegistry ruleBindingRegistry) {
+            validator.ruleBindingRegistry = ruleBindingRegistry;
             return this;
         }
 
@@ -225,7 +226,7 @@ public class PolicyValidator implements Policy.Visitor<Result<Void>>, Rule.Visit
         }
 
         public PolicyValidator build() {
-            Objects.requireNonNull(validator.ruleValidator, "Rule validator should not be null");
+            Objects.requireNonNull(validator.ruleBindingRegistry, "Rule binding registry should not be null");
             return validator;
         }
 

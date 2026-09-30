@@ -16,15 +16,12 @@ package org.eclipse.edc.policy.engine;
 
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
-import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
-import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -46,20 +43,14 @@ public class PolicyEngineImplScenariosTest {
     private static final String CONNECTOR_CONSTRAINT = "connector";
     private static final Action USE_ACTION = Action.Builder.newInstance().type("use").build();
 
-    private final RuleBindingRegistry bindingRegistry = new RuleBindingRegistryImpl();
-    private PolicyEngineImpl policyEngine;
-
-    @BeforeEach
-    void setUp() {
-        policyEngine = new PolicyEngineImpl(new ScopeFilter(bindingRegistry), new RuleValidator(bindingRegistry));
-    }
+    private final PolicyEngineImpl policyEngine = new PolicyEngineImpl(new RuleBindingRegistryImpl());
 
     /**
      * Demonstrates how to evaluate a simple policy.
      */
     @Test
     void verifyUnrestrictedUse() {
-        bindingRegistry.bind(USE_ACTION.getType(), ALL_SCOPES);
+        policyEngine.bindScope(USE_ACTION.getType(), ALL_SCOPES);
         var usePermission = Permission.Builder.newInstance().action(USE_ACTION).build();
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
         var context = new TestContext();
@@ -74,7 +65,7 @@ public class PolicyEngineImplScenariosTest {
      */
     @Test
     void verifyNoUse() {
-        bindingRegistry.bind(USE_ACTION.getType(), ALL_SCOPES);
+        policyEngine.bindScope(USE_ACTION.getType(), ALL_SCOPES);
         policyEngine.registerFunction(TestContext.class, Prohibition.class, (rule, ctx) -> rule.getAction().getType().equals(USE_ACTION.getType()));
         var prohibition = Prohibition.Builder.newInstance().action(USE_ACTION).build();
         var policy = Policy.Builder.newInstance().prohibition(prohibition).build();
@@ -90,8 +81,8 @@ public class PolicyEngineImplScenariosTest {
      */
     @Test
     void verifySpatialLocation() {
-        bindingRegistry.bind(USE_ACTION.getType(), ALL_SCOPES);
-        bindingRegistry.bind(ABS_SPATIAL_CONSTRAINT, ALL_SCOPES);
+        policyEngine.bindScope(USE_ACTION.getType(), ALL_SCOPES);
+        policyEngine.bindScope(ABS_SPATIAL_CONSTRAINT, ALL_SCOPES);
 
         // function that verifies the EU region
         policyEngine.registerFunction(TestAgentContext.class, Permission.class, ABS_SPATIAL_CONSTRAINT,

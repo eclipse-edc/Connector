@@ -19,6 +19,7 @@ import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
+import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.spi.plan.step.AndConstraintStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.AtomicConstraintStep;
@@ -31,7 +32,6 @@ import org.eclipse.edc.policy.engine.spi.plan.step.RuleFunctionStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.RuleStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.ValidatorStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.XoneConstraintStep;
-import org.eclipse.edc.policy.engine.validation.RuleValidator;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
@@ -65,7 +65,7 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
     private final String delimitedScope;
     private final String scope;
 
-    private RuleValidator ruleValidator;
+    private RuleBindingRegistry ruleBindingRegistry;
 
     private PolicyEvaluationPlanner(String scope) {
         this.scope = scope;
@@ -99,7 +99,7 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
 
         var filteringReasons = new ArrayList<String>();
 
-        if (!ruleValidator.isInScope(leftValue, delimitedScope)) {
+        if (!ruleBindingRegistry.isInScope(leftValue, delimitedScope)) {
             filteringReasons.add("leftOperand '%s' is not bound to scope '%s'".formatted(leftValue, scope));
         }
 
@@ -179,7 +179,7 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
         try {
             ruleContext.push(rule);
 
-            if (rule.getAction() != null && !ruleValidator.isBounded(rule.getAction().getType())) {
+            if (rule.getAction() != null && !ruleBindingRegistry.isBounded(rule.getAction().getType())) {
                 builder.filtered(true);
                 builder.filteringReason("action '%s' is not bound to scope '%s'".formatted(rule.getAction().getType(), scope));
             }
@@ -238,8 +238,8 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
             return new PolicyEvaluationPlanner.Builder(scope);
         }
 
-        public Builder ruleValidator(RuleValidator ruleValidator) {
-            planner.ruleValidator = ruleValidator;
+        public Builder ruleBindingRegistry(RuleBindingRegistry ruleBindingRegistry) {
+            planner.ruleBindingRegistry = ruleBindingRegistry;
             return this;
         }
 
@@ -274,7 +274,7 @@ public class PolicyEvaluationPlanner implements Policy.Visitor<PolicyEvaluationP
         }
 
         public PolicyEvaluationPlanner build() {
-            Objects.requireNonNull(planner.ruleValidator, "Rule validator should not be null");
+            Objects.requireNonNull(planner.ruleBindingRegistry, "Rule binding registry should not be null");
             return planner;
         }
 

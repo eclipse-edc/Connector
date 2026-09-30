@@ -43,9 +43,12 @@ public interface RuleBindingRegistry {
      */
     boolean isInScope(String ruleType, String scope);
 
-
     /**
-     * Returns the bindings for a rule type;
+     * Returns true if the rule type is bounded to any scope, false otherwise.
+     *
+     * @param ruleType the rule type.
+     * @return if the rule it's bounded to any scope.
      */
-    Set<String> bindings(String ruleType);
+    boolean isBounded(String ruleType);
+
 }

@@ -34,7 +34,6 @@ import org.eclipse.edc.connector.controlplane.policy.contract.ContractExpiryChec
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
-import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
@@ -81,8 +80,6 @@ public class ContractCoreExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
     @Inject
-    private RuleBindingRegistry ruleBindingRegistry;
-    @Inject
     private ContractNegotiationObservable observable;
     @Inject
     private ProtocolWebhookResolver protocolWebhookResolver;
@@ -120,8 +117,8 @@ public class ContractCoreExtension implements ServiceExtension {
         context.registerService(ContractValidationService.class, validationService);
 
         // bind/register rule to evaluate contract expiry
-        ruleBindingRegistry.bind(ODRL_USE_ACTION_ATTRIBUTE, TRANSFER_SCOPE);
-        ruleBindingRegistry.bind(CONTRACT_EXPIRY_EVALUATION_KEY, TRANSFER_SCOPE);
+        policyEngine.bindScope(ODRL_USE_ACTION_ATTRIBUTE, TRANSFER_SCOPE);
+        policyEngine.bindScope(CONTRACT_EXPIRY_EVALUATION_KEY, TRANSFER_SCOPE);
 
         policyEngine.registerFunction(TransferProcessPolicyContext.class, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY,
                 new ContractExpiryCheckFunction<>());
