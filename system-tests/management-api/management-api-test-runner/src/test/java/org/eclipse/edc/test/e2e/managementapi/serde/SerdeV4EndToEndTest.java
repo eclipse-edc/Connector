@@ -227,6 +227,22 @@ public class SerdeV4EndToEndTest extends SerdeTestBase {
         });
         assertThat(compactResult.getJsonNumber("createdAt").longValue()).isEqualTo(1234);
         assertThat(compactResult.getString("assetId")).isEqualTo(negotiation.getLastContractOffer().getAssetId());
+        assertThat(compactResult.getJsonObject("policy")).isNotNull().satisfies(policy -> {
+            assertThat(policy.get(TYPE)).isEqualTo(Json.createValue("Set"));
+            assertThat(policy.get("permission")).isNotNull().satisfies(value -> {
+                assertThat(value.asJsonArray()).hasSize(1)
+                        .first().satisfies(permission -> {
+                            assertThat(permission.asJsonObject().getString("action")).isEqualTo("use");
+                            assertThat(permission.asJsonObject().getJsonArray("constraint")).hasSize(1)
+                                    .first()
+                                    .satisfies(constraint -> {
+                                        assertThat(constraint.asJsonObject().getString("leftOperand")).isEqualTo("foo");
+                                        assertThat(constraint.asJsonObject().getString("operator")).isEqualTo("eq");
+                                        assertThat(constraint.asJsonObject().getString("rightOperand")).isEqualTo("bar");
+                                    });
+                        });
+            });
+        });
         assertThat(compactResult.getString("correlationId")).isEqualTo(negotiation.getCorrelationId());
 
     }
