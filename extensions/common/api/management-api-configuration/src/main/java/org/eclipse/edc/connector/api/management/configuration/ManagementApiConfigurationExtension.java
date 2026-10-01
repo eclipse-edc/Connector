@@ -29,7 +29,6 @@ import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.EdcException;
@@ -54,14 +53,10 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
-import org.eclipse.edc.web.spi.configuration.context.ManagementApiUrl;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.Map;
 
-import static java.lang.String.format;
-import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_CONTEXT;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_4;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
@@ -72,7 +67,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 /**
  * Configure 'management' api context.
  */
-@Provides(ManagementApiUrl.class)
 @Extension(ManagementApiConfigurationExtension.NAME)
 public class ManagementApiConfigurationExtension implements ServiceExtension {
 
@@ -117,8 +111,6 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         var portMapping = new PortMapping(ApiContext.MANAGEMENT, apiConfiguration.port(), apiConfiguration.path());
         portMappingRegistry.register(portMapping);
 
-        context.registerService(ManagementApiUrl.class, managementApiUrl(context, portMapping));
-
         jsonLd.registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, MANAGEMENT_SCOPE_V4);
         jsonLd.registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, MANAGEMENT_SCOPE_V5);
 
@@ -157,17 +149,6 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         try (var versionContent = resourceClassLoader.getResourceAsStream(API_VERSION_JSON_FILE)) {
             apiVersionService.registerVersionInfo(ApiContext.MANAGEMENT, versionContent);
         } catch (IOException e) {
-            throw new EdcException(e);
-        }
-    }
-
-    private ManagementApiUrl managementApiUrl(ServiceExtensionContext context, PortMapping config) {
-        var callbackAddress = ofNullable(managementApiEndpoint).orElseGet(() -> format("http://%s:%s%s", hostname.get(), config.port(), config.path()));
-        try {
-            var url = URI.create(callbackAddress);
-            return () -> url;
-        } catch (IllegalArgumentException e) {
-            context.getMonitor().severe("Error creating management plane endpoint url", e);
             throw new EdcException(e);
         }
     }

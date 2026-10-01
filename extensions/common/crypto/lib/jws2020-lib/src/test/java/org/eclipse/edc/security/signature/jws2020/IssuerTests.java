@@ -45,6 +45,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 import static org.eclipse.edc.security.signature.jws2020.TestFunctions.createKeyPair;
 import static org.eclipse.edc.security.signature.jws2020.TestFunctions.readResourceAsJson;
@@ -252,6 +253,23 @@ class IssuerTests {
         var verificationMethod = compacted.getJsonObject("proof").get("verificationMethod");
         assertThat(verificationMethod).describedAs("Expected a String!").isInstanceOf(JsonString.class);
         assertThat(((JsonString) verificationMethod).getString()).isEqualTo(verificationMethodUrl);
+    }
+
+    @Test
+    void shouldThrowSigningError_whenMissingPrivateKey() {
+        var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
+        var keypair = new JsonWebKeyPair(URI.create("https://org.eclipse.edc/keys/no-private-key"), null, null, null);
+
+        var proofDraft = Jws2020ProofDraft.Builder.newInstance()
+                .mapper(objectMapper)
+                .created(Instant.parse("2022-12-31T23:00:00Z"))
+                .verificationMethod(new JsonWebKeyPair(URI.create("https://org.eclipse.edc/verification-method"), null, null, null))
+                .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                .build();
+
+        var issuer = suite.createIssuer(keypair).loader(loader);
+
+        assertThatThrownBy(() -> issuer.sign(vc, proofDraft)).isInstanceOf(SigningError.class);
     }
 
     @Test

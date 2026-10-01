@@ -26,6 +26,7 @@ import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.security.signature.jws2020.JsonWebKeyPair;
 import org.eclipse.edc.security.signature.jws2020.Jws2020ProofDraft;
@@ -50,6 +51,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.security.signature.jws2020.TestFunctions.createKeyPair;
 import static org.eclipse.edc.security.signature.jws2020.TestFunctions.readResourceAsJson;
 import static org.mockito.Mockito.mock;
@@ -60,21 +62,20 @@ class LdpIssuerTest {
     @Nested
     class JsonWebSignature2020 {
         private final Jws2020SignatureSuite jws2020suite = new Jws2020SignatureSuite(mapper);
-        private LdpIssuer issuer;
+        private final JsonLd jsonLd = new TitaniumJsonLd(mock());
+        private final LdpIssuer issuer = LdpIssuer.Builder.newInstance()
+                .jsonLd(jsonLd)
+                .monitor(mock())
+                .build();
 
         @BeforeEach
         void setup() throws URISyntaxException {
-            var jsonLd = new TitaniumJsonLd(mock());
             var ccl = Thread.currentThread().getContextClassLoader();
             jsonLd.registerCachedDocument("https://www.w3.org/ns/odrl.jsonld", ccl.getResource("odrl.jsonld").toURI());
             jsonLd.registerCachedDocument("https://www.w3.org/ns/did/v1", ccl.getResource("jws2020.json").toURI());
             jsonLd.registerCachedDocument("https://w3id.org/security/suites/jws-2020/v1", ccl.getResource("jws2020.json").toURI());
             jsonLd.registerCachedDocument("https://www.w3.org/2018/credentials/v1", ccl.getResource("credentials.v1.json").toURI());
             jsonLd.registerCachedDocument("https://www.w3.org/2018/credentials/examples/v1", ccl.getResource("examples.v1.json").toURI());
-            issuer = LdpIssuer.Builder.newInstance()
-                    .jsonLd(jsonLd)
-                    .monitor(mock())
-                    .build();
         }
 
         @DisplayName("t0001: a simple credential to sign (EC Key)")
@@ -225,8 +226,6 @@ class LdpIssuerTest {
 
             assertThat(verificationMethod.getValueType()).describedAs("Expected a String!").isEqualTo(JsonValue.ValueType.ARRAY);
             assertThat(verificationMethod.asJsonArray().get(0).asJsonObject().toString()).contains(didKey);
-
-
         }
 
         @DisplayName("t0005: compacted signed presentation")
@@ -252,6 +251,24 @@ class LdpIssuerTest {
 
             assertThat(verificationMethod.getValueType()).describedAs("Expected a String!").isEqualTo(JsonValue.ValueType.ARRAY);
             assertThat(verificationMethod.asJsonArray().get(0).asJsonObject().toString()).contains(verificationMethodUrl);
+        }
+
+        @DisplayName("t0006: signing with a missing private key returns a failure")
+        @Test
+        void signDocument_whenPrivateKeyMissing_returnsFailure() {
+            var vc = readResourceAsJson("jws2020/issuing/0001_vc.json");
+            var keypair = new JsonWebKeyPair(URI.create("https://org.eclipse.edc/keys/no-private-key"), null, null, null);
+
+            var proofOptions = Jws2020ProofDraft.Builder.newInstance()
+                    .mapper(mapper)
+                    .created(Instant.parse("2022-12-31T23:00:00Z"))
+                    .verificationMethod(new JsonWebKeyPair(URI.create("https://org.eclipse.edc/verification-method"), null, null, null))
+                    .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
+                    .build();
+
+            var result = issuer.signDocument(jws2020suite, vc, keypair, proofOptions);
+
+            assertThat(result).isFailed();
         }
     }
 }

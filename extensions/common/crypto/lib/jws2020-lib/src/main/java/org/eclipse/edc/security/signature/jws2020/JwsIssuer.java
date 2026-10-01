@@ -48,40 +48,25 @@ class JwsIssuer extends AbstractIssuer {
                                       final ProofDraft draft, final DocumentLoader loader) throws SigningError, DocumentError {
 
         if (keyPair.privateKey() == null || keyPair.privateKey().length == 0) {
-            throw new IllegalArgumentException("The private key is not provided, is null or an empty array.");
+            throw new SigningError(SigningError.Code.Internal,
+                    new IllegalArgumentException("The private key is not provided, is null or an empty array."));
         }
 
-        var object = expanded;
-
-        var verifiable = Verifiable.of(version, object);
-
+        var verifiable = Verifiable.of(version, expanded);
         if (verifiable.isCredential() && verifiable.asCredential().isExpired()) {
             throw new SigningError(SigningError.Code.Expired);
         }
 
         verifiable.validate();
 
-        // add issuance date if missing
-        if (verifiable.isCredential() &&
-                (verifiable.version() == null || ModelVersion.V11.equals(verifiable.version())) &&
-                verifiable.asCredential().issuanceDate() == null) {
+        var object = addIssuanceDateIfMissing(expanded, verifiable);
 
-            var issuanceDate = Instant.now().truncatedTo(ChronoUnit.SECONDS);
-
-            object = Json.createObjectBuilder(object)
-                    .add(VcVocab.ISSUANCE_DATE.uri(), issuanceDate.toString())
-                    .build();
-        }
-
-        // remove proofs
         var unsigned = EmbeddedProof.removeProofs(object);
 
-        // signature
         var signature = sign(context, unsigned, draft);
 
         var proofValue = Json.createValue(new String(signature));
 
-        // signed proof
         var signedProof = Jws2020ProofDraft.signed(draft.unsigned(), proofValue);
 
         return new ExpandedVerifiable(EmbeddedProof.addProof(object, signedProof), context, loader);
@@ -94,5 +79,24 @@ class JwsIssuer extends AbstractIssuer {
         var ldSignature = new LinkedDataSignature(draft.cryptoSuite());
 
         return ldSignature.sign(document, keyPair.privateKey(), unsignedDraft);
+    }
+
+    private JsonObject addIssuanceDateIfMissing(JsonObject object, Verifiable verifiable) {
+        if (issuanceDateIsMissing(verifiable)) {
+
+            var issuanceDate = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+
+            return Json.createObjectBuilder(object)
+                    .add(VcVocab.ISSUANCE_DATE.uri(), issuanceDate.toString())
+                    .build();
+        }
+
+        return object;
+    }
+
+    private static boolean issuanceDateIsMissing(Verifiable verifiable) {
+        return verifiable.isCredential() &&
+                (verifiable.version() == null || ModelVersion.V11.equals(verifiable.version())) &&
+                verifiable.asCredential().issuanceDate() == null;
     }
 }
