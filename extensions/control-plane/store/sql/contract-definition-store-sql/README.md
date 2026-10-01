@@ -10,6 +10,22 @@ Please apply this [schema](src/main/resources/contract-definition-schema.sql) to
 
 ![ER Diagram](docs/er.png)
 
+## Migrate to optimized indexes
+
+Indexes on the referenced policy ids have been added to `edc_contract_definitions`, they support the lookup of the
+contract definitions referencing a policy within a participant context (e.g. check before policy deletion).
+The statements are part of the schema and are idempotent, so they are applied automatically when
+`edc.sql.schema.autocreate` is enabled. On large existing tables, consider running them manually with
+`CREATE INDEX CONCURRENTLY` to avoid blocking writes while the index is built.
+
+```sql
+CREATE INDEX IF NOT EXISTS contract_definitions_access_policy_index
+    ON edc_contract_definitions (participant_context_id, access_policy_id);
+
+CREATE INDEX IF NOT EXISTS contract_definitions_contract_policy_index
+    ON edc_contract_definitions (participant_context_id, contract_policy_id);
+```
+
 ## Migrate to per-participant contract definition ids
 
 Contract definition ids are unique only within a participant context: the primary key of `edc_contract_definitions` is

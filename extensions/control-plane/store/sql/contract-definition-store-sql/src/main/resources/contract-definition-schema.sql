@@ -26,3 +26,10 @@ CREATE TABLE IF NOT EXISTS edc_contract_definitions
     participant_context_id VARCHAR NOT NULL,
     PRIMARY KEY (participant_context_id, contract_definition_id)
 );
+
+-- Supports the lookup of contract definitions referencing a policy (e.g. check before policy deletion)
+CREATE INDEX IF NOT EXISTS contract_definitions_access_policy_index
+    ON edc_contract_definitions (participant_context_id, access_policy_id);
+
+CREATE INDEX IF NOT EXISTS contract_definitions_contract_policy_index
+    ON edc_contract_definitions (participant_context_id, contract_policy_id);

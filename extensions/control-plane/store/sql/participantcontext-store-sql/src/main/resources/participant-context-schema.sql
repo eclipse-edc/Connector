@@ -22,5 +22,4 @@ CREATE TABLE IF NOT EXISTS participant_context
     state                  INTEGER             NOT NULL, -- 0 = CREATED, 1 = ACTIVE, 2 = DEACTIVATED
     properties             JSON DEFAULT '{}'             -- JSON object containing additional information, such as OAuth2 client secret aliases
 );
-CREATE UNIQUE INDEX IF NOT EXISTS participant_context_participant_context_id_uindex ON participant_context USING btree (participant_context_id);
 

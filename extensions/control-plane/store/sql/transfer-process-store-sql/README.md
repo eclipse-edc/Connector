@@ -24,6 +24,22 @@ implemented for CosmosDB, and create an equivalent set of clauses for SQL. Thus,
 That way, dialect-dependent variants can be implemented should the need arise, because the actual SQL statement is
 encoded in those clauses, offering a fluent Java API.
 
+## Migrate to optimized indexes
+
+Indexes supporting participant-scoped queries and the lookup by correlation id have been added to
+`edc_transfer_process`.
+The statements are part of the schema and are idempotent, so they are applied automatically when
+`edc.sql.schema.autocreate` is enabled. On large existing tables, consider running them manually with
+`CREATE INDEX CONCURRENTLY` to avoid blocking writes while the index is built.
+
+```sql
+CREATE INDEX IF NOT EXISTS transfer_process_participant_context_id_created_at_index
+    ON edc_transfer_process (participant_context_id, created_at);
+
+CREATE INDEX IF NOT EXISTS transfer_process_correlation_id_index
+    ON edc_transfer_process (correlation_id, participant_context_id);
+```
+
 ## Migrate from 0.5.1 to 0.6.0
 
 The schema has changed, the columns contained in `edc_data_request` have been moved to `edc_transfer_process` with this
