@@ -26,3 +26,6 @@ CREATE TABLE IF NOT EXISTS edc_cel_expression
     last_modified_date     BIGINT              NOT NULL       -- POSIX timestamp of the last modified date
 );
 
+-- Supports the lookup of expressions by left operand during policy evaluation
+CREATE INDEX IF NOT EXISTS cel_expression_left_operand_index
+    ON edc_cel_expression (left_operand);

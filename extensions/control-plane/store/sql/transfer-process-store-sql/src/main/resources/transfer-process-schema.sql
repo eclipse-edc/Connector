@@ -48,3 +48,11 @@ COMMENT ON COLUMN edc_transfer_process.dataplane_metadata IS 'Dataplane Metadata
 
 -- This will help to identify states that need to be transitioned without a table scan when the entries grow
 CREATE INDEX IF NOT EXISTS transfer_process_state ON edc_transfer_process (state,state_time_stamp);
+
+-- Supports participant-scoped queries (e.g. management API listing), optionally sorted by creation date
+CREATE INDEX IF NOT EXISTS transfer_process_participant_context_id_created_at_index
+    ON edc_transfer_process (participant_context_id, created_at);
+
+-- Supports the lookup of a transfer process by correlation id (e.g. on incoming protocol messages)
+CREATE INDEX IF NOT EXISTS transfer_process_correlation_id_index
+    ON edc_transfer_process (correlation_id, participant_context_id);

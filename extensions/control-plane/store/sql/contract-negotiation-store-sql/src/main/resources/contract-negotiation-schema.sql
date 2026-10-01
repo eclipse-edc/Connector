@@ -65,14 +65,20 @@ COMMENT ON COLUMN edc_contract_negotiation.trace_context IS 'Map<String,String> 
 CREATE INDEX IF NOT EXISTS contract_negotiation_correlationid_index
     ON edc_contract_negotiation (correlation_id);
 
-CREATE UNIQUE INDEX IF NOT EXISTS contract_negotiation_id_uindex
-    ON edc_contract_negotiation (id);
-
-CREATE UNIQUE INDEX IF NOT EXISTS contract_agreement_id_uindex
-    ON edc_contract_agreement (agr_id);
-
 CREATE INDEX IF NOT EXISTS contract_negotiation_agreement_id_index
     ON edc_contract_negotiation (agreement_id);
 
 -- This will help to identify states that need to be transitioned without a table scan when the entries grow
 CREATE INDEX IF NOT EXISTS contract_negotiation_state ON edc_contract_negotiation (state,state_timestamp);
+
+-- Supports participant-scoped queries (e.g. management API listing), optionally sorted by creation date
+CREATE INDEX IF NOT EXISTS contract_negotiation_participant_context_id_created_at_index
+    ON edc_contract_negotiation (participant_context_id, created_at);
+
+-- Supports participant-scoped agreement queries (e.g. management API listing)
+CREATE INDEX IF NOT EXISTS contract_agreement_participant_context_id_index
+    ON edc_contract_agreement (agr_participant_context_id, signing_date);
+
+-- Supports the lookup of agreements by asset (e.g. check before asset deletion)
+CREATE INDEX IF NOT EXISTS contract_agreement_asset_id_index
+    ON edc_contract_agreement (asset_id);

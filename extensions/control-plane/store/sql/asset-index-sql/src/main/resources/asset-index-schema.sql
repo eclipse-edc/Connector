@@ -31,3 +31,7 @@ COMMENT ON COLUMN edc_asset.properties IS 'Asset properties serialized as JSON';
 COMMENT ON COLUMN edc_asset.private_properties IS 'Asset private properties serialized as JSON';
 COMMENT ON COLUMN edc_asset.data_address IS 'Asset DataAddress serialized as JSON';
 COMMENT ON COLUMN edc_asset.dataplane_metadata IS 'Asset Dataplane Metadata serialized as JSON';
+
+-- Supports queries filtering on the asset id property (e.g. contract offer validation)
+CREATE INDEX IF NOT EXISTS asset_participant_context_id_property_id_index
+    ON edc_asset (participant_context_id, (properties ->> 'https://w3id.org/edc/v0.0.1/ns/id'));

@@ -27,3 +27,29 @@ implemented for CosmosDB, and create an equivalent set of clauses for SQL. Thus,
 
 That way, dialect-dependent variants can be implemented should the need arise, because the actual SQL statement is
 encoded in those clauses, offering a fluent Java API.
+
+## Migrate to optimized indexes
+
+Indexes supporting participant-scoped queries and the lookup of agreements by asset have been added.
+The statements are part of the schema and are idempotent, so they are applied automatically when
+`edc.sql.schema.autocreate` is enabled. On large existing tables, consider running them manually with
+`CREATE INDEX CONCURRENTLY` to avoid blocking writes while the index is built.
+
+```sql
+CREATE INDEX IF NOT EXISTS contract_negotiation_participant_context_id_created_at_index
+    ON edc_contract_negotiation (participant_context_id, created_at);
+
+CREATE INDEX IF NOT EXISTS contract_agreement_participant_context_id_index
+    ON edc_contract_agreement (agr_participant_context_id, signing_date);
+
+CREATE INDEX IF NOT EXISTS contract_agreement_asset_id_index
+    ON edc_contract_agreement (asset_id);
+```
+
+The unique indexes on `edc_contract_negotiation.id` and `edc_contract_agreement.agr_id` duplicate the primary keys and
+have been removed from the schema. They can be dropped from an existing database:
+
+```sql
+DROP INDEX IF EXISTS contract_negotiation_id_uindex;
+DROP INDEX IF EXISTS contract_agreement_id_uindex;
+```
