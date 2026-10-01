@@ -20,6 +20,7 @@ import org.eclipse.edc.spi.persistence.StateEntityStore;
 
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
@@ -67,8 +68,17 @@ public class TransferProcessGuard extends DelayedActionGuard<TransferProcess> im
             TERMINATING_REQUESTED.code()
     );
 
-    public TransferProcessGuard(Consumer<TransferProcess> action, StateEntityStore<TransferProcess> store) {
+    private final Predicate<TransferProcess> hold;
+
+    public TransferProcessGuard(Consumer<TransferProcess> action, Predicate<TransferProcess> hold, StateEntityStore<TransferProcess> store) {
         super(cn -> cn.getType() == PROVIDER ?
                 !PROVIDER_AUTOMATIC_STATES.contains(cn.getState()) : !CONSUMER_AUTOMATIC_STATES.contains(cn.getState()), action, store);
+        this.hold = hold;
+    }
+
+    @Override
+    public boolean test(TransferProcess entity) {
+        // held entities are set pending by the state machine and never released by the delayed action
+        return hold.test(entity) || super.test(entity);
     }
 }

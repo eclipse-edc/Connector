@@ -21,18 +21,21 @@ import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotia
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationRequested;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
-import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessInitiated;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessRequested;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessResumed;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessSuspended;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
 
 /**
  * Assembles guard for the TCK scenarios.
@@ -230,9 +233,6 @@ public class GuardAssembly {
                 createTransferTrigger(TransferProcessStarted.class, "ATP0104", suspendResumeTrigger()),
                 createTransferTrigger(TransferProcessSuspended.class, "ATP0104", TransferProcess::transitionResumingRequested),
                 createTransferTrigger(TransferProcessResumed.class, "ATP0104", TransferProcess::transitionResuming),
-                createTransferTrigger(TransferProcessInitiated.class, "ATP0205", (process) -> process.setPending(true)),
-                createTransferTrigger(TransferProcessInitiated.class, "ATP0301", (process) -> process.setPending(true)),
-                createTransferTrigger(TransferProcessInitiated.class, "ATP0302", (process) -> process.setPending(true)),
                 createTransferTrigger(TransferProcessStarted.class, "ATPC0201", TransferProcess::transitionTerminating),
                 createTransferTrigger(TransferProcessStarted.class, "ATPC0202", TransferProcess::transitionCompleting),
                 createTransferTrigger(TransferProcessStarted.class, "ATPC0203", (process) -> process.transitionSuspending("suspending")),
@@ -241,6 +241,18 @@ public class GuardAssembly {
                 createTransferTrigger(TransferProcessSuspended.class, "ATPC0204", TransferProcess::transitionResuming),
                 createTransferTrigger(TransferProcessRequested.class, "ATPC0205", (process) -> process.transitionTerminating("error"))
         );
+    }
+
+    /**
+     * Provider processes that must stay in INITIAL (DSP REQUESTED) for the whole scenario.
+     */
+    public static Predicate<TransferProcess> createTransferProcessHolds() {
+        return holdProviderInState(INITIAL, "ATP0205", "ATP0301", "ATP0302");
+    }
+
+    private static Predicate<TransferProcess> holdProviderInState(TransferProcessStates state, String... agreementIds) {
+        var ids = Set.of(agreementIds);
+        return tp -> tp.getType() == TransferProcess.Type.PROVIDER && tp.getState() == state.code() && ids.contains(tp.getContractId());
     }
 
     public static Consumer<TransferProcess> suspendResumeTrigger() {

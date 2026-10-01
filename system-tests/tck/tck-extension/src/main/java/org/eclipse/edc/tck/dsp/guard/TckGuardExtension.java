@@ -29,6 +29,7 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import static org.eclipse.edc.tck.dsp.guard.GuardAssembly.createNegotiationRecorder;
 import static org.eclipse.edc.tck.dsp.guard.GuardAssembly.createNegotiationTriggers;
+import static org.eclipse.edc.tck.dsp.guard.GuardAssembly.createTransferProcessHolds;
 import static org.eclipse.edc.tck.dsp.guard.GuardAssembly.createTransferProcessRecorder;
 import static org.eclipse.edc.tck.dsp.guard.GuardAssembly.createTransferProcessTriggers;
 
@@ -81,7 +82,8 @@ public class TckGuardExtension implements ServiceExtension {
         createTransferProcessTriggers().forEach(registry::register);
         router.register(TransferProcessEvent.class, registry);
 
-        transferProcessGuard = new TransferProcessGuard(tp -> recorder.playNext(tp.getContractId(), tp), transferProcessStore);
+        transferProcessGuard = new TransferProcessGuard(tp -> recorder.playNext(tp.getContractId(), tp),
+                createTransferProcessHolds(), transferProcessStore);
         return transferProcessGuard;
     }
 
