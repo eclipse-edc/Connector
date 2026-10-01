@@ -188,6 +188,8 @@
     "ContractNegotiation": {
       "@id": "edc:ContractNegotiation",
       "@context": {
+        "@import": "https://w3id.org/dspace/2025/1/odrl-profile.jsonld",
+        "@propagate": true,
         "type": "edc:type",
         "counterPartyAddress": "edc:counterPartyAddress",
         "protocol": "edc:protocol",
@@ -202,7 +204,8 @@
         "contractAgreementId": "edc:contractAgreementId",
         "createdAt": "edc:createdAt",
         "assetId": "edc:assetId",
-        "correlationId": "edc:correlationId"
+        "correlationId": "edc:correlationId",
+        "policy": "edc:policy"
       }
     },
     "CallbackAddress": {
