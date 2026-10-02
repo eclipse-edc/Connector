@@ -16,7 +16,6 @@
 
 package org.eclipse.edc.connector.controlplane.contract.validation;
 
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.policy.PolicyEquality;
@@ -81,7 +80,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         // verify that the asset in the offer is actually in the contract definition
         var testCriteria = new ArrayList<>(contractDefinition.getAssetsSelector());
         testCriteria.add(filterByParticipantContextId(participantContextId));
-        testCriteria.add(new Criterion(Asset.PROPERTY_ID, "=", target));
+        testCriteria.add(new Criterion("id", "=", target));
         if (assetIndex.countAssets(testCriteria) <= 0) {
             return failure("Asset ID from the ContractOffer is not included in the ContractDefinition");
         }
