@@ -267,6 +267,35 @@ public abstract class AssetIndexTestBase {
 
             assertThat(count).isEqualTo(0);
         }
+
+        @Test
+        void byIdAndSelector_shouldCountWithinParticipantContext() {
+            getAssetIndex().create(createAssetBuilder("id1").property("category", "cat").build());
+            getAssetIndex().create(createAssetBuilder("id2").property("category", "cat").build());
+            getAssetIndex().create(createAssetBuilder("id1").property("category", "cat")
+                    .participantContextId(ANOTHER_PARTICIPANT_CONTEXT_ID).build());
+            var criteria = List.of(
+                    criterion("category", "=", "cat"),
+                    filterByParticipantContextId(PARTICIPANT_CONTEXT_ID),
+                    criterion("id", "=", "id1"));
+
+            var count = getAssetIndex().countAssets(criteria);
+
+            assertThat(count).isEqualTo(1);
+        }
+
+        @Test
+        void byIdAndSelector_shouldNotCount_whenSelectorDoesNotMatch() {
+            getAssetIndex().create(createAssetBuilder("id1").property("category", "cat").build());
+            var criteria = List.of(
+                    criterion("category", "=", "other"),
+                    filterByParticipantContextId(PARTICIPANT_CONTEXT_ID),
+                    criterion("id", "=", "id1"));
+
+            var count = getAssetIndex().countAssets(criteria);
+
+            assertThat(count).isEqualTo(0);
+        }
     }
 
     @Nested

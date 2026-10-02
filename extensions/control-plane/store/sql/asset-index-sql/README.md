@@ -37,19 +37,6 @@ edc_asset ||--o{ edc_asset_property
 ```
 -->
 
-## Migrate to optimized indexes
-
-An expression index on the asset id property has been added to `edc_asset`, it supports queries filtering on that
-property within a participant context (e.g. contract offer validation).
-The statements are part of the schema and are idempotent, so they are applied automatically when
-`edc.sql.schema.autocreate` is enabled. On large existing tables, consider running them manually with
-`CREATE INDEX CONCURRENTLY` to avoid blocking writes while the index is built.
-
-```sql
-CREATE INDEX IF NOT EXISTS asset_participant_context_id_property_id_index
-    ON edc_asset (participant_context_id, (properties ->> 'https://w3id.org/edc/v0.0.1/ns/id'));
-```
-
 ## Migrate to per-participant asset ids
 
 Asset ids are unique only within a participant context: the primary key of `edc_asset` is the pair
