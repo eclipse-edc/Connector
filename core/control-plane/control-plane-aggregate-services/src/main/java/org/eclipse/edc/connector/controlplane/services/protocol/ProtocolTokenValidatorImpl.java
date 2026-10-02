@@ -57,7 +57,7 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
     @Override
     public ServiceResult<ParticipantAgent> verify(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, ProtocolRemoteMessage message) {
         var requestScopeBuilder = RequestScope.Builder.newInstance();
-        var requestContext = RequestContext.Builder.newInstance().message(message).direction(RequestContext.Direction.Ingress).build();
+        var requestContext = RequestContext.Builder.newInstance().message(message).direction(RequestContext.Direction.Ingress).participantContextId(participantContext.getId()).build();
         var policyContext = policyContextProvider.instantiate(requestContext, requestScopeBuilder);
         policyEngine.evaluate(policy, policyContext);
 

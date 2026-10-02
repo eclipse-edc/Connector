@@ -18,6 +18,7 @@ plugins {
 
 dependencies {
     testImplementation(project(":spi:control-plane-spi"))
+    testImplementation(project(":spi:decentralized-claims-spi"))
     testImplementation(project(":extensions:common:sql:sql-core"))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
 

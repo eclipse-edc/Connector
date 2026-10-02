@@ -32,6 +32,7 @@ import org.eclipse.edc.iam.did.spi.document.Service;
 import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
 import org.jspecify.annotations.NonNull;
 
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Test fixture that simulates a multi-participant Credential Service with resolvable {@code did:web}
@@ -192,15 +194,49 @@ public class CredentialService {
 
     public String createVpJwt(String participantContextId, String audience) {
         var ctx = getParticipant(participantContextId);
-        return createVpJwt(ctx, audience);
+        return createVpJwt(ctx, audience, ctx.storedCredentials);
     }
 
-    private String createVpJwt(ParticipantContext ctx, String audience) {
+    /**
+     * Creates a VP JWT containing only the stored credentials whose type is requested by at least one of the scopes.
+     * Scopes are expected in the DCP format {@code <alias>:<credential type>:<operation>}.
+     *
+     * @param participantContextId the participant context identifier
+     * @param audience             the audience of the presentation
+     * @param scopes               the requested scopes
+     * @return the serialized VP JWT
+     */
+    public String createVpJwt(String participantContextId, String audience, List<String> scopes) {
+        var ctx = getParticipant(participantContextId);
+        var requestedTypes = scopes.stream()
+                .map(scope -> scope.split(":"))
+                .filter(parts -> parts.length == 3)
+                .map(parts -> parts[1])
+                .collect(Collectors.toSet());
+        var credentials = ctx.storedCredentials.stream()
+                .filter(vc -> credentialTypes(vc).stream().anyMatch(requestedTypes::contains))
+                .toList();
+        return createVpJwt(ctx, audience, credentials);
+    }
+
+    private List<String> credentialTypes(String vcJwt) {
+        try {
+            var vc = SignedJWT.parse(vcJwt).getJWTClaimsSet().getJSONObjectClaim("vc");
+            if (vc != null && vc.get("type") instanceof List<?> types) {
+                return types.stream().map(Object::toString).toList();
+            }
+            return List.of();
+        } catch (ParseException e) {
+            throw new RuntimeException("Failed to parse VC JWT", e);
+        }
+    }
+
+    private String createVpJwt(ParticipantContext ctx, String audience, List<String> credentials) {
         try {
             var vpClaims = Map.of(
                     "@context", List.of("https://www.w3.org/2018/credentials/v1"),
                     "type", List.of("VerifiablePresentation"),
-                    "verifiableCredential", List.copyOf(ctx.storedCredentials)
+                    "verifiableCredential", List.copyOf(credentials)
             );
 
             var now = Date.from(Instant.now());

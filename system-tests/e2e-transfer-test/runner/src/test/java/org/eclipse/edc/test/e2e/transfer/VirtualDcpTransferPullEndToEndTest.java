@@ -19,19 +19,26 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participants;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.ManagementApiClientV5;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.AtomicConstraintDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.CatalogDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.CatalogRequestDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.CelExpressionDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.DatasetDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.DatasetRequestDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PermissionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDto;
 import org.eclipse.edc.iam.decentralizedclaims.spi.credentialservice.CredentialService;
 import org.eclipse.edc.iam.decentralizedclaims.spi.credentialservice.CredentialServiceEndToEndExtension;
 import org.eclipse.edc.iam.decentralizedclaims.spi.issuerservice.IssuerService;
 import org.eclipse.edc.iam.decentralizedclaims.spi.issuerservice.IssuerServiceEndToEndExtension;
+import org.eclipse.edc.iam.decentralizedclaims.spi.scope.CatalogScopeExtractor;
+import org.eclipse.edc.iam.decentralizedclaims.spi.scope.CatalogScopeExtractorRegistry;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.annotations.Runtime;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.nats.testfixtures.NatsEndToEndExtension;
+import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.signaling.auth.Oauth2Extension;
 import org.eclipse.edc.signaling.client.DataPlaneSignalingTestClient;
 import org.eclipse.edc.spi.security.Vault;
@@ -41,6 +48,7 @@ import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.Runtimes;
 import org.eclipse.edc.test.e2e.fixtures.VaultApi;
 import org.eclipse.edc.test.e2e.fixtures.VaultEndToEndExtension;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
@@ -49,10 +57,12 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
@@ -65,6 +75,13 @@ class VirtualDcpTransferPullEndToEndTest {
 
 
     private static final String CONSUMER_VAULT_KEY = "consumer-" + UUID.randomUUID();
+    private static final String CATALOG_ACCESS_CREDENTIAL = "CatalogAccessCredential";
+    private static final String CATALOG_ACCESS_SCOPE = "org.eclipse.dspace.dcp.vc.type:%s:read".formatted(CATALOG_ACCESS_CREDENTIAL);
+    private static final CatalogScopeExtractor NO_SCOPES = context -> Set.of();
+    /**
+     * Delegate of the {@link CatalogScopeExtractor} registered in the runtime, that can be changed by each test.
+     */
+    private static final AtomicReference<CatalogScopeExtractor> CATALOG_SCOPE_EXTRACTOR = new AtomicReference<>(NO_SCOPES);
 
     private static Participants participants(ComponentRuntimeContext ctx, CredentialServiceEndToEndExtension ext) {
         var protocolEndpoint = ctx.getEndpoint("protocol");
@@ -94,12 +111,14 @@ class VirtualDcpTransferPullEndToEndTest {
         /**
          * Set up the test environment by creating one issuer, two participants in their
          * respective Identity Hubs, and issuing a MembershipCredential credential for each participant.
+         * The consumer also gets a CatalogAccessCredential, which is not part of the default scopes.
          */
         @BeforeAll
         static void setup(IssuerService issuer,
                           CredentialService credentialService,
                           Participants participants,
                           @Runtime(Runtimes.ControlPlane.NAME) Vault vault,
+                          @Runtime(Runtimes.ControlPlane.NAME) CatalogScopeExtractorRegistry catalogScopeExtractorRegistry,
                           VaultApi vaultApi) {
 
             vaultApi.enableTransitEngine();
@@ -119,6 +138,110 @@ class VirtualDcpTransferPullEndToEndTest {
 
             credentialService.storeCredential(participants.consumer().contextId(), consumerMembershipCredential);
             credentialService.storeCredential(participants.provider().contextId(), providerMembershipCredential);
+
+            var consumerCatalogAccessCredential = issuer.issueCredential(participants.consumer().id(), CATALOG_ACCESS_CREDENTIAL, Map.of("status", "active"));
+            credentialService.storeCredential(participants.consumer().contextId(), consumerCatalogAccessCredential);
+
+            catalogScopeExtractorRegistry.register(context -> CATALOG_SCOPE_EXTRACTOR.get().extractScopes(context));
+        }
+
+        @AfterEach
+        void resetCatalogScopeExtractor() {
+            CATALOG_SCOPE_EXTRACTOR.set(NO_SCOPES);
+        }
+
+        @Test
+        void catalog_shouldNotContainOffer_whenCatalogScopeIsNotRequested(ManagementApiClientV5 connectorClient,
+                                                                           Participants participants) {
+            var assetId = setupCatalogAccessAsset(connectorClient, participants);
+
+            var catalog = requestCatalog(connectorClient, participants, List.of(CATALOG_ACCESS_SCOPE));
+
+            assertThat(catalog.datasets()).extracting(DatasetDto::id).doesNotContain(assetId);
+        }
+
+        @Test
+        void catalog_shouldContainOffer_whenProviderRequestsCatalogScope_andConsumerSendsAdditionalScopes(ManagementApiClientV5 connectorClient,
+                                                                                                           Participants participants) {
+            var assetId = setupCatalogAccessAsset(connectorClient, participants);
+            CATALOG_SCOPE_EXTRACTOR.set(scopesFor(participants.provider().contextId(), RequestContext.Direction.Ingress));
+
+            var catalog = requestCatalog(connectorClient, participants, List.of(CATALOG_ACCESS_SCOPE));
+
+            assertThat(catalog.datasets()).extracting(DatasetDto::id).contains(assetId);
+        }
+
+        @Test
+        void catalog_shouldContainOffer_whenCatalogScopeIsExtractedOnBothSides(ManagementApiClientV5 connectorClient,
+                                                                                Participants participants) {
+            var assetId = setupCatalogAccessAsset(connectorClient, participants);
+            var providerScopes = scopesFor(participants.provider().contextId(), RequestContext.Direction.Ingress);
+            var consumerScopes = scopesFor(participants.consumer().contextId(), RequestContext.Direction.Egress);
+            CATALOG_SCOPE_EXTRACTOR.set(context -> union(providerScopes.extractScopes(context), consumerScopes.extractScopes(context)));
+
+            var catalog = requestCatalog(connectorClient, participants, null);
+
+            assertThat(catalog.datasets()).extracting(DatasetDto::id).contains(assetId);
+        }
+
+        @Test
+        void dataset_shouldContainOffer_whenCatalogScopeIsExtractedOnBothSides(ManagementApiClientV5 connectorClient,
+                                                                                Participants participants) {
+            var assetId = setupCatalogAccessAsset(connectorClient, participants);
+            var providerScopes = scopesFor(participants.provider().contextId(), RequestContext.Direction.Ingress);
+            var consumerScopes = scopesFor(participants.consumer().contextId(), RequestContext.Direction.Egress);
+            CATALOG_SCOPE_EXTRACTOR.set(context -> union(providerScopes.extractScopes(context), consumerScopes.extractScopes(context)));
+
+            var datasetRequest = new DatasetRequestDto(assetId, participants.consumer().profile(),
+                    participants.provider().getProtocolEndpoint(), participants.provider().id());
+            var dataset = connectorClient.catalogs().getDataset(participants.consumer().contextId(), datasetRequest);
+
+            assertThat(dataset.id()).isEqualTo(assetId);
+            assertThat(dataset.offers()).isNotEmpty();
+        }
+
+        @Test
+        void catalog_shouldFail_whenProviderRequestsCatalogScopeNotGrantedByConsumer(ManagementApiClientV5 connectorClient,
+                                                                                    Participants participants) {
+            setupCatalogAccessAsset(connectorClient, participants);
+            CATALOG_SCOPE_EXTRACTOR.set(scopesFor(participants.provider().contextId(), RequestContext.Direction.Ingress));
+
+            var request = new CatalogRequestDto(participants.consumer().profile(),
+                    participants.provider().getProtocolEndpoint(), participants.provider().id());
+
+            connectorClient.catalogs().requestCatalogResponse(participants.consumer().contextId(), request)
+                    .statusCode(502);
+        }
+
+        private String setupCatalogAccessAsset(ManagementApiClientV5 connectorClient, Participants participants) {
+            var leftOperand = "https://w3id.org/example/credentials/CatalogAccessCredential/" + UUID.randomUUID();
+            var expression = "ctx.agent.claims.vc.hasCredential('%s')".formatted(CATALOG_ACCESS_CREDENTIAL);
+            connectorClient.expressions().createExpression(new CelExpressionDto(leftOperand, expression, Set.of("catalog"), "catalog access expression"));
+
+            var accessPolicy = new PolicyDto(List.of(new PermissionDto(new AtomicConstraintDto(leftOperand, "eq", "active"))));
+            return setup(connectorClient, participants.provider(), accessPolicy);
+        }
+
+        private CatalogDto requestCatalog(ManagementApiClientV5 connectorClient, Participants participants, List<String> additionalScopes) {
+            var request = new CatalogRequestDto(participants.consumer().profile(),
+                    participants.provider().getProtocolEndpoint(), participants.provider().id(), additionalScopes);
+            return connectorClient.catalogs().requestCatalog(participants.consumer().contextId(), request);
+        }
+
+        private CatalogScopeExtractor scopesFor(String participantContextId, RequestContext.Direction direction) {
+            return context -> {
+                var requestContext = context.requestContext();
+                if (participantContextId.equals(requestContext.getParticipantContextId()) && requestContext.getDirection() == direction) {
+                    return Set.of(CATALOG_ACCESS_SCOPE);
+                }
+                return Set.of();
+            };
+        }
+
+        private Set<String> union(Set<String> first, Set<String> second) {
+            var result = new HashSet<>(first);
+            result.addAll(second);
+            return result;
         }
 
 

@@ -35,8 +35,11 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -170,6 +173,7 @@ public class CredentialServiceEndToEndExtension implements BeforeAllCallback, Af
     public static class DynamicPresentationResponse implements ResponseDefinitionTransformerV2 {
 
         private final LazySupplier<CredentialService> credentialService;
+        private final ObjectMapper objectMapper = new ObjectMapper();
 
         public DynamicPresentationResponse(LazySupplier<CredentialService> credentialService) {
             this.credentialService = credentialService;
@@ -191,7 +195,22 @@ public class CredentialServiceEndToEndExtension implements BeforeAllCallback, Af
             try {
                 var signedJwt = SignedJWT.parse(token.replace("Bearer ", ""));
                 var audience = signedJwt.getJWTClaimsSet().getIssuer();
-                var presentation = credentialService.get().createVpJwt(participantContextId, audience);
+                var requestedScopes = requestedScopes(serveEvent.getRequest().getBodyAsString());
+
+                String presentation;
+                if (requestedScopes == null) {
+                    presentation = credentialService.get().createVpJwt(participantContextId, audience);
+                } else {
+                    // as a real credential service would do, the requested scopes must be granted by the access token
+                    var grantedScopes = grantedScopes(signedJwt.getJWTClaimsSet().getStringClaim("token"));
+                    if (!grantedScopes.containsAll(requestedScopes)) {
+                        return new ResponseDefinitionBuilder()
+                                .withStatus(403)
+                                .withHeader("Content-Type", "application/json")
+                                .build();
+                    }
+                    presentation = credentialService.get().createVpJwt(participantContextId, audience, requestedScopes);
+                }
 
                 var body = """
                         {
@@ -210,13 +229,43 @@ public class CredentialServiceEndToEndExtension implements BeforeAllCallback, Af
                         .withBody(body)
                         .withHeader("Content-Type", "application/json")
                         .build();
-            } catch (ParseException e) {
+            } catch (ParseException | JsonProcessingException e) {
                 return new ResponseDefinitionBuilder()
                         .withStatus(400)
                         .withHeader("Content-Type", "application/json")
                         .build();
             }
 
+        }
+
+        /**
+         * Returns the scopes of the presentation query, or null if the query does not use scopes.
+         */
+        private @Nullable List<String> requestedScopes(String body) throws JsonProcessingException {
+            var scope = objectMapper.readTree(body).get("scope");
+            if (scope == null || !scope.isArray()) {
+                return null;
+            }
+            var scopes = new ArrayList<String>();
+            scope.forEach(node -> scopes.add(node.asText()));
+            return scopes;
+        }
+
+        /**
+         * Returns the scopes granted by the access token, which is either a JWT with a "scope" claim or
+         * the plain scope string issued by the mock STS.
+         */
+        private Set<String> grantedScopes(@Nullable String accessToken) {
+            if (accessToken == null) {
+                return Set.of();
+            }
+            String scope;
+            try {
+                scope = SignedJWT.parse(accessToken).getJWTClaimsSet().getStringClaim("scope");
+            } catch (ParseException e) {
+                scope = accessToken;
+            }
+            return scope == null ? Set.of() : Set.of(scope.split(" "));
         }
 
         @Override
@@ -244,6 +293,7 @@ public class CredentialServiceEndToEndExtension implements BeforeAllCallback, Af
             var participantContextId = serveEvent.getRequest().getFormParameters().get("client_id");
             var audience = serveEvent.getRequest().getFormParameters().get("audience");
             var bearerAccessScope = serveEvent.getRequest().getFormParameters().get("bearer_access_scope");
+            var bearerAccessToken = serveEvent.getRequest().getFormParameters().get("token");
 
             if (participantContextId == null || participantContextId.values().isEmpty()) {
                 return new ResponseDefinitionBuilder()
@@ -260,7 +310,8 @@ public class CredentialServiceEndToEndExtension implements BeforeAllCallback, Af
             }
 
             var scope = Optional.ofNullable(bearerAccessScope).map(MultiValue::firstValue).orElse(null);
-            var token = credentialService.get().createStsToken(participantContextId.firstValue(), audience.firstValue(), scope, null);
+            var accessToken = Optional.ofNullable(bearerAccessToken).map(MultiValue::firstValue).orElse(null);
+            var token = credentialService.get().createStsToken(participantContextId.firstValue(), audience.firstValue(), scope, accessToken);
 
             var body = format("""
                     {"access_token": "%s", "expires_in": 3600}""", token);
