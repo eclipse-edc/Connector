@@ -18,9 +18,11 @@ package org.eclipse.edc.iam.decentralizedclaims.core;
 import org.eclipse.edc.controlplane.iam.AudienceResolver;
 import org.eclipse.edc.iam.decentralizedclaims.core.defaults.DefaultDcpParticipantIdExtractionFunction;
 import org.eclipse.edc.iam.decentralizedclaims.core.defaults.InMemorySignatureSuiteRegistry;
+import org.eclipse.edc.iam.decentralizedclaims.core.scope.DcpCatalogScopeExtractorRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.core.scope.DcpScopeExtractorRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.core.scope.defaults.InMemoryDcpScopeStore;
 import org.eclipse.edc.iam.decentralizedclaims.spi.ClaimTokenCreatorFunction;
+import org.eclipse.edc.iam.decentralizedclaims.spi.scope.CatalogScopeExtractorRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.store.DcpScopeStore;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.SignatureSuiteRegistry;
@@ -58,6 +60,11 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public ScopeExtractorRegistry scopeExtractorRegistry() {
         return new DcpScopeExtractorRegistry();
+    }
+
+    @Provider(isDefault = true)
+    public CatalogScopeExtractorRegistry catalogScopeExtractorRegistry() {
+        return new DcpCatalogScopeExtractorRegistry();
     }
 
     // Default audience for DCP is the counter-party id

@@ -83,7 +83,8 @@ class ProtocolTokenValidatorImplTest {
         verify(agentService).createFor(claimToken, participantId);
         verify(policyEngine).evaluate(same(policy), and(isA(RequestPolicyContext.class), argThat(ctx -> {
             var reqContext = ctx.requestContext();
-            return reqContext.getMessage().getClass().equals(TestMessage.class) && reqContext.getDirection().equals(RequestContext.Direction.Ingress);
+            return reqContext.getMessage().getClass().equals(TestMessage.class) && reqContext.getDirection().equals(RequestContext.Direction.Ingress) &&
+                    participantContext.getId().equals(reqContext.getParticipantContextId());
         })));
         verify(dataspaceProfileContextRegistry).getProfile(protocol);
         verify(identityService).verifyJwtToken(

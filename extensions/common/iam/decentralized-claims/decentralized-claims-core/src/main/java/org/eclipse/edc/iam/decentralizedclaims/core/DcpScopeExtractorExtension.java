@@ -14,7 +14,9 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.core;
 
+import org.eclipse.edc.iam.decentralizedclaims.core.scope.CatalogScopeExtractorFunction;
 import org.eclipse.edc.iam.decentralizedclaims.core.scope.DcpScopeExtractorFunction;
+import org.eclipse.edc.iam.decentralizedclaims.spi.scope.CatalogScopeExtractorRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
@@ -40,6 +42,9 @@ public class DcpScopeExtractorExtension implements ServiceExtension {
     private ScopeExtractorRegistry scopeExtractorRegistry;
 
     @Inject
+    private CatalogScopeExtractorRegistry catalogScopeExtractorRegistry;
+
+    @Inject
     private Monitor monitor;
 
     @Override
@@ -50,6 +55,7 @@ public class DcpScopeExtractorExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         policyEngine.registerPreValidator(RequestCatalogPolicyContext.class, new DcpScopeExtractorFunction<>(scopeExtractorRegistry, monitor));
+        policyEngine.registerPreValidator(RequestCatalogPolicyContext.class, new CatalogScopeExtractorFunction(catalogScopeExtractorRegistry, monitor));
         policyEngine.registerPreValidator(RequestContractNegotiationPolicyContext.class, new DcpScopeExtractorFunction<>(scopeExtractorRegistry, monitor));
         policyEngine.registerPreValidator(RequestTransferProcessPolicyContext.class, new DcpScopeExtractorFunction<>(scopeExtractorRegistry, monitor));
     }

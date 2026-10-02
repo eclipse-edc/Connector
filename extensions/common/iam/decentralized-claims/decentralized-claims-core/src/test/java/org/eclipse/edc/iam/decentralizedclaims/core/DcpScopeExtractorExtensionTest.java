@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.core;
 
+import org.eclipse.edc.iam.decentralizedclaims.core.scope.CatalogScopeExtractorFunction;
 import org.eclipse.edc.iam.decentralizedclaims.core.scope.DcpScopeExtractorFunction;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
@@ -46,6 +47,7 @@ class DcpScopeExtractorExtensionTest {
         ext.initialize(context);
 
         verify(policyEngine).registerPreValidator(eq(RequestCatalogPolicyContext.class), isA(DcpScopeExtractorFunction.class));
+        verify(policyEngine).registerPreValidator(eq(RequestCatalogPolicyContext.class), isA(CatalogScopeExtractorFunction.class));
         verify(policyEngine).registerPreValidator(eq(RequestContractNegotiationPolicyContext.class), isA(DcpScopeExtractorFunction.class));
         verify(policyEngine).registerPreValidator(eq(RequestTransferProcessPolicyContext.class), isA(DcpScopeExtractorFunction.class));
     }

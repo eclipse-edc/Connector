@@ -23,6 +23,7 @@ public class RequestContext {
 
     private ProtocolRemoteMessage message;
     private Direction direction;
+    private String participantContextId;
 
     private RequestContext() {
     }
@@ -43,6 +44,15 @@ public class RequestContext {
      */
     public Direction getDirection() {
         return direction;
+    }
+
+    /**
+     * Returns the id of the participant context that is sending (Egress) or receiving (Ingress) the message
+     *
+     * @return The participant context id
+     */
+    public String getParticipantContextId() {
+        return participantContextId;
     }
 
     public enum Direction {
@@ -68,6 +78,11 @@ public class RequestContext {
 
         public Builder direction(Direction direction) {
             context.direction = direction;
+            return this;
+        }
+
+        public Builder participantContextId(String participantContextId) {
+            context.participantContextId = participantContextId;
             return this;
         }
 
