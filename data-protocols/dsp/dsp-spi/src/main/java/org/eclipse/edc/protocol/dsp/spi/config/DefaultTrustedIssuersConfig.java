@@ -14,16 +14,14 @@
 
 package org.eclipse.edc.protocol.dsp.spi.config;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.protocol.spi.TrustedIssuer;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.EdcException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
-
-import static com.fasterxml.jackson.databind.type.TypeFactory.defaultInstance;
 
 @Settings
 public record DefaultTrustedIssuersConfig(
@@ -53,8 +51,8 @@ public record DefaultTrustedIssuersConfig(
 
     private List<String> deserializeSupportedTypes(ObjectMapper objectMapper) {
         try {
-            return objectMapper.readValue(supportedTypes(), defaultInstance().constructCollectionType(List.class, String.class));
-        } catch (JsonProcessingException e) {
+            return objectMapper.readValue(supportedTypes(), objectMapper.getTypeFactory().constructCollectionType(List.class, String.class));
+        } catch (JacksonException e) {
             throw new EdcException("Cannot deserialize TrustedIssuer supportedtypes json setting: '%s'".formatted(supportedTypes), e);
         }
     }

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.core.discovery;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.http.spi.EdcHttpClient;
@@ -27,8 +26,9 @@ import org.eclipse.edc.protocol.spi.discovery.DiscoveryUrlResolver;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -120,7 +120,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
         try (var body = response.body()) {
             var versions = objectMapper.readValue(body.byteStream(), ProtocolVersions.class);
             return Result.success(versions.protocolVersions());
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             return Result.failure("Failed to parse '%s': %s".formatted(url, e.getMessage()));
         }
     }

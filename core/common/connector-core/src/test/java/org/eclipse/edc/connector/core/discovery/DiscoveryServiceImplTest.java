@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.core.discovery;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -30,6 +29,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.function.Function;

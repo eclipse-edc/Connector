@@ -25,8 +25,8 @@ import com.apicatalog.vc.proof.Proof;
 import com.apicatalog.vc.proof.ProofValue;
 import com.apicatalog.vc.solid.SolidProofValue;
 import com.apicatalog.vc.suite.SignatureSuite;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
+import tools.jackson.databind.ObjectMapper;
 
 import static com.apicatalog.vc.VcVocab.SECURITY_VOCAB;
 

@@ -15,9 +15,9 @@
 
 package org.eclipse.edc.connector.controlplane.contract.spi.types.offer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
 
 import java.util.Map;
 import java.util.UUID;
@@ -28,7 +28,7 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 class ContractDefinitionTest {
 
     @Test
-    void verifySerializeDeserialize() throws JsonProcessingException {
+    void verifySerializeDeserialize() throws JacksonException {
         var mapper = new JacksonTypeManager().getMapper();
         var definition = ContractDefinition.Builder.newInstance()
                 .id("1")

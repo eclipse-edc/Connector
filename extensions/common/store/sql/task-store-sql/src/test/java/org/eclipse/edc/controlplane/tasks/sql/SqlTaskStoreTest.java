@@ -43,7 +43,7 @@ public class SqlTaskStoreTest extends TaskStoreTestBase {
 
         typeManager.registerTypes(TestPayload.class);
         store = new SqlTaskStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), typeManager.getMapper(), queryExecutor, statements);
+                extension.getTransactionContext(), typeManager::getMapper, queryExecutor, statements);
 
         var schema = TestUtils.getResourceFileContentAsString("task-schema.sql");
         extension.runQuery(schema);

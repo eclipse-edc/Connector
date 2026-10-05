@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.policy.spi.event;
 
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -23,6 +22,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import tools.jackson.databind.jsontype.NamedType;
 
 import java.time.Clock;
 import java.util.UUID;

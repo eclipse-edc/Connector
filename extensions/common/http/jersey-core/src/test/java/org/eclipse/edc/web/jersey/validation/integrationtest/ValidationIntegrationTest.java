@@ -31,6 +31,8 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -100,13 +102,17 @@ class ValidationIntegrationTest {
     void verifyMethodBoundFunction_whenReturnsFailure() {
         when(methodFunctionMock.apply(any())).thenReturn(Result.failure("not valid!"));
 
-        var response = baseRequest()
+        baseRequest()
                 .get("/greeting")
                 .then()
                 .statusCode(400)
-                .extract().body().asString();
+                .contentType(ContentType.JSON)
+                .body("size()", equalTo(1))
+                .body("message[0]", equalTo("not valid!"))
+                .body("type[0]", equalTo("InvalidRequest"))
+                .body("path[0]", nullValue())
+                .body("invalidValue[0]", nullValue());
 
-        assertThat(response).isEqualTo("[{\"message\":\"not valid!\",\"type\":\"InvalidRequest\",\"path\":null,\"invalidValue\":null}]");
         verify(methodFunctionMock).apply(any());
     }
 
@@ -127,28 +133,36 @@ class ValidationIntegrationTest {
     void verifyTypeBoundFunction_whenFailure() {
         when(typeFunctionMock.apply(any())).thenReturn(Result.failure("type: not valid!"));
 
-        var response = baseRequest()
+        baseRequest()
                 .contentType(ContentType.JSON)
                 .body(new GreetingDto("max mustermann"))
                 .post("/greeting")
                 .then()
                 .statusCode(400)
-                .extract().body().asString();
-        assertThat(response).isEqualTo("[{\"message\":\"type: not valid!\",\"type\":\"InvalidRequest\",\"path\":null,\"invalidValue\":null}]");
+                .contentType(ContentType.JSON)
+                .body("size()", equalTo(1))
+                .body("message[0]", equalTo("type: not valid!"))
+                .body("type[0]", equalTo("InvalidRequest"))
+                .body("path[0]", nullValue())
+                .body("invalidValue[0]", nullValue());
     }
 
     @Test
     void verifyGlobalFunction_whenFailure() {
         when(globalFunctionMock.apply(any())).thenReturn(Result.failure("global: not valid!"));
 
-        var response = baseRequest()
+        baseRequest()
                 .contentType(ContentType.JSON)
                 .body(new GreetingDto("max mustermann"))
                 .post("/greeting")
                 .then()
                 .statusCode(400)
-                .extract().body().asString();
-        assertThat(response).isEqualTo("[{\"message\":\"global: not valid!\",\"type\":\"InvalidRequest\",\"path\":null,\"invalidValue\":null}]");
+                .contentType(ContentType.JSON)
+                .body("size()", equalTo(1))
+                .body("message[0]", equalTo("global: not valid!"))
+                .body("type[0]", equalTo("InvalidRequest"))
+                .body("path[0]", nullValue())
+                .body("invalidValue[0]", nullValue());
     }
 
     private RequestSpecification baseRequest() {

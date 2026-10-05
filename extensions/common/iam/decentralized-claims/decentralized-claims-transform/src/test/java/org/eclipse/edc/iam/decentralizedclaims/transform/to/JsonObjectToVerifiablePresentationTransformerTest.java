@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -26,6 +24,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URISyntaxException;
 import java.util.function.Consumer;
@@ -63,7 +63,7 @@ class JsonObjectToVerifiablePresentationTransformerTest {
     }
 
     @Test
-    void transform() throws JsonProcessingException {
+    void transform() throws JacksonException {
         var jsonObj = OBJECT_MAPPER.readValue(EXAMPLE_VP_JSONLD, JsonObject.class);
         var vp = transformer.transform(expand(jsonObj, withBothCredentialContexts()), context);
 

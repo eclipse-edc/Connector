@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.decentralizedclaims.transform.TestContextProvider;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -28,6 +26,8 @@ import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransf
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
@@ -49,7 +49,7 @@ class JsonObjectToPresentationResponseMessageTransformerTest {
 
     @ParameterizedTest
     @ArgumentsSource(TestContextProvider.class)
-    void transform(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+    void transform(TestContextProvider.TestContext ctx) throws JacksonException {
         var transformer = new JsonObjectToPresentationResponseMessageTransformer(typeManager, "test", ctx.namespace());
         var obj = """
                 {
@@ -73,7 +73,7 @@ class JsonObjectToPresentationResponseMessageTransformerTest {
 
     @ParameterizedTest
     @ArgumentsSource(TestContextProvider.class)
-    void transform_MultipleJwt(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+    void transform_MultipleJwt(TestContextProvider.TestContext ctx) throws JacksonException {
         var transformer = new JsonObjectToPresentationResponseMessageTransformer(typeManager, "test", ctx.namespace());
         var obj = """
                 {
@@ -98,7 +98,7 @@ class JsonObjectToPresentationResponseMessageTransformerTest {
 
     @ParameterizedTest
     @ArgumentsSource(TestContextProvider.class)
-    void transform_singleJson(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+    void transform_singleJson(TestContextProvider.TestContext ctx) throws JacksonException {
         var transformer = new JsonObjectToPresentationResponseMessageTransformer(typeManager, "test", ctx.namespace());
 
         var obj = """
@@ -131,7 +131,7 @@ class JsonObjectToPresentationResponseMessageTransformerTest {
 
     @ParameterizedTest
     @ArgumentsSource(TestContextProvider.class)
-    void transform_multipleJson(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+    void transform_multipleJson(TestContextProvider.TestContext ctx) throws JacksonException {
         var transformer = new JsonObjectToPresentationResponseMessageTransformer(typeManager, "test", ctx.namespace());
 
         var obj = """
@@ -175,7 +175,7 @@ class JsonObjectToPresentationResponseMessageTransformerTest {
 
     @ParameterizedTest
     @ArgumentsSource(TestContextProvider.class)
-    void transform_mixed(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+    void transform_mixed(TestContextProvider.TestContext ctx) throws JacksonException {
         var transformer = new JsonObjectToPresentationResponseMessageTransformer(typeManager, "test", ctx.namespace());
 
         var obj = """

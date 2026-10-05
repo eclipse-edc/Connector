@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
@@ -32,15 +31,17 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.vault.VaultContainer;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.UUID;
 
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig.VAULT_API_HEALTH_PATH_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig.VAULT_API_SECRET_PATH_DEFAULT;
 import static org.mockito.Mockito.mock;
+import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 @ComponentTest
 @Testcontainers
@@ -56,7 +57,7 @@ class HashicorpVaultIntegrationTest {
             .withVaultToken(TOKEN)
             .withInitCommand("kv put secret/%s %s=%s".formatted(VAULT_ENTRY_KEY, VAULT_DATA_ENTRY_NAME, VAULT_ENTRY_VALUE));
     public final Monitor monitor = mock();
-    private final ObjectMapper objectMapper = new ObjectMapper().configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private final ObjectMapper objectMapper = JsonMapper.builder().configure(FAIL_ON_UNKNOWN_PROPERTIES, false).build();
     private HashicorpVaultClient vault;
 
     @BeforeEach

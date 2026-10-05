@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.verifiablecredentials.jwt;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.CredentialVerifier;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.VerifierContext;
@@ -27,6 +26,7 @@ import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerKeyIdValidationRule;
+import tools.jackson.core.JacksonException;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -175,7 +175,7 @@ public class JwtPresentationVerifier implements CredentialVerifier {
             return ((Collection) credentialsObject).stream().map(obj -> {
                 try {
                     return (obj instanceof String) ? obj.toString() : typeManager.getMapper(typeContext).writeValueAsString(obj);
-                } catch (JsonProcessingException e) {
+                } catch (JacksonException e) {
                     throw new RuntimeException(e);
                 }
             }).toList();

@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.controlplane.DataAddress;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * The {@link TransferStartMessage} is sent by the provider to indicate the asset transfer has been initiated.

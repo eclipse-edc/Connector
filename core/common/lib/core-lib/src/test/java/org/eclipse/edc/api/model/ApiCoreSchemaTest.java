@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.api.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.validation.DataAddressValidator;
 import org.eclipse.edc.controlplane.DataAddress;
@@ -35,6 +33,8 @@ import org.eclipse.edc.validator.jsonobject.validators.model.CriterionValidator;
 import org.eclipse.edc.validator.jsonobject.validators.model.QuerySpecValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.map;
@@ -65,7 +65,7 @@ class ApiCoreSchemaTest {
     }
 
     @Test
-    void criterionExample() throws JsonProcessingException {
+    void criterionExample() throws JacksonException {
         var validator = CriterionValidator.instance(criterionOperatorRegistry);
 
         var jsonObject = objectMapper.readValue(CRITERION_EXAMPLE, JsonObject.class);
@@ -83,7 +83,7 @@ class ApiCoreSchemaTest {
     }
 
     @Test
-    void querySpecExample() throws JsonProcessingException {
+    void querySpecExample() throws JacksonException {
         var validator = QuerySpecValidator.instance(criterionOperatorRegistry);
 
         var jsonObject = objectMapper.readValue(QUERY_SPEC_EXAMPLE, JsonObject.class);
@@ -102,7 +102,7 @@ class ApiCoreSchemaTest {
     }
 
     @Test
-    void idResponseExample() throws JsonProcessingException {
+    void idResponseExample() throws JacksonException {
         var idResponse = objectMapper.readValue(ID_RESPONSE_EXAMPLE, JsonObject.class);
 
         assertThat(idResponse).isNotNull();
@@ -111,7 +111,7 @@ class ApiCoreSchemaTest {
     }
 
     @Test
-    void apiErrorDetailExample() throws JsonProcessingException {
+    void apiErrorDetailExample() throws JacksonException {
         var apiErrorDetail = objectMapper.readValue(ApiCoreSchema.ApiErrorDetailSchema.API_ERROR_EXAMPLE, JsonObject.class);
 
         assertThat(apiErrorDetail.getString("message")).isNotBlank();
@@ -121,7 +121,7 @@ class ApiCoreSchemaTest {
     }
 
     @Test
-    void dataAddressExample() throws JsonProcessingException {
+    void dataAddressExample() throws JacksonException {
         var validator = DataAddressValidator.instance();
 
         var jsonObject = objectMapper.readValue(DATA_ADDRESS_EXAMPLE, JsonObject.class);

@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.revocation;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.core.MediaType;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -30,6 +28,9 @@ import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.util.collection.Cache;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -62,9 +63,10 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
     protected BaseRevocationListService(ObjectMapper mapper, long cacheValidity, Collection<String> acceptedContentTypes,
                                         EdcHttpClient httpClient, TokenValidationService tokenValidationService,
                                         DidPublicKeyResolver didPublicKeyResolver, Class<C> credentialClass) {
-        this.objectMapper = mapper.copy()
+        this.objectMapper = mapper.rebuild()
                                     .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY) // technically, credential subjects and credential status can be objects AND Arrays
-                                    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // let's make sure this is disabled, because the "@context" would cause problems
+                                    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) // let's make sure this is disabled, because the "@context" would cause problems
+                                    .build();
         statusListCredentialCache = new Cache<>(this::downloadStatusListCredential, cacheValidity);
         this.acceptedContentTypes = acceptedContentTypes;
         this.httpClient = httpClient;
@@ -191,7 +193,7 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
             // code is reported, if there was a response at all
             var reason = e.getStatusCode() > 0 ? String.valueOf(e.getStatusCode()) : e.getMessage();
             throw new IllegalArgumentException("Failed to download status list credential from " + credentialUrl + ": " + reason);
-        } catch (IOException e) {
+        } catch (IOException | StreamReadException e) {
             // the response body could not be read, e.g. because it is not a status list credential
             throw new EdcException("Failed to read status list credential from " + credentialUrl + ": " + e.getMessage(), e);
         }

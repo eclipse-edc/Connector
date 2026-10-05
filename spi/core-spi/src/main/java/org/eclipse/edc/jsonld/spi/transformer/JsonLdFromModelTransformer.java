@@ -14,13 +14,14 @@
 
 package org.eclipse.edc.jsonld.spi.transformer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.transform.spi.TransformerContext;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 import java.util.function.Function;
@@ -118,7 +119,7 @@ public abstract class JsonLdFromModelTransformer<INPUT, OUTPUT> implements JsonL
         properties.forEach((k, v) -> {
             try {
                 builder.add(k, transformerFunction.apply(v));
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | JacksonException e) {
                 context.problem()
                         .invalidProperty()
                         .type(JsonLdKeywords.VALUE)

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.transform.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationQueryMessage;
 import org.eclipse.edc.iam.decentralizedclaims.transform.TestContextProvider;
@@ -25,6 +24,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 

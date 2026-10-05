@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.spi.types;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.jsontype.NamedType;
 
 /**
  * Manages system types and is used to deserialize polymorphic types.
@@ -66,12 +66,12 @@ public interface TypeManager {
     /**
      * Registers a serializer for the given type with a context.
      */
-    <T> void registerSerializer(String key, Class<T> type, JsonSerializer<T> serializer);
+    <T> void registerSerializer(String key, Class<T> type, ValueSerializer<T> serializer);
 
     /**
      * Registers a serializer for the given type with the default context.
      */
-    <T> void registerSerializer(Class<T> type, JsonSerializer<T> serializer);
+    <T> void registerSerializer(Class<T> type, ValueSerializer<T> serializer);
 
     /**
      * Read value from string by type.

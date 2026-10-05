@@ -15,8 +15,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.decentralizedclaims.transform.TestData;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
@@ -32,6 +30,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.Map;
@@ -115,7 +115,7 @@ class JwtToVerifiablePresentationTransformerTest {
 
     @Test
     @DisplayName("VP claim contains a single LDP-VC")
-    void transform_containsLdpVc() throws JsonProcessingException {
+    void transform_containsLdpVc() throws JacksonException {
         when(jsonLd.expand(any()))
                 .thenReturn(Result.success(JacksonJsonLd.createObjectMapper()
                         .readValue(TestUtils.getResourceFileContentAsString("expanded_vc.json"), JsonObject.class)));

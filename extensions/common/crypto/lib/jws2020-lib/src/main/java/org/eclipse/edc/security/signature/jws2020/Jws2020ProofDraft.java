@@ -20,9 +20,9 @@ import com.apicatalog.ld.signature.VerificationMethod;
 import com.apicatalog.vc.ModelVersion;
 import com.apicatalog.vc.integrity.DataIntegrityVocab;
 import com.apicatalog.vc.issuer.ProofDraft;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.time.Instant;

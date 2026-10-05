@@ -14,8 +14,7 @@
 
 package org.eclipse.edc.connector.api.management.schema;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.networknt.schema.InputFormat;
 import com.networknt.schema.SchemaLocation;
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.dialect.Dialects;
@@ -26,6 +25,7 @@ import org.eclipse.edc.validator.registration.spi.SchemaValidatorFactory;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,8 +45,8 @@ public class ManagementApiSchemaValidatorProvider implements SchemaValidatorFact
     public Validator<JsonObject> validatorFor(String schema) {
         var schemaValidator = schemaFactory.getSchema(SchemaLocation.of(schema));
         return (input) -> {
-            var node = objectMapperSupplier.get().convertValue(input, JsonNode.class);
-            var response = schemaValidator.validate(node);
+            var json = objectMapperSupplier.get().writeValueAsString(input);
+            var response = schemaValidator.validate(json, InputFormat.JSON);
             if (response.isEmpty()) {
                 return ValidationResult.success();
             }

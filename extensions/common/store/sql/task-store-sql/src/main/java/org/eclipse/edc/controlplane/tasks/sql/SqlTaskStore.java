@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.controlplane.tasks.sql;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.controlplane.tasks.Task;
 import org.eclipse.edc.controlplane.tasks.TaskPayload;
 import org.eclipse.edc.controlplane.tasks.store.TaskStore;
@@ -25,10 +24,12 @@ import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import tools.jackson.databind.ObjectMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * SQL implementation of {@link TaskStore}.
@@ -37,8 +38,8 @@ public class SqlTaskStore extends AbstractSqlStore implements TaskStore {
 
     private final TaskStatements statements;
 
-    public SqlTaskStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, ObjectMapper objectMapper, QueryExecutor queryExecutor, TaskStatements statements) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+    public SqlTaskStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, Supplier<ObjectMapper> objectMapperSupplier, QueryExecutor queryExecutor, TaskStatements statements) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
     }
 

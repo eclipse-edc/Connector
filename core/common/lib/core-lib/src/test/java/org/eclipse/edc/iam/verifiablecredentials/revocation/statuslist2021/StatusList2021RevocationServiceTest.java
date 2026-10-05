@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.revocation.statuslist2021;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
 import dev.failsafe.RetryPolicy;
@@ -38,6 +36,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -71,7 +70,7 @@ class StatusList2021RevocationServiceTest {
             .options(wireMockConfig().dynamicPort())
             .build();
 
-    private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    private final ObjectMapper mapper = new ObjectMapper();
 
     private final TokenValidationService tokenValidationService = mock(TokenValidationService.class);
     private final DidPublicKeyResolver didPublicKeyResolver = mock(DidPublicKeyResolver.class);

@@ -16,8 +16,8 @@
 package org.eclipse.edc.connector.controlplane.policy.spi.event;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * Describe a new PolicyDefinition creation, after this has emitted, a PolicyDefinition with a certain id will be available.

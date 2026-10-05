@@ -14,29 +14,21 @@
 
 package org.eclipse.edc.jsonld.util;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsonp.JSONPModule;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.datatype.jsonp.JSONPModule;
 
 public class JacksonJsonLd {
     private JacksonJsonLd() {
     }
 
     public static ObjectMapper createObjectMapper() {
-        var mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.registerModule(new JavaTimeModule());
-        mapper.registerModule(new JSONPModule());
-        var module = new SimpleModule() {
-            @Override
-            public void setupModule(SetupContext context) {
-                super.setupModule(context);
-            }
-        };
-        mapper.registerModule(module);
-        mapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
-        return mapper;
+        return JsonMapper.builder()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .configure(DeserializationFeature.FAIL_ON_TRAILING_TOKENS, false)
+                .addModule(new JSONPModule())
+                .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+                .build();
     }
 }

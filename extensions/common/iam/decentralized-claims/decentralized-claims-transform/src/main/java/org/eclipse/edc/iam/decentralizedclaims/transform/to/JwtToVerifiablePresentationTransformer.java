@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.json.JsonObject;
@@ -28,6 +27,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.core.JacksonException;
 
 import java.text.ParseException;
 import java.util.Map;
@@ -85,7 +85,7 @@ public class JwtToVerifiablePresentationTransformer extends AbstractJwtTransform
             }
 
 
-        } catch (ParseException | JsonProcessingException e) {
+        } catch (ParseException | JacksonException e) {
             monitor.warning("Error parsing JWT", e);
             context.reportProblem("Error parsing JWT: %s".formatted(e.getMessage()));
         }

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.http.serialization;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -24,6 +23,7 @@ import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import tools.jackson.core.JacksonException;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
@@ -84,7 +84,7 @@ public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSer
                 throw new EdcException("Failed to compact JSON-LD: " + compacted.getFailureDetail());
             }
             throw new EdcException(format("Failed to transform %s: %s", message.getClass().getSimpleName(), join(", ", transformResult.getFailureMessages())));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new EdcException(format("Failed to serialize %s", message.getClass().getSimpleName()), e);
         }
     }

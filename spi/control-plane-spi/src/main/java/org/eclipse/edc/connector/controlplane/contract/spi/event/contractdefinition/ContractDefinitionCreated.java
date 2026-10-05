@@ -16,8 +16,8 @@
 package org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * Describe a new ContractDefinition creation, after this has emitted, a ContractDefinition with a certain id will be available.

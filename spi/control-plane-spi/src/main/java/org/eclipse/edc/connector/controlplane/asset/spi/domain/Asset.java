@@ -16,10 +16,10 @@ package org.eclipse.edc.connector.controlplane.asset.spi.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.participantcontext.spi.types.AbstractParticipantResource;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.HashMap;
 import java.util.Map;

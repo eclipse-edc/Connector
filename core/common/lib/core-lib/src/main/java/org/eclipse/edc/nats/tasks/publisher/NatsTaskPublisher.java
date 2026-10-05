@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.nats.tasks.publisher;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.JetStream;
 import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
 import org.eclipse.edc.controlplane.tasks.Task;
 import org.eclipse.edc.controlplane.tasks.TaskListener;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.function.Supplier;
 

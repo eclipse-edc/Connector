@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
@@ -27,6 +26,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.core.JacksonException;
 
 import java.util.List;
 
@@ -74,7 +74,7 @@ public class JsonObjectToPresentationQueryTransformer extends NamespacedJsonLdTo
         var rawJson = jo.get(JsonLdKeywords.VALUE);
         try {
             return typeManager.getMapper(typeContext).readValue(rawJson.toString(), PresentationDefinition.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             context.reportProblem("Error reading JSON literal: %s".formatted(e.getMessage()));
             return null;
         }

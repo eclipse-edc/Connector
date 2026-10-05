@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.signaling.port;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.function.Supplier;
 

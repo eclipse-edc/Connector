@@ -15,10 +15,10 @@
 package org.eclipse.edc.connector.controlplane.catalog.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
+import tools.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.ArrayList;
 import java.util.Arrays;

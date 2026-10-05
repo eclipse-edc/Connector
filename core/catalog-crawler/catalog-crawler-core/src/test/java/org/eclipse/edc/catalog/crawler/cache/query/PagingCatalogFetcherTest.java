@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.catalog.crawler.cache.query;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
@@ -31,6 +29,8 @@ import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -67,7 +67,7 @@ class PagingCatalogFetcherTest {
     }
 
     @Test
-    void fetchAll() throws JsonProcessingException {
+    void fetchAll() throws JacksonException {
         var cat1 = createCatalog(5);
         var cat2 = createCatalog(5);
         var cat3 = createCatalog(3);
@@ -95,7 +95,7 @@ class PagingCatalogFetcherTest {
     }
 
 
-    private StatusResult<byte[]> toBytes(Catalog catalog) throws JsonProcessingException {
+    private StatusResult<byte[]> toBytes(Catalog catalog) throws JacksonException {
         var jo = typeTransformerRegistry.transform(catalog, JsonObject.class).getContent();
         var expandedStr = objectMapper.writeValueAsString(expand(jo));
         return StatusResult.success(expandedStr.getBytes());

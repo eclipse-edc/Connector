@@ -14,22 +14,22 @@
 
 package org.eclipse.edc.sql.store;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.CollectionType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.type.CollectionType;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import javax.sql.DataSource;
 
 import static java.lang.String.format;
@@ -39,13 +39,23 @@ public abstract class AbstractSqlStore {
     private final DataSourceRegistry dataSourceRegistry;
     private final String dataSourceName;
     protected final QueryExecutor queryExecutor;
-    private final ObjectMapper objectMapper;
+    private final Supplier<ObjectMapper> objectMapperSupplier;
 
+    public AbstractSqlStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
+                            Supplier<ObjectMapper> objectMapperSupplier, QueryExecutor queryExecutor) {
+        this.dataSourceRegistry = Objects.requireNonNull(dataSourceRegistry);
+        this.dataSourceName = Objects.requireNonNull(dataSourceName);
+        this.transactionContext = Objects.requireNonNull(transactionContext);
+        this.objectMapperSupplier = objectMapperSupplier;
+        this.queryExecutor = queryExecutor;
+    }
+
+    @Deprecated(since = "1.0.0")
     public AbstractSqlStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext, ObjectMapper objectMapper, QueryExecutor queryExecutor) {
         this.dataSourceRegistry = Objects.requireNonNull(dataSourceRegistry);
         this.dataSourceName = Objects.requireNonNull(dataSourceName);
         this.transactionContext = Objects.requireNonNull(transactionContext);
-        this.objectMapper = Objects.requireNonNull(objectMapper);
+        this.objectMapperSupplier = () -> objectMapper;
         this.queryExecutor = queryExecutor;
     }
 
@@ -58,8 +68,8 @@ public abstract class AbstractSqlStore {
             return null;
         }
         try {
-            return object instanceof String ? object.toString() : objectMapper.writeValueAsString(object);
-        } catch (JsonProcessingException e) {
+            return object instanceof String ? object.toString() : objectMapperSupplier.get().writeValueAsString(object);
+        } catch (JacksonException e) {
             throw new EdcPersistenceException(e);
         }
     }
@@ -69,18 +79,18 @@ public abstract class AbstractSqlStore {
             return null;
         }
         try {
-            return object instanceof String ? object.toString() : objectMapper.writerFor(typeReference).writeValueAsString(object);
-        } catch (JsonProcessingException e) {
+            return object instanceof String ? object.toString() : objectMapperSupplier.get().writerFor(typeReference).writeValueAsString(object);
+        } catch (JacksonException e) {
             throw new EdcPersistenceException(e);
         }
     }
 
     protected <T> T fromJson(String json, TypeReference<T> typeReference) {
-        return fromJson(json, objectMapper.constructType(typeReference));
+        return fromJson(json, objectMapperSupplier.get().constructType(typeReference));
     }
 
     protected <T> T fromJson(String json, Class<T> type) {
-        return fromJson(json, objectMapper.constructType(type));
+        return fromJson(json, objectMapperSupplier.get().constructType(type));
     }
 
     protected <T> T fromJson(String json, JavaType type) {
@@ -88,14 +98,14 @@ public abstract class AbstractSqlStore {
             return null;
         }
         try {
-            return objectMapper.readValue(json, type);
-        } catch (JsonProcessingException e) {
+            return objectMapperSupplier.get().readValue(json, type);
+        } catch (JacksonException e) {
             throw new EdcPersistenceException(e);
         }
     }
 
     protected <T> CollectionType listOf(Class<T> clazz) {
-        return TypeFactory.defaultInstance().constructCollectionType(List.class, clazz);
+        return objectMapperSupplier.get().getTypeFactory().constructCollectionType(List.class, clazz);
     }
 
     @NotNull

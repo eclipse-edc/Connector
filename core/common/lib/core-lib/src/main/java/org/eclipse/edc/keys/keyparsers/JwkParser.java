@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.keys.keyparsers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.KeyConverter;
@@ -27,6 +26,8 @@ import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.eclipse.edc.keys.spi.KeyParser;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.security.Key;
@@ -70,7 +71,7 @@ public class JwkParser implements KeyParser {
         try (var parser = objectMapper.createParser(encoded)) {
             parser.nextToken();
             return true;
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             return false;
         }
     }

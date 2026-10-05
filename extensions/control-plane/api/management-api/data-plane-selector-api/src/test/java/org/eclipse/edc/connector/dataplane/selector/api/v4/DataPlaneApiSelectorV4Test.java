@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.selector.api.v4;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -27,6 +25,8 @@ import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataPlaneInstanc
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.selector.api.v4.DataPlaneInstanceSchemaV4.DATAPLANE_INSTANCE_EXAMPLE;
@@ -49,7 +49,7 @@ public class DataPlaneApiSelectorV4Test {
     }
 
     @Test
-    void dataPlaneInstanceInputExample() throws JsonProcessingException {
+    void dataPlaneInstanceInputExample() throws JacksonException {
 
         var jsonObject = objectMapper.readValue(DATAPLANE_INSTANCE_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();

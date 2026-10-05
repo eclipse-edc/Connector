@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.api.auth.delegated;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.keys.keyparsers.JwkParser;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -22,6 +21,7 @@ import org.eclipse.edc.token.TokenValidationServiceImpl;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.web.spi.exception.AuthenticationFailedException;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import java.security.PublicKey;
 import java.util.List;

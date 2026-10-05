@@ -81,8 +81,7 @@ public class DspApiBaseConfigurationExtension implements ServiceExtension {
 
     @Override
     public void prepare() {
-        var mapper = typeManager.getMapper(JSON_LD);
-        mapper.registerSubtypes(AtomicConstraint.class, LiteralExpression.class);
+        typeManager.registerTypes(JSON_LD, AtomicConstraint.class, LiteralExpression.class);
     }
 
     @Provider

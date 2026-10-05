@@ -14,9 +14,6 @@
 
 package org.eclipse.edc.end2end;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import okhttp3.MediaType;
@@ -29,6 +26,9 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.List;
@@ -90,7 +90,7 @@ class CatalogApiClient {
                             .orElseThrow(f -> new EdcException(f.getFailureDetail()))
                     )
                     .toList();
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }
@@ -114,7 +114,7 @@ class CatalogApiClient {
     private <T> T fromJson(String string, Class<T> clazz) {
         try {
             return mapper.readValue(string, clazz);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }
@@ -127,7 +127,7 @@ class CatalogApiClient {
     private String asJson(Object entry) {
         try {
             return entry instanceof String ? (String) entry : mapper.writeValueAsString(entry);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }

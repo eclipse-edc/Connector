@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.http.serialization;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import okhttp3.MediaType;
 import okhttp3.ResponseBody;
@@ -27,6 +26,8 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,7 +81,7 @@ class JsonLdResponseBodyDeserializerTest {
 
     @Test
     void shouldThrowException_whenDeserializationDoesNotWork() throws IOException {
-        doThrow(IOException.class).when(objectMapper).readValue(isA(InputStream.class), isA(Class.class));
+        doThrow(new StreamReadException("deserialization failed")).when(objectMapper).readValue(isA(InputStream.class), isA(Class.class));
 
         assertThatThrownBy(() -> bodyExtractor.extractBody(createResponseBody(), DATASPACE_PROTOCOL_HTTP)).isInstanceOf(EdcException.class);
         verifyNoInteractions(jsonLd, transformerRegistry);

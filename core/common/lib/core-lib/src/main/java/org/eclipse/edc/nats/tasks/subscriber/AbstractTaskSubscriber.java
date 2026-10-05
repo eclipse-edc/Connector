@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.nats.tasks.subscriber;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Message;
 import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
 import org.eclipse.edc.controlplane.tasks.Task;
@@ -24,6 +23,7 @@ import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Clock;
 import java.util.Objects;

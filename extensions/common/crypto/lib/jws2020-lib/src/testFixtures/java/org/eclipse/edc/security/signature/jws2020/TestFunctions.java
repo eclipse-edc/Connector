@@ -16,13 +16,13 @@ package org.eclipse.edc.security.signature.jws2020;
 
 import com.apicatalog.ld.signature.VerificationMethod;
 import com.apicatalog.ld.signature.key.KeyPair;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.UUID;
 
@@ -41,7 +41,7 @@ public class TestFunctions {
     public static JsonObject readResourceAsJson(String name) {
         try {
             return MAPPER.readValue(getResourceFileContentAsString(name), JsonObject.class);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }

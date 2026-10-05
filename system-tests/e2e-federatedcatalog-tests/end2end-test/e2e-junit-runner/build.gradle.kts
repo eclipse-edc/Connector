@@ -24,7 +24,6 @@ dependencies {
     testImplementation(project(":data-protocols:dsp:dsp-lib"))
     testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-catalog-2025:dsp-catalog-transform-2025"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(libs.jackson.datatype.jsr310)
 
     testCompileOnly(project(":extensions:common:iam:iam-mock"))
     testCompileOnly(project(":system-tests:e2e-federatedcatalog-tests:end2end-test:catalog-runtime"))

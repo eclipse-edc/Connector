@@ -16,9 +16,9 @@ package org.eclipse.edc.controlplane.transfer.spi.tasks;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 @JsonDeserialize(builder = SuspendDataFlow.Builder.class)
 @JsonTypeName("task:SuspendDataFlow")

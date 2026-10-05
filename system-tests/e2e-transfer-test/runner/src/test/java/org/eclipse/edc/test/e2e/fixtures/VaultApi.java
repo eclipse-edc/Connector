@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.test.e2e.fixtures;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.JWK;
@@ -24,6 +23,7 @@ import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.spi.EdcException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.Base64;

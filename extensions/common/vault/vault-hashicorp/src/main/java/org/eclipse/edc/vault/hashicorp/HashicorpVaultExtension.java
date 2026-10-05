@@ -16,7 +16,6 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
@@ -35,13 +34,15 @@ import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewTask;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProviderFactory;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 @Extension(value = HashicorpVaultExtension.NAME)
 public class HashicorpVaultExtension implements ServiceExtension {
     public static final String NAME = "Hashicorp Vault";
-    public static final ObjectMapper MAPPER = new ObjectMapper().configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
+    public static final ObjectMapper MAPPER = JsonMapper.builder().configure(FAIL_ON_UNKNOWN_PROPERTIES, false).build();
 
     @Inject
     private EdcHttpClient httpClient;

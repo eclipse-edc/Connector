@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
@@ -29,6 +27,8 @@ import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProviderFacto
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
@@ -178,7 +178,7 @@ class HashicorpVaultSignatureServiceTest {
     private String asJson(Object obj) {
         try {
             return mapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }

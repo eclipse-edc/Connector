@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.policy.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,9 +24,8 @@ class OrConstraintTest {
 
 
     @Test
-    void serializeDeserialize() throws JsonProcessingException {
-        var mapper = new ObjectMapper();
-        mapper.registerSubtypes(AtomicConstraint.class, LiteralExpression.class);
+    void serializeDeserialize() throws JacksonException {
+        var mapper = JsonMapper.builder().registerSubtypes(AtomicConstraint.class, LiteralExpression.class).build();
 
         var constraint = AtomicConstraint.Builder.newInstance()
                 .leftExpression(new LiteralExpression("left"))

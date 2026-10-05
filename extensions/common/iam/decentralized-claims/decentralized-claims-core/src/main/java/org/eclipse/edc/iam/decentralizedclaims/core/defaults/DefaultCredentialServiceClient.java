@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.core.defaults;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import okhttp3.MediaType;
@@ -39,6 +38,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.core.JacksonException;
 
 import java.io.IOException;
 import java.util.List;
@@ -101,7 +101,7 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
         }
     }
 
-    private @NotNull Request createRequest(String selfIssuedTokenJwt, JsonObject query, String url) throws JsonProcessingException {
+    private @NotNull Request createRequest(String selfIssuedTokenJwt, JsonObject query, String url) throws JacksonException {
         var requestJson = typeManager.getMapper(typeContext).writeValueAsString(query);
         return new Request.Builder()
                 .post(RequestBody.create(requestJson, MediaType.parse("application/json")))

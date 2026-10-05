@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.web.jersey.testfixtures;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -33,6 +32,7 @@ import org.eclipse.edc.web.jetty.PortMappingRegistryImpl;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.ArgumentMatchers.any;

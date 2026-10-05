@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.spi.types;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.StringWriter;

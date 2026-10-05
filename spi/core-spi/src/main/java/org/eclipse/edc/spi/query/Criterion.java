@@ -15,7 +15,7 @@
 package org.eclipse.edc.spi.query;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Objects;
 

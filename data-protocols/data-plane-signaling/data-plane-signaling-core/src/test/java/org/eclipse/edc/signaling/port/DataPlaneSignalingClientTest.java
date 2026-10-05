@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.signaling.port;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.AuthorizationProfile;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
@@ -28,6 +27,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 import java.util.UUID;

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.nats.tasks.publisher;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.JetStream;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.RequestNegotiation;
@@ -26,6 +25,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;

@@ -33,7 +33,6 @@ import com.apicatalog.vc.method.resolver.MethodResolver;
 import com.apicatalog.vc.proof.EmbeddedProof;
 import com.apicatalog.vc.proof.Proof;
 import com.apicatalog.vc.suite.SignatureSuite;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonStructure;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.CredentialVerifier;
@@ -43,8 +42,8 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.util.uri.UriUtils;
+import tools.jackson.core.JacksonException;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -76,7 +75,7 @@ public class LdpVerifier implements CredentialVerifier {
         try (var parser = typeManager.getMapper(typeContext).createParser(rawInput)) {
             parser.nextToken();
             return true;
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             return false;
         }
     }
@@ -93,7 +92,7 @@ public class LdpVerifier implements CredentialVerifier {
         JsonObject jo;
         try {
             jo = typeManager.getMapper(typeContext).readValue(rawInput, JsonObject.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             return failure("Failed to parse JSON: %s".formatted(e.toString()));
         }
         var context = jo.containsKey(Keywords.CONTEXT)

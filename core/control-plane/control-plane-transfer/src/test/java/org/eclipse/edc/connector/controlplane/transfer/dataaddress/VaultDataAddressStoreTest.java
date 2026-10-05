@@ -14,14 +14,14 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.dataaddress;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -42,7 +42,7 @@ class VaultDataAddressStoreTest {
     class Store {
 
         @Test
-        void shouldStoreDataAddressInTheVault() throws JsonProcessingException {
+        void shouldStoreDataAddressInTheVault() throws JacksonException {
             var dataAddress = DataAddress.Builder.newInstance().type("test").build();
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("tp-id")
@@ -77,7 +77,7 @@ class VaultDataAddressStoreTest {
     class Resolve {
 
         @Test
-        void shouldResolveDataAddressFromTheVault() throws JsonProcessingException {
+        void shouldResolveDataAddressFromTheVault() throws JacksonException {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("tp-id")
                     .participantContextId("participant-context-id")

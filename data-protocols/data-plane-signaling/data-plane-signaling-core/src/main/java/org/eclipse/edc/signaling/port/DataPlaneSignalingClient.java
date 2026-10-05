@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.signaling.port;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -33,6 +31,8 @@ import org.eclipse.edc.signaling.domain.DataFlowTerminateMessage;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.function.Function;
@@ -125,7 +125,7 @@ public class DataPlaneSignalingClient {
             var inputStream = responseBody.byteStream();
             var message = objectMapperSupplier.get().readValue(inputStream, DataFlowStatusMessage.class);
             return Result.success(message);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             return Result.failure("Data-plane responded with %d - %s. Cannot read response body: " + e.getMessage());
         }
     }
@@ -162,7 +162,7 @@ public class DataPlaneSignalingClient {
     private Result<String> serialize(Object message) {
         try {
             return Result.success(objectMapperSupplier.get().writeValueAsString(message));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             return Result.failure(e.getMessage());
         }
     }

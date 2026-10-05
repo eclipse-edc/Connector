@@ -58,7 +58,7 @@ public class SqlPolicyStoreExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
 
         var sqlPolicyStore = new SqlPolicyDefinitionStore(dataSourceRegistry, dataSourceName, transactionContext,
-                typeManager.getMapper(), getStatementImpl(), queryExecutor);
+                typeManager::getMapper, getStatementImpl(), queryExecutor);
 
         context.registerService(PolicyDefinitionStore.class, sqlPolicyStore);
 

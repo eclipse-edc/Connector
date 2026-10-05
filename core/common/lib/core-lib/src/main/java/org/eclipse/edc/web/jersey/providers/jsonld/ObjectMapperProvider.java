@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.web.jersey.providers.jsonld;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.ext.ContextResolver;
 import org.eclipse.edc.spi.types.TypeManager;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Provides an ObjectMapper to be used for parsing incoming requests. A custom ObjectMapper that supports the

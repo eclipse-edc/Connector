@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.transform.transformer.edc.to;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
@@ -24,6 +23,7 @@ import org.eclipse.edc.jsonld.spi.transformer.JsonLdToModelTransformer;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.core.JacksonException;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
@@ -74,7 +74,7 @@ public class JsonValueToGenericTypeTransformer extends JsonLdToModelTransformer<
     private Object toJavaType(JsonObject object, TransformerContext context) {
         try {
             return typeManager.getMapper(typeContext).readValue(object.toString(), Object.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             context.reportProblem(format("Failed to read value: %s", e.getMessage()));
             return null;
         }

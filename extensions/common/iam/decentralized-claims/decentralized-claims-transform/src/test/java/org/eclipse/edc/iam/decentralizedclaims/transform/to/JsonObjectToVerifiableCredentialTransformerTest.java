@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -27,6 +25,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URISyntaxException;
 import java.util.function.Consumer;
@@ -66,7 +66,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
     }
 
     @Test
-    void transform() throws JsonProcessingException {
+    void transform() throws JacksonException {
 
         var jsonObj = OBJECT_MAPPER.readValue(EXAMPLE_VC_JSONLD, JsonObject.class);
         var vc = transformer.transform(expand(jsonObj, withCredentialsV2()), context);
@@ -83,7 +83,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
     }
 
     @Test
-    void transform_credentialSubjectIsArray() throws JsonProcessingException {
+    void transform_credentialSubjectIsArray() throws JacksonException {
 
         var jsonObj = OBJECT_MAPPER.readValue(EXAMPLE_VC_SUB_IS_ARRAY_JSONLD, JsonObject.class);
         var vc = transformer.transform(expand(jsonObj, withCredentialsV2()), context);
@@ -100,7 +100,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
     }
 
     @Test
-    void transform_issuerIsUrl() throws JsonProcessingException {
+    void transform_issuerIsUrl() throws JacksonException {
 
         var jsonObj = OBJECT_MAPPER.readValue(EXAMPLE_VC_JSONLD_ISSUER_IS_URL, JsonObject.class);
         var vc = transformer.transform(expand(jsonObj, withCredentialsV2()), context);
@@ -116,7 +116,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
     }
 
     @Test
-    void transform_withCredentialSchema() throws JsonProcessingException {
+    void transform_withCredentialSchema() throws JacksonException {
         var jsonObj = OBJECT_MAPPER.readValue(EXAMPLE_VC_JSONLD_WITH_SCHEMA, JsonObject.class);
         var vc = transformer.transform(expand(jsonObj, withCredentialsV2()), context);
 

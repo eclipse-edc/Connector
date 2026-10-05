@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.spi.entity;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -26,7 +26,7 @@ class ProtocolMessagesTest {
     private final ObjectMapper mapper = new JacksonTypeManager().getMapper();
 
     @Test
-    void serdes() throws JsonProcessingException {
+    void serdes() throws JacksonException {
         var protocolMessages = new ProtocolMessages();
         protocolMessages.addReceived("received");
         protocolMessages.setLastSent("lastSent");
