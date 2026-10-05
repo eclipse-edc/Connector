@@ -59,7 +59,7 @@ maven/mavencentral/com.google.guava/listenablefuture/9999.0-empty-to-avoid-confl
 maven/mavencentral/com.google.j2objc/j2objc-annotations/3.1, Apache-2.0, approved, #23379
 maven/mavencentral/com.google.protobuf/protobuf-java/4.33.0, BSD-3-Clause, approved, #29831
 maven/mavencentral/com.google.protobuf/protobuf-java/4.33.6, BSD-3-Clause, approved, #29831
-maven/mavencentral/com.google.protobuf/protobuf-java/4.35.1, BSD-3-Clause, approved, #29076
+maven/mavencentral/com.google.protobuf/protobuf-java/4.36.2, , restricted, clearlydefined
 maven/mavencentral/com.google.re2j/re2j/1.8, BSD-3-Clause, approved, #20485
 maven/mavencentral/com.jayway.jsonpath/json-path/2.10.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.networknt/json-schema-validator/1.5.9, Apache-2.0 AND Unicode-TOU, approved, #15630
@@ -99,7 +99,7 @@ maven/mavencentral/io.micrometer/micrometer-core/1.17.1, Apache-2.0 AND (Apache-
 maven/mavencentral/io.micrometer/micrometer-observation/1.17.1, Apache-2.0, approved, #28734
 maven/mavencentral/io.nats/jnats/2.26.2, Apache-2.0, approved, #29938
 maven/mavencentral/io.opentelemetry.instrumentation/opentelemetry-instrumentation-annotations/2.31.1, Apache-2.0, approved, #30574
-maven/mavencentral/io.opentelemetry.proto/opentelemetry-proto/1.11.0-alpha, Apache-2.0, approved, #30126
+maven/mavencentral/io.opentelemetry.proto/opentelemetry-proto/1.11.1-alpha, Apache-2.0, approved, #30126
 maven/mavencentral/io.opentelemetry/opentelemetry-api/1.65.0, Apache-2.0, approved, #30119
 maven/mavencentral/io.opentelemetry/opentelemetry-api/1.66.0, Apache-2.0, approved, #32021
 maven/mavencentral/io.opentelemetry/opentelemetry-common/1.65.0, Apache-2.0, approved, #30122
