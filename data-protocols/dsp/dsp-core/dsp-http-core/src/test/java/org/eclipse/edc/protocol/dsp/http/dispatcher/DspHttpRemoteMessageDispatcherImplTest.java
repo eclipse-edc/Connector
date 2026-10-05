@@ -214,7 +214,8 @@ class DspHttpRemoteMessageDispatcherImplTest {
         verify(requestFactory).createRequest(message);
         verify(policyEngine).evaluate(any(), AdditionalMatchers.and(isA(RequestPolicyContext.class), argThat(ctx -> {
             var requestContext = ctx.requestContext();
-            return requestContext.getMessage().getClass().equals(TestMessage.class) && requestContext.getDirection().equals(RequestContext.Direction.Egress);
+            return requestContext.getMessage().getClass().equals(TestMessage.class) && requestContext.getDirection().equals(RequestContext.Direction.Egress) &&
+                    participantContext.getId().equals(requestContext.getParticipantContextId());
         })));
         assertThat(captor.getValue()).satisfies(tr -> {
             assertThat(tr.getStringClaim(SCOPE_CLAIM)).isEqualTo("policy-test-scope");
@@ -306,7 +307,8 @@ class DspHttpRemoteMessageDispatcherImplTest {
         verify(rqFactory).createRequest(message);
         verify(policyEngine).evaluate(any(), and(isA(RequestPolicyContext.class), argThat(ctx -> {
             var requestContext = ctx.requestContext();
-            return requestContext.getMessage().getClass().equals(CatalogRequestMessage.class) && requestContext.getDirection().equals(RequestContext.Direction.Egress);
+            return requestContext.getMessage().getClass().equals(CatalogRequestMessage.class) && requestContext.getDirection().equals(RequestContext.Direction.Egress) &&
+                    participantContext.getId().equals(requestContext.getParticipantContextId());
         })));
         assertThat(captor.getValue()).satisfies(tr -> {
             assertThat(tr.getStringClaim(SCOPE_CLAIM)).isEqualTo("policy-test-scope scope1 scope2");

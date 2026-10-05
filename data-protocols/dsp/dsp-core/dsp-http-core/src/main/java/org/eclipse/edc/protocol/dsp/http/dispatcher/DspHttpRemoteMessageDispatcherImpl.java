@@ -93,6 +93,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements ProtocolRemoteMessage
             var requestContext = RequestContext.Builder.newInstance()
                     .message(message)
                     .direction(RequestContext.Direction.Egress)
+                    .participantContextId(participantContextId)
                     .build();
 
             var context = policyScope.contextProvider.instantiate(requestContext, requestScopeBuilder);
