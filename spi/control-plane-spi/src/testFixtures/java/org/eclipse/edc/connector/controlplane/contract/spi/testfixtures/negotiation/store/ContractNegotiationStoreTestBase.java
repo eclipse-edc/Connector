@@ -51,6 +51,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.TestFunctions.createAgreement;
 import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.TestFunctions.createAgreementBuilder;
+import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.TestFunctions.createContractOffer;
 import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiation;
 import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiationBuilder;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
@@ -525,6 +526,29 @@ public abstract class ContractNegotiationStoreTestBase {
             assertThat(result).hasSize(2)
                     .extracting(ContractNegotiation::getId).containsExactlyInAnyOrder("negotiation1", "negotiation2");
 
+        }
+
+        @Test
+        void withLatestContractOffer() {
+            var assetId = UUID.randomUUID().toString();
+            var otherAssetId = UUID.randomUUID().toString();
+            var negotiation1 = createNegotiationBuilder("negotiation1")
+                    .contractOffer(createContractOffer("offer1", otherAssetId))
+                    .contractOffer(createContractOffer("offer2", assetId))
+                    .build();
+            var negotiation2 = createNegotiationBuilder("negotiation2")
+                    .contractOffer(createContractOffer("offer3", assetId))
+                    .contractOffer(createContractOffer("offer4", otherAssetId))
+                    .build();
+            getContractNegotiationStore().save(negotiation1);
+            getContractNegotiationStore().save(negotiation2);
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("latestContractOffer.assetId", "=", assetId)))
+                    .build();
+            var result = getContractNegotiationStore().queryNegotiations(query);
+
+            assertThat(result).extracting(ContractNegotiation::getId).containsExactly("negotiation1");
         }
 
         @Test

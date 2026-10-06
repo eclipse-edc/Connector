@@ -69,6 +69,11 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> imp
     public static final String CONTRACT_NEGOTIATION_POLICY = EDC_NAMESPACE + "policy";
     public static final String CONTRACT_NEGOTIATION_CREATED_AT = EDC_NAMESPACE + "createdAt";
 
+    /**
+     * Virtual query property that resolves to the last element of the contract offers, see {@link #getLastContractOffer()}.
+     */
+    public static final String LATEST_CONTRACT_OFFER_PROPERTY = "latestContractOffer";
+
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
     private String correlationId;
     private String counterPartyId;

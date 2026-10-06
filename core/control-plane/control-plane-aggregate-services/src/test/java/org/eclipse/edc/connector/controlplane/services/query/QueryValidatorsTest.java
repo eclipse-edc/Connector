@@ -261,7 +261,9 @@ class QueryValidatorsTest {
                         arguments(criterion("contractAgreement.contractStartDate.begin", "=", "123455")), // invalid path
                         arguments(criterion("contractOffers.policy.unexistent", "=", "123455")), // invalid path
                         arguments(criterion("contractOffers.policy.assetid", "=", "123455")), // wrong case
-                        arguments(criterion("contractOffers.policy.=some-id", "=", "123455")) // incomplete path
+                        arguments(criterion("contractOffers.policy.=some-id", "=", "123455")), // incomplete path
+                        arguments(criterion("latestContractOffer.unexistent", "=", "123455")), // invalid path
+                        arguments(criterion("latestContractOffer", "=", "123455")) // incomplete path
                 );
             }
         }
@@ -271,7 +273,9 @@ class QueryValidatorsTest {
             public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
                 return Stream.of(
                         arguments(criterion("contractAgreement.assetId", "=", "test-asset")),
-                        arguments(criterion("contractAgreement.policy.assignee", "=", "123455"))
+                        arguments(criterion("contractAgreement.policy.assignee", "=", "123455")),
+                        arguments(criterion("latestContractOffer.assetId", "=", "test-asset")),
+                        arguments(criterion("latestContractOffer.policy.assignee", "=", "123455"))
                 );
             }
         }

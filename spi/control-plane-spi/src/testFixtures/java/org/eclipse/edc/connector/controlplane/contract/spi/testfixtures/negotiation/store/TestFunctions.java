@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
@@ -78,6 +79,14 @@ public class TestFunctions {
                 .protocol("protocol")
                 .participantContextId("participantContextId")
                 .protocolMessages(new ProtocolMessages());
+    }
+
+    public static ContractOffer createContractOffer(String id, String assetId) {
+        return ContractOffer.Builder.newInstance()
+                .id(id)
+                .assetId(assetId)
+                .policy(createPolicy())
+                .build();
     }
 
     public static CallbackAddress createCallbackAddress() {

@@ -18,6 +18,9 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.edc.sql.lease.StatefulEntityMapping;
+import org.eclipse.edc.sql.translation.JsonFieldTranslator;
+
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.LATEST_CONTRACT_OFFER_PROPERTY;
 
 /**
  * Maps fields of a {@link ContractNegotiation}
@@ -43,6 +46,8 @@ public class ContractNegotiationMapping extends StatefulEntityMapping {
         add(FIELD_TYPE, statements.getTypeColumn());
         add(FIELD_PENDING, statements.getPendingColumn());
         add(FIELD_CONTRACT_AGREEMENT, new ContractAgreementMapping(statements));
+        // the latest offer is the last element of the contract offers JSON array
+        add(LATEST_CONTRACT_OFFER_PROPERTY, new JsonFieldTranslator(statements.getContractOffersColumn() + " -> -1"));
         add(FIELD_TRACECONTEXT, statements.getTraceContextColumn());
         add(FIELD_PARTICIPANT_CONTEXT_ID, statements.getParticipantContextIdColumn());
     }
