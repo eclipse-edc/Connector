@@ -20,6 +20,7 @@ import jakarta.ws.rs.core.MediaType;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.http.spi.EdcHttpClientException;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
@@ -36,6 +37,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusNot2xxOr4xx;
 
 /**
  * Service to check if a particular {@link VerifiableCredential} is "valid", where "validity" is defined as not revoked and not suspended nor having
@@ -119,8 +122,7 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
      * Gets a statuslist credential from the cache, of if it's not there yet, downloads it.
      *
      * @param credentialUrl the URL from where to download the cred
-     * @return the VerifiableCredential
-     * @throws EdcException if it could not be downloaded
+     * @return the VerifiableCredential, or a failure if it could not be downloaded or read
      */
     protected Result<C> getCredential(String credentialUrl) {
         try {
@@ -130,7 +132,8 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
                 statusListCredentialCache.evict(credentialUrl);
             }
             return Result.success(statusListCredentialCache.get(credentialUrl));
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | EdcException ex) {
+            // reported as a failure rather than thrown, so that callers can treat the status as undetermined
             return Result.failure(ex.getMessage());
         }
     }
@@ -175,13 +178,22 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
                               .header("Accept", acceptHeader)
                               .get()
                               .build();
-        try (var response = httpClient.execute(request)) {
+        // only transient failures are retried according to the retry policy: server errors (5xx) and connection failures,
+        // e.g. while the status list service restarts. Client errors (4xx, e.g. 400 or 404) are returned right away, as
+        // retrying would not change the outcome
+        try (var response = httpClient.execute(request, List.of(retryWhenStatusNot2xxOr4xx()))) {
             if (response.isSuccessful()) {
                 return parseStatusListCredentialResponse(response, acceptHeader);
             }
             throw new IllegalArgumentException("Failed to download status list credential from " + credentialUrl + ": " + response.code() + " " + response.message());
+        } catch (EdcHttpClientException e) {
+            // all retries are exhausted. The exception message would carry the entire response body, so only the status
+            // code is reported, if there was a response at all
+            var reason = e.getStatusCode() > 0 ? String.valueOf(e.getStatusCode()) : e.getMessage();
+            throw new IllegalArgumentException("Failed to download status list credential from " + credentialUrl + ": " + reason);
         } catch (IOException e) {
-            throw new EdcException(e);
+            // the response body could not be read, e.g. because it is not a status list credential
+            throw new EdcException("Failed to read status list credential from " + credentialUrl + ": " + e.getMessage(), e);
         }
     }
 

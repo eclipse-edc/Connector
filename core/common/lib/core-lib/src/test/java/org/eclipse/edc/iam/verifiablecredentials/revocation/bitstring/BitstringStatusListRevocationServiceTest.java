@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.verifiablecredentials.revocation.bitstring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
 import dev.failsafe.RetryPolicy;
@@ -35,6 +36,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Base64;
 import java.util.List;
@@ -46,6 +49,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static java.util.Collections.singleton;
 import static org.eclipse.edc.iam.verifiablecredentials.TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_ARRAY_SUBJECT_TEMPLATE;
 import static org.eclipse.edc.iam.verifiablecredentials.TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE;
@@ -215,11 +219,113 @@ class BitstringStatusListRevocationServiceTest {
             assertThat(revocationService.checkValidity(credential)).isFailed()
                     .detail()
                     .matches("Failed to download status list credential .* 415 Unsupported Media Type");
+            // a client error is not retried
+            server.verify(1, getRequestedFor(urlEqualTo("/credentials/status/3")));
+        }
+
+        @Test
+        void checkValidity_serverErrorThenSuccess_shouldRetry() {
+            var bitstring = generateBitstring();
+            var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(bitstring);
+            // the status list service is briefly unavailable, e.g. because it restarts
+            server.stubFor(get("/credentials/status/3").inScenario("restart")
+                    .whenScenarioStateIs(STARTED)
+                    .willReturn(aResponse().withStatus(503))
+                    .willSetStateTo("available"));
+            server.stubFor(get("/credentials/status/3").inScenario("restart")
+                    .whenScenarioStateIs("available")
+                    .willReturn(ok(bitstringCredential)));
+
+            var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
+                    Map.of(STATUS_LIST_PURPOSE, "revocation",
+                            STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                            STATUS_LIST_SIZE, 1,
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
+            assertThat(revocationService.checkValidity(credential)).isSucceeded();
+            server.verify(2, getRequestedFor(urlEqualTo("/credentials/status/3")));
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = { 500, 502, 503, 504 })
+        void checkValidity_serverErrorPersists_shouldFailAfterRetries(int status) {
+            server.stubFor(get("/credentials/status/3").willReturn(aResponse().withStatus(status)));
+
+            var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
+                    Map.of(STATUS_LIST_PURPOSE, "revocation",
+                            STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                            STATUS_LIST_SIZE, 1,
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
+            assertThat(revocationService.checkValidity(credential)).isFailed()
+                    .detail()
+                    .matches("Failed to download status list credential from .*: " + status);
+            // the initial attempt, plus the two retries of the default retry policy
+            server.verify(3, getRequestedFor(urlEqualTo("/credentials/status/3")));
+        }
+
+        @ParameterizedTest
+        @ValueSource(ints = { 400, 401, 403, 404 })
+        void checkValidity_clientError_shouldFailWithoutRetry(int status) {
+            server.stubFor(get("/credentials/status/3").willReturn(aResponse().withStatus(status)));
+
+            var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
+                    Map.of(STATUS_LIST_PURPOSE, "revocation",
+                            STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                            STATUS_LIST_SIZE, 1,
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
+            assertThat(revocationService.checkValidity(credential)).isFailed()
+                    .detail()
+                    .matches("Failed to download status list credential from .*: " + status + " .*");
+            server.verify(1, getRequestedFor(urlEqualTo("/credentials/status/3")));
+        }
+
+        @Test
+        void checkValidity_connectionFailurePersists_shouldFailAfterRetries() {
+            server.stubFor(get("/credentials/status/3").willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
+
+            var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
+                    Map.of(STATUS_LIST_PURPOSE, "revocation",
+                            STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                            STATUS_LIST_SIZE, 1,
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
+            assertThat(revocationService.checkValidity(credential)).isFailed()
+                    .detail()
+                    .startsWith("Failed to download status list credential");
+        }
+
+        @Test
+        void checkValidity_responseIsNoStatusListCredential_shouldFail() {
+            // e.g. a proxy in front of the status list service answers with an HTML page
+            server.stubFor(get("/credentials/status/3").willReturn(ok("<html>not a credential</html>")));
+
+            var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
+                    Map.of(STATUS_LIST_PURPOSE, "revocation",
+                            STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                            STATUS_LIST_SIZE, 1,
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
+            assertThat(revocationService.checkValidity(credential)).isFailed()
+                    .detail()
+                    .startsWith("Failed to read status list credential from http://localhost:%d/credentials/status/3".formatted(server.getPort()));
+            server.verify(1, getRequestedFor(urlEqualTo("/credentials/status/3")));
         }
     }
 
     @Nested
     public class GetStatusPurpose {
+
+        @Test
+        void getStatusPurpose_responseIsNoStatusListCredential_shouldFail() {
+            server.stubFor(get("/credentials/status/3").willReturn(ok("<html>not a credential</html>")));
+
+            var credential = TestFunctions.createCredentialBuilder()
+                    .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
+                            Map.of(STATUS_LIST_PURPOSE, "revocation",
+                                    STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                                    STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort()))))
+                    .build();
+            assertThat(revocationService.getStatusPurpose(credential)).isFailed()
+                    .detail()
+                    .startsWith("Failed to read status list credential");
+        }
 
         @Test
         void getStatusPurpose_singleStatusSet() {
