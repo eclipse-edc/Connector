@@ -122,8 +122,7 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
      * Gets a statuslist credential from the cache, of if it's not there yet, downloads it.
      *
      * @param credentialUrl the URL from where to download the cred
-     * @return the VerifiableCredential, or a failure if it could not be downloaded
-     * @throws EdcException if the downloaded credential could not be read
+     * @return the VerifiableCredential, or a failure if it could not be downloaded or read
      */
     protected Result<C> getCredential(String credentialUrl) {
         try {
@@ -133,7 +132,8 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
                 statusListCredentialCache.evict(credentialUrl);
             }
             return Result.success(statusListCredentialCache.get(credentialUrl));
-        } catch (IllegalArgumentException ex) {
+        } catch (IllegalArgumentException | EdcException ex) {
+            // reported as a failure rather than thrown, so that callers can treat the status as undetermined
             return Result.failure(ex.getMessage());
         }
     }
@@ -192,7 +192,8 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
             var reason = e.getStatusCode() > 0 ? String.valueOf(e.getStatusCode()) : e.getMessage();
             throw new IllegalArgumentException("Failed to download status list credential from " + credentialUrl + ": " + reason);
         } catch (IOException e) {
-            throw new EdcException(e);
+            // the response body could not be read, e.g. because it is not a status list credential
+            throw new EdcException("Failed to read status list credential from " + credentialUrl + ": " + e.getMessage(), e);
         }
     }
 

@@ -291,10 +291,41 @@ class BitstringStatusListRevocationServiceTest {
                     .detail()
                     .startsWith("Failed to download status list credential");
         }
+
+        @Test
+        void checkValidity_responseIsNoStatusListCredential_shouldFail() {
+            // e.g. a proxy in front of the status list service answers with an HTML page
+            server.stubFor(get("/credentials/status/3").willReturn(ok("<html>not a credential</html>")));
+
+            var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
+                    Map.of(STATUS_LIST_PURPOSE, "revocation",
+                            STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                            STATUS_LIST_SIZE, 1,
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
+            assertThat(revocationService.checkValidity(credential)).isFailed()
+                    .detail()
+                    .startsWith("Failed to read status list credential from http://localhost:%d/credentials/status/3".formatted(server.getPort()));
+            server.verify(1, getRequestedFor(urlEqualTo("/credentials/status/3")));
+        }
     }
 
     @Nested
     public class GetStatusPurpose {
+
+        @Test
+        void getStatusPurpose_responseIsNoStatusListCredential_shouldFail() {
+            server.stubFor(get("/credentials/status/3").willReturn(ok("<html>not a credential</html>")));
+
+            var credential = TestFunctions.createCredentialBuilder()
+                    .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
+                            Map.of(STATUS_LIST_PURPOSE, "revocation",
+                                    STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                                    STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort()))))
+                    .build();
+            assertThat(revocationService.getStatusPurpose(credential)).isFailed()
+                    .detail()
+                    .startsWith("Failed to read status list credential");
+        }
 
         @Test
         void getStatusPurpose_singleStatusSet() {
