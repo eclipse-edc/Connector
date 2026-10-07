@@ -18,9 +18,11 @@ package org.eclipse.edc.connector.controlplane.store.sql.assetindex;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIdCompatibility;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.store.sql.assetindex.schema.AssetStatements;
 import org.eclipse.edc.controlplane.DataAddress;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -48,11 +50,13 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
 
     private final AssetStatements assetStatements;
+    private final AssetIdCompatibility assetIdCompatibility;
 
     public SqlAssetIndex(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                         ObjectMapper objectMapper, AssetStatements assetStatements, QueryExecutor queryExecutor) {
+                         ObjectMapper objectMapper, AssetStatements assetStatements, QueryExecutor queryExecutor, Monitor monitor) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
         this.assetStatements = Objects.requireNonNull(assetStatements);
+        this.assetIdCompatibility = new AssetIdCompatibility(Objects.requireNonNull(monitor));
     }
 
     @Override
@@ -61,7 +65,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
 
         return transactionContext.execute(() -> {
             try {
-                var statement = assetStatements.createQuery(querySpec);
+                var statement = assetStatements.createQuery(assetIdCompatibility.translate(querySpec));
                 return queryExecutor.query(getConnection(), true, this::mapAsset, statement.getQueryAsString(), statement.getParameters());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
@@ -137,7 +141,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     @Override
     public long countAssets(List<Criterion> criteria) {
         try (var connection = getConnection()) {
-            var statement = assetStatements.createQuery(criteria);
+            var statement = assetStatements.createQuery(assetIdCompatibility.translate(criteria));
 
             var queryAsString = statement.getQueryAsString().replace("SELECT * ", "SELECT COUNT (*) ");
 

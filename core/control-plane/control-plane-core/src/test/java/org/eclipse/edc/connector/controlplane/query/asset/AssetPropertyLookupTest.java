@@ -15,15 +15,23 @@
 package org.eclipse.edc.connector.controlplane.query.asset;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.PropertyLookup;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 class AssetPropertyLookupTest {
 
-    private final PropertyLookup propertyLookup = new AssetPropertyLookup();
+    private final Monitor monitor = mock();
+    private final PropertyLookup propertyLookup = new AssetPropertyLookup(monitor);
 
     @Test
     void shouldGetProperty() {
@@ -55,6 +63,27 @@ class AssetPropertyLookupTest {
         var property = propertyLookup.getProperty("not-existent", asset);
 
         assertThat(property).isNull();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { EDC_NAMESPACE + "id", "'" + EDC_NAMESPACE + "id'", "'" + EDC_NAMESPACE + "id" })
+    void shouldReturnAssetId_whenLegacyIdProperty(String key) {
+        var asset = Asset.Builder.newInstance().id("asset-id").build();
+
+        var property = propertyLookup.getProperty(key, asset);
+
+        assertThat(property).isEqualTo("asset-id");
+        assertThat(asset.getProperties()).doesNotContainKey(EDC_NAMESPACE + "id");
+    }
+
+    @Test
+    void shouldWarnOnlyOnce_whenLegacyIdProperty() {
+        var asset = Asset.Builder.newInstance().id("asset-id").build();
+
+        propertyLookup.getProperty(EDC_NAMESPACE + "id", asset);
+        propertyLookup.getProperty(EDC_NAMESPACE + "id", asset);
+
+        verify(monitor, times(1)).warning(anyString());
     }
 
     @Test

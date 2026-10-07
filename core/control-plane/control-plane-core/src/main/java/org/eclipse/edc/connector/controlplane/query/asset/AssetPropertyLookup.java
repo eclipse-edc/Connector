@@ -15,7 +15,9 @@
 package org.eclipse.edc.connector.controlplane.query.asset;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIdCompatibility;
 import org.eclipse.edc.query.ReflectionPropertyLookup;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.PropertyLookup;
 
 import java.util.Map;
@@ -28,10 +30,20 @@ import static java.util.Map.entry;
 public class AssetPropertyLookup implements PropertyLookup {
 
     private final PropertyLookup fallbackPropertyLookup = new ReflectionPropertyLookup();
+    private final AssetIdCompatibility assetIdCompatibility;
+
+    public AssetPropertyLookup(Monitor monitor) {
+        this.assetIdCompatibility = new AssetIdCompatibility(monitor);
+    }
 
     @Override
     public Object getProperty(String key, Object object) {
         if (object instanceof Asset asset) {
+            if (AssetIdCompatibility.isLegacyIdOperand(key)) {
+                assetIdCompatibility.warnOnce();
+                return asset.getId();
+            }
+
             Stream<Map.Entry<String, Function<Asset, Map<String, Object>>>> mappings = Stream.of(
                     entry("%s", Asset::getProperties),
                     entry("'%s'", Asset::getProperties),

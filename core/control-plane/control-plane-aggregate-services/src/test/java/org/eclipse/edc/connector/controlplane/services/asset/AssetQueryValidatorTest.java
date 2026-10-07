@@ -38,7 +38,7 @@ class AssetQueryValidatorTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-            Asset.PROPERTY_ID,
+            "id",
             Asset.PROPERTY_DESCRIPTION,
             "someCustomVal",
             "_anotherValidVal",

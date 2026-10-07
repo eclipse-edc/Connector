@@ -36,6 +36,13 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 @JsonDeserialize(builder = Asset.Builder.class)
 public class Asset extends AbstractParticipantResource {
 
+    /**
+     * Legacy property that used to duplicate the asset id inside the properties. It is no longer stored, and it's
+     * honoured only as left operand in queries and asset selectors, where it gets translated to the asset id.
+     *
+     * @deprecated use the asset id instead.
+     */
+    @Deprecated(since = "1.0.0")
     public static final String PROPERTY_ID = EDC_NAMESPACE + "id";
     public static final String PROPERTY_DESCRIPTION = EDC_NAMESPACE + "description";
     public static final String PROPERTY_IS_CATALOG = EDC_NAMESPACE + "isCatalog";
@@ -55,11 +62,6 @@ public class Asset extends AbstractParticipantResource {
     private DataAddress dataAddress;
 
     private Asset() {
-    }
-
-    @Override
-    public String getId() {
-        return id == null ? ofNullable(getPropertyAsString(PROPERTY_ID)).orElse(getPropertyAsString(id)) : id;
     }
 
     @JsonIgnore
@@ -143,13 +145,6 @@ public class Asset extends AbstractParticipantResource {
         }
 
         @Override
-        public Builder id(String id) {
-            entity.id = id;
-            entity.properties.put(PROPERTY_ID, id);
-            return self();
-        }
-
-        @Override
         public Builder createdAt(long value) {
             entity.createdAt = value;
             return self();
@@ -164,8 +159,8 @@ public class Asset extends AbstractParticipantResource {
         public Asset build() {
             super.build();
 
-            if (entity.getId() == null) {
-                id(UUID.randomUUID().toString());
+            if (entity.id == null) {
+                entity.id = UUID.randomUUID().toString();
             }
 
             return entity;

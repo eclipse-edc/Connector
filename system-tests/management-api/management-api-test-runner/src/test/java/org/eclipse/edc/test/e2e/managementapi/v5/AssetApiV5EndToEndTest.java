@@ -614,7 +614,7 @@ public class AssetApiV5EndToEndTest {
             assertThat(asset).isNotNull();
             // make sure unprefixed keys are caught and prefixed with the EDC_NAMESPACE ns.
             assertThat(asset.getProperties().keySet())
-                    .hasSize(6)
+                    .hasSize(5)
                     .allMatch(key -> key.startsWith(EDC_NAMESPACE));
 
             var dataAddress = assetIndex.resolveForAsset(PARTICIPANT_CONTEXT_ID, asset.getId());
@@ -794,7 +794,7 @@ public class AssetApiV5EndToEndTest {
             assertThat(body).isNotNull();
             assertThat(body.getString(ID)).isEqualTo(id);
             assertThat(body.getMap("properties"))
-                    .hasSize(3)
+                    .hasSize(2)
                     .containsEntry("description", "test description")
                     .containsEntry("conformsTo", "http://example.com/spec");
             assertThat(body.getMap("'dataAddress'"))
@@ -860,7 +860,7 @@ public class AssetApiV5EndToEndTest {
             assertThat(body).isNotNull();
             assertThat(body.getString(ID)).isEqualTo(id);
             assertThat(body.getMap("properties"))
-                    .hasSize(2)
+                    .hasSize(1)
                     .containsEntry("description", "test description");
             assertThat(body.getMap("'dataAddress'"))
                     .containsEntry("type", "addressType");

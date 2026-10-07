@@ -108,7 +108,7 @@ class DatasetResolverImplTest {
 
     @NotNull
     private ThrowingExtractor<Dataset, Object, RuntimeException> getId() {
-        return it -> it.getProperty(Asset.PROPERTY_ID);
+        return Dataset::getId;
     }
 
     @Nested

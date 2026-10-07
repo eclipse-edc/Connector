@@ -96,7 +96,7 @@ public class AssetApiV4EndToEndTest {
             assertThat(body).isNotNull();
             assertThat(body.getString(ID)).isEqualTo(id);
             assertThat(body.getMap("properties"))
-                    .hasSize(5)
+                    .hasSize(4)
                     .containsEntry("name", "test-asset")
                     .containsEntry("description", "test description")
                     .containsEntry("contenttype", "application/json")
@@ -203,7 +203,7 @@ public class AssetApiV4EndToEndTest {
             assertThat(asset).isNotNull();
             //make sure unprefixed keys are caught and prefixed with the EDC_NAMESPACE ns.
             assertThat(asset.getProperties().keySet())
-                    .hasSize(6)
+                    .hasSize(5)
                     .allMatch(key -> key.startsWith(EDC_NAMESPACE));
 
             var dataAddress = assetIndex.resolveForAsset(PARTICIPANT_CONTEXT_ID, asset.getId());

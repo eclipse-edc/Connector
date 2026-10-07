@@ -15,9 +15,11 @@
 package org.eclipse.edc.connector.controlplane.defaults.storage.assetindex;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIdCompatibility;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.defaults.storage.ParticipantResourceKey;
 import org.eclipse.edc.controlplane.DataAddress;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -41,16 +43,19 @@ import static java.lang.String.format;
 public class InMemoryAssetIndex implements AssetIndex {
     private final Map<ParticipantResourceKey, Asset> cache = new ConcurrentHashMap<>();
     private final CriterionOperatorRegistry criterionOperatorRegistry;
+    private final AssetIdCompatibility assetIdCompatibility;
     private final ReentrantReadWriteLock lock;
 
-    public InMemoryAssetIndex(CriterionOperatorRegistry criterionOperatorRegistry) {
+    public InMemoryAssetIndex(CriterionOperatorRegistry criterionOperatorRegistry, Monitor monitor) {
         // fair locks guarantee strong consistency since all waiting threads are processed in order of waiting time
         lock = new ReentrantReadWriteLock(true);
         this.criterionOperatorRegistry = criterionOperatorRegistry;
+        this.assetIdCompatibility = new AssetIdCompatibility(monitor);
     }
 
     @Override
-    public Stream<Asset> queryAssets(QuerySpec querySpec) {
+    public Stream<Asset> queryAssets(QuerySpec spec) {
+        var querySpec = assetIdCompatibility.translate(spec);
         lock.readLock().lock();
         try {
             Comparator<Asset> comparator = querySpec.getSortField() == null
@@ -107,7 +112,7 @@ public class InMemoryAssetIndex implements AssetIndex {
 
     @Override
     public long countAssets(List<Criterion> criteria) {
-        return filterBy(criteria).count();
+        return filterBy(assetIdCompatibility.translate(criteria)).count();
     }
 
     @Override
