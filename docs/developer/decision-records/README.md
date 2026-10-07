@@ -105,3 +105,4 @@
 - [2026-09-22 Partners and Partner Groups](2026-09-22-partners-and-partner-groups)
 - [2026-09-22 Per-participant resource identifiers](2026-09-22-per-participant-resource-ids)
 - [2026-09-24 Remove Atomikos](2026-09-24-remove-atomikos)
+- [2026-10-07 Contract Negotiation Approval](2026-10-07-contract-negotiation-approval)
