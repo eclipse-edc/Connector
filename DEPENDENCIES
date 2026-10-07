@@ -19,12 +19,10 @@ maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.22.3, MIT AND BSD-2
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.18.3, Apache-2.0, approved, #16372
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.19.2, Apache-2.0, approved, #21909
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.21.3, Apache-2.0, approved, #25591
-maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.22.2, Apache-2.0, approved, #28621
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.22.3, Apache-2.0, approved, #28621
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.18.3, Apache-2.0, approved, #16370
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.19.2, Apache-2.0, approved, #21912
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.22.3, Apache-2.0, approved, #28622
-maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.22.3, Apache-2.0, approved, #29009
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.19.2, Apache-2.0, approved, #23299
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.22.3, Apache-2.0, approved, #29010
 maven/mavencentral/com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-base/2.22.3, Apache-2.0, approved, #29012
@@ -190,8 +188,8 @@ maven/mavencentral/org.codehaus.plexus/plexus-component-annotations/2.1.0, Apach
 maven/mavencentral/org.codehaus.plexus/plexus-container-default/2.1.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.codehaus.plexus/plexus-utils/3.1.1, , approved, CQ16492
 maven/mavencentral/org.codehaus.plexus/plexus-utils/3.3.0, , approved, CQ21066
-maven/mavencentral/org.eclipse.dataplane-core/dataplane-sdk-core/1.1.1, Apache-2.0, approved, technology.dataplane-core
-maven/mavencentral/org.eclipse.dataplane-core/dataplane-sdk-jakarta-ee/1.1.1, Apache-2.0, approved, technology.dataplane-core
+maven/mavencentral/org.eclipse.dataplane-core/dataplane-sdk-core/1.2.1, Apache-2.0, approved, technology.dataplane-core
+maven/mavencentral/org.eclipse.dataplane-core/dataplane-sdk-jakarta-ee/1.2.1, Apache-2.0, approved, technology.dataplane-core
 maven/mavencentral/org.eclipse.dataspacetck.common/boot/1.3.0, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.common/core-api/1.3.0, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.common/core/1.3.0, Apache-2.0, approved, technology.dataspacetck
@@ -254,7 +252,7 @@ maven/mavencentral/org.glassfish.jersey.core/jersey-common/4.0.3, EPL-2.0 OR GPL
 maven/mavencentral/org.glassfish.jersey.core/jersey-server/4.0.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
 maven/mavencentral/org.glassfish.jersey.ext/jersey-entity-filtering/4.0.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
 maven/mavencentral/org.glassfish.jersey.inject/jersey-hk2/4.0.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
-maven/mavencentral/org.glassfish.jersey.media/jersey-media-json-jackson/4.0.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.media/jersey-media-json-jackson3/4.0.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
 maven/mavencentral/org.glassfish.jersey.media/jersey-media-multipart/4.0.3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
 maven/mavencentral/org.glassfish/jakarta.json/2.0.1, EPL-2.0 OR (GPL-2.0-only WITH Classpath-exception-2.0), approved, #15267
 maven/mavencentral/org.hamcrest/hamcrest-core/2.2, BSD-3-Clause, approved, #23163
@@ -327,11 +325,14 @@ maven/mavencentral/org.xmlunit/xmlunit-placeholders/2.11.0, Apache-2.0, approved
 maven/mavencentral/org.yaml/snakeyaml/2.3, Apache-2.0 AND (Apache-2.0 OR BSD-3-Clause OR EPL-1.0 OR GPL-2.0-or-later OR LGPL-2.1-or-later), approved, #16046
 maven/mavencentral/org.yaml/snakeyaml/2.4, Apache-2.0, approved, #19469
 maven/mavencentral/org.yaml/snakeyaml/2.5, Apache-2.0, approved, #23100
-maven/mavencentral/tools.jackson.core/jackson-core/3.2.2, BSD-2-Clause AND MIT AND BSL-1.0 AND Apache-2.0, approved, #30552
+maven/mavencentral/tools.jackson.core/jackson-core/3.2.3, BSD-2-Clause AND MIT AND BSL-1.0 AND Apache-2.0, approved, #30552
 maven/mavencentral/tools.jackson.core/jackson-databind/3.2.1, Apache-2.0, approved, #30564
 maven/mavencentral/tools.jackson.core/jackson-databind/3.2.2, Apache-2.0, approved, #30563
+maven/mavencentral/tools.jackson.core/jackson-databind/3.2.3, Apache-2.0, approved, #30563
 maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-yaml/3.2.1, Apache-2.0, approved, #29717
-maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-yaml/3.2.2, Apache-2.0, approved, #29717
+maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-yaml/3.2.3, Apache-2.0, approved, #29717
 maven/mavencentral/tools.jackson.datatype/jackson-datatype-jakarta-jsonp/3.2.1, Apache-2.0, approved, #30565
 maven/mavencentral/tools.jackson.datatype/jackson-datatype-jakarta-jsonp/3.2.2, Apache-2.0, approved, #30565
-maven/mavencentral/tools.jackson/jackson-bom/3.2.2, Apache-2.0, approved, #29716
+maven/mavencentral/tools.jackson.datatype/jackson-datatype-jakarta-jsonp/3.2.3, Apache-2.0, approved, #30565
+maven/mavencentral/tools.jackson.module/jackson-module-jakarta-xmlbind-annotations/3.2.3, , restricted, clearlydefined
+maven/mavencentral/tools.jackson/jackson-bom/3.2.3, Apache-2.0, approved, #29716
