@@ -15,6 +15,7 @@
 package org.eclipse.edc.jsonld.util;
 
 import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.datatype.jsonp.JSONPModule;
@@ -27,6 +28,8 @@ public class JacksonJsonLd {
         return JsonMapper.builder()
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
                 .configure(DeserializationFeature.FAIL_ON_TRAILING_TOKENS, false)
+                // the Jackson 2 default, which populates collections that only have a getter, e.g. QuerySpec#filterExpression
+                .configure(MapperFeature.USE_GETTERS_AS_SETTERS, true)
                 .addModule(new JSONPModule())
                 .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
                 .build();

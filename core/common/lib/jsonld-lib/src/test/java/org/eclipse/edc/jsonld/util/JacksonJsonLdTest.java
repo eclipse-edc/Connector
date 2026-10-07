@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.jsonld.util;
 
+import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.api.Test;
 import tools.jackson.core.JacksonException;
 
@@ -39,6 +41,23 @@ class JacksonJsonLdTest {
         var test = mapper.readValue(json, TestRecord.class);
 
         assertThat(test.list).hasSize(1).contains("value");
+    }
+
+    @Test
+    void shouldPopulateCollectionsWithoutSetter() throws JacksonException {
+        var mapper = JacksonJsonLd.createObjectMapper();
+
+        var json = """
+                {
+                    "filterExpression": [
+                        { "operandLeft": "id", "operator": "=", "operandRight": "foo" }
+                    ]
+                }
+                """;
+
+        var querySpec = mapper.readValue(json, QuerySpec.class);
+
+        assertThat(querySpec.getFilterExpression()).containsExactly(new Criterion("id", "=", "foo"));
     }
 
     private record TestRecord(List<String> list) {

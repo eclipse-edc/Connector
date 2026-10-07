@@ -14,7 +14,9 @@
 
 package org.eclipse.edc.web.jersey;
 
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -32,9 +34,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
+import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.hamcrest.CoreMatchers.is;
@@ -269,6 +274,24 @@ public class JerseyRestServiceTest {
                 .hasRootCauseInstanceOf(IllegalArgumentException.class);
     }
 
+    @Test
+    @DisplayName("Verifies that request bodies are deserialized with the mapper of the TypeManager, not Jersey's default mapper")
+    void verifyRequestBodyIsDeserializedWithTypeManagerMapper() {
+        startJetty(new PortMapping("default", httpPort, "/api"));
+        jerseyRestService.registerResource(new CollectionWithoutSetterController());
+        jerseyRestService.start();
+
+        given()
+                .contentType(JSON)
+                .body("""
+                        { "items": ["foo", "bar"] }
+                        """)
+                .post("http://localhost:" + httpPort + "/api/collection")
+                .then()
+                .statusCode(200)
+                .body(is("2"));
+    }
+
     private void startJetty(PortMapping... mapping) {
         var config = new JettyConfiguration(null, null);
         var portMappings = new PortMappingRegistryImpl();
@@ -298,6 +321,29 @@ public class JerseyRestServiceTest {
         @Path("/resource")
         public String foo() {
             return "exists";
+        }
+    }
+
+    @Path("/collection")
+    public static class CollectionWithoutSetterController { //needs to be public, otherwise it won't get picked up
+
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.TEXT_PLAIN)
+        public String count(CollectionWithoutSetter body) {
+            return String.valueOf(body.getItems().size());
+        }
+    }
+
+    /**
+     * Like QuerySpec#filterExpression, the collection is only populated by a mapper that uses getters as setters, like the
+     * one of the TypeManager, unlike Jersey's default mapper. The field must be final, otherwise any mapper populates it.
+     */
+    public static class CollectionWithoutSetter {
+        private final List<String> items = new ArrayList<>();
+
+        public List<String> getItems() {
+            return items;
         }
     }
 
