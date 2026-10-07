@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.controlplane.contract.policy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.TypeManager;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.util.List;
 import java.util.function.BiPredicate;

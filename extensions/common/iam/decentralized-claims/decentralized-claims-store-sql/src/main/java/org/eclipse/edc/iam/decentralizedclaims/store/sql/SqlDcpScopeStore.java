@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.store.sql;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScope;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.store.DcpScopeStore;
 import org.eclipse.edc.iam.decentralizedclaims.store.sql.schema.DcpScopeStatements;
@@ -26,6 +25,7 @@ import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.databind.ObjectMapper;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

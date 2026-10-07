@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import okhttp3.MediaType;
+import tools.jackson.core.type.TypeReference;
 
 import java.util.Map;
 

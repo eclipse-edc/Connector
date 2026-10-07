@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.transform.transformer.edc.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
@@ -24,6 +23,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.function.Function;
 

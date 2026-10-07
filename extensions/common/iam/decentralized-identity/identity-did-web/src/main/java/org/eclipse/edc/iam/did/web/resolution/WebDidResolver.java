@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.iam.did.web.resolution;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Request;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.did.spi.document.DidDocument;
@@ -22,6 +21,7 @@ import org.eclipse.edc.iam.did.spi.resolution.DidResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 

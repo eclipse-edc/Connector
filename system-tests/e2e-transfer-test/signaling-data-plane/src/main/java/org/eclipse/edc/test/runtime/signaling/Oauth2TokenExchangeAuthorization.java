@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.test.runtime.signaling;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataplane.domain.Result;
 import org.eclipse.dataplane.domain.registration.Authorization;
 import org.eclipse.dataplane.domain.registration.AuthorizationProfile;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.net.URLEncoder;

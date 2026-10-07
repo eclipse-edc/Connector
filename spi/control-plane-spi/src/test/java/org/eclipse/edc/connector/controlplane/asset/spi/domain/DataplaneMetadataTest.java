@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.controlplane.asset.spi.domain;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.entry;
 class DataplaneMetadataTest {
 
     @Test
-    void serdes() throws JsonProcessingException {
+    void serdes() throws JacksonException {
         var mapper = new JacksonTypeManager().getMapper();
 
         var dataplaneMetadata = DataplaneMetadata.Builder.newInstance()

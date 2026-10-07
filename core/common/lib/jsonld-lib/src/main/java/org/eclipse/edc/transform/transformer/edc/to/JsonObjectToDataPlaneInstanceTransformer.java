@@ -53,7 +53,7 @@ public class JsonObjectToDataPlaneInstanceTransformer extends JsonLdToModelTrans
                 .url(transformUrl(jsonObject.get(URL), context))
                 .lastActive(transformLong(jsonObject.get(LAST_ACTIVE), context))
                 .allowedSourceTypes(asSetOfStrings(jsonObject.get(ALLOWED_SOURCE_TYPES), context))
-                .allowedTransferType(asSetOfStrings(jsonObject.get(ALLOWED_TRANSFER_TYPES), context))
+                .allowedTransferTypes(asSetOfStrings(jsonObject.get(ALLOWED_TRANSFER_TYPES), context))
                 .destinationProvisionTypes(asSetOfStrings(jsonObject.get(DESTINATION_PROVISION_TYPES), context))
                 .stateTimestamp(transformLong(jsonObject.get(DATAPLANE_INSTANCE_STATE_TIMESTAMP), context));
 

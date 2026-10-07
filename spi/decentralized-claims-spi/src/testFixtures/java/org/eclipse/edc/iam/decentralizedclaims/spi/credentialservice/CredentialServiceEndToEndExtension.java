@@ -15,7 +15,6 @@
 package org.eclipse.edc.iam.decentralizedclaims.spi.credentialservice;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.extension.ResponseDefinitionTransformerV2;
@@ -33,6 +32,8 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -149,7 +150,7 @@ public class CredentialServiceEndToEndExtension implements BeforeAllCallback, Af
                         .withBody(body)
                         .withHeader("Content-Type", "application/json")
                         .build();
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 return new ResponseDefinitionBuilder()
                         .withStatus(400)
                         .withHeader("Content-Type", "application/json")

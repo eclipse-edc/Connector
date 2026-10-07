@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.revocation.statuslist2021;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.verifiablecredentials.revocation.BaseRevocationListService;
@@ -24,6 +23,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenValidationService;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Collection;
 

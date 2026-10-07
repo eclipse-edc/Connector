@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.transform.edc.contractagreement.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
@@ -23,6 +22,7 @@ import org.eclipse.edc.jsonld.spi.transformer.JsonLdFromModelTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.function.Supplier;
 

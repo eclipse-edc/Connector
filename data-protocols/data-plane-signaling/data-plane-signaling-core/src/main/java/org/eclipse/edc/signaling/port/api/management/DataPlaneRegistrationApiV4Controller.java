@@ -53,7 +53,7 @@ public class DataPlaneRegistrationApiV4Controller implements DataPlaneRegistrati
         participantContextSupplier.get().map(participantContext -> DataPlaneInstance.Builder.newInstance()
                         .id(registration.dataplaneId())
                         .url(registration.endpoint())
-                        .allowedTransferType(registration.transferTypes())
+                        .allowedTransferTypes(registration.transferTypes())
                         .authorizationProfile(toAuthorizationProfile(registration.authorization()))
                         .participantContextId(participantContext.getId())
                         .labels(registration.labels())

@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.secret.spi.event;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * Describe a new Secret creation, after this has emitted, a Secret with a certain id will be available.

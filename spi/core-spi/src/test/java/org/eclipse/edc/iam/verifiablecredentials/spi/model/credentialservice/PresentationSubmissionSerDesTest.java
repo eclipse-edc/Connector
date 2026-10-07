@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.spi.model.credentialservice;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ class PresentationSubmissionSerDesTest {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Test
-    void verifyDeserialization() throws JsonProcessingException {
+    void verifyDeserialization() throws JacksonException {
         var json = """
                  {
                     "id": "a30e3b91-fb77-4d22-95fa-871689c322e2",
@@ -59,7 +59,7 @@ class PresentationSubmissionSerDesTest {
     }
 
     @Test
-    void verifySerialization() throws JsonProcessingException {
+    void verifySerialization() throws JacksonException {
         var pd = new PresentationSubmission("test-id", "test-def-id", List.of(new InputDescriptorMapping("test-input", "ldp_vc", "$.verifiableCredentials[0]")));
         var json = mapper.writeValueAsString(pd);
 

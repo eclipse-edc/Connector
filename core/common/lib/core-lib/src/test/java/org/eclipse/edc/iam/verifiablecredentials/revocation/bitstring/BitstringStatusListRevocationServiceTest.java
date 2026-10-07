@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.revocation.bitstring;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
@@ -29,6 +27,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.BitString;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.StatusMessage;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenValidationService;
@@ -38,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Base64;
 import java.util.List;
@@ -77,7 +77,7 @@ class BitstringStatusListRevocationServiceTest {
             .options(wireMockConfig().dynamicPort())
             .build();
 
-    private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    private final ObjectMapper mapper = new JacksonTypeManager().getMapper();
     private final TokenValidationService tokenValidationService = mock(TokenValidationService.class);
     private final DidPublicKeyResolver didPublicKeyResolver = mock(DidPublicKeyResolver.class);
 

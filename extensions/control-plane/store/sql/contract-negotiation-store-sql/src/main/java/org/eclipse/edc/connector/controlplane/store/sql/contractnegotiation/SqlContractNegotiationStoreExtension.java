@@ -72,7 +72,7 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
 
         var leaseContextBuilder = leaseContextBuilderProvider.createContextBuilder(getStatementImpl().getContractNegotiationTable());
         var sqlStore = new SqlContractNegotiationStore(dataSourceRegistry, dataSourceName, trxContext,
-                typeManager.getMapper(), getStatementImpl(), leaseContextBuilder, queryExecutor);
+                typeManager::getMapper, getStatementImpl(), leaseContextBuilder, queryExecutor);
         context.registerService(ContractNegotiationStore.class, sqlStore);
 
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "contract-negotiation-schema.sql");

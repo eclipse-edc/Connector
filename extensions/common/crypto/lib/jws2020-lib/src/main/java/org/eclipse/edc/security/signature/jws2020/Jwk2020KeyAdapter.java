@@ -21,12 +21,12 @@ import com.apicatalog.ld.node.LdNodeBuilder;
 import com.apicatalog.ld.signature.VerificationMethod;
 import com.apicatalog.vc.VcVocab;
 import com.apicatalog.vc.method.MethodAdapter;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.JWK;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.security.token.jwt.CryptoConverter;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 import java.util.Objects;
@@ -100,7 +100,7 @@ public class Jwk2020KeyAdapter implements MethodAdapter {
         return ofNullable(str).map(jsonValue -> {
             try {
                 return mapper.writeValueAsString(jsonValue);
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 throw new RuntimeException(e);
             }
         }).orElse(null);

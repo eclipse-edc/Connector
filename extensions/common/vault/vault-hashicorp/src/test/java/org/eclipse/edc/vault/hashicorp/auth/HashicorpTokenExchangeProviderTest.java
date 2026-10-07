@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.vault.hashicorp.auth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
@@ -26,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

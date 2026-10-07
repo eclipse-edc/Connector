@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.runtime.core.api;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
 import org.eclipse.edc.spi.system.apiversion.VersionRecord;
 import org.eclipse.edc.spi.types.TypeManager;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,11 +45,13 @@ public class ApiVersionServiceImpl implements ApiVersionService {
 
         try {
             var records = typeManager.getMapper()
+                    .rebuild()
                     .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+                    .build()
                     .readValue(versionContent, VersionRecord[].class);
 
             Stream.of(records).forEach(record -> addRecord(apiContext, record));
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new EdcException(e);
         }
     }

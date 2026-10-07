@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * The {@link TransferCompletionMessage} is sent by the provider or consumer when asset transfer has completed. Note

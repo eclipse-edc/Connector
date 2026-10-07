@@ -14,18 +14,17 @@
 
 package org.eclipse.edc.policy.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AtomicConstraintTest {
 
     @Test
-    void serializeDeserialize() throws JsonProcessingException {
-        var mapper = new ObjectMapper();
-        mapper.registerSubtypes(LiteralExpression.class);
+    void serializeDeserialize() throws JacksonException {
+        var mapper = JsonMapper.builder().registerSubtypes(LiteralExpression.class).build();
 
         var serialized = mapper.writeValueAsString(AtomicConstraint.Builder.newInstance()
                 .leftExpression(new LiteralExpression("left"))

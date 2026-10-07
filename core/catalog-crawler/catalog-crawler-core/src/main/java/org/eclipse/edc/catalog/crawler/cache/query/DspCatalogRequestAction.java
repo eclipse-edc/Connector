@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.catalog.crawler.cache.query;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.catalog.spi.model.CatalogUpdateResponse;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
@@ -28,6 +27,7 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.Objects;

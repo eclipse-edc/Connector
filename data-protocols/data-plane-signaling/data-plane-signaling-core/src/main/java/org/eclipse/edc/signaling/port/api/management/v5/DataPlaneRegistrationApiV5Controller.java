@@ -70,7 +70,7 @@ public class DataPlaneRegistrationApiV5Controller implements DataPlaneRegistrati
         var dataplaneInstance = DataPlaneInstance.Builder.newInstance()
                 .id(registration.dataplaneId())
                 .url(registration.endpoint())
-                .allowedTransferType(registration.transferTypes())
+                .allowedTransferTypes(registration.transferTypes())
                 .authorizationProfile(toAuthorizationProfile(registration.authorization()))
                 .participantContextId(participantContextId)
                 .labels(registration.labels())

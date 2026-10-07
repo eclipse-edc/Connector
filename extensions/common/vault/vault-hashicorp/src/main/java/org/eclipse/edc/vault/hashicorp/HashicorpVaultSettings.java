@@ -14,14 +14,15 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.util.string.StringUtils;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_CONFIG;
 
@@ -33,7 +34,7 @@ import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_CONFIG;
  */
 public record HashicorpVaultSettings(HashicorpVaultConfig config) {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    private static final ObjectMapper MAPPER = JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
     /**
      * Resolves the vault configuration from the {@link ParticipantContextConfig}. If no config is found for that participant, an exception is thrown.
@@ -50,7 +51,7 @@ public record HashicorpVaultSettings(HashicorpVaultConfig config) {
         }
         try {
             return MAPPER.readValue(vaultConfigJson, HashicorpVaultSettings.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new EdcException(e);
         }
     }

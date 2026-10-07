@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.policy.cel.store.sql;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.policy.cel.model.CelExpression;
 import org.eclipse.edc.policy.cel.store.CelExpressionStore;
 import org.eclipse.edc.policy.model.Operator;
@@ -26,6 +24,8 @@ import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.vault.hashicorp.auth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -22,9 +21,10 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProviderFactory;
+import tools.jackson.databind.json.JsonMapper;
 
-import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static java.util.Objects.requireNonNull;
+import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 @Extension(value = HashicorpVaultAuthenticationExtension.NAME)
 public class HashicorpVaultAuthenticationExtension implements ServiceExtension {
@@ -86,7 +86,7 @@ public class HashicorpVaultAuthenticationExtension implements ServiceExtension {
                     .defaultResource(resource)
                     .vaultUrl(vaultUrl)
                     .httpClient(edcHttpClient)
-                    .objectMapper(new ObjectMapper().disable(FAIL_ON_UNKNOWN_PROPERTIES));
+                    .objectMapper(JsonMapper.builder().disable(FAIL_ON_UNKNOWN_PROPERTIES).build());
         }
 
         return builder.build();

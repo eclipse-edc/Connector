@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.test.system.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
@@ -29,6 +27,8 @@ import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.utils.LazySupplier;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.Criterion;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.time.Duration;
@@ -233,7 +233,7 @@ public class ManagementApiClientV4 {
         try {
             var responseBody = response.body().asString();
             return objectMapper.readValue(responseBody, JsonObject.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new EdcException("Cannot deserialize dataset", e);
         }
     }
@@ -381,7 +381,7 @@ public class ManagementApiClientV4 {
         try {
             var responseBody = response.body().asString();
             return objectMapper.readValue(responseBody, JsonObject.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new EdcException("Cannot deserialize dataset", e);
         }
     }
@@ -405,7 +405,7 @@ public class ManagementApiClientV4 {
         try {
             var responseBody = response.body().asString();
             return objectMapper.readValue(responseBody, JsonArray.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new EdcException("Cannot deserialize dataset", e);
         }
     }

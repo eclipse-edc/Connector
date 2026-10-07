@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
@@ -26,6 +25,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.core.JacksonException;
 
 import java.util.Map;
 
@@ -96,7 +96,7 @@ public class JsonObjectToTransferSuspensionMessageTransformer extends Namespaced
     private Object deserialize(JsonValue it) {
         try {
             return typeManager.getMapper(typeContext).readValue(it.toString(), Map.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new EdcException("Error deserializing 'reason' field.");
         }
     }

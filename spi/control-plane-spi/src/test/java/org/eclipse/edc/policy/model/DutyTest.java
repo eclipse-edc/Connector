@@ -15,16 +15,16 @@
 
 package org.eclipse.edc.policy.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DutyTest {
 
     @Test
-    void serializeDeserialize() throws JsonProcessingException {
+    void serializeDeserialize() throws JacksonException {
         var mapper = new ObjectMapper();
         var serialized = mapper.writeValueAsString(Duty.Builder.newInstance().action(Action.Builder.newInstance().type("use").build()).build());
         assertThat(mapper.readValue(serialized, Duty.class).getAction()).isNotNull();

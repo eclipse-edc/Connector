@@ -15,9 +15,9 @@
 package org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Objects;
 

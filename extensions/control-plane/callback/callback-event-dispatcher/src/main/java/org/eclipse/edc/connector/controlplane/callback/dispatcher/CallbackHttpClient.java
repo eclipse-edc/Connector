@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.callback.dispatcher;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -29,6 +27,8 @@ import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.security.Vault;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -76,7 +76,7 @@ public class CallbackHttpClient implements CallbackClient {
                 builder.addHeader(callbackAddress.getAuthKey(), authCode);
             }
             return builder.build();
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new EdcException(e);
         }
     }

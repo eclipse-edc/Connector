@@ -15,8 +15,6 @@
 package org.eclipse.edc.vault.hashicorp.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -28,6 +26,8 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.List;
@@ -127,7 +127,7 @@ public class HashicorpVaultTokenRenewService {
             } else {
                 return Result.failure("Response failed with status %d".formatted(response.code()));
             }
-        } catch (IOException e) {
+        } catch (IOException | JacksonException e) {
             return Result.failure("Unexpected exception: %s".formatted(e.getMessage()));
         }
     }
@@ -142,7 +142,7 @@ public class HashicorpVaultTokenRenewService {
         String jsonRepresentation;
         try {
             jsonRepresentation = objectMapper.writeValueAsString(requestPayload);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new EdcException(e);
         }
         return RequestBody.create(jsonRepresentation, MEDIA_TYPE_APPLICATION_JSON);

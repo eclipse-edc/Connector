@@ -15,8 +15,6 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.http.spi.EdcHttpClient;
@@ -30,6 +28,8 @@ import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProviderFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.Base64;
@@ -250,7 +250,7 @@ public class HashicorpVaultSignatureService implements SignatureService {
         String jsonRepresentation;
         try {
             jsonRepresentation = objectMapper.writeValueAsString(body);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new EdcException(e);
         }
         return RequestBody.create(jsonRepresentation, VaultConstants.MEDIA_TYPE_APPLICATION_JSON);

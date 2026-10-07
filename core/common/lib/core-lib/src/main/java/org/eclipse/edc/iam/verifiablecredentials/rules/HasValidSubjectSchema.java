@@ -14,8 +14,7 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.rules;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.networknt.schema.InputFormat;
 import com.networknt.schema.SchemaLocation;
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.dialect.Dialects;
@@ -23,6 +22,7 @@ import com.networknt.schema.resource.SchemaLoader;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
 import org.eclipse.edc.spi.result.Result;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Objects;
@@ -57,8 +57,8 @@ public class HasValidSubjectSchema implements CredentialValidationRule {
 
             // validate all subjects against the current schema
             var validationMessages = verifiableCredential.getCredentialSubject().stream()
-                    .map(subject -> jsonMapper.convertValue(subject, JsonNode.class))
-                    .flatMap(jsonNode -> jsonSchema.validate(jsonNode).stream())
+                    .map(jsonMapper::writeValueAsString)
+                    .flatMap(json -> jsonSchema.validate(json, InputFormat.JSON).stream())
                     .toList();
             return validationMessages.isEmpty()
                     ? Result.success()

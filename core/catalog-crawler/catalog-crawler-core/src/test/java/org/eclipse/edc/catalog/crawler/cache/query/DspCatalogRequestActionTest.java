@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.catalog.crawler.cache.query;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.model.CatalogUpdateResponse;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
@@ -31,6 +29,8 @@ import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -132,7 +132,7 @@ class DspCatalogRequestActionTest {
             var expanded = expand(jo);
             var expandedStr = objectMapper.writeValueAsString(expanded);
             return StatusResult.success(expandedStr.getBytes());
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }

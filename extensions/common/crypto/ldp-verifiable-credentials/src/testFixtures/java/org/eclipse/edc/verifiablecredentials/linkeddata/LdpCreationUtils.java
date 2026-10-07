@@ -19,14 +19,14 @@ import com.apicatalog.ld.DocumentError;
 import com.apicatalog.ld.signature.SigningError;
 import com.apicatalog.ld.signature.key.KeyPair;
 import com.apicatalog.vc.issuer.ProofDraft;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.JWK;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.eclipse.edc.security.signature.jws2020.TestFunctions;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 public class LdpCreationUtils {
     private static final ObjectMapper MAPPER = JacksonJsonLd.createObjectMapper();
@@ -43,7 +43,7 @@ public class LdpCreationUtils {
                     .compacted()
                     .toString();
 
-        } catch (JsonProcessingException | DocumentError | SigningError e) {
+        } catch (JacksonException | DocumentError | SigningError e) {
             throw new RuntimeException(e);
         }
     }
@@ -57,7 +57,7 @@ public class LdpCreationUtils {
                     .sign(jsonLd, proofDraft)
                     .compacted()
                     .toString();
-        } catch (JsonProcessingException | DocumentError | SigningError e) {
+        } catch (JacksonException | DocumentError | SigningError e) {
             throw new RuntimeException(e);
         }
     }

@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.vault.hashicorp;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -25,6 +23,9 @@ import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProviderFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultSettings.forParticipant;
 
@@ -50,7 +51,7 @@ class HashicorpVault implements Vault {
         this.vaultConfig = vaultConfig;
         this.tokenProviderFactory = tokenProviderFactory;
         this.edcHttpClient = edcHttpClient;
-        this.mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        this.mapper = JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
     }
 

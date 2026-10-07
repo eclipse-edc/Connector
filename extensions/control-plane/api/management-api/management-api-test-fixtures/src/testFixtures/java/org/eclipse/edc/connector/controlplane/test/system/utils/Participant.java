@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.test.system.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
@@ -32,6 +30,8 @@ import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.utils.LazySupplier;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.time.Duration;
@@ -295,7 +295,7 @@ public class Participant {
             var responseBody = response.body().asString();
             var compacted = objectMapper.readValue(responseBody, JsonObject.class);
             return jsonLd.expand(compacted).orElseThrow(f -> new EdcException(f.getFailureDetail()));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new EdcException("Cannot deserialize dataset", e);
         }
     }

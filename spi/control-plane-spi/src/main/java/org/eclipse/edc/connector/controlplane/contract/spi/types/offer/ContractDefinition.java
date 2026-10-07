@@ -15,11 +15,11 @@
 
 package org.eclipse.edc.connector.controlplane.contract.spi.types.offer;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.participantcontext.spi.types.AbstractParticipantResource;
 import org.eclipse.edc.spi.query.Criterion;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.ArrayList;
 import java.util.HashMap;

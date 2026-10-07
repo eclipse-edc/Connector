@@ -15,12 +15,12 @@
 package org.eclipse.edc.iam.verifiablecredentials.rules;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSchema;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.UUID;

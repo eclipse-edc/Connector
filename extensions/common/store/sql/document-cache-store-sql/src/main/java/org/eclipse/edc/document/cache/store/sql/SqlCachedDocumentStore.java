@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.document.cache.store.sql;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.document.cache.spi.CachedDocument;
 import org.eclipse.edc.document.cache.spi.CachedDocumentType;
 import org.eclipse.edc.document.cache.spi.PullStrategy;
@@ -28,6 +27,7 @@ import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import tools.jackson.databind.ObjectMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.store.sql.partner;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.partner.spi.PartnerGroup;
 import org.eclipse.edc.connector.controlplane.partner.spi.store.PartnerGroupStore;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
@@ -24,6 +23,7 @@ import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import tools.jackson.databind.ObjectMapper;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

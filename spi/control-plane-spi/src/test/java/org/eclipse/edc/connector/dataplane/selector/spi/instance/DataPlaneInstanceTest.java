@@ -14,15 +14,15 @@
 
 package org.eclipse.edc.connector.dataplane.selector.spi.instance;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.AuthorizationProfile;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -33,14 +33,14 @@ import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.Data
 
 class DataPlaneInstanceTest {
 
-    private ObjectMapper mapper = new JacksonTypeManager().getMapper();
+    private final ObjectMapper mapper = new JacksonTypeManager().getMapper();
 
     @Test
-    void verifySerialization() throws MalformedURLException, JsonProcessingException {
+    void verifySerialization() throws MalformedURLException, JacksonException {
         var instance = DataPlaneInstance.Builder.newInstance()
                 .id("test-id")
                 .lastActive(Instant.now().toEpochMilli())
-                .url(new URL("http://localhost:8234/some/path"))
+                .url(URI.create("http://localhost:8234/some/path").toURL())
                 .property("someprop", "someval")
                 .allowedSourceType("allowedSrc1")
                 .allowedSourceType("allowedSrc2")
@@ -53,7 +53,7 @@ class DataPlaneInstanceTest {
                 .contains("url\":\"http://localhost:8234/some/path\"")
                 .contains("\"someprop\":\"someval\"");
 
-        var deserialized = mapper.readValue(json, DataPlaneInstance.class).copy();
+        var deserialized = mapper.readValue(json, DataPlaneInstance.class);
         assertThat(deserialized).usingRecursiveComparison().isEqualTo(instance);
     }
 

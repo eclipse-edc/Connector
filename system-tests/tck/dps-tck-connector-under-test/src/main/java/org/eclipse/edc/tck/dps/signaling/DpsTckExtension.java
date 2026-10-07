@@ -90,7 +90,7 @@ public class DpsTckExtension implements ServiceExtension {
         dataPlaneSelectorService.register(DataPlaneInstance.Builder.newInstance()
                         .id(UUID.randomUUID().toString())
                         .url(tckDataPlaneUrl + "/dataflows")
-                        .allowedTransferType(Set.of("HttpData-PULL", "HttpData-PUSH"))
+                        .allowedTransferTypes(Set.of("HttpData-PULL", "HttpData-PUSH"))
                         .participantContextId(participantContextId)
                         .build())
                 .orElseThrow(f -> new EdcException("Failed to register TCK data plane: " + f.getFailureDetail()));

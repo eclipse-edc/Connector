@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.http.serialization;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
@@ -31,6 +29,8 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -75,7 +75,7 @@ class JsonLdRemoteMessageSerializerImplTest {
     }
 
     @Test
-    void serialize_shouldReturnString_whenValidMessage() throws JsonProcessingException {
+    void serialize_shouldReturnString_whenValidMessage() throws JacksonException {
         var json = messageJson();
         var serialized = "serialized";
 
@@ -105,27 +105,27 @@ class JsonLdRemoteMessageSerializerImplTest {
     }
 
     @Test
-    void serialize_shouldThrowException_whenSerializationFails() throws JsonProcessingException {
+    void serialize_shouldThrowException_whenSerializationFails() throws JacksonException {
         var json = messageJson();
 
         when(dspTransformerRegistry.forProtocol(DATASPACE_PROTOCOL_HTTP)).thenReturn(Result.success(registry));
         when(dataspaceProfileContextRegistry.getProfile(DATASPACE_PROTOCOL_HTTP)).thenReturn(PROFILE_MOCK);
         when(registry.transform(message, JsonObject.class))
                 .thenReturn(Result.success(json));
-        when(mapper.writeValueAsString(any(JsonObject.class))).thenThrow(JsonProcessingException.class);
+        when(mapper.writeValueAsString(any(JsonObject.class))).thenThrow(JacksonException.class);
 
         assertThatThrownBy(() -> serializer.serialize(message))
                 .isInstanceOf(EdcException.class);
     }
 
     @Test
-    void serialize_shouldThrowException_whenProtocolParseFails() throws JsonProcessingException {
+    void serialize_shouldThrowException_whenProtocolParseFails() throws JacksonException {
         var json = messageJson();
 
         when(dspTransformerRegistry.forProtocol(DATASPACE_PROTOCOL_HTTP)).thenReturn(Result.failure("failure"));
         when(registry.transform(message, JsonObject.class))
                 .thenReturn(Result.success(json));
-        when(mapper.writeValueAsString(any(JsonObject.class))).thenThrow(JsonProcessingException.class);
+        when(mapper.writeValueAsString(any(JsonObject.class))).thenThrow(JacksonException.class);
 
         assertThatThrownBy(() -> serializer.serialize(message))
                 .isInstanceOf(EdcException.class);

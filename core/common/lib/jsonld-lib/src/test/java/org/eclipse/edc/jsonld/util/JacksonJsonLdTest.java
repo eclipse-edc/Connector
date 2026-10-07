@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.jsonld.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
 
 import java.util.List;
 
@@ -26,7 +26,7 @@ class JacksonJsonLdTest {
 
 
     @Test
-    void shouldConfigureSingleValueAsArray() throws JsonProcessingException {
+    void shouldConfigureSingleValueAsArray() throws JacksonException {
         var mapper = JacksonJsonLd.createObjectMapper();
         assertNotNull(mapper);
 

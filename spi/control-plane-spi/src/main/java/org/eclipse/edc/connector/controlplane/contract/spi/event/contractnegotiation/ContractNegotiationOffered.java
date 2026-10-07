@@ -16,8 +16,8 @@
 package org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * This event is raised when the ContractNegotiation has been offered.

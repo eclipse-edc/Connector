@@ -25,8 +25,6 @@ dependencies {
     api(libs.jackson.datatype.jakarta.jsonp)
     api(libs.titaniumJsonLd)
 
-    implementation(libs.jackson.datatype.jsr310)
-
     testImplementation(project(":core:common:junit-base"))
     testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))

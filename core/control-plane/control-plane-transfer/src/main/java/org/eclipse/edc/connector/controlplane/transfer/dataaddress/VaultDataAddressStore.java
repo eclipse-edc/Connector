@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.dataaddress;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
@@ -25,6 +23,8 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.security.Vault;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.StringReader;
 import java.util.function.Supplier;
@@ -60,7 +60,7 @@ public class VaultDataAddressStore implements DataAddressStore {
     private Result<String> toJson(DataAddress dataAddress) {
         try {
             return Result.success(objectMapperSupplier.get().writeValueAsString(dataAddress));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             return Result.failure(e.getMessage());
         }
     }
@@ -69,7 +69,7 @@ public class VaultDataAddressStore implements DataAddressStore {
         return readJsonObject(json).compose(jsonObject -> {
             try {
                 return Result.success(objectMapperSupplier.get().readValue(json, DataAddress.class));
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 return Result.failure(e.getMessage());
             }
         });

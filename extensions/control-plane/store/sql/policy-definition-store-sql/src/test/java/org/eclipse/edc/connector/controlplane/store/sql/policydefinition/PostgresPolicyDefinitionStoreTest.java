@@ -33,8 +33,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -49,12 +47,12 @@ class PostgresPolicyDefinitionStoreTest extends PolicyDefinitionStoreTestBase {
     private SqlPolicyDefinitionStore sqlPolicyStore;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
+    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) {
         var typeManager = new JacksonTypeManager();
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
         sqlPolicyStore = new SqlPolicyDefinitionStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), typeManager.getMapper(), statements, queryExecutor);
+                extension.getTransactionContext(), typeManager::getMapper, statements, queryExecutor);
 
         var schema = TestUtils.getResourceFileContentAsString("policy-definition-schema.sql");
         extension.runQuery(schema);

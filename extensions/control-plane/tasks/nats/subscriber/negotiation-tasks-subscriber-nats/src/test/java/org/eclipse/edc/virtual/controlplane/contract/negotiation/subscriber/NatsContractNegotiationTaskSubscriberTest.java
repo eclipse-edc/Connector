@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.virtual.controlplane.contract.negotiation.subscriber;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
@@ -36,7 +34,6 @@ import org.eclipse.edc.nats.testfixtures.NatsEndToEndExtension;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -46,6 +43,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -82,15 +82,10 @@ public class NatsContractNegotiationTaskSubscriberTest {
     @Order(0)
     @RegisterExtension
     static final NatsEndToEndExtension NATS_EXTENSION = new NatsEndToEndExtension();
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper MAPPER = JsonMapper.builder().registerSubtypes(TaskTypes.TYPES).build();
     private final ContractNegotiationTaskExecutor taskManager = mock();
     private final TaskService taskService = mock();
     private NatsContractNegotiationTaskSubscriber subscriber;
-
-    @BeforeAll
-    static void beforeAll() {
-        TaskTypes.TYPES.forEach(MAPPER::registerSubtypes);
-    }
 
     protected static <T extends ProcessTaskPayload, B extends ProcessTaskPayload.Builder<T, B>> B baseBuilder(B builder, String id, ContractNegotiationStates state, ContractNegotiation.Type type) {
         return builder.processId(id)
@@ -126,7 +121,7 @@ public class NatsContractNegotiationTaskSubscriberTest {
 
     @ParameterizedTest
     @ArgumentsSource(StateTransitionProvider.class)
-    void handleMessage(ContractNegotiationTaskPayload payload) throws JsonProcessingException {
+    void handleMessage(ContractNegotiationTaskPayload payload) throws JacksonException {
         when(taskService.findById(any())).thenReturn(mock());
         when(taskManager.handle(any())).thenReturn(StatusResult.success());
         subscriber.start();
@@ -143,7 +138,7 @@ public class NatsContractNegotiationTaskSubscriberTest {
     }
 
     @Test
-    void handleRetryMessage_businessRetryIsNotCappedBySubscriber() throws JsonProcessingException {
+    void handleRetryMessage_businessRetryIsNotCappedBySubscriber() throws JacksonException {
         var payload = baseBuilder(RequestNegotiation.Builder.newInstance(), UUID.randomUUID().toString(), INITIAL, CONSUMER).build();
         var task = Task.Builder.newInstance().at(System.currentTimeMillis())
                 .payload(payload)
@@ -163,7 +158,7 @@ public class NatsContractNegotiationTaskSubscriberTest {
     }
 
     @Test
-    void handleMissingTask_isRetried_thenDroppedAfterMaxDeliveries() throws JsonProcessingException {
+    void handleMissingTask_isRetried_thenDroppedAfterMaxDeliveries() throws JacksonException {
         var payload = baseBuilder(RequestNegotiation.Builder.newInstance(), UUID.randomUUID().toString(), INITIAL, CONSUMER).build();
         var task = Task.Builder.newInstance().at(System.currentTimeMillis())
                 .payload(payload)

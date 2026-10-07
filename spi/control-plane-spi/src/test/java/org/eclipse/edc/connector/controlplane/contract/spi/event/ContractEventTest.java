@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.contract.spi.event;
 
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionCreated;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionDeleted;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationAccepted;
@@ -35,6 +34,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import tools.jackson.databind.jsontype.NamedType;
 
 import java.time.Clock;
 import java.util.List;

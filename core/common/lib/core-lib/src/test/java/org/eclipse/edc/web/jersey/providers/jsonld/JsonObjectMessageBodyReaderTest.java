@@ -52,7 +52,7 @@ class JsonObjectMessageBodyReaderTest {
     private final JsonLd jsonLd = mock();
     private final TypeManager typeManager = mock();
     private final JsonObjectValidatorRegistry validatorRegistry = mock();
-    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper = org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper();
+    private final tools.jackson.databind.ObjectMapper objectMapper = org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper();
 
     private JsonObjectMessageBodyReader reader;
 

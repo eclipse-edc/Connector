@@ -58,7 +58,7 @@ public class SqlTaskStoreExtension implements ServiceExtension {
 
     @Provider
     public TaskStore createSqlStore() {
-        return new SqlTaskStore(dataSourceRegistry, dataSourceName, transactionContext, typeManager.getMapper(), queryExecutor, getStatementImpl());
+        return new SqlTaskStore(dataSourceRegistry, dataSourceName, transactionContext, typeManager::getMapper, queryExecutor, getStatementImpl());
     }
 
     private TaskStatements getStatementImpl() {

@@ -14,9 +14,6 @@
 
 package org.eclipse.edc.catalog;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.http.ContentType;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -48,6 +45,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.security.SecureRandom;
 import java.time.Duration;
@@ -428,7 +428,7 @@ public class ControlPlaneCrawlerComponentTest {
                 var expanded = TestJsonLd.expand(jo);
                 var expandedStr = OBJECT_MAPPER.writeValueAsString(expanded);
                 return StatusResult.success(expandedStr.getBytes());
-            } catch (JsonProcessingException ex) {
+            } catch (JacksonException ex) {
                 throw new AssertionError(ex);
             }
         };
@@ -459,7 +459,7 @@ public class ControlPlaneCrawlerComponentTest {
                     .map(Result::getContent)
                     .map(transformerFunction)
                     .toList();
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new AssertionError(e);
         }
     }

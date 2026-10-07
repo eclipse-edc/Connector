@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.validator.registration.store.sql;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -26,6 +25,7 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.validator.registration.spi.SchemaValidatorRegistration;
 import org.eclipse.edc.validator.registration.spi.store.SchemaValidatorRegistrationStore;
 import org.eclipse.edc.validator.registration.store.sql.schema.SchemaValidatorRegistrationStoreStatements;
+import tools.jackson.databind.ObjectMapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

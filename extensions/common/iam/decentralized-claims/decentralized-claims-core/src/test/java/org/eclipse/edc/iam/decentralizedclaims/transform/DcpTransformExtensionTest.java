@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.transform;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.iam.decentralizedclaims.core.DcpTransformExtension;
 import org.eclipse.edc.iam.decentralizedclaims.transform.from.JsonObjectFromPresentationResponseMessageTransformer;
 import org.eclipse.edc.iam.decentralizedclaims.transform.to.JsonObjectToCredentialStatusTransformer;
@@ -33,6 +32,7 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.mockito.ArgumentMatchers.isA;

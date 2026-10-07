@@ -15,10 +15,10 @@
 package org.eclipse.edc.security.signature.jws2020;
 
 import com.apicatalog.ld.node.adapter.LdAdapter;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 

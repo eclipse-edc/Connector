@@ -15,8 +15,6 @@
 
 package org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -35,12 +33,15 @@ import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -55,10 +56,10 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     private final SqlLeaseContextBuilder leaseContext;
 
     public SqlContractNegotiationStore(DataSourceRegistry dataSourceRegistry, String dataSourceName,
-                                       TransactionContext transactionContext, ObjectMapper objectMapper,
+                                       TransactionContext transactionContext, Supplier<ObjectMapper> objectMapperSupplier,
                                        ContractNegotiationStatements statements, SqlLeaseContextBuilder leaseContext,
                                        QueryExecutor queryExecutor) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
         this.leaseContext = leaseContext;
     }

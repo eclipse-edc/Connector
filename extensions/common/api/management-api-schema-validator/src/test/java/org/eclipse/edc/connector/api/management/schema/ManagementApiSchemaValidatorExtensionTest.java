@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api.management.schema;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.junit.extensions.TestExtensionContext;
@@ -27,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 

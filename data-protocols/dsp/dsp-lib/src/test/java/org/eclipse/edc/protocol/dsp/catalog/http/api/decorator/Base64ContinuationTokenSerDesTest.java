@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.http.api.decorator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import org.apache.commons.codec.binary.Base64;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
@@ -32,6 +31,7 @@ import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransfo
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 

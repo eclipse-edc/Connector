@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
@@ -28,6 +26,8 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
 
 import java.util.List;
 
@@ -69,7 +69,7 @@ public class JsonObjectToPresentationResponseMessageTransformer extends Namespac
         var rawJson = getRawJsonValue(v);
         try {
             return typeManager.getMapper(typeContext).readValue(rawJson.toString(), PresentationSubmission.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             context.reportProblem("Error reading JSON literal: %s".formatted(e.getMessage()));
             return null;
         }
@@ -81,7 +81,7 @@ public class JsonObjectToPresentationResponseMessageTransformer extends Namespac
         try {
             return typeManager.getMapper(typeContext).readValue(rawJson.toString(), new TypeReference<>() {
             });
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             context.reportProblem("Error reading JSON literal: %s".formatted(e.getMessage()));
             return null;
         }

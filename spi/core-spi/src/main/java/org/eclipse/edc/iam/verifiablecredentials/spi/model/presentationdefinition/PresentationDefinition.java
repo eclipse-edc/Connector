@@ -17,7 +17,7 @@ package org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefiniti
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.List;
 import java.util.Map;

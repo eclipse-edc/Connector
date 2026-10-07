@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.api.management.schema;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -25,6 +23,8 @@ import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTrans
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.edc.api.management.schema.ManagementApiSchema.ContractAgreementSchema.CONTRACT_AGREEMENT_EXAMPLE;
@@ -68,7 +68,7 @@ class ManagementApiSchemaTest {
     }
 
     @Test
-    void contractAgreementExample() throws JsonProcessingException {
+    void contractAgreementExample() throws JacksonException {
         var jsonObject = objectMapper.readValue(CONTRACT_AGREEMENT_EXAMPLE, JsonObject.class);
 
         var expanded = expand(jsonObject);
@@ -83,7 +83,7 @@ class ManagementApiSchemaTest {
     }
 
     @Test
-    void contractNegotiationExample() throws JsonProcessingException {
+    void contractNegotiationExample() throws JacksonException {
         var jsonObject = objectMapper.readValue(CONTRACT_NEGOTIATION_EXAMPLE, JsonObject.class);
 
         var expanded = expand(jsonObject);
@@ -102,7 +102,7 @@ class ManagementApiSchemaTest {
     }
 
     @Test
-    void policyExample() throws JsonProcessingException {
+    void policyExample() throws JacksonException {
         var jsonObject = objectMapper.readValue(POLICY_EXAMPLE, JsonObject.class);
 
         var expanded = expand(jsonObject);

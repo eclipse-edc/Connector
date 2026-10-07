@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.decentralizedclaims.transform.TestContextProvider;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -28,6 +26,8 @@ import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransf
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -48,7 +48,7 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
 
     @ParameterizedTest
     @ArgumentsSource(TestContextProvider.class)
-    void transform_withScopes(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+    void transform_withScopes(TestContextProvider.TestContext ctx) throws JacksonException {
 
         var transformer = new JsonObjectToPresentationQueryTransformer(typeManager, "test", ctx.namespace());
 
@@ -81,7 +81,7 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
 
     @ParameterizedTest
     @ArgumentsSource(TestContextProvider.class)
-    void transform_withEmptyScopes(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+    void transform_withEmptyScopes(TestContextProvider.TestContext ctx) throws JacksonException {
         var transformer = new JsonObjectToPresentationQueryTransformer(typeManager, "test", ctx.namespace());
 
         var obj = """
@@ -106,7 +106,7 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
 
     @ParameterizedTest
     @ArgumentsSource(TestContextProvider.class)
-    void transform_withNullScopes(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+    void transform_withNullScopes(TestContextProvider.TestContext ctx) throws JacksonException {
         var transformer = new JsonObjectToPresentationQueryTransformer(typeManager, "test", ctx.namespace());
 
         var obj = """
@@ -131,7 +131,7 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
 
     @ParameterizedTest
     @ArgumentsSource(TestContextProvider.class)
-    void transform_withScopes_separatedByWhitespace(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+    void transform_withScopes_separatedByWhitespace(TestContextProvider.TestContext ctx) throws JacksonException {
         var transformer = new JsonObjectToPresentationQueryTransformer(typeManager, "test", ctx.namespace());
 
         var obj = """
@@ -161,7 +161,7 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
 
     @ParameterizedTest
     @ArgumentsSource(TestContextProvider.class)
-    void transform_withPresentationDefinition(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+    void transform_withPresentationDefinition(TestContextProvider.TestContext ctx) throws JacksonException {
         var transformer = new JsonObjectToPresentationQueryTransformer(typeManager, "test", ctx.namespace());
         var json = """
                 {
@@ -211,7 +211,7 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
 
     @ParameterizedTest
     @ArgumentsSource(TestContextProvider.class)
-    void transform_withScopesAndPresDef(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+    void transform_withScopesAndPresDef(TestContextProvider.TestContext ctx) throws JacksonException {
         var transformer = new JsonObjectToPresentationQueryTransformer(typeManager, "test", ctx.namespace());
         var json = """
                 {

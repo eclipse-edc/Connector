@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.event.nats;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.Nats;
 import io.nats.client.Options;
@@ -37,6 +36,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.Map;

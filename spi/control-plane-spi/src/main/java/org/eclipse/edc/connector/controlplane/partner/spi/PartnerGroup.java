@@ -15,10 +15,10 @@
 package org.eclipse.edc.connector.controlplane.partner.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.participantcontext.spi.types.AbstractParticipantResource;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Collections;
 import java.util.HashMap;

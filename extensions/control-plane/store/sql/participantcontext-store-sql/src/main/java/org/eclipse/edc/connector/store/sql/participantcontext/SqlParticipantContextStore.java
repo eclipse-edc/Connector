@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.store.sql.participantcontext;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
@@ -25,6 +24,7 @@ import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import tools.jackson.databind.ObjectMapper;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

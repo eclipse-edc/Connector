@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.selector.store.sql;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.AuthorizationProfile;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
@@ -27,6 +25,8 @@ import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -153,7 +153,7 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
                 .lastActive(resultSet.getLong(statements.getLastActiveColumn()))
                 .participantContextId(resultSet.getString(statements.getParticipantContextIdColumn()))
                 .allowedSourceTypes(fromJson(resultSet.getString(statements.getAllowedSourceTypesColumn()), SET_OF_STRINGS))
-                .allowedTransferType(fromJson(resultSet.getString(statements.getAllowedTransferTypesColumn()), SET_OF_STRINGS))
+                .allowedTransferTypes(fromJson(resultSet.getString(statements.getAllowedTransferTypesColumn()), SET_OF_STRINGS))
                 .destinationProvisionTypes(fromJson(resultSet.getString(statements.getDestinationProvisionTypesColumn()), SET_OF_STRINGS))
                 .labels(fromJson(resultSet.getString(statements.getLabelsColumn()), SET_OF_STRINGS))
                 .properties(fromJson(resultSet.getString(statements.getPropertiesColumn()), MAP_OF_OBJECTS))

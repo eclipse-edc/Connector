@@ -16,8 +16,8 @@
 package org.eclipse.edc.connector.controlplane.policy.spi.event;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * Describe a PolicyDefinition deletion, after this has emitted, the PolicyDefinition represented by the id won't be available anymore.

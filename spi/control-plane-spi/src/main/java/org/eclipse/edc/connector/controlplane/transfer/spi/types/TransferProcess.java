@@ -20,8 +20,6 @@ package org.eclipse.edc.connector.controlplane.transfer.spi.types;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
@@ -29,6 +27,8 @@ import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.time.Instant;
 import java.util.ArrayList;

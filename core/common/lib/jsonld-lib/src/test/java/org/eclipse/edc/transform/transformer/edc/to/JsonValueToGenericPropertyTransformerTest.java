@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.transform.transformer.edc.to;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
@@ -23,6 +21,8 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -56,7 +56,7 @@ class JsonValueToGenericPropertyTransformerTest {
     }
 
     @Test
-    void transform_jsonObjectWithoutValueField_returnObject() throws JsonProcessingException {
+    void transform_jsonObjectWithoutValueField_returnObject() throws JacksonException {
         var jsonObject = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, JsonObject.EMPTY_JSON_OBJECT)
                 .add(ODRL_SCHEMA + "someProperty", "someProperty")
@@ -75,7 +75,7 @@ class JsonValueToGenericPropertyTransformerTest {
     }
 
     @Test
-    void transform_jsonObjectWithValueField_returnObject() throws JsonProcessingException {
+    void transform_jsonObjectWithValueField_returnObject() throws JacksonException {
         var value = "value";
         var jsonObject = jsonFactory.createObjectBuilder()
                 .add(VALUE, value)
@@ -92,13 +92,13 @@ class JsonValueToGenericPropertyTransformerTest {
     }
 
     @Test
-    void transform_jsonObject_errorMappingToJavaType_reportProblem() throws JsonProcessingException {
+    void transform_jsonObject_errorMappingToJavaType_reportProblem() throws JacksonException {
         var jsonObject = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, JsonObject.EMPTY_JSON_OBJECT)
                 .add(ODRL_SCHEMA + "property", "someProperty")
                 .build();
 
-        when(mapper.readValue(anyString(), eq(Object.class))).thenThrow(JsonProcessingException.class);
+        when(mapper.readValue(anyString(), eq(Object.class))).thenThrow(JacksonException.class);
 
         var result = transformer.transform(expand(jsonObject), context);
 
@@ -108,7 +108,7 @@ class JsonValueToGenericPropertyTransformerTest {
     }
 
     @Test
-    void transform_jsonArray_returnList() throws JsonProcessingException {
+    void transform_jsonArray_returnList() throws JacksonException {
         var value = "value";
         // include a string, int and object to transform in the array
         var jsonArray = jsonFactory.createArrayBuilder()

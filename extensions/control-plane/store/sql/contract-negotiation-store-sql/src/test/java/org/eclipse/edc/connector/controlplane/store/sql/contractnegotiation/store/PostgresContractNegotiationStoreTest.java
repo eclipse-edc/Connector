@@ -58,7 +58,7 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         var leaseContextBuilder = SqlLeaseContextBuilderImpl.with(extension.getTransactionContext(), CONNECTOR_NAME, statements.getContractNegotiationTable(), leaseStatements, clock, queryExecutor);
 
         store = new SqlContractNegotiationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), manager.getMapper(), statements, leaseContextBuilder, queryExecutor);
+                extension.getTransactionContext(), manager::getMapper, statements, leaseContextBuilder, queryExecutor);
 
         var schema = TestUtils.getResourceFileContentAsString("contract-negotiation-schema.sql");
         extension.runQuery(schema);

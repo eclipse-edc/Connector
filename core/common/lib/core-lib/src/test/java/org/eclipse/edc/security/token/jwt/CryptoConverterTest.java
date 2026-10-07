@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.security.token.jwt;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
@@ -43,6 +41,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
@@ -320,7 +320,7 @@ class CryptoConverterTest {
 
 
     @Test
-    void create_ecKey() throws JsonProcessingException {
+    void create_ecKey() throws JacksonException {
         var json = """
                 {
                     "kty": "EC",
@@ -337,7 +337,7 @@ class CryptoConverterTest {
     }
 
     @Test
-    void create_rsa() throws JsonProcessingException {
+    void create_rsa() throws JacksonException {
         // the RSA key would violate the Checkstyle line length constraint
         var json = getResourceFileContentAsString("rsakey.json");
 
@@ -347,7 +347,7 @@ class CryptoConverterTest {
     }
 
     @Test
-    void create_okp() throws JsonProcessingException {
+    void create_okp() throws JacksonException {
         var json = """
                 {
                    "kty" : "OKP",
@@ -365,7 +365,7 @@ class CryptoConverterTest {
     }
 
     @Test
-    void create_invalidJson() throws JsonProcessingException {
+    void create_invalidJson() throws JacksonException {
         // JSON misses the "crv" property
         var json = """
                 {

@@ -14,15 +14,12 @@
 
 package org.eclipse.edc.json;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.BeanSerializerFactory;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,10 +28,10 @@ class JacksonTypeManagerTest {
     private final JacksonTypeManager typeManager = new JacksonTypeManager();
 
     @Test
-    void verifySerialization() throws JsonProcessingException {
-        typeManager.registerSerializer("foo", Bar.class, new JsonSerializer<>() {
+    void verifySerialization() {
+        typeManager.registerSerializer("foo", Bar.class, new ValueSerializer<>() {
             @Override
-            public void serialize(Bar value, JsonGenerator generator, SerializerProvider serializers) throws IOException {
+            public void serialize(Bar value, JsonGenerator generator, SerializationContext serializers) {
                 generator.writeString(value.toString());
             }
         });
@@ -47,11 +44,11 @@ class JacksonTypeManagerTest {
     }
 
     @Test
-    void decorateExample() throws JsonProcessingException {
+    void decorateExample() {
         var fooMapper = typeManager.getMapper("foo");
 
-        typeManager.registerSerializer("foo", Bar.class, new DecoratingSerializer<>(Bar.class));
-        typeManager.registerSerializer("foo", Baz.class, new DecoratingSerializer<>(Baz.class));
+        typeManager.registerSerializer("foo", Bar.class, new DecoratingSerializer<>());
+        typeManager.registerSerializer("foo", Baz.class, new DecoratingSerializer<>());
 
         var baz = new Baz();
         baz.setName("name");
@@ -69,22 +66,20 @@ class JacksonTypeManagerTest {
         assertThat(obj.getBaz()).isInstanceOf(Baz.class);
     }
 
-    private static class DecoratingSerializer<T> extends JsonSerializer<T> {
-        private final Class<T> type;
+    /**
+     * Serializes the bean's regular properties and decorates the output with an additional {@code @context} field.
+     * A plain, non-decorated mapper is used to render the bean's own properties, which avoids recursing back into
+     * this (registered) serializer.
+     */
+    private static class DecoratingSerializer<T> extends ValueSerializer<T> {
+        private static final ObjectMapper PLAIN_MAPPER = JsonMapper.builder().build();
 
-        DecoratingSerializer(Class<T> type) {
-
-            this.type = type;
-        }
-
-        public void serialize(Object value, JsonGenerator generator, SerializerProvider provider) throws IOException {
+        @Override
+        public void serialize(T value, JsonGenerator generator, SerializationContext context) {
             generator.writeStartObject();
-            var javaType = provider.constructType(type);
-            var beanDescription = provider.getConfig().introspect(javaType);
-            var staticTyping = provider.isEnabled(MapperFeature.USE_STATIC_TYPING);
-            var serializer = BeanSerializerFactory.instance.findBeanOrAddOnSerializer(provider, javaType, beanDescription, staticTyping);
-            serializer.unwrappingSerializer(null).serialize(value, generator, provider);
-            generator.writeObjectField("@context", "some data");
+            var node = PLAIN_MAPPER.valueToTree(value);
+            node.properties().forEach(entry -> generator.writePOJOProperty(entry.getKey(), entry.getValue()));
+            generator.writeStringProperty("@context", "some data");
             generator.writeEndObject();
         }
     }

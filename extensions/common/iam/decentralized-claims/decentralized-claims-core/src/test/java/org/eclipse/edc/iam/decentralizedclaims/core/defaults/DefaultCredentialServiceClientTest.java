@@ -15,9 +15,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.core.defaults;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import okhttp3.MediaType;
@@ -50,6 +47,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.invocation.InvocationOnMock;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -195,7 +195,7 @@ class DefaultCredentialServiceClientTest {
         try {
             var response = mapper.readValue(args.getArgument(0, JsonObject.class).toString(), PresentationResponseMessage.class);
             return Result.success(response);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }

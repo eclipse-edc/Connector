@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.iam.oauth2.client;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import okhttp3.FormBody;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -25,8 +24,9 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +91,7 @@ public class Oauth2ClientImpl implements Oauth2Client {
             var inputStream = body.byteStream();
             var deserialized = typeManager.getMapper().readValue(inputStream, AS_MAP);
             return Result.success(deserialized);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             return Result.failure("Cannot read response body as String: " + e.getMessage());
         }
     }

@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.connector.controlplane.store.sql.assetindex;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.asset.spi.testfixtures.AssetIndexTestBase;
 import org.eclipse.edc.connector.controlplane.store.sql.assetindex.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.connector.controlplane.store.sql.assetindex.schema.postgres.PostgresDialectStatements;
@@ -28,6 +27,7 @@ import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import tools.jackson.databind.ObjectMapper;
 
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)

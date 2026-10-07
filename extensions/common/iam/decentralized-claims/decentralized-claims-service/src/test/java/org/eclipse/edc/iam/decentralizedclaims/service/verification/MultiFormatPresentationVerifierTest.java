@@ -17,9 +17,6 @@ package org.eclipse.edc.iam.decentralizedclaims.service.verification;
 
 import com.apicatalog.jsonld.loader.SchemeRouter;
 import com.apicatalog.vc.issuer.ProofDraft;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
@@ -48,6 +45,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -141,7 +141,7 @@ class MultiFormatPresentationVerifierTest {
         try {
             return MAPPER.readValue(rawContent, new TypeReference<>() {
             });
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
     }

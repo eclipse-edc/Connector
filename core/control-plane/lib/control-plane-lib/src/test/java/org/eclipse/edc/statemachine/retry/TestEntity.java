@@ -15,8 +15,8 @@
 package org.eclipse.edc.statemachine.retry;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.entity.StatefulEntity;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 public class TestEntity extends StatefulEntity<TestEntity> {
     @Override

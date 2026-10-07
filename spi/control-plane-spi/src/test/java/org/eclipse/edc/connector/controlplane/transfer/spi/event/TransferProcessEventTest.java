@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.spi.event;
 
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.controlplane.DataAddress;
@@ -26,6 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import tools.jackson.databind.jsontype.NamedType;
 
 import java.time.Clock;
 import java.util.List;

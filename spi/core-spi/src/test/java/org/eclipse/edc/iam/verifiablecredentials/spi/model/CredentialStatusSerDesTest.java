@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.spi.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
@@ -27,7 +27,7 @@ class CredentialStatusSerDesTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void verifySerialization() throws JsonProcessingException {
+    void verifySerialization() throws JacksonException {
         var json = """
                   {
                     "id": "https://example.com/credentials/status/3#94567",
@@ -48,7 +48,7 @@ class CredentialStatusSerDesTest {
     }
 
     @Test
-    void verifyDeserialization() throws JsonProcessingException {
+    void verifyDeserialization() throws JacksonException {
 
         var status = new CredentialStatus("test-id", "BitStringStatusListEntry", Map.of(
                 "statusPurpose", "revocation",

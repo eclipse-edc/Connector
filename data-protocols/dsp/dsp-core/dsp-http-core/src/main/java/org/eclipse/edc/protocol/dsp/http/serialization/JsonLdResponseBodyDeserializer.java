@@ -23,8 +23,8 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Failure;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.core.JacksonException;
 
-import java.io.IOException;
 import java.util.function.Function;
 
 import static java.lang.String.format;
@@ -63,7 +63,7 @@ public class JsonLdResponseBodyDeserializer<T> implements ProtocolResponseBodyEx
             return registry.transform(expanded, type)
                     .orElseThrow(exception("Cannot transform json to ContractNegotiationAck"));
 
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new EdcException("Cannot deserialize response body as JsonObject", e);
         }
     }

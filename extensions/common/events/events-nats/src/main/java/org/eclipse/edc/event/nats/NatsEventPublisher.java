@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.event.nats;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cloudevents.core.format.ContentType;
 import io.cloudevents.core.v1.CloudEventBuilder;
 import io.cloudevents.jackson.JsonFormat;
@@ -28,6 +26,8 @@ import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.telemetry.Telemetry;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -66,7 +66,7 @@ public class NatsEventPublisher implements EventSubscriber {
         }
     }
 
-    private <E extends Event> byte[] serialize(EventEnvelope<E> envelope) throws JsonProcessingException {
+    private <E extends Event> byte[] serialize(EventEnvelope<E> envelope) throws JacksonException {
         var payload = envelope.getPayload();
         var json = objectMapper.writeValueAsBytes(payload);
 

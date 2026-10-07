@@ -14,52 +14,57 @@
 
 package org.eclipse.edc.json;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.NamedType;
+import tools.jackson.databind.module.SimpleModule;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 
 public class JacksonTypeManager implements TypeManager {
-    final ObjectMapper defaultMapper;
 
     /**
      * Concurrent support is not needed since this map is only populated a boot, which is single-threaded.
+     *
+     * <p>Since Jackson 3 mappers are immutable, runtime registration of types and serializers is implemented by
+     * rebuilding the affected mapper(s) via {@link ObjectMapper#rebuild()} and replacing the stored instance.
      */
-    final Map<String, ObjectMapper> objectMappers = new HashMap<>();
+    private final Map<String, ObjectMapper> objectMappers = new HashMap<>();
 
     /**
      * Default constructor.
      */
     public JacksonTypeManager() {
-        defaultMapper = new ObjectMapper();
-        defaultMapper.registerModule(new JavaTimeModule()); // configure ISO 8601 time de/serialization
-        defaultMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false); // serialize dates in ISO 8601 format
-        defaultMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        var defaultMapper = JsonMapper.builder()
+                .configure(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .configure(DeserializationFeature.FAIL_ON_TRAILING_TOKENS, false)
+                .configure(MapperFeature.USE_GETTERS_AS_SETTERS, true)
+                .build();
 
         registerContext(DEFAULT_TYPE_CONTEXT, defaultMapper);
     }
 
     @Override
     public ObjectMapper getMapper() {
-        return defaultMapper;
+        return getMapper(DEFAULT_TYPE_CONTEXT);
     }
 
     @Override
     @NotNull
     public ObjectMapper getMapper(String key) {
-        return objectMappers.computeIfAbsent(key, k -> defaultMapper.copy());
+        return objectMappers.computeIfAbsent(key, k -> objectMappers.get(DEFAULT_TYPE_CONTEXT).rebuild().build());
     }
 
     @Override
@@ -69,43 +74,41 @@ public class JacksonTypeManager implements TypeManager {
 
     @Override
     public void registerTypes(Class<?>... type) {
-        objectMappers.values().forEach(m -> m.registerSubtypes(type));
+        objectMappers.replaceAll((k, m) -> m.rebuild().registerSubtypes(type).build());
     }
 
     @Override
     public void registerTypes(NamedType... type) {
-        objectMappers.values().forEach(m -> m.registerSubtypes(type));
+        objectMappers.replaceAll((k, m) -> m.rebuild().registerSubtypes(type).build());
     }
 
     @Override
     public void registerTypes(String key, Class<?>... type) {
-        getMapper(key).registerSubtypes(type);
+        objectMappers.put(key, getMapper(key).rebuild().registerSubtypes(type).build());
     }
 
     @Override
     public void registerTypes(String key, NamedType... type) {
-        getMapper(key).registerSubtypes(type);
+        objectMappers.put(key, getMapper(key).rebuild().registerSubtypes(type).build());
     }
 
     @Override
-    public <T> void registerSerializer(String key, Class<T> type, JsonSerializer<T> serializer) {
+    public <T> void registerSerializer(String key, Class<T> type, ValueSerializer<T> serializer) {
         var module = new SimpleModule();
         module.addSerializer(type, serializer);
-        getMapper(key).registerModule(module);
+        objectMappers.put(key, getMapper(key).rebuild().addModule(module).build());
     }
 
     @Override
-    public <T> void registerSerializer(Class<T> type, JsonSerializer<T> serializer) {
-        var module = new SimpleModule();
-        module.addSerializer(type, serializer);
-        getMapper().registerModule(module);
+    public <T> void registerSerializer(Class<T> type, ValueSerializer<T> serializer) {
+        registerSerializer(DEFAULT_TYPE_CONTEXT, type, serializer);
     }
 
     @Override
     public <T> T readValue(String input, TypeReference<T> typeReference) {
         try {
             return getMapper().readValue(input, typeReference);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new EdcException(e);
         }
     }
@@ -114,7 +117,7 @@ public class JacksonTypeManager implements TypeManager {
     public <T> T readValue(String input, Class<T> type) {
         try {
             return getMapper().readValue(input, type);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new EdcException(e);
         }
     }
@@ -123,7 +126,7 @@ public class JacksonTypeManager implements TypeManager {
     public <T> T readValue(byte[] bytes, Class<T> type) {
         try {
             return getMapper().readValue(bytes, type);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new EdcException(e);
         }
     }
@@ -132,7 +135,7 @@ public class JacksonTypeManager implements TypeManager {
     public String writeValueAsString(Object value) {
         try {
             return getMapper().writeValueAsString(value);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new EdcException(e);
         }
     }
@@ -141,7 +144,7 @@ public class JacksonTypeManager implements TypeManager {
     public byte[] writeValueAsBytes(Object value) {
         try {
             return getMapper().writeValueAsBytes(value);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new EdcException(e);
         }
     }
@@ -150,7 +153,7 @@ public class JacksonTypeManager implements TypeManager {
     public String writeValueAsString(Object value, TypeReference<?> reference) {
         try {
             return getMapper().writerFor(reference).writeValueAsString(value);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new EdcException(e);
         }
     }

@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.iam.verifiablecredentials.spi.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
@@ -38,7 +38,7 @@ class CredentialSubjectTest {
     }
 
     @Test
-    void serDes() throws JsonProcessingException {
+    void serDes() throws JacksonException {
         var mapper = new ObjectMapper();
         var cred = CredentialSubject.Builder.newInstance()
                 .claim("key", "val")

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.test.e2e.managementapi.v5;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
@@ -46,6 +45,7 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import tools.jackson.core.JacksonException;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -567,7 +567,7 @@ public class TransferProcessApiV5EndToEndTest {
 
         @SuppressWarnings("unchecked")
         @Test
-        void query_sortByStateTimestamp(ManagementEndToEndV5TestContext context, TransferProcessStore store) throws JsonProcessingException {
+        void query_sortByStateTimestamp(ManagementEndToEndV5TestContext context, TransferProcessStore store) throws JacksonException {
             var tp1 = createTransferProcessBuilder("test-tp1").build();
             var tp2 = createTransferProcessBuilder("test-tp2")
                     .clock(Clock.fixed(Instant.now().plus(1, ChronoUnit.HOURS), ZoneId.systemDefault()))

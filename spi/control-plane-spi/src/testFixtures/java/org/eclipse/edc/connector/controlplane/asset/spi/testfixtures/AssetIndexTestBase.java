@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.asset.spi.testfixtures;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
@@ -29,6 +27,8 @@ import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Clock;
 import java.util.ArrayList;
@@ -617,7 +617,7 @@ public abstract class AssetIndexTestBase {
 
         @Test
         @DisplayName("Query assets using the LIKE operator on a json value")
-        void likeJson() throws JsonProcessingException {
+        void likeJson() throws JacksonException {
             var asset = createAsset("id1");
             var nested = Map.of("text", "test123", "number", 42, "bool", false);
             asset.getProperties().put("myjson", new ObjectMapper().writeValueAsString(nested));
@@ -631,7 +631,7 @@ public abstract class AssetIndexTestBase {
 
         @Test
         @DisplayName("Query assets using two criteria, each with the LIKE operator on a nested json value")
-        void likeJson_withComplexObject() throws JsonProcessingException {
+        void likeJson_withComplexObject() throws JacksonException {
             var asset = createAsset("id1");
             var jsonObject = Map.of("root", Map.of("key1", "value1", "nested1", Map.of("key2", "value2", "key3", Map.of("theKey", "theValue, this is what we're looking for"))));
             asset.getProperties().put("myProp", new ObjectMapper().writeValueAsString(jsonObject));

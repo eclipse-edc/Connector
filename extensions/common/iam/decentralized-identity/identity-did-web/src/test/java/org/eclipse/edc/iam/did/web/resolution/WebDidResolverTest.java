@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.iam.did.web.resolution;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Response;
@@ -22,6 +21,7 @@ import okhttp3.ResponseBody;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

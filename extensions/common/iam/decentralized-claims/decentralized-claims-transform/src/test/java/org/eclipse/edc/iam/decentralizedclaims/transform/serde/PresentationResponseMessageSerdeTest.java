@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.transform.serde;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.decentralizedclaims.transform.TestContextProvider;
 import org.eclipse.edc.iam.decentralizedclaims.transform.from.JsonObjectFromPresentationResponseMessageTransformer;
@@ -29,6 +27,8 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -51,7 +51,7 @@ public class PresentationResponseMessageSerdeTest {
 
     @ParameterizedTest
     @ArgumentsSource(TestContextProvider.class)
-    void serde(TestContextProvider.TestContext ctx) throws JsonProcessingException {
+    void serde(TestContextProvider.TestContext ctx) throws JacksonException {
         var fromTransformer = new JsonObjectFromPresentationResponseMessageTransformer(ctx.namespace());
         var toTransformer = new JsonObjectToPresentationResponseMessageTransformer(typeManager, "test", ctx.namespace());
 

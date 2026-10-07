@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.jtivalidation.store.sql;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.jtivalidation.store.sql.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.jtivalidation.store.sql.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.junit.annotations.ComponentTest;
@@ -26,6 +25,7 @@ import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.Mockito.mock;
 

@@ -18,8 +18,6 @@ import com.apicatalog.jsonld.loader.SchemeRouter;
 import com.apicatalog.ld.DocumentError;
 import com.apicatalog.ld.signature.VerificationMethod;
 import com.apicatalog.vc.method.resolver.MethodResolver;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
@@ -36,6 +34,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatcher;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -345,7 +345,7 @@ class LdpVerifierTest {
             }
 
             @Test
-            void verify_noProof_fails() throws JsonProcessingException {
+            void verify_noProof_fails() throws JacksonException {
                 var credential = jsonLd.expand(mapper.readValue(VC_CONTENT_CERTIFICATE_EXAMPLE, JsonObject.class)).getContent().toString();
                 assertThat(ldpVerifier.verify(credential, context)).isFailed().detail().contains("MissingProof");
             }

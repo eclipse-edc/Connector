@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.test.e2e.fixtures;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.jspecify.annotations.Nullable;
@@ -25,6 +24,7 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.testcontainers.vault.VaultContainer;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 

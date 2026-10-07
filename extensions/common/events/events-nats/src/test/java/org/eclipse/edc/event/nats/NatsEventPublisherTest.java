@@ -15,7 +15,6 @@
 package org.eclipse.edc.event.nats;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.JetStream;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.PublishOptions;
@@ -27,6 +26,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.time.Instant;

@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.policy.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.policy.model.Operator.IS_PART_OF;
@@ -27,14 +27,14 @@ class OperatorTest {
     private final ObjectMapper mapper = new JacksonTypeManager().getMapper();
 
     @Test
-    void shouldSerializeInAsIsPartOf() throws JsonProcessingException {
+    void shouldSerializeInAsIsPartOf() throws JacksonException {
         var serialized = mapper.writeValueAsString(Operator.IN);
 
         assertThat(serialized).contains(IS_PART_OF.name());
     }
 
     @Test
-    void shouldDeserializeInAsIsPartOf() throws JsonProcessingException {
+    void shouldDeserializeInAsIsPartOf() throws JacksonException {
         var serialized = "\"IN\"";
 
         var operator = mapper.readValue(serialized, Operator.class);

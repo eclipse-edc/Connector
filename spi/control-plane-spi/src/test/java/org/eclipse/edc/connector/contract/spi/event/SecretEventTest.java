@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.contract.spi.event;
 
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import org.eclipse.edc.connector.secret.spi.event.SecretCreated;
 import org.eclipse.edc.connector.secret.spi.event.SecretDeleted;
 import org.eclipse.edc.connector.secret.spi.event.SecretUpdated;
@@ -26,6 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import tools.jackson.databind.jsontype.NamedType;
 
 import java.time.Clock;
 import java.util.UUID;

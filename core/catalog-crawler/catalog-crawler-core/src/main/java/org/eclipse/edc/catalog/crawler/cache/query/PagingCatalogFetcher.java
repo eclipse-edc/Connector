@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.catalog.crawler.cache.query;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
@@ -32,6 +30,8 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Failure;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -115,7 +115,7 @@ public class PagingCatalogFetcher {
                     .compose(expandedJson -> transformerRegistry.transform(expandedJson, Catalog.class))
                     .map(CompletableFuture::completedFuture)
                     .orElse((Failure f) -> failedFuture(new EdcException(f.getFailureDetail())));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             monitor.severe(() -> "Error parsing Catalog from byes", e);
             return failedFuture(e);
         }

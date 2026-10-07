@@ -15,10 +15,11 @@
 package org.eclipse.edc.connector.controlplane.dataplane.spi.instance;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.Entity;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -39,6 +40,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  * Representation of a data plane instance. Every data plane has an ID and a URL, the source and transfer types it
  * can handle, a registration {@link DataPlaneInstanceStates state} and extensible properties.
  */
+@JsonDeserialize(builder = DataPlaneInstance.Builder.class)
 public class DataPlaneInstance extends Entity implements ParticipantResource {
 
     public static final String DATAPLANE_INSTANCE_TYPE_TERM = "DataPlaneInstance";
@@ -50,9 +52,9 @@ public class DataPlaneInstance extends Entity implements ParticipantResource {
     public static final String ALLOWED_TRANSFER_TYPES = EDC_NAMESPACE + "allowedTransferTypes";
     public static final String ALLOWED_SOURCE_TYPES = EDC_NAMESPACE + "allowedSourceTypes";
     public static final String DESTINATION_PROVISION_TYPES = EDC_NAMESPACE + "destinationProvisionTypes";
-
     public static final String DATAPLANE_INSTANCE_STATE = EDC_NAMESPACE + "state";
     public static final String DATAPLANE_INSTANCE_STATE_TIMESTAMP = EDC_NAMESPACE + "stateTimestamp";
+
     private final Set<String> destinationProvisionTypes = new HashSet<>();
     private final Set<String> allowedTransferTypes = new HashSet<>();
     private final Set<String> allowedSourceTypes = new HashSet<>();
@@ -84,7 +86,7 @@ public class DataPlaneInstance extends Entity implements ParticipantResource {
                 .url(url)
                 .lastActive(lastActive)
                 .allowedSourceTypes(allowedSourceTypes)
-                .allowedTransferType(allowedTransferTypes)
+                .allowedTransferTypes(allowedTransferTypes)
                 .properties(properties)
                 .destinationProvisionTypes(destinationProvisionTypes)
                 .participantContextId(participantContextId)
@@ -240,7 +242,7 @@ public class DataPlaneInstance extends Entity implements ParticipantResource {
             return this;
         }
 
-        public Builder allowedTransferType(Set<String> types) {
+        public Builder allowedTransferTypes(Set<String> types) {
             if (types != null) {
                 entity.allowedTransferTypes.addAll(types);
             }
