@@ -24,6 +24,7 @@ import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.web.jersey.JerseyConfiguration;
 import org.eclipse.edc.web.jersey.JerseyRestService;
+import org.eclipse.edc.web.jersey.providers.jsonld.JsonMapperProvider;
 import org.eclipse.edc.web.jersey.providers.jsonld.JsonObjectMessageBodyReader;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.jetty.JettyConfiguration;
@@ -64,6 +65,7 @@ public abstract class RestControllerTestBase {
         when(jsonLd.expand(any())).thenAnswer(i -> Result.success(i.getArgument(0)));
         when(typeManager.getMapper("test")).thenReturn(objectMapper);
         jerseyService.registerResource("test", new ObjectMapperProvider(typeManager, "test"));
+        jerseyService.registerResource("test", new JsonMapperProvider(typeManager, "test"));
         jerseyService.registerResource("test", new JsonObjectMessageBodyReader(jsonLd, typeManager, "test", validatorRegistry));
         jerseyService.registerResource("test", controller());
         var additionalResource = additionalResource();

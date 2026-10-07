@@ -21,6 +21,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jersey.feature.DynamicResourceFeature;
 import org.eclipse.edc.web.jersey.mapper.EdcApiExceptionMapper;
 import org.eclipse.edc.web.jersey.mapper.UnexpectedExceptionMapper;
+import org.eclipse.edc.web.jersey.providers.jsonld.JsonMapperProvider;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
@@ -103,6 +104,7 @@ public class JerseyRestService implements WebService {
         resourceConfig.registerClasses(controllers.stream().map(Object::getClass).collect(toSet()));
         resourceConfig.registerInstances(new Binder(controllers));
         resourceConfig.registerInstances(new ObjectMapperProvider(typeManager, DEFAULT_TYPE_CONTEXT));
+        resourceConfig.registerInstances(new JsonMapperProvider(typeManager, DEFAULT_TYPE_CONTEXT));
         resourceConfig.registerInstances(new EdcApiExceptionMapper());
         resourceConfig.registerInstances(new UnexpectedExceptionMapper(monitor));
         resourceConfig.registerInstances(new DynamicResourceFeature(dynamicResourcesForContext));

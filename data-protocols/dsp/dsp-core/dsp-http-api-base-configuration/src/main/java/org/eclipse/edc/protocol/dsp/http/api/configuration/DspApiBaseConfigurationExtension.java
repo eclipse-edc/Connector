@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.web.jersey.providers.jsonld.JsonMapperProvider;
 import org.eclipse.edc.web.jersey.providers.jsonld.JsonObjectMessageBodyReader;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
@@ -76,6 +77,7 @@ public class DspApiBaseConfigurationExtension implements ServiceExtension {
         portMappingRegistry.register(portMapping);
 
         webService.registerResource(ApiContext.PROTOCOL, new ObjectMapperProvider(typeManager, JSON_LD));
+        webService.registerResource(ApiContext.PROTOCOL, new JsonMapperProvider(typeManager, JSON_LD));
         webService.registerResource(ApiContext.PROTOCOL, new JsonObjectMessageBodyReader(jsonLd, typeManager, JSON_LD, null));
     }
 
