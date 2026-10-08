@@ -20,6 +20,7 @@ import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.web.jersey.providers.jsonld.JsonMapperProvider;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
@@ -82,5 +83,6 @@ class DspApiBaseConfigurationExtensionTest {
         extension.initialize(context);
         
         verify(webService).registerResource(eq(ApiContext.PROTOCOL), isA(ObjectMapperProvider.class));
+        verify(webService).registerResource(eq(ApiContext.PROTOCOL), isA(JsonMapperProvider.class));
     }
 }
