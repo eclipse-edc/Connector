@@ -334,5 +334,5 @@ maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-yaml/3.2.3, Apach
 maven/mavencentral/tools.jackson.datatype/jackson-datatype-jakarta-jsonp/3.2.1, Apache-2.0, approved, #30565
 maven/mavencentral/tools.jackson.datatype/jackson-datatype-jakarta-jsonp/3.2.2, Apache-2.0, approved, #30565
 maven/mavencentral/tools.jackson.datatype/jackson-datatype-jakarta-jsonp/3.2.3, Apache-2.0, approved, #30565
-maven/mavencentral/tools.jackson.module/jackson-module-jakarta-xmlbind-annotations/3.2.3, , restricted, clearlydefined
+maven/mavencentral/tools.jackson.module/jackson-module-jakarta-xmlbind-annotations/3.2.3, Apache-2.0, approved, #32333
 maven/mavencentral/tools.jackson/jackson-bom/3.2.3, Apache-2.0, approved, #29716
