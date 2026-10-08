@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static java.lang.String.format;
@@ -51,7 +52,7 @@ public class ParticipantContextConfigImpl implements ParticipantContextConfig {
 
     @Override
     public String getString(String participantContextId, String key, String defaultValue) {
-        return config(participantContextId).getString(key, defaultValue);
+        return configOrEmpty(participantContextId).getString(key, defaultValue);
     }
 
     @Override
@@ -61,7 +62,7 @@ public class ParticipantContextConfigImpl implements ParticipantContextConfig {
 
     @Override
     public Integer getInteger(String participantContextId, String key, Integer defaultValue) {
-        return config(participantContextId).getInteger(key, defaultValue);
+        return configOrEmpty(participantContextId).getInteger(key, defaultValue);
     }
 
     @Override
@@ -72,7 +73,7 @@ public class ParticipantContextConfigImpl implements ParticipantContextConfig {
 
     @Override
     public Long getLong(String participantContextId, String key, Long defaultValue) {
-        return config(participantContextId).getLong(key, defaultValue);
+        return configOrEmpty(participantContextId).getLong(key, defaultValue);
     }
 
     @Override
@@ -82,7 +83,7 @@ public class ParticipantContextConfigImpl implements ParticipantContextConfig {
 
     @Override
     public Boolean getBoolean(String participantContextId, String key, Boolean defaultValue) {
-        return config(participantContextId).getBoolean(key, defaultValue);
+        return configOrEmpty(participantContextId).getBoolean(key, defaultValue);
     }
 
     @Override
@@ -96,22 +97,27 @@ public class ParticipantContextConfigImpl implements ParticipantContextConfig {
     }
 
     private Config config(String participantContextId) {
-        return fetchConfig(participantContextId, ParticipantContextConfiguration::getEntries);
+        return fetchConfig(participantContextId, ParticipantContextConfiguration::getEntries)
+                .orElseThrow(() -> new EdcException("No configuration found for participant context " + participantContextId));
+    }
 
+    /**
+     * Used by getters with a default value: a missing participant configuration is treated as an empty one, so that the
+     * default value is returned.
+     */
+    private Config configOrEmpty(String participantContextId) {
+        return fetchConfig(participantContextId, ParticipantContextConfiguration::getEntries)
+                .orElseGet(ConfigFactory::empty);
     }
 
     private Config privateConfig(String participantContextId) {
-        return fetchConfig(participantContextId, ParticipantContextConfiguration::getPrivateEntries);
+        return fetchConfig(participantContextId, ParticipantContextConfiguration::getPrivateEntries)
+                .orElseThrow(() -> new EdcException("No configuration found for participant context " + participantContextId));
     }
 
-    private Config fetchConfig(String participantContextId, Function<ParticipantContextConfiguration, Map<String, String>> supplier) {
-        return transactionContext.execute(() -> {
-            var cfg = configStore.get(participantContextId);
-            if (cfg == null) {
-                throw new EdcException("No configuration found for participant context " + participantContextId);
-            }
-            return ConfigFactory.fromMap(supplier.apply(cfg));
-        });
+    private Optional<Config> fetchConfig(String participantContextId, Function<ParticipantContextConfiguration, Map<String, String>> supplier) {
+        return transactionContext.execute(() -> Optional.ofNullable(configStore.get(participantContextId))
+                .map(cfg -> ConfigFactory.fromMap(supplier.apply(cfg))));
     }
 
 }

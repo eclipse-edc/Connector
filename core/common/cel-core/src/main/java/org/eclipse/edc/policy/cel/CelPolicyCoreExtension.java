@@ -54,6 +54,7 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import java.util.List;
 
 import static org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext.CATALOG_SCOPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.policy.ApprovalContractNegotiationPolicyContext.APPROVAL_SCOPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.policy.ContractNegotiationPolicyContext.NEGOTIATION_SCOPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.policy.TransferProcessPolicyContext.TRANSFER_SCOPE;
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorContext.POLICY_MONITOR_SCOPE;
@@ -103,7 +104,7 @@ public class CelPolicyCoreExtension implements ServiceExtension {
             bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), withParticipantContext(monitorMapper)), c, PolicyMonitorContext.class);
         });
 
-        List.of(CATALOG_SCOPE, TRANSFER_SCOPE, NEGOTIATION_SCOPE, POLICY_MONITOR_SCOPE).forEach(scope -> {
+        List.of(CATALOG_SCOPE, TRANSFER_SCOPE, NEGOTIATION_SCOPE, APPROVAL_SCOPE, POLICY_MONITOR_SCOPE).forEach(scope -> {
             policyEngine.bindScope(ODRL_SCHEMA + "use", scope);
         });
 

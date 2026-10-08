@@ -107,6 +107,36 @@ public interface ContractNegotiationApiV4 {
     )
     void terminateNegotiationV4(String id, JsonObject terminateNegotiation);
 
+    @Operation(description = "Approves a provider contract negotiation held for manual approval in the REQUESTED state.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "ContractNegotiation is approved",
+                            links = @Link(name = "poll-state", operationId = "getNegotiationStateV4")),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
+                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
+                    @ApiResponse(responseCode = "409", description = "The contract negotiation is not a provider negotiation held in the REQUESTED state",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
+            }
+    )
+    void approveNegotiationV4(String id);
+
+    @Operation(description = "Rejects a provider contract negotiation held for manual approval in the REQUESTED state. " +
+            "The counter-party is notified with the fixed reason 'Negotiation manually rejected'.",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.REJECT_NEGOTIATION))),
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "ContractNegotiation is rejected and terminating",
+                            links = @Link(name = "poll-state", operationId = "getNegotiationStateV4")),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
+                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
+                    @ApiResponse(responseCode = "409", description = "The contract negotiation is not a provider negotiation held in the REQUESTED state",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
+            }
+    )
+    void rejectNegotiationV4(String id, JsonObject rejectNegotiation);
+
     @Operation(description = "Deletes the contract negotiation with the given ID. Only terminated negotiations without agreement will be deleted",
             responses = {
                     @ApiResponse(responseCode = "204", description = "ContractNegotiation is deleted",

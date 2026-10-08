@@ -36,6 +36,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_COUNTERPARTY_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_CREATED_AT;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_NEG_TYPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_PENDING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_POLICY;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_PROFILE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_PROTOCOL;
@@ -64,6 +65,7 @@ class JsonObjectFromContractNegotiationTransformerTest {
                 .counterPartyAddress("address")
                 .contractAgreement(createContractAgreement("test-agreement"))
                 .state(REQUESTED.code())
+                .pending(true)
                 .type(ContractNegotiation.Type.PROVIDER)
                 .contractOffers(List.of(co))
                 .callbackAddresses(List.of(
@@ -79,6 +81,7 @@ class JsonObjectFromContractNegotiationTransformerTest {
         assertThat(jsonObject).isNotNull();
         assertThat(jsonObject.getString(ID)).isEqualTo("test-id");
         assertThat(jsonObject.getString(CONTRACT_NEGOTIATION_STATE)).isEqualTo(REQUESTED.name());
+        assertThat(jsonObject.getBoolean(CONTRACT_NEGOTIATION_PENDING)).isTrue();
         assertThat(jsonObject.getString(CONTRACT_NEGOTIATION_COUNTERPARTY_ID)).isEqualTo("counter-party-id");
         assertThat(jsonObject.getString(CONTRACT_NEGOTIATION_COUNTERPARTY_ADDR)).isEqualTo("address");
         assertThat(jsonObject.getString(CONTRACT_NEGOTIATION_AGREEMENT_ID)).isEqualTo("test-agreement");

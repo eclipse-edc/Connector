@@ -16,10 +16,13 @@ package org.eclipse.edc.connector.controlplane.contract.listener;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationAccepted;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationAgreed;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationApproved;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationEvent;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationFinalized;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationHeld;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationInitiated;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationOffered;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationRejected;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationRequested;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationTerminated;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationVerified;
@@ -49,6 +52,24 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
     @Override
     public void offered(ContractNegotiation negotiation) {
         var event = baseBuilder(ContractNegotiationOffered.Builder.newInstance(), negotiation).build();
+        eventRouter.publish(event);
+    }
+
+    @Override
+    public void held(ContractNegotiation negotiation) {
+        var event = baseBuilder(ContractNegotiationHeld.Builder.newInstance(), negotiation).build();
+        eventRouter.publish(event);
+    }
+
+    @Override
+    public void approved(ContractNegotiation negotiation) {
+        var event = baseBuilder(ContractNegotiationApproved.Builder.newInstance(), negotiation).build();
+        eventRouter.publish(event);
+    }
+
+    @Override
+    public void rejected(ContractNegotiation negotiation) {
+        var event = baseBuilder(ContractNegotiationRejected.Builder.newInstance(), negotiation).build();
         eventRouter.publish(event);
     }
 

@@ -115,6 +115,33 @@ public class CallbackHttpClientTest {
     }
 
     @Test
+    public void dispatch_shouldResolveAuthHeader_fromGivenVaultPartition() {
+        var authKey = "authHeader";
+        var authCodeId = "authCodeId";
+        when(vault.resolveSecret("participantContextId", authCodeId)).thenReturn("authCodeIdValue");
+
+        var callback = CallbackAddress.Builder.newInstance()
+                .events(Set.of("test"))
+                .uri(callbackUrl())
+                .authKey(authKey)
+                .authCodeId(authCodeId)
+                .build();
+
+        var tpEvent = TransferProcessCompleted.Builder.newInstance().transferProcessId("test")
+                .participantContextId("participantContextId").build();
+        var event = EventEnvelope.Builder.newInstance().id("test").at(10).payload(tpEvent).build();
+
+        server.stubFor(post("/" + CALLBACK_PATH)
+                .willReturn(aResponse().withStatus(200).withBody("{}")));
+
+        callbackHttpClient.dispatch(callback, event, "participantContextId");
+
+        server.verify(1, postRequestedFor(urlEqualTo("/" + CALLBACK_PATH))
+                .withHeader(authKey, equalTo("authCodeIdValue")));
+        verify(vault, never()).resolveSecret(authCodeId);
+    }
+
+    @Test
     public void dispatch_shouldNotResolveSecretFromDefaultVault_whenCallbackIsDynamic() {
         var authCodeId = "authCodeId";
         when(vault.resolveSecret(authCodeId)).thenReturn("runtimeSecret");

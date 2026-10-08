@@ -20,11 +20,14 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.ApproveNegotiationCommand;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.RejectNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.RejectNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
@@ -53,6 +56,7 @@ import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.api.model.IdResponse.ID_RESPONSE_TYPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState.NEGOTIATION_STATE_TYPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.RejectNegotiation.REJECT_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -211,6 +215,91 @@ public abstract class ContractNegotiationApiControllerTestBase extends RestContr
                     .statusCode(409);
         }
 
+    }
+
+    @Nested
+    class Approve {
+
+        @Test
+        void approve_shouldCallService() {
+            when(service.approve(any())).thenReturn(ServiceResult.success());
+
+            baseRequest(participantContextId)
+                    .contentType(JSON)
+                    .post("/contractnegotiations/cn1/approve")
+                    .then()
+                    .statusCode(204);
+
+            verify(service).approve(refEq(new ApproveNegotiationCommand("cn1")));
+        }
+
+        @Test
+        void approve_shouldReturnConflict_whenServiceFails() {
+            when(service.approve(any())).thenReturn(ServiceResult.conflict("conflict"));
+
+            baseRequest(participantContextId)
+                    .contentType(JSON)
+                    .post("/contractnegotiations/cn1/approve")
+                    .then()
+                    .statusCode(409);
+        }
+
+        @Test
+        void approve_shouldReturnNotFound_whenServiceFails() {
+            when(service.approve(any())).thenReturn(ServiceResult.notFound("not found"));
+
+            baseRequest(participantContextId)
+                    .contentType(JSON)
+                    .post("/contractnegotiations/cn1/approve")
+                    .then()
+                    .statusCode(404);
+        }
+    }
+
+    @Nested
+    class Reject {
+
+        @Test
+        void reject_shouldCallService() {
+            when(transformerRegistry.transform(any(JsonObject.class), eq(RejectNegotiation.class))).thenReturn(Result.success(new RejectNegotiation()));
+            when(service.reject(any())).thenReturn(ServiceResult.success());
+
+            baseRequest(participantContextId)
+                    .body(Json.createObjectBuilder().add(TYPE, REJECT_NEGOTIATION_TYPE_TERM).build())
+                    .contentType(JSON)
+                    .post("/contractnegotiations/cn1/reject")
+                    .then()
+                    .statusCode(204);
+
+            verify(service).reject(refEq(new RejectNegotiationCommand("cn1")));
+        }
+
+        @Test
+        void reject_shouldReturnBadRequest_whenTransformerFails() {
+            when(transformerRegistry.transform(any(JsonObject.class), eq(RejectNegotiation.class))).thenReturn(Result.failure("error"));
+
+            baseRequest(participantContextId)
+                    .body(Json.createObjectBuilder().add(TYPE, REJECT_NEGOTIATION_TYPE_TERM).build())
+                    .contentType(JSON)
+                    .post("/contractnegotiations/cn1/reject")
+                    .then()
+                    .statusCode(400);
+
+            verifyNoInteractions(service);
+        }
+
+        @Test
+        void reject_shouldReturnConflict_whenServiceFails() {
+            when(transformerRegistry.transform(any(JsonObject.class), eq(RejectNegotiation.class))).thenReturn(Result.success(new RejectNegotiation()));
+            when(service.reject(any())).thenReturn(ServiceResult.conflict("conflict"));
+
+            baseRequest(participantContextId)
+                    .body(Json.createObjectBuilder().add(TYPE, REJECT_NEGOTIATION_TYPE_TERM).build())
+                    .contentType(JSON)
+                    .post("/contractnegotiations/cn1/reject")
+                    .then()
+                    .statusCode(409);
+        }
     }
 
     @Nested

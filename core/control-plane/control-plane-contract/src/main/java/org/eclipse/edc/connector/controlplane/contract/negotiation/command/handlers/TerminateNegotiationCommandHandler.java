@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.contract.negotiation.command.handlers;
 
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -24,8 +25,11 @@ import org.eclipse.edc.spi.command.EntityCommandHandler;
  */
 public class TerminateNegotiationCommandHandler extends EntityCommandHandler<TerminateNegotiationCommand, ContractNegotiation> {
 
-    public TerminateNegotiationCommandHandler(ContractNegotiationStore store) {
+    private final ContractNegotiationObservable observable;
+
+    public TerminateNegotiationCommandHandler(ContractNegotiationStore store, ContractNegotiationObservable observable) {
         super(store);
+        this.observable = observable;
     }
 
     @Override
@@ -42,7 +46,13 @@ public class TerminateNegotiationCommandHandler extends EntityCommandHandler<Ter
     @Override
     protected boolean modify(ContractNegotiation negotiation, TerminateNegotiationCommand command) {
         negotiation.transitionTerminating(command.getReason());
+        negotiation.setPending(false);
         return true;
+    }
+
+    @Override
+    public void postActions(ContractNegotiation negotiation, TerminateNegotiationCommand command) {
+        observable.invokeForEach(l -> l.terminating(negotiation));
     }
 
 }

@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.callback.dispatcher;
 
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackClient;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry;
+import org.eclipse.edc.connector.controlplane.services.spi.callback.ParticipantCallbackResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.event.Event;
@@ -37,6 +38,8 @@ public class CallbackEventDispatcherExtension implements ServiceExtension {
     CallbackRegistry callbackRegistry;
     @Inject
     CallbackClient callbackClient;
+    @Inject
+    ParticipantCallbackResolver participantCallbackResolver;
 
     @Override
     public String name() {
@@ -45,7 +48,7 @@ public class CallbackEventDispatcherExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        router.registerSync(Event.class, new CallbackEventDispatcher(callbackClient, callbackRegistry, true, monitor));
-        router.register(Event.class, new CallbackEventDispatcher(callbackClient, callbackRegistry, false, monitor));
+        router.registerSync(Event.class, new CallbackEventDispatcher(callbackClient, callbackRegistry, participantCallbackResolver, true, monitor));
+        router.register(Event.class, new CallbackEventDispatcher(callbackClient, callbackRegistry, participantCallbackResolver, false, monitor));
     }
 }

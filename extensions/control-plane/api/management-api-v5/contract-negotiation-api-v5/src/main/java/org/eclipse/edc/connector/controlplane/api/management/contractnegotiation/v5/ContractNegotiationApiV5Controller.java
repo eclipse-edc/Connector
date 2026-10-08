@@ -28,10 +28,13 @@ import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.api.model.IdResponse;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.ApproveNegotiationCommand;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.RejectNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.RejectNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
@@ -54,6 +57,7 @@ import java.util.Optional;
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.RejectNegotiation.REJECT_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
@@ -208,6 +212,38 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
                 .orElseThrow(InvalidRequestException::new);
 
         service.terminate(new TerminateNegotiationCommand(id, terminate.reason())).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
+    }
+
+    @POST
+    @Path("/{id}/approve")
+    @RequiredScope("management-api:negotiations:write")
+    @Override
+    public void approveNegotiationV5(@PathParam("participantContextId") String participantContextId,
+                                     @PathParam("id") String id,
+                                     @Context SecurityContext securityContext) {
+
+        authorizationService.authorize(securityContext, participantContextId, id, ContractNegotiation.class)
+                .orElseThrow(exceptionMapper(ContractNegotiation.class, id));
+
+        service.approve(new ApproveNegotiationCommand(id)).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
+    }
+
+    @POST
+    @Path("/{id}/reject")
+    @RequiredScope("management-api:negotiations:write")
+    @Override
+    public void rejectNegotiationV5(@PathParam("participantContextId") String participantContextId,
+                                    @PathParam("id") String id,
+                                    @SchemaType(value = REJECT_NEGOTIATION_TYPE_TERM, version = "v4") JsonObject rejectNegotiation,
+                                    @Context SecurityContext securityContext) {
+
+        authorizationService.authorize(securityContext, participantContextId, id, ContractNegotiation.class)
+                .orElseThrow(exceptionMapper(ContractNegotiation.class, id));
+
+        transformerRegistry.transform(rejectNegotiation, RejectNegotiation.class)
+                .orElseThrow(InvalidRequestException::new);
+
+        service.reject(new RejectNegotiationCommand(id)).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
     }
 
     @DELETE

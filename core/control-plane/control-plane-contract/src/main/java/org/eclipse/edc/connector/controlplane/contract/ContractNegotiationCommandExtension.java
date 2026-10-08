@@ -14,7 +14,9 @@
 
 package org.eclipse.edc.connector.controlplane.contract;
 
+import org.eclipse.edc.connector.controlplane.contract.negotiation.command.handlers.ApproveNegotiationCommandHandler;
 import org.eclipse.edc.connector.controlplane.contract.negotiation.command.handlers.InitiateNegotiationCommandHandler;
+import org.eclipse.edc.connector.controlplane.contract.negotiation.command.handlers.RejectNegotiationCommandHandler;
 import org.eclipse.edc.connector.controlplane.contract.negotiation.command.handlers.TerminateNegotiationCommandHandler;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
@@ -53,7 +55,9 @@ public class ContractNegotiationCommandExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         registry.register(new InitiateNegotiationCommandHandler(store, observable, telemetry, context.getMonitor()));
-        registry.register(new TerminateNegotiationCommandHandler(store));
+        registry.register(new TerminateNegotiationCommandHandler(store, observable));
+        registry.register(new ApproveNegotiationCommandHandler(store, observable));
+        registry.register(new RejectNegotiationCommandHandler(store, observable));
     }
 
 }

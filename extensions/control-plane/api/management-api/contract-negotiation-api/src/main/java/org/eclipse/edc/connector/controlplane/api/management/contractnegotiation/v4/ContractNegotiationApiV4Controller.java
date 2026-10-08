@@ -24,8 +24,11 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.BaseContractNegotiationApiController;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.ApproveNegotiationCommand;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.RejectNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.RejectNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
@@ -39,6 +42,7 @@ import org.eclipse.edc.web.spi.validation.SchemaType;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.ContractNegotiationApiExtension.V_4_PREFIX;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.RejectNegotiation.REJECT_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
@@ -92,6 +96,23 @@ public class ContractNegotiationApiV4Controller extends BaseContractNegotiationA
     @Override
     public void terminateNegotiationV4(@PathParam("id") String id, @SchemaType(value = TERMINATE_NEGOTIATION_TYPE_TERM, version = "v4") JsonObject terminateNegotiation) {
         terminateNegotiation(id, terminateNegotiation);
+    }
+
+    @POST
+    @Path("/{id}/approve")
+    @Override
+    public void approveNegotiationV4(@PathParam("id") String id) {
+        service.approve(new ApproveNegotiationCommand(id)).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
+    }
+
+    @POST
+    @Path("/{id}/reject")
+    @Override
+    public void rejectNegotiationV4(@PathParam("id") String id, @SchemaType(value = REJECT_NEGOTIATION_TYPE_TERM, version = "v4") JsonObject rejectNegotiation) {
+        transformerRegistry.transform(rejectNegotiation, RejectNegotiation.class)
+                .orElseThrow(InvalidRequestException::new);
+
+        service.reject(new RejectNegotiationCommand(id)).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
     }
 
     @Override

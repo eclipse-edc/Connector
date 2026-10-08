@@ -289,6 +289,52 @@ public class ManagementApiClientV4 {
         return getContractNegotiationField(id, "state");
     }
 
+    /**
+     * Approves a provider contract negotiation held for manual approval.
+     *
+     * @param negotiationId contract negotiation id
+     */
+    public void approveContractNegotiation(String negotiationId) {
+        baseManagementRequest()
+                .contentType(JSON)
+                .when()
+                .post("/v4/contractnegotiations/{id}/approve", negotiationId)
+                .then()
+                .log().ifError()
+                .statusCode(204);
+    }
+
+    /**
+     * Rejects a provider contract negotiation held for manual approval.
+     *
+     * @param negotiationId contract negotiation id
+     */
+    public void rejectContractNegotiation(String negotiationId) {
+        var requestBody = createObjectBuilder()
+                .add(CONTEXT, jsonLdContext())
+                .add(TYPE, "RejectNegotiation")
+                .build();
+
+        baseManagementRequest()
+                .contentType(JSON)
+                .body(requestBody)
+                .when()
+                .post("/v4/contractnegotiations/{id}/reject", negotiationId)
+                .then()
+                .log().ifError()
+                .statusCode(204);
+    }
+
+    /**
+     * Get whether a contract negotiation is pending.
+     *
+     * @param id contract negotiation id
+     * @return true if the negotiation is pending.
+     */
+    public boolean isContractNegotiationPending(String id) {
+        return Boolean.parseBoolean(getContractNegotiationField(id, "pending"));
+    }
+
     public RequestSpecification baseManagementRequest() {
         var request = given().baseUri(controlPlaneManagement.get().toString());
         return enrichManagementRequest.apply(request);

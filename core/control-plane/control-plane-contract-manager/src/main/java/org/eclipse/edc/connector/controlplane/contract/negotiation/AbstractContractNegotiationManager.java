@@ -43,15 +43,9 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
         var filter = new Criterion[]{hasState(state.code()), isNotPending(), new Criterion("type", "=", type().name())};
         return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter), entityRetryProcessConfiguration, clock, monitor)
                 .process(telemetry.contextPropagationMiddleware(function))
-                .guard(pendingGuard, this::setPending)
+                .guard(pendingGuard, negotiationProcessors::processHeld)
                 .onNotProcessed(this::breakLease)
                 .build();
-    }
-
-    private CompletableFuture<StatusResult<Void>> setPending(ContractNegotiation contractNegotiation) {
-        contractNegotiation.setPending(true);
-        update(contractNegotiation);
-        return CompletableFuture.completedFuture(StatusResult.success());
     }
 
     public static class Builder<T extends AbstractContractNegotiationManager>

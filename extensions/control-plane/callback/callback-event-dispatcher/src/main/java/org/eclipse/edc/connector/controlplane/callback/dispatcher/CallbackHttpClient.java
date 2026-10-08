@@ -52,7 +52,12 @@ public class CallbackHttpClient implements CallbackClient {
 
     @Override
     public <E extends Event> void dispatch(CallbackAddress callbackAddress, EventEnvelope<E> eventEnvelope) {
-        var request = buildRequest(callbackAddress, eventEnvelope);
+        dispatch(callbackAddress, eventEnvelope, resolveVaultPartition(callbackAddress, eventEnvelope.getPayload()));
+    }
+
+    @Override
+    public <E extends Event> void dispatch(CallbackAddress callbackAddress, EventEnvelope<E> eventEnvelope, @Nullable String vaultPartition) {
+        var request = buildRequest(callbackAddress, eventEnvelope, vaultPartition);
 
         try (var response = httpClient.execute(request, Collections.emptyList())) {
             if (!response.isSuccessful()) {
@@ -64,7 +69,7 @@ public class CallbackHttpClient implements CallbackClient {
         }
     }
 
-    private <E extends Event> Request buildRequest(CallbackAddress callbackAddress, EventEnvelope<E> eventEnvelope) {
+    private <E extends Event> Request buildRequest(CallbackAddress callbackAddress, EventEnvelope<E> eventEnvelope, @Nullable String vaultPartition) {
         try {
             var body = mapper.writeValueAsString(eventEnvelope);
             var builder = new Request.Builder()
@@ -72,7 +77,7 @@ public class CallbackHttpClient implements CallbackClient {
                     .post(RequestBody.create(body, MediaType.get(APPLICATION_JSON)));
 
             if (callbackAddress.getAuthKey() != null) {
-                var authCode = resolveAuthCode(callbackAddress, eventEnvelope.getPayload());
+                var authCode = resolveAuthCode(callbackAddress, eventEnvelope.getPayload(), vaultPartition);
                 builder.addHeader(callbackAddress.getAuthKey(), authCode);
             }
             return builder.build();
@@ -81,14 +86,13 @@ public class CallbackHttpClient implements CallbackClient {
         }
     }
 
-    private String resolveAuthCode(CallbackAddress callbackAddress, Event event) {
+    private String resolveAuthCode(CallbackAddress callbackAddress, Event event, @Nullable String vaultPartition) {
         var eventName = event.name();
         var authCodeId = callbackAddress.getAuthCodeId();
         if (authCodeId == null) {
             throw new EdcException(format("Error dispatching event %s: Auth Code Id cannot be null when the Auth Key was provided", eventName));
         }
 
-        var vaultPartition = resolveVaultPartition(callbackAddress, event);
         var authCode = vaultPartition == null ? vault.resolveSecret(authCodeId) : vault.resolveSecret(vaultPartition, authCodeId);
         return Optional.ofNullable(authCode)
                 .orElseThrow(() -> new EdcException(format("Error dispatching event %s: no secret found in vault with name %s", eventName, authCodeId)));

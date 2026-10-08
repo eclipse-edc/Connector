@@ -39,6 +39,7 @@ public interface ManagementApiJsonSchema {
         String CONTRACT_NEGOTIATION = EDC_MGMT_V4_SCHEMA_PREFIX + "/contract-negotiation-schema.json";
         String CONTRACT_NEGOTIATION_STATE = EDC_MGMT_V4_SCHEMA_PREFIX + "/contract-negotiation-schema.json#/definitions/NegotiationState";
         String TERMINATE_NEGOTIATION = EDC_MGMT_V4_SCHEMA_PREFIX + "/contract-terminate-schema.json";
+        String REJECT_NEGOTIATION = EDC_MGMT_V4_SCHEMA_PREFIX + "/contract-reject-schema.json";
         String CONTRACT_AGREEMENT = EDC_MGMT_V4_SCHEMA_PREFIX + "/contract-agreement-schema.json";
         String TRANSFER_REQUEST = EDC_MGMT_V4_SCHEMA_PREFIX + "/transfer-request-schema.json";
         String TRANSFER_PROCESS = EDC_MGMT_V4_SCHEMA_PREFIX + "/transfer-process-schema.json";
