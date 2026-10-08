@@ -48,7 +48,7 @@ public class PostgresDataPlaneInstanceStoreTest extends DataPlaneInstanceStoreTe
         var typeManager = new JacksonTypeManager();
 
         store = new SqlDataPlaneInstanceStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), statements, typeManager.getMapper(), queryExecutor);
+                extension.getTransactionContext(), statements, typeManager::getMapper, queryExecutor);
         var schema = TestUtils.getResourceFileContentAsString("dataplane-instance-schema.sql");
         extension.runQuery(schema);
     }

@@ -33,6 +33,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -42,8 +43,8 @@ public class SqlCachedDocumentStore extends AbstractSqlStore implements CachedDo
     private final CachedDocumentStoreStatements statements;
 
     public SqlCachedDocumentStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                                       ObjectMapper objectMapper, CachedDocumentStoreStatements statements, QueryExecutor queryExecutor) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+                                       Supplier<ObjectMapper> objectMapperSupplier, CachedDocumentStoreStatements statements, QueryExecutor queryExecutor) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = Objects.requireNonNull(statements);
     }
 

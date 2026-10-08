@@ -34,6 +34,7 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -50,8 +51,8 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
     private final DataPlaneInstanceStatements statements;
 
     public SqlDataPlaneInstanceStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                                     DataPlaneInstanceStatements statements, ObjectMapper objectMapper, QueryExecutor queryExecutor) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+                                     DataPlaneInstanceStatements statements, Supplier<ObjectMapper> objectMapperSupplier, QueryExecutor queryExecutor) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
     }
 

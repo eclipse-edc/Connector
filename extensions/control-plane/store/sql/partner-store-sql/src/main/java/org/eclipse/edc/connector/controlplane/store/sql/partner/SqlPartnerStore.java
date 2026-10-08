@@ -31,6 +31,7 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static java.lang.String.format;
 
@@ -39,8 +40,8 @@ public class SqlPartnerStore extends AbstractSqlStore implements PartnerStore {
     private final PartnerStoreStatements statements;
 
     public SqlPartnerStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                           ObjectMapper objectMapper, QueryExecutor queryExecutor, PartnerStoreStatements statements) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+                           Supplier<ObjectMapper> objectMapperSupplier, QueryExecutor queryExecutor, PartnerStoreStatements statements) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
     }
 

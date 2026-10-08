@@ -35,6 +35,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -48,9 +49,9 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
     private final String leaseHolderName;
 
     public SqlPolicyMonitorStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                                 PolicyMonitorStatements statements, SqlLeaseContextBuilder leaseContext, ObjectMapper objectMapper,
+                                 PolicyMonitorStatements statements, SqlLeaseContextBuilder leaseContext, Supplier<ObjectMapper> objectMapperSupplier,
                                  QueryExecutor queryExecutor, String leaseHolderName) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
         this.leaseHolderName = leaseHolderName;
         this.leaseContext = leaseContext;

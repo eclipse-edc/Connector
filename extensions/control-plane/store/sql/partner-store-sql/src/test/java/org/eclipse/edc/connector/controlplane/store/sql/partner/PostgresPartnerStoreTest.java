@@ -37,7 +37,7 @@ class PostgresPartnerStoreTest extends PartnerStoreTestBase {
     void setup(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) {
         var typeManager = new JacksonTypeManager();
         store = new SqlPartnerStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), typeManager.getMapper(), queryExecutor, statements);
+                extension.getTransactionContext(), typeManager::getMapper, queryExecutor, statements);
 
         extension.runQuery(TestUtils.getResourceFileContentAsString("partner-schema.sql"));
     }

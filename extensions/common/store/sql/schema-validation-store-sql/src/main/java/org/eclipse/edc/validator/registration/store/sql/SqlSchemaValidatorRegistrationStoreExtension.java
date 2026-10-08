@@ -52,7 +52,7 @@ public class SqlSchemaValidatorRegistrationStoreExtension implements ServiceExte
     @Override
     public void initialize(ServiceExtensionContext context) {
         var store = new SqlSchemaValidatorRegistrationStore(dataSourceRegistry, dataSourceName, transactionContext,
-                typeManager.getMapper(), getStatementImpl(), queryExecutor);
+                typeManager::getMapper, getStatementImpl(), queryExecutor);
 
         context.registerService(SchemaValidatorRegistrationStore.class, store);
 

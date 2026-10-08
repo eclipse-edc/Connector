@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -53,8 +54,9 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     private final AssetIdCompatibility assetIdCompatibility;
 
     public SqlAssetIndex(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                         ObjectMapper objectMapper, AssetStatements assetStatements, QueryExecutor queryExecutor, Monitor monitor) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+                         Supplier<ObjectMapper> objectMapperSupplier, AssetStatements assetStatements, QueryExecutor queryExecutor,
+                         Monitor monitor) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.assetStatements = Objects.requireNonNull(assetStatements);
         this.assetIdCompatibility = new AssetIdCompatibility(Objects.requireNonNull(monitor));
     }

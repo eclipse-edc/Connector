@@ -27,6 +27,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.function.Supplier;
 
 
 /**
@@ -47,10 +48,10 @@ public class SqlParticipantContextConfigStore extends AbstractSqlStore implement
     public SqlParticipantContextConfigStore(DataSourceRegistry dataSourceRegistry,
                                             String dataSourceName,
                                             TransactionContext transactionContext,
-                                            ObjectMapper objectMapper,
+                                            Supplier<ObjectMapper> objectMapperSupplier,
                                             QueryExecutor queryExecutor,
                                             ParticipantContextConfigStoreStatements statements) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
     }
 

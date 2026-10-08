@@ -58,7 +58,7 @@ public class SqlDataspaceProfileStoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var store = new SqlDataspaceProfileStore(dataSourceRegistry, dataSourceName, transactionContext,
-                typeManager.getMapper(), getStatementImpl(), queryExecutor);
+                typeManager::getMapper, getStatementImpl(), queryExecutor);
 
         context.registerService(DataspaceProfileStore.class, store);
 

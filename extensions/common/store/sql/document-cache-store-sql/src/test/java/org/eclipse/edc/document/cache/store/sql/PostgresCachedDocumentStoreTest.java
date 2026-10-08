@@ -39,7 +39,7 @@ class PostgresCachedDocumentStoreTest extends CachedDocumentStoreTestBase {
     void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
         var typeManager = new JacksonTypeManager();
         store = new SqlCachedDocumentStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), typeManager.getMapper(), statements, queryExecutor);
+                extension.getTransactionContext(), typeManager::getMapper, statements, queryExecutor);
 
         var schema = TestUtils.getResourceFileContentAsString("document-cache-schema.sql");
         extension.runQuery(schema);

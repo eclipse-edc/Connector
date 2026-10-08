@@ -52,7 +52,7 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
         var leaseContextBuilder = SqlLeaseContextBuilderImpl.with(extension.getTransactionContext(), CONNECTOR_NAME, statements.getTransferProcessTableName(), leaseStatements, clock, queryExecutor);
 
         store = new SqlTransferProcessStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), typeManager.getMapper(), statements, leaseContextBuilder,
+                extension.getTransactionContext(), typeManager::getMapper, statements, leaseContextBuilder,
                 queryExecutor);
 
         var schema = TestUtils.getResourceFileContentAsString("transfer-process-schema.sql");

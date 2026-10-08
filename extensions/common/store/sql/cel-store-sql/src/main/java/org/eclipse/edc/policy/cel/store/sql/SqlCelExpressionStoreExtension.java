@@ -59,7 +59,7 @@ public class SqlCelExpressionStoreExtension implements ServiceExtension {
 
     @Provider
     public CelExpressionStore createSqlStore() {
-        return new SqlCelExpressionStore(dataSourceRegistry, dataSourceName, transactionContext, typemanager.getMapper(), queryExecutor, getStatementImpl());
+        return new SqlCelExpressionStore(dataSourceRegistry, dataSourceName, transactionContext, typemanager::getMapper, queryExecutor, getStatementImpl());
     }
 
     private CelExpressionStoreStatements getStatementImpl() {

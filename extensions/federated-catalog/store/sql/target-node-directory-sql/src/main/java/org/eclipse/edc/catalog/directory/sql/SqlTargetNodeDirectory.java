@@ -29,14 +29,15 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class SqlTargetNodeDirectory extends AbstractSqlStore implements TargetNodeDirectory {
 
     private final TargetNodeStatements statements;
 
     public SqlTargetNodeDirectory(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                                  ObjectMapper objectMapper, QueryExecutor queryExecutor, TargetNodeStatements statements) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+                                  Supplier<ObjectMapper> objectMapperSupplier, QueryExecutor queryExecutor, TargetNodeStatements statements) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
     }
 

@@ -39,7 +39,7 @@ class PostgresSchemaValidatorRegistrationStoreTest extends SchemaValidatorRegist
     void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
         var typeManager = new JacksonTypeManager();
         store = new SqlSchemaValidatorRegistrationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), typeManager.getMapper(), statements, queryExecutor);
+                extension.getTransactionContext(), typeManager::getMapper, statements, queryExecutor);
 
         var schema = TestUtils.getResourceFileContentAsString("schema-validation-schema.sql");
         extension.runQuery(schema);

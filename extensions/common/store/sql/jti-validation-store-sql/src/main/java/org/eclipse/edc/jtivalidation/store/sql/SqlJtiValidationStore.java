@@ -30,6 +30,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.function.Supplier;
 
 public class SqlJtiValidationStore extends AbstractSqlStore implements JtiValidationStore {
 
@@ -37,8 +38,8 @@ public class SqlJtiValidationStore extends AbstractSqlStore implements JtiValida
     private final Monitor monitor;
 
     public SqlJtiValidationStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                                 ObjectMapper objectMapper, JtiValidationStoreStatements statements, QueryExecutor queryExecutor, Monitor monitor) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+                                 Supplier<ObjectMapper> objectMapperSupplier, JtiValidationStoreStatements statements, QueryExecutor queryExecutor, Monitor monitor) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
         this.monitor = monitor;
     }

@@ -29,6 +29,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.function.Supplier;
 
 import static java.util.Optional.ofNullable;
 
@@ -37,8 +38,8 @@ public class SqlFederatedCatalogCache extends AbstractSqlStore implements Federa
     private final FederatedCatalogCacheStatements statements;
 
     public SqlFederatedCatalogCache(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                                    ObjectMapper objectMapper, QueryExecutor queryExecutor, FederatedCatalogCacheStatements statements) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+                                    Supplier<ObjectMapper> objectMapperSupplier, QueryExecutor queryExecutor, FederatedCatalogCacheStatements statements) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
     }
 

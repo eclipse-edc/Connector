@@ -43,7 +43,7 @@ public class SqlFederatedCatalogCacheTest extends FederatedCatalogCacheTestBase 
         var typeManager = new JacksonTypeManager();
         typeManager.registerTypes(Catalog.class, Dataset.class);
         store = new SqlFederatedCatalogCache(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), typeManager.getMapper(), queryExecutor, statements);
+                extension.getTransactionContext(), typeManager::getMapper, queryExecutor, statements);
 
         var schema = TestUtils.getResourceFileContentAsString("cache-schema.sql");
         extension.runQuery(schema);

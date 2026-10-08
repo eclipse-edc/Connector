@@ -72,7 +72,7 @@ public class SqlPolicyMonitorStoreExtension implements ServiceExtension {
         var leaseContext = leaseContextBuilderProvider.createContextBuilder(getStatementImpl().getPolicyMonitorTable());
 
         return new SqlPolicyMonitorStore(dataSourceRegistry, dataSourceName, transactionContext,
-                getStatementImpl(), leaseContext, typeManager.getMapper(), queryExecutor, context.getRuntimeId());
+                getStatementImpl(), leaseContext, typeManager::getMapper, queryExecutor, context.getRuntimeId());
 
     }
 

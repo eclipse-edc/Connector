@@ -40,6 +40,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -54,8 +55,8 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
 
     public SqlContractDefinitionStore(DataSourceRegistry dataSourceRegistry, String dataSourceName,
                                       TransactionContext transactionContext, ContractDefinitionStatements statements,
-                                      ObjectMapper objectMapper, QueryExecutor queryExecutor) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+                                      Supplier<ObjectMapper> objectMapperSupplier, QueryExecutor queryExecutor) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
     }
 

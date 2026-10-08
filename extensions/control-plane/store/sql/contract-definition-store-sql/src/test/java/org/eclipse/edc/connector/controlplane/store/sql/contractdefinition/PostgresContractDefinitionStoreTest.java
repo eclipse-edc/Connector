@@ -46,7 +46,7 @@ class PostgresContractDefinitionStoreTest extends ContractDefinitionStoreTestBas
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
         sqlContractDefinitionStore = new SqlContractDefinitionStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), statements, typeManager.getMapper(), queryExecutor);
+                extension.getTransactionContext(), statements, typeManager::getMapper, queryExecutor);
         var schema = TestUtils.getResourceFileContentAsString("contract-definition-schema.sql");
         extension.runQuery(schema);
     }

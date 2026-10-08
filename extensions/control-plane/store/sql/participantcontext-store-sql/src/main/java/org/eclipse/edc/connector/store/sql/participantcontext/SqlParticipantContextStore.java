@@ -32,6 +32,7 @@ import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import static org.eclipse.edc.spi.result.StoreResult.alreadyExists;
 import static org.eclipse.edc.spi.result.StoreResult.success;
@@ -47,10 +48,10 @@ public class SqlParticipantContextStore extends AbstractSqlStore implements Part
     public SqlParticipantContextStore(DataSourceRegistry dataSourceRegistry,
                                       String dataSourceName,
                                       TransactionContext transactionContext,
-                                      ObjectMapper objectMapper,
+                                      Supplier<ObjectMapper> objectMapperSupplier,
                                       QueryExecutor queryExecutor,
                                       ParticipantContextStoreStatements statements) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
     }
 
