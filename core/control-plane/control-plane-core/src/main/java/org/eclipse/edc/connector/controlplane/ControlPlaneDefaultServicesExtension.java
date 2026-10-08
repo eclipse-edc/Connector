@@ -42,6 +42,7 @@ import org.eclipse.edc.protocol.spi.store.DataspaceProfileStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -61,6 +62,8 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
     private Clock clock;
     @Inject
     private CriterionOperatorRegistry criterionOperatorRegistry;
+    @Inject
+    private Monitor monitor;
 
     @Override
     public String name() {
@@ -69,7 +72,7 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        criterionOperatorRegistry.registerPropertyLookup(new AssetPropertyLookup());
+        criterionOperatorRegistry.registerPropertyLookup(new AssetPropertyLookup(monitor));
     }
 
     @Provider(isDefault = true)
@@ -143,7 +146,7 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
 
     private InMemoryAssetIndex getAssetIndex() {
         if (assetIndex == null) {
-            assetIndex = new InMemoryAssetIndex(criterionOperatorRegistry);
+            assetIndex = new InMemoryAssetIndex(criterionOperatorRegistry, monitor);
         }
         return assetIndex;
     }

@@ -96,10 +96,10 @@ class JsonObjectToAssetTransformerTest {
         var result = typeTransformerRegistry.transform(TestJsonLd.expand(jsonObj), Asset.class);
 
         assertThat(result).isSucceeded().satisfies(asset -> {
+            assertThat(asset.getId()).isEqualTo(TEST_ASSET_ID);
             assertThat(asset.getProperties())
-                    .hasSize(5)
-                    .containsEntry(PROPERTY_ID, TEST_ASSET_ID)
-                    .containsEntry(PROPERTY_ID, result.getContent().getId())
+                    .hasSize(4)
+                    .doesNotContainKey(PROPERTY_ID)
                     .containsEntry(PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION);
             assertThat(asset.getDataAddress()).isNotNull().extracting(DataAddress::getType).isEqualTo("address-type");
             assertThat(asset.getDataplaneMetadata().getLabels()).containsExactly("label");
@@ -121,10 +121,10 @@ class JsonObjectToAssetTransformerTest {
         var asset = typeTransformerRegistry.transform(TestJsonLd.expand(jsonObj), Asset.class);
 
         assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
+        assertThat(asset.getContent().getId()).isEqualTo(TEST_ASSET_ID);
         assertThat(asset.getContent().getProperties())
-                .hasSize(5)
-                .containsEntry(PROPERTY_ID, TEST_ASSET_ID)
-                .containsEntry(PROPERTY_ID, asset.getContent().getId())
+                .hasSize(4)
+                .doesNotContainKey(PROPERTY_ID)
                 .containsEntry(PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION);
         assertThat(asset.getContent().getPrivateProperties())
                 .hasSize(1)
@@ -146,7 +146,7 @@ class JsonObjectToAssetTransformerTest {
 
         assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getProperties())
-                .hasSize(6)
+                .hasSize(5)
                 .hasEntrySatisfying(EDC_NAMESPACE + "payload", o -> assertThat(o).asInstanceOf(map(String.class, Object.class))
                         .containsEntry(EDC_NAMESPACE + "age", List.of(Map.of(VALUE, CUSTOM_PAYLOAD_AGE)))
                         .containsEntry(EDC_NAMESPACE + "name", List.of(Map.of(VALUE, CUSTOM_PAYLOAD_NAME)))
@@ -165,11 +165,9 @@ class JsonObjectToAssetTransformerTest {
 
         var asset = typeTransformerRegistry.transform(TestJsonLd.expand(jsonObj), Asset.class);
 
-        assertThat(asset.getContent().getProperties()).hasSize(2)
-                .containsEntry(PROPERTY_ID, TEST_ASSET_ID)
+        assertThat(asset.getContent().getId()).isEqualTo(TEST_ASSET_ID);
+        assertThat(asset.getContent().getProperties()).hasSize(1)
                 .containsEntry(EDC_NAMESPACE + "version", TEST_ASSET_VERSION);
-
-        assertThat(asset.getContent().getProperties().get(PROPERTY_ID)).isEqualTo(asset.getContent().getId());
     }
 
     @Test

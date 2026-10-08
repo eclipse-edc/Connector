@@ -27,6 +27,8 @@ import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -58,6 +60,7 @@ public abstract class AssetIndexTestBase {
 
     protected static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
     protected static final String ANOTHER_PARTICIPANT_CONTEXT_ID = "anotherParticipantContextId";
+    private static final String LEGACY_ID_PROPERTY = EDC_NAMESPACE + "id";
 
     /**
      * Returns the SuT i.e. the fully constructed instance of the {@link AssetIndex}
@@ -106,6 +109,7 @@ public abstract class AssetIndexTestBase {
             assertThat(assetFound).isNotNull();
             assertThat(assetFound).usingRecursiveComparison().isEqualTo(assetExpected);
             assertThat(assetFound.getCreatedAt()).isGreaterThan(0);
+            assertThat(assetFound.getProperties()).doesNotContainKey(LEGACY_ID_PROPERTY);
         }
 
         @Test
@@ -354,7 +358,7 @@ public abstract class AssetIndexTestBase {
         void shouldThrowException_whenUnsupportedOperator() {
             var asset = createAsset("id1");
             getAssetIndex().create(asset);
-            var unsupportedOperator = new Criterion(Asset.PROPERTY_ID, "unsupported", "42");
+            var unsupportedOperator = new Criterion("id", "unsupported", "42");
 
             assertThatThrownBy(() -> getAssetIndex().queryAssets(filter(unsupportedOperator)))
                     .isInstanceOf(IllegalArgumentException.class);
@@ -525,7 +529,7 @@ public abstract class AssetIndexTestBase {
         void in() {
             getAssetIndex().create(createAsset("id1"));
             getAssetIndex().create(createAsset("id2"));
-            var criterion = new Criterion(Asset.PROPERTY_ID, "in", List.of("id1", "id2"));
+            var criterion = new Criterion("id", "in", List.of("id1", "id2"));
 
             var assetsFound = getAssetIndex().queryAssets(filter(criterion));
 
@@ -539,7 +543,7 @@ public abstract class AssetIndexTestBase {
             getAssetIndex().create(asset1);
             var asset2 = createAsset("id2");
             getAssetIndex().create(asset2);
-            var invalidRightOperand = new Criterion(Asset.PROPERTY_ID, "in", "(id1, id2)");
+            var invalidRightOperand = new Criterion("id", "in", "(id1, id2)");
 
             assertThatThrownBy(() -> getAssetIndex().queryAssets(filter(invalidRightOperand)).toList())
                     .isInstanceOf(IllegalArgumentException.class);
@@ -552,7 +556,7 @@ public abstract class AssetIndexTestBase {
                     .peek(a -> getAssetIndex().create(a))
                     .toList();
             var spec = QuerySpec.Builder.newInstance()
-                    .sortField(Asset.PROPERTY_ID)
+                    .sortField("id")
                     .sortOrder(SortOrder.ASC)
                     .build();
 
@@ -597,7 +601,7 @@ public abstract class AssetIndexTestBase {
             getAssetIndex().create(asset1);
             var asset2 = createAsset("id2");
             getAssetIndex().create(asset2);
-            var criterion = new Criterion(Asset.PROPERTY_ID, "LIKE", "id%");
+            var criterion = new Criterion("id", "LIKE", "id%");
 
             var assetsFound = getAssetIndex().queryAssets(filter(criterion));
 
@@ -608,7 +612,7 @@ public abstract class AssetIndexTestBase {
         void shouldFilter_whenIlikeOperator() {
             getAssetIndex().create(createAsset("ID1"));
             getAssetIndex().create(createAsset("ID2"));
-            var criterion = new Criterion(Asset.PROPERTY_ID, "ilike", "id%");
+            var criterion = new Criterion("id", "ilike", "id%");
 
             var assetsFound = getAssetIndex().queryAssets(filter(criterion));
 
@@ -833,5 +837,57 @@ public abstract class AssetIndexTestBase {
         }
     }
 
-}
+    /**
+     * The legacy "https://w3id.org/edc/v0.0.1/ns/id" property is not stored anymore, but queries using it
+     * are still supported and translated to the asset id.
+     */
+    @Nested
+    class LegacyIdProperty {
 
+        @ParameterizedTest
+        @ValueSource(strings = {LEGACY_ID_PROPERTY, "'" + LEGACY_ID_PROPERTY + "'", "'" + LEGACY_ID_PROPERTY})
+        void query_shouldTranslateToAssetId(String leftOperand) {
+            getAssetIndex().create(createAsset("id1"));
+            getAssetIndex().create(createAsset("id2"));
+
+            var assetsFound = getAssetIndex().queryAssets(filter(new Criterion(leftOperand, "=", "id1")));
+
+            assertThat(assetsFound).hasSize(1).first().extracting(Asset::getId).isEqualTo("id1");
+        }
+
+        @Test
+        void query_shouldTranslateToAssetId_whenInOperator() {
+            getAssetIndex().create(createAsset("id1"));
+            getAssetIndex().create(createAsset("id2"));
+            getAssetIndex().create(createAsset("id3"));
+
+            var assetsFound = getAssetIndex().queryAssets(filter(new Criterion(LEGACY_ID_PROPERTY, "in", List.of("id1", "id2"))));
+
+            assertThat(assetsFound).map(Asset::getId).containsExactlyInAnyOrder("id1", "id2");
+        }
+
+        @Test
+        void query_shouldSortByAssetId() {
+            IntStream.of(2, 0, 1).mapToObj(i -> createAsset("id" + i)).forEach(a -> getAssetIndex().create(a));
+            var spec = QuerySpec.Builder.newInstance()
+                    .sortField(LEGACY_ID_PROPERTY)
+                    .sortOrder(SortOrder.DESC)
+                    .build();
+
+            var result = getAssetIndex().queryAssets(spec);
+
+            assertThat(result).map(Asset::getId).containsExactly("id2", "id1", "id0");
+        }
+
+        @Test
+        void count_shouldTranslateToAssetId() {
+            getAssetIndex().create(createAsset("id1"));
+            getAssetIndex().create(createAsset("id2"));
+
+            var count = getAssetIndex().countAssets(List.of(new Criterion(LEGACY_ID_PROPERTY, "=", "id2")));
+
+            assertThat(count).isEqualTo(1);
+        }
+    }
+
+}

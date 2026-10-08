@@ -124,7 +124,7 @@ public class CatalogApiV4EndToEndTest {
                     .statusCode(200)
                     .contentType(JSON)
                     .body(TYPE, is("Catalog"))
-                    .body("dataset[0].id", is("id-2"));
+                    .body("dataset[0].'@id'", is("id-2"));
         }
 
         @Test

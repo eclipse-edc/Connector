@@ -52,6 +52,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -71,8 +72,8 @@ class DatasetResolverImplIntegrationTest {
     void setUp() {
         PolicyDefinitionStore policyStore = mock();
         var criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
-        criterionOperatorRegistry.registerPropertyLookup(new AssetPropertyLookup());
-        assetIndex = new InMemoryAssetIndex(criterionOperatorRegistry);
+        criterionOperatorRegistry.registerPropertyLookup(new AssetPropertyLookup(mock()));
+        assetIndex = new InMemoryAssetIndex(criterionOperatorRegistry, mock());
         resolver = new DatasetResolverImpl(
                 contractDefinitionResolver,
                 assetIndex,
@@ -106,6 +107,22 @@ class DatasetResolverImplIntegrationTest {
 
         assertThat(dataset).isNotNull();
         assertThat(dataset.getId()).isEqualTo("own-asset");
+    }
+
+    @Test
+    void query_shouldMatchAssetsSelector_whenLegacyIdProperty() {
+        range(0, 3).mapToObj(i -> createAsset("asset" + i).build()).forEach(assetIndex::create);
+        var definition = getContractDefBuilder("def1")
+                .assetsSelector(List.of(new Criterion(EDC_NAMESPACE + "id", "=", "asset1")))
+                .build();
+        when(contractDefinitionResolver.resolveFor(any(), isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(List.of(definition)));
+
+        var datasets = resolver.query(createParticipantContext(), createAgent(), QuerySpec.none(), "protocol");
+
+        assertThat(datasets).hasSize(1).first().satisfies(dataset -> {
+            assertThat(dataset.getId()).isEqualTo("asset1");
+            assertThat(dataset.getProperties()).doesNotContainKey(EDC_NAMESPACE + "id");
+        });
     }
 
     @Test
@@ -208,7 +225,7 @@ class DatasetResolverImplIntegrationTest {
 
     private List<Criterion> selectorFrom(Collection<Asset> assets1) {
         var ids = assets1.stream().map(Asset::getId).toList();
-        return List.of(new Criterion(Asset.PROPERTY_ID, "in", ids));
+        return List.of(new Criterion("id", "in", ids));
     }
 
     private ContractDefinition.Builder getContractDefBuilder(String id) {

@@ -243,7 +243,7 @@ public class CatalogApiV5EndToEndTest {
                     .statusCode(200)
                     .contentType(JSON)
                     .body(TYPE, is("Catalog"))
-                    .body("dataset[0].id", is("id-2"))
+                    .body("dataset[0].'@id'", is("id-2"))
                     .body("dataset[0].conformsTo", is("https://example.org/schema"));
         }
 

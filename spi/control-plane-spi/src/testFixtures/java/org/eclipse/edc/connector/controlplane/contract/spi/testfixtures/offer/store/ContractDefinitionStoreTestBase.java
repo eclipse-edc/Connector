@@ -483,12 +483,12 @@ public abstract class ContractDefinitionStoreTestBase {
         void queryByAssetsSelector_left() {
             var definitionsExpected = createContractDefinitions(20);
             // add a selector expression to the last 5 elements
-            definitionsExpected.get(0).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
-            definitionsExpected.get(5).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
+            definitionsExpected.get(0).getAssetsSelector().add(new Criterion("id", "=", "test-asset"));
+            definitionsExpected.get(5).getAssetsSelector().add(new Criterion("id", "=", "foobar-asset"));
             saveContractDefinitions(definitionsExpected);
 
             var spec = QuerySpec.Builder.newInstance()
-                    .filter(criterion("assetsSelector.operandLeft", "=", Asset.PROPERTY_ID))
+                    .filter(criterion("assetsSelector.operandLeft", "=", "id"))
                     .build();
 
             var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
@@ -501,8 +501,8 @@ public abstract class ContractDefinitionStoreTestBase {
         @Test
         void queryByAssetsSelector_right() {
             var definitionsExpected = createContractDefinitions(20);
-            definitionsExpected.get(0).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
-            definitionsExpected.get(5).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
+            definitionsExpected.get(0).getAssetsSelector().add(new Criterion("id", "=", "test-asset"));
+            definitionsExpected.get(5).getAssetsSelector().add(new Criterion("id", "=", "foobar-asset"));
             saveContractDefinitions(definitionsExpected);
 
             var spec = QuerySpec.Builder.newInstance()
@@ -519,13 +519,13 @@ public abstract class ContractDefinitionStoreTestBase {
         @Test
         void queryByAssetsSelector_rightAndLeft() {
             var definitionsExpected = createContractDefinitions(10);
-            definitionsExpected.get(0).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset"));
-            definitionsExpected.get(5).getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "foobar-asset"));
+            definitionsExpected.get(0).getAssetsSelector().add(new Criterion("id", "=", "test-asset"));
+            definitionsExpected.get(5).getAssetsSelector().add(new Criterion("id", "=", "foobar-asset"));
             saveContractDefinitions(definitionsExpected);
 
             var spec = QuerySpec.Builder.newInstance()
                     .filter(List.of(
-                            new Criterion("assetsSelector.operandLeft", "=", Asset.PROPERTY_ID),
+                            new Criterion("assetsSelector.operandLeft", "=", "id"),
                             new Criterion("assetsSelector.operandRight", "=", "foobar-asset")))
                     .build();
 
@@ -557,7 +557,7 @@ public abstract class ContractDefinitionStoreTestBase {
         @Test
         void queryMultiple() {
             var definitionsExpected = createContractDefinitions(20);
-            definitionsExpected.forEach(d -> d.getAssetsSelector().add(new Criterion(Asset.PROPERTY_ID, "=", "test-asset")));
+            definitionsExpected.forEach(d -> d.getAssetsSelector().add(new Criterion("id", "=", "test-asset")));
             definitionsExpected.forEach(d -> d.getAssetsSelector().add(new Criterion(Asset.PROPERTY_DESCRIPTION, "=", "other")));
             saveContractDefinitions(definitionsExpected);
 

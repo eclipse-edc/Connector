@@ -91,7 +91,7 @@ class JsonObjectFromAssetTransformerTest {
         var propsJson = jsonObject.getJsonObject(EDC_ASSET_PROPERTIES);
         assertThat(jsonObject.getJsonString(ID).getString()).isEqualTo(TEST_ASSET_ID);
         assertThat(jsonObject.getJsonString(TYPE).getString()).isEqualTo(Asset.EDC_ASSET_TYPE);
-        assertThat(propsJson.getJsonString(EDC_NAMESPACE + "id").getString()).isEqualTo(TEST_ASSET_ID);
+        assertThat(propsJson).doesNotContainKey(EDC_NAMESPACE + "id");
         assertThat(propsJson.getJsonString(EDC_NAMESPACE + "contenttype").getString()).isEqualTo(TEST_CONTENT_TYPE);
         assertThat(propsJson.getJsonString(EDC_NAMESPACE + "description").getString()).isEqualTo(TEST_DESCRIPTION);
         assertThat(propsJson.getJsonString(EDC_NAMESPACE + "name").getString()).isEqualTo(TEST_ASSET_NAME);

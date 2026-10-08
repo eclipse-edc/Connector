@@ -18,7 +18,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE_TERM;
@@ -60,7 +59,7 @@ public class TestFunctions {
                 .add(ID, id)
                 .add("accessPolicyId", accessPolicyId)
                 .add("contractPolicyId", contractPolicyId)
-                .add("assetsSelector", createCriterionBuilder(Asset.PROPERTY_ID, "=", assetId).build())
+                .add("assetsSelector", createCriterionBuilder("id", "=", assetId).build())
                 .build();
     }
 
@@ -77,7 +76,7 @@ public class TestFunctions {
 
     private static JsonObjectBuilder createPropertiesBuilder(String id) {
         return Json.createObjectBuilder()
-                .add(Asset.PROPERTY_ID, id);
+                .add(EDC_NAMESPACE + "name", id);
     }
 
     private static JsonObjectBuilder createContextBuilder() {

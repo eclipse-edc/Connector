@@ -26,6 +26,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.mockito.Mockito.mock;
 
 class InMemoryDataAddressResolverTest {
     private static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
@@ -34,8 +35,8 @@ class InMemoryDataAddressResolverTest {
     @BeforeEach
     void setUp() {
         var registry = CriterionOperatorRegistryImpl.ofDefaults();
-        registry.registerPropertyLookup(new AssetPropertyLookup());
-        resolver = new InMemoryAssetIndex(registry);
+        registry.registerPropertyLookup(new AssetPropertyLookup(mock()));
+        resolver = new InMemoryAssetIndex(registry, mock());
     }
 
     @Test

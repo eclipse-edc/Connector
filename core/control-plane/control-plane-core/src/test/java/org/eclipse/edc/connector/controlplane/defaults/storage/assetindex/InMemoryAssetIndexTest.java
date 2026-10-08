@@ -21,6 +21,8 @@ import org.eclipse.edc.connector.controlplane.query.asset.AssetPropertyLookup;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.junit.jupiter.api.BeforeEach;
 
+import static org.mockito.Mockito.mock;
+
 class InMemoryAssetIndexTest extends AssetIndexTestBase {
 
     private InMemoryAssetIndex index;
@@ -28,8 +30,8 @@ class InMemoryAssetIndexTest extends AssetIndexTestBase {
     @BeforeEach
     void setUp() {
         var registry = CriterionOperatorRegistryImpl.ofDefaults();
-        registry.registerPropertyLookup(new AssetPropertyLookup());
-        index = new InMemoryAssetIndex(registry);
+        registry.registerPropertyLookup(new AssetPropertyLookup(mock()));
+        index = new InMemoryAssetIndex(registry, mock());
     }
 
     @Override
