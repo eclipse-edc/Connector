@@ -24,9 +24,8 @@ dependencies {
     implementation(project(":core:common:lib:core-lib"))
 
 
-    testImplementation(project(":core:common:lib:jsonld-lib"))
-    testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:core-lib"))
+    testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":spi:core-spi")))
     testFixturesImplementation(libs.nimbus.jwt)
     testFixturesImplementation(project(":spi:core-spi"))

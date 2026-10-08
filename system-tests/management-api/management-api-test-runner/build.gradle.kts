@@ -31,7 +31,6 @@ dependencies {
     //useful for generic DTOs etc.
 
     //we need the JacksonJsonLd util class
-    testImplementation(project(":core:common:lib:jsonld-lib"))
     testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(project(":extensions:common:json-ld"))
 

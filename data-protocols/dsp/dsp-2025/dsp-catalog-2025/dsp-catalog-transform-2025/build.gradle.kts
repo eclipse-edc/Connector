@@ -22,8 +22,8 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
 
-    implementation(project(":core:common:lib:jsonld-lib"))
+    implementation(project(":core:common:lib:core-lib"))
     implementation(project(":data-protocols:dsp:dsp-lib"))
 
-    testImplementation(testFixtures(project(":core:common:lib:jsonld-lib")))
+    testImplementation(testFixtures(project(":core:common:lib:core-lib")))
 }

@@ -16,8 +16,8 @@ package org.eclipse.edc.transform.transformer.dspace.from;
 
 import jakarta.json.Json;
 import org.eclipse.edc.controlplane.DataAddress;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +46,7 @@ class JsonObjectFromDataAddressDspaceTransformerTest {
 
     @BeforeEach
     void setup() {
-        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+        when(typeManager.getMapper("test")).thenReturn(JsonMapperFactory.defaultJsonMapper());
     }
 
     @Test

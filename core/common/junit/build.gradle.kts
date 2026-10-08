@@ -24,7 +24,6 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":core:common:boot"))
     api(project(":core:common:lib:core-lib"))
-    api(project(":core:common:lib:jsonld-lib"))
 
     implementation(libs.okhttp)
     implementation(libs.mockito.core)

@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.crawler.spi.model.UpdateRequest;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -37,7 +38,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.catalog.crawler.TestUtil.createCatalog;
 import static org.eclipse.edc.catalog.crawler.TestUtil.registerTransformers;
 import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
-import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -48,7 +48,7 @@ class DspCatalogRequestActionTest {
 
     private final ProtocolRemoteMessageDispatcher messageDispatcher = mock();
     private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl(mock());
-    private final ObjectMapper objectMapper = createObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapperFactory.defaultJsonMapper();
     private final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(
             ParticipantContext.Builder.newInstance().id("participantContext").identity("identity").build());
     private final DspCatalogRequestAction action = new DspCatalogRequestAction(messageDispatcher, participantContextSupplier,

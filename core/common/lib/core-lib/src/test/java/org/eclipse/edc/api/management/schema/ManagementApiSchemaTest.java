@@ -15,7 +15,7 @@
 package org.eclipse.edc.api.management.schema;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -56,7 +56,7 @@ import static org.mockito.Mockito.when;
 
 class ManagementApiSchemaTest {
 
-    private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapperFactory.defaultJsonMapper();
     private final TypeManager typeManager = mock();
     private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl(mock());
 

@@ -44,7 +44,7 @@ class TitaniumJsonLdTest {
 
     @RegisterExtension
     static WireMockExtension server = WireMockExtension.newInstance()
-            .options(wireMockConfig().dynamicPort())
+            .options(wireMockConfig().dynamicPort().http2PlainDisabled(true))
             .build();
 
 

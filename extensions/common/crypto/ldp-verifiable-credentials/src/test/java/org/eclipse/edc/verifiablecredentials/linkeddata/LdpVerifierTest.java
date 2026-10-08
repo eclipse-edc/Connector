@@ -24,6 +24,7 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.VerifierContext;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.security.signature.jws2020.JsonWebKeyPair;
 import org.eclipse.edc.security.signature.jws2020.Jws2020ProofDraft;
@@ -42,7 +43,6 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.List;
 
-import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.security.signature.jws2020.TestFunctions.createKeyPair;
 import static org.eclipse.edc.verifiablecredentials.linkeddata.TestData.MEMBERSHIP_CREDENTIAL_ISSUER;
@@ -58,7 +58,7 @@ import static org.mockito.Mockito.when;
 class LdpVerifierTest {
 
     private static final String VP_HOLDER = "did:web:vp-holder";
-    private final ObjectMapper mapper = createObjectMapper();
+    private final ObjectMapper mapper = JsonMapperFactory.defaultJsonMapper();
     private final TestDocumentLoader testDocLoader = new TestDocumentLoader("https://org.eclipse.edc/", "", SchemeRouter.defaultInstance());
     private final MethodResolver mockDidResolver = mock();
 

@@ -22,7 +22,7 @@ dependencies {
 
     testImplementation(project(":spi:control-plane-spi"))
     testImplementation(project(":data-protocols:dsp"))
-    testImplementation(testFixtures(project(":core:common:lib:jsonld-lib")))
+    testImplementation(testFixtures(project(":core:common:lib:core-lib")))
     testImplementation(project(":extensions:common:http:jetty-core"))
     testImplementation(project(":core:common:junit"))
 

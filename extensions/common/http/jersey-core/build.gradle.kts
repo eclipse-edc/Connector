@@ -34,7 +34,7 @@ dependencies {
 
     testImplementation(libs.restAssured)
 
-    testFixturesApi(project(":core:common:lib:jsonld-lib"))
+    testFixturesApi(project(":core:common:lib:core-lib"))
     testFixturesApi(project(":core:common:junit"))
     testFixturesApi(project(":extensions:common:http:jetty-core"))
     testFixturesApi(project(":extensions:common:json-ld"))

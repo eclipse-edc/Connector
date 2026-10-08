@@ -21,14 +21,13 @@ dependencies {
     api(project(":spi:control-plane-spi"))
 
     implementation(project(":core:common:lib:core-lib"))
-    implementation(project(":core:common:lib:jsonld-lib"))
     implementation(project(":core:control-plane:control-plane-transform"))
 
     implementation(libs.jakarta.rsApi)
     implementation(libs.jakarta.annotation)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:jsonld-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":extensions:common:iam:iam-mock"))

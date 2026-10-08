@@ -20,8 +20,8 @@ import org.eclipse.edc.iam.decentralizedclaims.transform.TestData;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -54,7 +54,7 @@ import static org.mockito.Mockito.when;
 
 class JwtToVerifiablePresentationTransformerTest {
 
-    private static final ObjectMapper MAPPER = JacksonJsonLd.createObjectMapper();
+    private static final ObjectMapper MAPPER = JsonMapperFactory.defaultJsonMapper();
     private final TypeManager typeManager = mock();
     private final TransformerContext context = mock();
     private final Monitor monitor = mock();
@@ -117,7 +117,7 @@ class JwtToVerifiablePresentationTransformerTest {
     @DisplayName("VP claim contains a single LDP-VC")
     void transform_containsLdpVc() throws JacksonException {
         when(jsonLd.expand(any()))
-                .thenReturn(Result.success(JacksonJsonLd.createObjectMapper()
+                .thenReturn(Result.success(JsonMapperFactory.defaultJsonMapper()
                         .readValue(TestUtils.getResourceFileContentAsString("expanded_vc.json"), JsonObject.class)));
 
         when(context.transform(isA(JsonObject.class), eq(VerifiableCredential.class)))

@@ -47,7 +47,6 @@ include(":core:common:task-core")
 include(":core:common:security-core")
 
 include(":core:common:lib:core-lib")
-include(":core:common:lib:jsonld-lib")
 
 include(":core:catalog-crawler:catalog-crawler-core")
 

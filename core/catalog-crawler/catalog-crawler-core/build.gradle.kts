@@ -22,15 +22,14 @@ dependencies {
     api(project(":spi:control-plane-spi"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     implementation(project(":core:control-plane:lib:control-plane-lib"))
-    implementation(project(":core:common:lib:jsonld-lib"))
     implementation(project(":core:common:lib:core-lib"))
 
-    testImplementation(testFixtures(project(":core:common:lib:jsonld-lib")))
+    testImplementation(testFixtures(project(":core:common:lib:core-lib")))
     testImplementation(libs.awaitility)
     testImplementation(project(":data-protocols:dsp:dsp-lib"))
     testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-catalog-2025:dsp-catalog-transform-2025"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:jsonld-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(project(":core:control-plane:control-plane-transform"))
     testImplementation(testFixtures(project(":spi:control-plane-spi")))
 }

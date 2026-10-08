@@ -23,10 +23,10 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.CachedDocumentRegistry;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.utils.LazySupplier;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
@@ -652,7 +652,7 @@ public class Participant {
                 );
             }
             if (participant.objectMapper == null) {
-                participant.objectMapper = JacksonJsonLd.createObjectMapper();
+                participant.objectMapper = JsonMapperFactory.defaultJsonMapper();
             }
             return participant;
         }

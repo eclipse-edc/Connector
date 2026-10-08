@@ -15,9 +15,9 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.transform.to;
 
 import jakarta.json.Json;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.test.TestJsonLd;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferSuspensionMessageTransformer;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
@@ -50,7 +50,7 @@ class JsonObjectToTransferSuspensionMessageTransformerTest {
 
     private static final JsonLdNamespace DSP_NAMESPACE = new JsonLdNamespace("http://www.w3.org/ns/dsp#");
     private final TransformerContext context = mock();
-    private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapperFactory.defaultJsonMapper();
     private final TypeManager typeManager = mock();
     private final JsonObjectToTransferSuspensionMessageTransformer transformer =
             new JsonObjectToTransferSuspensionMessageTransformer(typeManager, "test", DSP_NAMESPACE);

@@ -22,7 +22,7 @@ import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.utils.LazySupplier;
 import org.eclipse.edc.spi.EdcException;
@@ -492,7 +492,7 @@ public class ManagementApiClientV4 {
             Objects.requireNonNull(participant.controlPlaneProtocol, "controlPlaneProtocol");
 
             if (participant.objectMapper == null) {
-                participant.objectMapper = JacksonJsonLd.createObjectMapper();
+                participant.objectMapper = JsonMapperFactory.defaultJsonMapper();
             }
 
             return participant;

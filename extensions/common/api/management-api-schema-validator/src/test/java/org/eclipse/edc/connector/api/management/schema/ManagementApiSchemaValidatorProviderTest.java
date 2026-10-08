@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.api.management.schema;
 
 import jakarta.json.Json;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -43,7 +43,7 @@ class ManagementApiSchemaValidatorProviderTest {
         Files.writeString(schemaFile, SCHEMA_CONTENT);
 
         var provider = ManagementApiSchemaValidatorProvider.Builder.newInstance()
-                .objectMapper(JacksonJsonLd::createObjectMapper)
+                .objectMapper(() -> JsonMapperFactory.defaultJsonMapper())
                 .prefixMapping("https://example.org/schema/", tempDir.toUri().toString())
                 .build();
 
@@ -60,7 +60,7 @@ class ManagementApiSchemaValidatorProviderTest {
     void validatorFor_resolvesSchemaFromCachedSchemaResolver_withoutNetwork() {
         var schemaId = "https://example.org/cached/person-schema.json";
         var provider = ManagementApiSchemaValidatorProvider.Builder.newInstance()
-                .objectMapper(JacksonJsonLd::createObjectMapper)
+                .objectMapper(() -> JsonMapperFactory.defaultJsonMapper())
                 .cachedSchemaResolver(iri -> schemaId.equals(iri) ? SCHEMA_CONTENT : null)
                 .build();
 
@@ -79,7 +79,7 @@ class ManagementApiSchemaValidatorProviderTest {
         Files.writeString(schemaFile, SCHEMA_CONTENT);
 
         var provider = ManagementApiSchemaValidatorProvider.Builder.newInstance()
-                .objectMapper(JacksonJsonLd::createObjectMapper)
+                .objectMapper(() -> JsonMapperFactory.defaultJsonMapper())
                 .build();
 
         var validator = provider.validatorFor(schemaFile.toUri().toString());

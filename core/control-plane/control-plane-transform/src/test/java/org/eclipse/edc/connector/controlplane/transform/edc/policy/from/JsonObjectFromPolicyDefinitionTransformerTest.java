@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.policy.from;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -47,7 +47,7 @@ class JsonObjectFromPolicyDefinitionTransformerTest {
 
     @BeforeEach
     void setup() {
-        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+        when(typeManager.getMapper("test")).thenReturn(JsonMapperFactory.defaultJsonMapper());
     }
 
     @Test

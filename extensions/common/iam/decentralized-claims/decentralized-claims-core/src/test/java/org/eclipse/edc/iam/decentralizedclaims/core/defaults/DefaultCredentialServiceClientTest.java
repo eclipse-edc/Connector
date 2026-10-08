@@ -35,8 +35,8 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinitio
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinition.Field;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinition.InputDescriptor;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinition.PresentationDefinition;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -76,7 +76,7 @@ class DefaultCredentialServiceClientTest {
     public static final String PRESENTATION_QUERY = "/presentations/query";
     private static final String CS_URL = "http://test.com/cs";
     private final EdcHttpClient httpClientMock = mock();
-    private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
+    private final ObjectMapper mapper = JsonMapperFactory.defaultJsonMapper();
     private final TypeManager typeManager = mock();
     private DefaultCredentialServiceClient client;
     private TypeTransformerRegistry transformerRegistry;
@@ -104,7 +104,7 @@ class DefaultCredentialServiceClientTest {
         client = new DefaultCredentialServiceClient(httpClientMock, Json.createBuilderFactory(Map.of()),
                 typeManager, "test", transformerRegistry, jsonLdMock, mock(), DSPACE_DCP_V_1_0_CONTEXT);
 
-        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+        when(typeManager.getMapper("test")).thenReturn(JsonMapperFactory.defaultJsonMapper());
     }
 
     @Test

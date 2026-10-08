@@ -21,7 +21,7 @@ import com.apicatalog.ld.signature.key.KeyPair;
 import com.apicatalog.vc.issuer.ProofDraft;
 import com.nimbusds.jose.jwk.JWK;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.eclipse.edc.security.signature.jws2020.TestFunctions;
 import org.jetbrains.annotations.Nullable;
@@ -29,7 +29,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 public class LdpCreationUtils {
-    private static final ObjectMapper MAPPER = JacksonJsonLd.createObjectMapper();
+    private static final ObjectMapper MAPPER = JsonMapperFactory.defaultJsonMapper();
     private static final Jws2020SignatureSuite SUITE = new Jws2020SignatureSuite(MAPPER);
 
     public static String signDocument(String jsonLdContent, JWK proofKey, ProofDraft proofDraft, @Nullable DocumentLoader testDocLoader) {

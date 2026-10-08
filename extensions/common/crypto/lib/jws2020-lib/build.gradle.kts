@@ -30,8 +30,8 @@ dependencies {
     }
 
     testImplementation(testFixtures(project(":core:common:junit")))
-    testImplementation(project(":core:common:lib:jsonld-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
     testFixturesImplementation(testFixtures(project(":core:common:junit")))
     testFixturesImplementation(libs.nimbus.jwt)
-    testFixturesImplementation(project(":core:common:lib:jsonld-lib"))
+    testFixturesImplementation(project(":core:common:lib:core-lib"))
 }

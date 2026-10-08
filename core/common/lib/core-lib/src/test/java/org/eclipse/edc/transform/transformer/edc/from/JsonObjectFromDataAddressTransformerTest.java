@@ -20,7 +20,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.controlplane.DataAddress;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -56,7 +56,7 @@ class JsonObjectFromDataAddressTransformerTest {
 
     @BeforeEach
     void setUp() {
-        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+        when(typeManager.getMapper("test")).thenReturn(JsonMapperFactory.defaultJsonMapper());
         transformer = new JsonObjectFromDataAddressTransformer(jsonFactory, typeManager, "test");
     }
 

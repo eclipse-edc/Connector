@@ -22,9 +22,9 @@ dependencies {
     api(project(":spi:core-spi"))
     api(libs.nimbus.jwt)
 
-    testImplementation(testFixtures(project(":core:common:lib:jsonld-lib")))
+    testImplementation(testFixtures(project(":core:common:lib:core-lib")))
     testImplementation(project(":extensions:common:json-ld"))
-    testImplementation(project(":core:common:lib:jsonld-lib")) //for the TransformerContextImpl
+    testImplementation(project(":core:common:lib:core-lib")) //for the TransformerContextImpl
     testImplementation(project(":core:common:junit")) //for the TestUtils
     testImplementation(testFixtures(project(":spi:decentralized-claims-spi")))
 }

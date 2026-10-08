@@ -19,7 +19,7 @@ import com.apicatalog.ld.signature.key.KeyPair;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -30,7 +30,7 @@ import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileConten
 
 public class TestFunctions {
 
-    private static final ObjectMapper MAPPER = JacksonJsonLd.createObjectMapper();
+    private static final ObjectMapper MAPPER = JsonMapperFactory.defaultJsonMapper();
 
     public static KeyPair createKeyPair(JWK jwk) {
         var id = URI.create("https://org.eclipse.edc/keys/" + UUID.randomUUID());

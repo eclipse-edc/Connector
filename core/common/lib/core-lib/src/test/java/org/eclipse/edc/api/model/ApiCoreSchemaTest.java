@@ -17,7 +17,7 @@ package org.eclipse.edc.api.model;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.validation.DataAddressValidator;
 import org.eclipse.edc.controlplane.DataAddress;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
 
 class ApiCoreSchemaTest {
 
-    private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapperFactory.defaultJsonMapper();
     private final TypeManager typeManager = mock();
     private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl(mock());
     private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();

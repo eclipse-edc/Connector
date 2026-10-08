@@ -26,7 +26,7 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -54,7 +54,7 @@ class IssuerTests {
 
     //used to load remote data from a local directory
     private final TestDocumentLoader loader = new TestDocumentLoader("https://org.eclipse.edc/", "jws2020/issuing/", SchemeRouter.defaultInstance());
-    private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapperFactory.defaultJsonMapper();
 
     private final Jws2020SignatureSuite suite = new Jws2020SignatureSuite(objectMapper);
 

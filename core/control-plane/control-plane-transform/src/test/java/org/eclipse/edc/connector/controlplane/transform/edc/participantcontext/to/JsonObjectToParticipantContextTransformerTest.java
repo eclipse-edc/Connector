@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.to;
 
 import org.eclipse.edc.connector.controlplane.transform.edc.to.JsonObjectToDataplaneMetadataTransformer;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
@@ -48,7 +48,7 @@ class JsonObjectToParticipantContextTransformerTest {
         typeTransformerRegistry.register(transformer);
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
         typeTransformerRegistry.register(new JsonObjectToDataplaneMetadataTransformer());
-        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+        when(typeManager.getMapper("test")).thenReturn(JsonMapperFactory.defaultJsonMapper());
     }
 
     @Test

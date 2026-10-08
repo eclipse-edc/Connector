@@ -25,7 +25,7 @@ dependencies {
     implementation(libs.jsonschema)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:jsonld-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
 }
 
 

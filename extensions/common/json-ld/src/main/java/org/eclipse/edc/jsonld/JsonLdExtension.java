@@ -16,23 +16,18 @@ package org.eclipse.edc.jsonld;
 
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformer;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
-import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.constants.CoreConstants;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.types.TypeManager;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
  * Adds support for working with JSON-LD. Provides an ObjectMapper that works with Jakarta JSON-P
@@ -61,17 +56,9 @@ public class JsonLdExtension implements ServiceExtension {
     @Setting(description = "If true a validation on expended object will be made against configured prefixes", defaultValue = DEFAULT_CHECK_PREFIXES + "", key = "edc.jsonld.prefixes.check")
     private boolean checkPrefixes;
 
-    @Inject
-    private TypeManager typeManager;
-
     @Override
     public String name() {
         return NAME;
-    }
-
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        typeManager.registerContext(JSON_LD, JacksonJsonLd.createObjectMapper());
     }
 
     @Provider

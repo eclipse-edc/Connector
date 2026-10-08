@@ -16,8 +16,8 @@ package org.eclipse.edc.transform.transformer.edc.to;
 
 import jakarta.json.Json;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.query.CriterionOperator;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -48,7 +48,7 @@ class JsonObjectToCriterionTransformerTest {
     
     @BeforeEach
     void setup() {
-        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+        when(typeManager.getMapper("test")).thenReturn(JsonMapperFactory.defaultJsonMapper());
     }
 
     @Test

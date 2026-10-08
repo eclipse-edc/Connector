@@ -18,7 +18,7 @@ import jakarta.json.Json;
 import org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationQueryMessage;
 import org.eclipse.edc.iam.decentralizedclaims.transform.TestContextProvider;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.presentationdefinition.PresentationDefinition;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.when;
 public class JsonObjectFromPresentationQueryTransformerTest {
 
     private final TransformerContext context = mock();
-    private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
+    private final ObjectMapper mapper = JsonMapperFactory.defaultJsonMapper();
     private final TypeManager typeManager = mock();
 
     @BeforeEach

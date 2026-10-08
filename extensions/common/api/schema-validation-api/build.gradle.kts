@@ -25,8 +25,8 @@ dependencies {
 
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:jsonld-lib"))
-    testImplementation(testFixtures(project(":core:common:lib:jsonld-lib")))
+    testImplementation(project(":core:common:lib:core-lib"))
+    testImplementation(testFixtures(project(":core:common:lib:core-lib")))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)
