@@ -60,7 +60,7 @@ public class SqlContractDefinitionStoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var sqlContractDefinitionStore = new SqlContractDefinitionStore(dataSourceRegistry, dataSourceName, transactionContext,
-                getStatementImpl(), typeManager.getMapper(), queryExecutor);
+                getStatementImpl(), typeManager::getMapper, queryExecutor);
 
         context.registerService(ContractDefinitionStore.class, sqlContractDefinitionStore);
 

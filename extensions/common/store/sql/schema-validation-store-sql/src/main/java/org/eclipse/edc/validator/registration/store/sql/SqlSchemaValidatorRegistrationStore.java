@@ -31,6 +31,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -40,8 +41,8 @@ public class SqlSchemaValidatorRegistrationStore extends AbstractSqlStore implem
     private final SchemaValidatorRegistrationStoreStatements statements;
 
     public SqlSchemaValidatorRegistrationStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                                               ObjectMapper objectMapper, SchemaValidatorRegistrationStoreStatements statements, QueryExecutor queryExecutor) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+                                               Supplier<ObjectMapper> objectMapperSupplier, SchemaValidatorRegistrationStoreStatements statements, QueryExecutor queryExecutor) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = Objects.requireNonNull(statements);
     }
 

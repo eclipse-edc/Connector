@@ -41,7 +41,7 @@ class PostgresDataspaceProfileStoreTest extends DataspaceProfileStoreTestBase {
         var typeManager = new JacksonTypeManager();
 
         store = new SqlDataspaceProfileStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), typeManager.getMapper(), statements, queryExecutor);
+                extension.getTransactionContext(), typeManager::getMapper, statements, queryExecutor);
 
         var schema = TestUtils.getResourceFileContentAsString("dataspace-profile-schema.sql");
         extension.runQuery(schema);

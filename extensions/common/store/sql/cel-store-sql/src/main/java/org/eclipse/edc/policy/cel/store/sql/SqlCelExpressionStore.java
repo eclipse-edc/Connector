@@ -33,6 +33,7 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.spi.result.StoreResult.alreadyExists;
@@ -53,10 +54,10 @@ public class SqlCelExpressionStore extends AbstractSqlStore implements CelExpres
     public SqlCelExpressionStore(DataSourceRegistry dataSourceRegistry,
                                  String dataSourceName,
                                  TransactionContext transactionContext,
-                                 ObjectMapper objectMapper,
+                                 Supplier<ObjectMapper> objectMapperSupplier,
                                  QueryExecutor queryExecutor,
                                  CelExpressionStoreStatements statements) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
     }
 

@@ -52,7 +52,7 @@ public class SqlCachedDocumentStoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var store = new SqlCachedDocumentStore(dataSourceRegistry, dataSourceName, transactionContext,
-                typeManager.getMapper(), getStatementImpl(), queryExecutor);
+                typeManager::getMapper, getStatementImpl(), queryExecutor);
 
         context.registerService(CachedDocumentStore.class, store);
 

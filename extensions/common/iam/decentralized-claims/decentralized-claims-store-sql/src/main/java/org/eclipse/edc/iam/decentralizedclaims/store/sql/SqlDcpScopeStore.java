@@ -31,6 +31,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 
@@ -45,9 +46,9 @@ public class SqlDcpScopeStore extends AbstractSqlStore implements DcpScopeStore 
                             String dataSourceName,
                             TransactionContext transactionContext,
                             DcpScopeStatements statements,
-                            ObjectMapper objectMapper,
+                            Supplier<ObjectMapper> objectMapperSupplier,
                             QueryExecutor queryExecutor) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
     }
 

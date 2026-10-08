@@ -55,7 +55,7 @@ public class SqlTargetNodeDirectoryExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         typeManager.registerTypes(TargetNode.class);
         var targetNodeDirectory = new SqlTargetNodeDirectory(dataSourceRegistry, dataSourceName, trxContext,
-                typeManager.getMapper(), queryExecutor, getStatementImpl());
+                typeManager::getMapper, queryExecutor, getStatementImpl());
         context.registerService(TargetNodeDirectory.class, targetNodeDirectory);
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "target-node-directory-schema.sql");
     }

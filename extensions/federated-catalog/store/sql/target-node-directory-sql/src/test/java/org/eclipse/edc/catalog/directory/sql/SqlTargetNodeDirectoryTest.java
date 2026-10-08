@@ -43,7 +43,7 @@ public class SqlTargetNodeDirectoryTest extends TargetNodeDirectoryTestBase {
         var typeManager = new JacksonTypeManager();
         typeManager.registerTypes(Catalog.class, Dataset.class);
         store = new SqlTargetNodeDirectory(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), typeManager.getMapper(), queryExecutor, statements);
+                extension.getTransactionContext(), typeManager::getMapper, queryExecutor, statements);
 
         var schema = TestUtils.getResourceFileContentAsString("target-node-directory-schema.sql");
         extension.runQuery(schema);

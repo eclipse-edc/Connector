@@ -56,7 +56,7 @@ public class SqlFederatedCatalogCacheExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         typeManager.registerTypes(Catalog.class, Dataset.class);
         var store = new SqlFederatedCatalogCache(dataSourceRegistry, dataSourceName, trxContext,
-                typeManager.getMapper(), queryExecutor, getStatementImpl());
+                typeManager::getMapper, queryExecutor, getStatementImpl());
         context.registerService(FederatedCatalogCache.class, store);
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "cache-schema.sql");
     }

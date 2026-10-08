@@ -27,7 +27,6 @@ import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import tools.jackson.databind.ObjectMapper;
 
 import static org.mockito.Mockito.mock;
 
@@ -45,7 +44,7 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
         sqlAssetIndex = new SqlAssetIndex(setupExtension.getDataSourceRegistry(), setupExtension.getDatasourceName(),
-                setupExtension.getTransactionContext(), new ObjectMapper(), sqlStatements, queryExecutor, mock());
+                setupExtension.getTransactionContext(), typeManager::getMapper, sqlStatements, queryExecutor, mock());
 
         var schema = TestUtils.getResourceFileContentAsString("asset-index-schema.sql");
         setupExtension.runQuery(schema);

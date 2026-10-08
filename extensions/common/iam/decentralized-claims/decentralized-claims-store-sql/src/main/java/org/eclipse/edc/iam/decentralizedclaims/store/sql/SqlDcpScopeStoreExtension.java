@@ -71,7 +71,7 @@ public class SqlDcpScopeStoreExtension implements ServiceExtension {
     @Provider
     public DcpScopeStore dcpScopeStore() {
         return new SqlDcpScopeStore(dataSourceRegistry, dataSourceName, transactionContext,
-                getStatementImpl(), typeManager.getMapper(), queryExecutor);
+                getStatementImpl(), typeManager::getMapper, queryExecutor);
     }
 
     /**

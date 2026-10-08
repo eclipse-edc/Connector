@@ -37,7 +37,7 @@ class SqlParticipantContextConfigStoreTest extends ParticipantContextConfigStore
     void setup(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) {
         var typeManager = new JacksonTypeManager();
         store = new SqlParticipantContextConfigStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), typeManager.getMapper(), queryExecutor, statements);
+                extension.getTransactionContext(), typeManager::getMapper, queryExecutor, statements);
 
         var schema = TestUtils.getResourceFileContentAsString("participant-context-config-schema.sql");
         extension.runQuery(schema);

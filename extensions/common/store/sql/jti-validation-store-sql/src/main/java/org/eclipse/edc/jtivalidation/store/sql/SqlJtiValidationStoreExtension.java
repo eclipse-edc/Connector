@@ -58,7 +58,7 @@ public class SqlJtiValidationStoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var sqlStore = new SqlJtiValidationStore(dataSourceRegistry, dataSourceName, transactionContext, typeManager.getMapper(),
+        var sqlStore = new SqlJtiValidationStore(dataSourceRegistry, dataSourceName, transactionContext, typeManager::getMapper,
                 getStatementImpl(), queryExecutor, context.getMonitor());
 
         context.registerService(JtiValidationStore.class, sqlStore);

@@ -68,12 +68,12 @@ public class SqlPartnerStoreExtension implements ServiceExtension {
     @Provider
     public PartnerStore partnerStore() {
         var statements = partnerStatements != null ? partnerStatements : new PartnerPostgresDialectStatements();
-        return new SqlPartnerStore(dataSourceRegistry, dataSourceName, transactionContext, typeManager.getMapper(), queryExecutor, statements);
+        return new SqlPartnerStore(dataSourceRegistry, dataSourceName, transactionContext, typeManager::getMapper, queryExecutor, statements);
     }
 
     @Provider
     public PartnerGroupStore partnerGroupStore() {
         var statements = partnerGroupStatements != null ? partnerGroupStatements : new PartnerGroupPostgresDialectStatements();
-        return new SqlPartnerGroupStore(dataSourceRegistry, dataSourceName, transactionContext, typeManager.getMapper(), queryExecutor, statements);
+        return new SqlPartnerGroupStore(dataSourceRegistry, dataSourceName, transactionContext, typeManager::getMapper, queryExecutor, statements);
     }
 }

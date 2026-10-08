@@ -37,7 +37,7 @@ class SqlDcpScopeStoreTest extends DcpScopeStoreTestBase {
     @BeforeEach
     void setup(PostgresqlStoreSetupExtension setupExtension, QueryExecutor queryExecutor) {
         sqlStore = new SqlDcpScopeStore(setupExtension.getDataSourceRegistry(), setupExtension.getDatasourceName(),
-                setupExtension.getTransactionContext(), sqlStatements, new JacksonTypeManager().getMapper(), queryExecutor);
+                setupExtension.getTransactionContext(), sqlStatements, new JacksonTypeManager()::getMapper, queryExecutor);
 
         var schema = TestUtils.getResourceFileContentAsString("dcp-scope-schema.sql");
         setupExtension.runQuery(schema);

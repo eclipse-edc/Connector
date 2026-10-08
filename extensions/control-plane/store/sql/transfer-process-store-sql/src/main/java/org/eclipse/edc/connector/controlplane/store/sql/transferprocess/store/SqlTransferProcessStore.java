@@ -40,6 +40,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,10 +56,10 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     private final SqlLeaseContextBuilder leaseContext;
 
     public SqlTransferProcessStore(DataSourceRegistry dataSourceRegistry, String datasourceName,
-                                   TransactionContext transactionContext, ObjectMapper objectMapper,
+                                   TransactionContext transactionContext, Supplier<ObjectMapper> objectMapperSupplier,
                                    TransferProcessStoreStatements statements, SqlLeaseContextBuilder leaseContext,
                                    QueryExecutor queryExecutor) {
-        super(dataSourceRegistry, datasourceName, transactionContext, objectMapper, queryExecutor);
+        super(dataSourceRegistry, datasourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
         this.leaseContext = leaseContext;
     }

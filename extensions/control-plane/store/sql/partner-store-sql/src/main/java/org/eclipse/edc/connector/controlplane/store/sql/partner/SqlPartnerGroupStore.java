@@ -30,6 +30,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static java.lang.String.format;
 
@@ -38,8 +39,8 @@ public class SqlPartnerGroupStore extends AbstractSqlStore implements PartnerGro
     private final PartnerGroupStoreStatements statements;
 
     public SqlPartnerGroupStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                                ObjectMapper objectMapper, QueryExecutor queryExecutor, PartnerGroupStoreStatements statements) {
-        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
+                                Supplier<ObjectMapper> objectMapperSupplier, QueryExecutor queryExecutor, PartnerGroupStoreStatements statements) {
+        super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
     }
 

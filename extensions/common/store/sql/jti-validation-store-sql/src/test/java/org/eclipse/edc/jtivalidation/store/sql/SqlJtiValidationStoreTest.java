@@ -40,7 +40,7 @@ public class SqlJtiValidationStoreTest extends JtiValidationStoreTestBase {
     @BeforeEach
     void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) {
         store = new SqlJtiValidationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), new ObjectMapper(), statements, queryExecutor, mock());
+                extension.getTransactionContext(), ObjectMapper::new, statements, queryExecutor, mock());
         var schema = TestUtils.getResourceFileContentAsString("jti-validation-schema.sql");
         extension.runQuery(schema);
     }

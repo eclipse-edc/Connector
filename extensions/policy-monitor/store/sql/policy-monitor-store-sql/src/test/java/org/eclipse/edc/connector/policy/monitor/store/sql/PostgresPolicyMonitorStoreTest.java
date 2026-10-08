@@ -57,7 +57,7 @@ public class PostgresPolicyMonitorStoreTest extends PolicyMonitorStoreTestBase {
 
 
         store = new SqlPolicyMonitorStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(),
-                statements, leaseContextBuilder, typeManager.getMapper(), queryExecutor, "test-connector");
+                statements, leaseContextBuilder, typeManager::getMapper, queryExecutor, "test-connector");
         var schema = TestUtils.getResourceFileContentAsString("policy-monitor-schema.sql");
         extension.runQuery(schema);
     }

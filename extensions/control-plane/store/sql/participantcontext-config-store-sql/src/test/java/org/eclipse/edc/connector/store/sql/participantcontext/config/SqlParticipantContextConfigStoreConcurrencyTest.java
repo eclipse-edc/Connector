@@ -68,7 +68,7 @@ class SqlParticipantContextConfigStoreConcurrencyTest {
         registry.register(extension.getDatasourceName(), extension.getDataSourceRegistry().resolve(extension.getDatasourceName()));
 
         store = new SqlParticipantContextConfigStore(registry, extension.getDatasourceName(), transactionContext,
-                new JacksonTypeManager().getMapper(), queryExecutor, statements);
+                new JacksonTypeManager()::getMapper, queryExecutor, statements);
 
         extension.runQuery(TestUtils.getResourceFileContentAsString("participant-context-config-schema.sql"));
     }
