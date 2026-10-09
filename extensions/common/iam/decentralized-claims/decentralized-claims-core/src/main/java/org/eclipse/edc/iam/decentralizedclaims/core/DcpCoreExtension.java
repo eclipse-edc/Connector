@@ -37,6 +37,8 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigEntry;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantContextConfigValidatorRegistry;
 import org.eclipse.edc.protocol.spi.discovery.DiscoveryService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -71,6 +73,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLIST_2021_URL;
+import static org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigValidators.notBlank;
+import static org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigValidators.startsWith;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.JWT_VC_TOKEN_CONTEXT;
 
@@ -125,6 +129,8 @@ public class DcpCoreExtension implements ServiceExtension {
     @Inject
     private ParticipantContextConfig participantContextConfig;
     @Inject
+    private ParticipantContextConfigValidatorRegistry configValidatorRegistry;
+    @Inject
     private JtiValidationStore jtiValidationStore;
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
@@ -142,6 +148,17 @@ public class DcpCoreExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
         discoveryService.registerResolver(new DidDiscoveryUrlResolver(didResolverRegistry));
+
+        // the participant DID is resolved from either of the two keys, see DidConfigProvider
+        configValidatorRegistry.register(ParticipantConfigEntry.Builder.newInstance(DidConfigProvider.PARTICIPANT_ID)
+                .description("ID of the participant, used as its DID")
+                .validator(notBlank())
+                .build());
+        configValidatorRegistry.register(ParticipantConfigEntry.Builder.newInstance(PARTICIPANT_DID)
+                .description("DID of the participant, required if %s is not set".formatted(DidConfigProvider.PARTICIPANT_ID))
+                .validator(startsWith("did:"))
+                .requiredWhen(config -> !config.hasKey(DidConfigProvider.PARTICIPANT_ID))
+                .build());
 
         // add all rules for self-issued ID tokens
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new IssuerEqualsSubjectRule());

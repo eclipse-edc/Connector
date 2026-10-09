@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.api.management.participantcontext
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfigValidation;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.spi.result.Result;
@@ -26,6 +27,7 @@ import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -33,6 +35,7 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -99,6 +102,38 @@ public abstract class ParticipantContextConfigApiControllerTestBase extends Rest
             verifyNoInteractions(transformerRegistry);
         }
 
+    }
+
+    @Nested
+    class Validate {
+        @Test
+        void validate() {
+            var validation = new ParticipantContextConfigValidation("id", List.of(violation("'key' is required", "key")));
+            var responseBody = Json.createObjectBuilder().add("valid", false).build();
+            when(service.validate(any())).thenReturn(ServiceResult.success(validation));
+            when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
+
+            baseRequest()
+                    .get("/participants/id/config/validation")
+                    .then()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body("valid", is(false));
+            verify(service).validate("id");
+            verify(transformerRegistry).transform(validation, JsonObject.class);
+        }
+
+        @Test
+        void validate_shouldReturnNotFound_whenNotFound() {
+            when(service.validate(any())).thenReturn(ServiceResult.notFound("not found"));
+
+            baseRequest()
+                    .get("/participants/id/config/validation")
+                    .then()
+                    .statusCode(404)
+                    .contentType(JSON);
+            verifyNoInteractions(transformerRegistry);
+        }
     }
 
     @Nested

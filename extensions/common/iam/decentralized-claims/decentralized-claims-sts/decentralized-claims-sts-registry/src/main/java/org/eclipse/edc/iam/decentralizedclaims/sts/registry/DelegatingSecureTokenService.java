@@ -31,7 +31,7 @@ import java.util.Map;
  */
 public class DelegatingSecureTokenService implements SecureTokenService {
 
-    public static final String STS_TYPE_PROPERTY = "edc.iam.sts.type";
+    public static final String STS_TYPE_PROPERTY = SecureTokenServiceRegistry.STS_TYPE_CONFIG_KEY;
 
     private final SecureTokenServiceRegistry registry;
     private final ParticipantContextConfig participantContextConfig;

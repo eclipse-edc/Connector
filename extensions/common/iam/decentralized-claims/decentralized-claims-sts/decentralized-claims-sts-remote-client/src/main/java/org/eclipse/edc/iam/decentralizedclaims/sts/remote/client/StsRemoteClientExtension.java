@@ -19,12 +19,18 @@ import org.eclipse.edc.iam.decentralizedclaims.sts.remote.RemoteSecureTokenServi
 import org.eclipse.edc.iam.decentralizedclaims.sts.remote.StsRemoteClientConfiguration;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigEntry;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantContextConfigValidatorRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
+
+import static org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigValidators.httpUrl;
+import static org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigValidators.notBlank;
 
 /**
  * Configuration Extension for the STS OAuth2 client
@@ -50,9 +56,23 @@ public class StsRemoteClientExtension implements ServiceExtension {
     @Inject
     private Vault vault;
 
+    @Inject
+    private ParticipantContextConfigValidatorRegistry configValidatorRegistry;
+
     @Override
     public String name() {
         return NAME;
+    }
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        // this is the only STS of the runtime, so its configuration is always required
+        configValidatorRegistry.register(ParticipantConfigEntry.Builder.newInstance(TOKEN_URL)
+                .description("STS OAuth2 endpoint for requesting a token").validator(httpUrl()).required().build());
+        configValidatorRegistry.register(ParticipantConfigEntry.Builder.newInstance(CLIENT_ID)
+                .description("STS OAuth2 client id").validator(notBlank()).required().build());
+        configValidatorRegistry.register(ParticipantConfigEntry.Builder.newInstance(CLIENT_SECRET_ALIAS)
+                .description("Vault alias of STS OAuth2 client secret").validator(notBlank()).required().build());
     }
 
     @Provider

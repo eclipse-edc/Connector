@@ -16,6 +16,9 @@ package org.eclipse.edc.iam.decentralizedclaims.sts.signature;
 
 import org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenServiceRegistry;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigEntry;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigView;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantContextConfigValidatorRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -25,6 +28,11 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.token.JwtGenerationService;
 
 import java.time.Clock;
+
+import static org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenServiceRegistry.STS_TYPE_CONFIG_KEY;
+import static org.eclipse.edc.iam.decentralizedclaims.sts.signature.SignatureSecureTokenService.SIGNATURE_KEY_NAME;
+import static org.eclipse.edc.iam.decentralizedclaims.sts.signature.SignatureSecureTokenService.SIGNATURE_KID;
+import static org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigValidators.notBlank;
 
 /**
  * Registers a {@link SignatureSecureTokenService} into the {@link SecureTokenServiceRegistry} bound to the
@@ -52,6 +60,9 @@ public class StsSignatureRegistrarExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
+    @Inject
+    private ParticipantContextConfigValidatorRegistry configValidatorRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -66,5 +77,14 @@ public class StsSignatureRegistrarExtension implements ServiceExtension {
         var tokenGenerationService = new JwtGenerationService(new SignatureServiceJwsSignerProvider(signatureService));
         secureTokenServiceRegistry.register(SIGNATURE_STS_TYPE,
                 new SignatureSecureTokenService(tokenGenerationService, participantContextConfig, clock, tokenExpiration));
+
+        configValidatorRegistry.register(ParticipantConfigEntry.Builder.newInstance(SIGNATURE_KEY_NAME)
+                .description("Name of the key used to sign Self-Issued tokens").validator(notBlank()).requiredWhen(this::isSignatureSts).build());
+        configValidatorRegistry.register(ParticipantConfigEntry.Builder.newInstance(SIGNATURE_KID)
+                .description("Key id set on the Self-Issued tokens").validator(notBlank()).requiredWhen(this::isSignatureSts).build());
+    }
+
+    private boolean isSignatureSts(ParticipantConfigView config) {
+        return SIGNATURE_STS_TYPE.equals(config.getEntry(STS_TYPE_CONFIG_KEY).orElseGet(secureTokenServiceRegistry::defaultType));
     }
 }

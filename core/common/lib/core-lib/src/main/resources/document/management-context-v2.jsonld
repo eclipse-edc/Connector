@@ -523,6 +523,20 @@
         }
       }
     },
+    "ParticipantContextConfigValidation": {
+      "@id": "edc:ParticipantContextConfigValidation",
+      "@context": {
+        "valid": "edc:valid",
+        "violations": {
+          "@id": "edc:violations",
+          "@container": "@set",
+          "@context": {
+            "key": "edc:key",
+            "message": "edc:message"
+          }
+        }
+      }
+    },
     "Partner": {
       "@id": "edc:Partner",
       "@context": {

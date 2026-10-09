@@ -17,6 +17,8 @@ package org.eclipse.edc.vault.hashicorp;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.util.string.StringUtils;
+import org.eclipse.edc.validator.spi.ValidationResult;
+import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.jetbrains.annotations.Nullable;
 import tools.jackson.core.JacksonException;
@@ -24,6 +26,7 @@ import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
+import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_CONFIG;
 
 /**
@@ -35,6 +38,30 @@ import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_CONFIG;
 public record HashicorpVaultSettings(HashicorpVaultConfig config) {
 
     private static final ObjectMapper MAPPER = JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
+
+    /**
+     * Validator for the {@link VaultConstants#VAULT_CONFIG} configuration value: it must be deserializable, and the
+     * vault config, if any, must define the vault url.
+     *
+     * @return the validator.
+     */
+    public static Validator<String> validator() {
+        return value -> {
+            if (StringUtils.isNullOrBlank(value)) {
+                return ValidationResult.success();
+            }
+            try {
+                var settings = MAPPER.readValue(value, HashicorpVaultSettings.class);
+                if (settings.config() != null && StringUtils.isNullOrBlank(settings.config().getVaultUrl())) {
+                    return ValidationResult.failure(violation("must define the vault url", null));
+                }
+                return ValidationResult.success();
+            } catch (JacksonException e) {
+                // the message of the exception could contain parts of the sensitive value
+                return ValidationResult.failure(violation("must be a valid Hashicorp vault settings JSON object", null));
+            }
+        };
+    }
 
     /**
      * Resolves the vault configuration from the {@link ParticipantContextConfig}. If no config is found for that participant, an exception is thrown.
