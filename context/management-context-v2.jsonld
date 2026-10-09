@@ -200,6 +200,7 @@
         },
         "counterPartyId": "edc:counterPartyId",
         "state": "edc:state",
+        "pending": "edc:pending",
         "errorDetail": "edc:errorDetail",
         "contractAgreementId": "edc:contractAgreementId",
         "createdAt": "edc:createdAt",
@@ -230,6 +231,9 @@
       "@context": {
         "reason": "edc:reason"
       }
+    },
+    "RejectNegotiation": {
+      "@id": "edc:RejectNegotiation"
     },
     "ContractAgreement": {
       "@id": "edc:ContractAgreement",
