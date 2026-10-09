@@ -17,6 +17,7 @@ package org.eclipse.edc.web.jersey.providers.jsonld;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -27,6 +28,7 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import org.eclipse.edc.web.spi.validation.SchemaType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -52,7 +54,7 @@ class JsonObjectMessageBodyReaderTest {
     private final JsonLd jsonLd = mock();
     private final TypeManager typeManager = mock();
     private final JsonObjectValidatorRegistry validatorRegistry = mock();
-    private final tools.jackson.databind.ObjectMapper objectMapper = org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapperFactory.defaultJsonMapper();
 
     private JsonObjectMessageBodyReader reader;
 

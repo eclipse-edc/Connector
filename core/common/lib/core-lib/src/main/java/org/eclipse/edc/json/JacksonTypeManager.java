@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -19,12 +19,8 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.ValueSerializer;
-import tools.jackson.databind.cfg.DateTimeFeature;
-import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.jsontype.NamedType;
 import tools.jackson.databind.module.SimpleModule;
 
@@ -46,14 +42,7 @@ public class JacksonTypeManager implements TypeManager {
      * Default constructor.
      */
     public JacksonTypeManager() {
-        var defaultMapper = JsonMapper.builder()
-                .configure(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .configure(DeserializationFeature.FAIL_ON_TRAILING_TOKENS, false)
-                .configure(MapperFeature.USE_GETTERS_AS_SETTERS, true)
-                .build();
-
-        registerContext(DEFAULT_TYPE_CONTEXT, defaultMapper);
+        registerContext(DEFAULT_TYPE_CONTEXT, JsonMapperFactory.defaultJsonMapper());
     }
 
     @Override

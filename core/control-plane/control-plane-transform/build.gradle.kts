@@ -21,6 +21,6 @@ dependencies {
     api(project(":spi:control-plane-spi"))
 
     testImplementation(project(":core:common:junit-base"));
-    testImplementation(project(":core:common:lib:jsonld-lib"))
-    testImplementation(testFixtures(project(":core:common:lib:jsonld-lib")))
+    testImplementation(project(":core:common:lib:core-lib"))
+    testImplementation(testFixtures(project(":core:common:lib:core-lib")))
 }

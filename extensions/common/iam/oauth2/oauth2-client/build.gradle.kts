@@ -19,7 +19,6 @@ plugins {
 dependencies {
     api(project(":spi:core-spi"))
 
-    testImplementation(project(":core:common:lib:jsonld-lib"))
     testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(testFixtures(project(":core:common:lib:core-lib")))
     testImplementation(libs.wiremock)

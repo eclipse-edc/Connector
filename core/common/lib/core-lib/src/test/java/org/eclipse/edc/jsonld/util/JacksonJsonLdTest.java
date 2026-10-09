@@ -14,8 +14,10 @@
 
 package org.eclipse.edc.jsonld.util;
 
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.junit.jupiter.api.Test;
 import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -27,7 +29,7 @@ class JacksonJsonLdTest {
 
     @Test
     void shouldConfigureSingleValueAsArray() throws JacksonException {
-        var mapper = JacksonJsonLd.createObjectMapper();
+        var mapper = (ObjectMapper) JsonMapperFactory.defaultJsonMapper();
         assertNotNull(mapper);
 
         var json = """

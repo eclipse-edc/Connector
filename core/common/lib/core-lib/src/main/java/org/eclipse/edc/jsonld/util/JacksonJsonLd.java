@@ -14,21 +14,15 @@
 
 package org.eclipse.edc.jsonld.util;
 
-import tools.jackson.databind.DeserializationFeature;
+import org.eclipse.edc.json.JsonMapperFactory;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.datatype.jsonp.JSONPModule;
 
 public class JacksonJsonLd {
     private JacksonJsonLd() {
     }
 
+    @Deprecated(since = "1.0.0")
     public static ObjectMapper createObjectMapper() {
-        return JsonMapper.builder()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .configure(DeserializationFeature.FAIL_ON_TRAILING_TOKENS, false)
-                .addModule(new JSONPModule())
-                .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-                .build();
+        return JsonMapperFactory.defaultJsonMapper();
     }
 }

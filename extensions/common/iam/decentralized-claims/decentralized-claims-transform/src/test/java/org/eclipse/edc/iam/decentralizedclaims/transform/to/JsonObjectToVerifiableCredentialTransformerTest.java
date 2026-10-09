@@ -16,8 +16,8 @@ package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TransformerContextImpl;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
@@ -45,7 +45,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class JsonObjectToVerifiableCredentialTransformerTest {
-    public static final ObjectMapper OBJECT_MAPPER = JacksonJsonLd.createObjectMapper();
+    public static final ObjectMapper OBJECT_MAPPER = JsonMapperFactory.defaultJsonMapper();
     private final TypeManager typeManager = mock();
     private TransformerContext context;
     private JsonObjectToVerifiableCredentialTransformer transformer;

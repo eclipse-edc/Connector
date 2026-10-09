@@ -22,11 +22,10 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:control-plane-spi"))
     implementation(project(":core:common:lib:core-lib"))
-    implementation(project(":core:common:lib:jsonld-lib"))
 
     implementation(libs.jakarta.rsApi)
 
-    testImplementation(testFixtures(project(":core:common:lib:jsonld-lib")))
+    testImplementation(testFixtures(project(":core:common:lib:core-lib")))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":core:common:junit"))

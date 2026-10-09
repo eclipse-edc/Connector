@@ -24,8 +24,8 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.security.signature.jws2020.Jws2020ProofDraft;
 import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
@@ -80,7 +80,7 @@ import static org.mockito.Mockito.when;
 class MultiFormatPresentationVerifierTest {
     public static final String INVALID_SIGNATURE = "Invalid signature";
     private static final SignatureSuiteRegistry SIGNATURE_SUITE_REGISTRY = mock();
-    private static final ObjectMapper MAPPER = JacksonJsonLd.createObjectMapper();
+    private static final ObjectMapper MAPPER = JsonMapperFactory.defaultJsonMapper();
     private static final Jws2020SignatureSuite JWS_SIGNATURE_SUITE = new Jws2020SignatureSuite(MAPPER);
     private static ECKey vpSigningKey;
     private static ECKey vcSigningKey;

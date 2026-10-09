@@ -17,7 +17,7 @@ package org.eclipse.edc.transform.transformer.edc.to;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.controlplane.DataAddress;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -66,7 +66,7 @@ class JsonObjectToDataAddressTransformerTest {
         when(transformerContext.transform(isA(JsonObject.class), eq(Object.class)))
                 .thenAnswer(i -> objectTransformer.transform(i.getArgument(0), transformerContext));
         when(transformerContext.problem()).thenReturn(new ProblemBuilder(transformerContext));
-        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+        when(typeManager.getMapper("test")).thenReturn(JsonMapperFactory.defaultJsonMapper());
     }
 
     @Test

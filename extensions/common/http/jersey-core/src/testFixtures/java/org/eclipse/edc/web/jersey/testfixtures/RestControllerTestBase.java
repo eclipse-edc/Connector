@@ -15,8 +15,8 @@
 package org.eclipse.edc.web.jersey.testfixtures;
 
 import org.eclipse.edc.json.JacksonTypeManager;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -48,7 +48,7 @@ public abstract class RestControllerTestBase {
 
     protected final int port = getFreePort();
     protected final Monitor monitor = mock(Monitor.class);
-    protected final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
+    protected final ObjectMapper objectMapper = JsonMapperFactory.defaultJsonMapper();
     protected final TypeManager typeManager = mock();
     private JettyService jetty;
     protected final JsonLd jsonLd = mock(JsonLd.class);

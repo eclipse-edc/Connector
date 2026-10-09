@@ -23,12 +23,11 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
 
-    implementation(project(":core:common:lib:jsonld-lib"))
+    implementation(project(":core:common:lib:core-lib"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:core-lib"))
-    testImplementation(project(":core:common:lib:jsonld-lib"))
-    testImplementation(testFixtures(project(":core:common:lib:jsonld-lib")))
+    testImplementation(testFixtures(project(":core:common:lib:core-lib")))
     testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))

@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.crawler.spi.TargetNode;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;
@@ -76,7 +77,6 @@ import static org.eclipse.edc.catalog.matchers.CatalogRequestMatcher.sentTo;
 import static org.eclipse.edc.catalog.spi.CatalogConstants.PROPERTY_ORIGINATOR;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_TRANSFORMER_CONTEXT_V_2025_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
@@ -98,7 +98,7 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 public class ControlPlaneCrawlerComponentTest {
 
-    private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapperFactory.defaultJsonMapper();
     private static final Duration TEST_TIMEOUT = ofSeconds(30);
 
     private final int port = getFreePort();

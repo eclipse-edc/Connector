@@ -21,11 +21,10 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:control-plane-spi"))
 
-    implementation(project(":core:common:lib:jsonld-lib"))
-    implementation(project(":core:control-plane:control-plane-transform"))
     implementation(project(":core:common:lib:core-lib"))
+    implementation(project(":core:control-plane:control-plane-transform"))
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:jsonld-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(project(":extensions:common:json-ld"))
 }

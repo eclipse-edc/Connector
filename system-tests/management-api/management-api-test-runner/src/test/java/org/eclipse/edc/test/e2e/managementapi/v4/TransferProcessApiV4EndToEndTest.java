@@ -26,7 +26,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.controlplane.CallbackAddress;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
@@ -258,7 +258,7 @@ public class TransferProcessApiV4EndToEndTest {
                         "offset": 0
                     }
                     """.formatted(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2);
-            var query = JacksonJsonLd.createObjectMapper()
+            var query = JsonMapperFactory.defaultJsonMapper()
                     .readValue(content, JsonObject.class);
 
             var result = context.baseRequest()

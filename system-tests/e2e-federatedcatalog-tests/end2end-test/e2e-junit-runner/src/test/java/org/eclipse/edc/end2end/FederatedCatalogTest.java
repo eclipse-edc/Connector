@@ -20,8 +20,8 @@ import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFrom
 import org.eclipse.edc.crawler.spi.TargetNode;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
 import org.eclipse.edc.json.JacksonTypeManager;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
@@ -132,7 +132,7 @@ class FederatedCatalogTest {
     private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl(mock());
     private final TypeManager mapper = new JacksonTypeManager();
     private final CatalogApiClient apiClient = new CatalogApiClient(CATALOG_MANAGEMENT, CONNECTOR_MANAGEMENT,
-            JacksonJsonLd.createObjectMapper(), () -> catalog.getService(JsonLd.class), typeTransformerRegistry);
+            JsonMapperFactory.defaultJsonMapper(), () -> catalog.getService(JsonLd.class), typeTransformerRegistry);
 
     @BeforeEach
     void setUp() {

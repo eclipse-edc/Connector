@@ -22,7 +22,6 @@ dependencies {
     testFixturesApi(project(":spi:core-spi"))
     testFixturesApi(project(":spi:control-plane-spi"))
     testFixturesApi(project(":core:common:lib:core-lib"))
-    testFixturesApi(project(":core:common:lib:jsonld-lib"))
     testFixturesApi(testFixtures(project(":core:common:lib:core-lib")))
 
     testFixturesImplementation(libs.restAssured)

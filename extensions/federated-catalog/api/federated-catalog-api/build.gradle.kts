@@ -32,7 +32,6 @@ dependencies {
     testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:jsonld-lib"))
     testImplementation(project(":extensions:common:http"))
     testImplementation(libs.restAssured)
     testImplementation(project(":extensions:common:iam:iam-mock"))

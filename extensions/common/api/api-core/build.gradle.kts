@@ -20,7 +20,6 @@ dependencies {
     api(project(":spi:core-spi"))
 
     implementation(project(":core:common:lib:core-lib"))
-    implementation(project(":core:common:lib:jsonld-lib"))
     implementation(libs.jakarta.rsApi)
     implementation(libs.swagger.annotations.jakarta)
 
@@ -29,7 +28,6 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:core-lib"))
-    testImplementation(project(":core:common:lib:jsonld-lib"))
 }
 
 

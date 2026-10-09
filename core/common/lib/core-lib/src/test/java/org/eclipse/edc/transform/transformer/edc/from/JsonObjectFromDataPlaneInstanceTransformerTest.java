@@ -18,7 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonString;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +50,7 @@ class JsonObjectFromDataPlaneInstanceTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectFromDataPlaneInstanceTransformer(Json.createBuilderFactory(Map.of()), typeManager, "test");
-        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+        when(typeManager.getMapper("test")).thenReturn(JsonMapperFactory.defaultJsonMapper());
     }
 
     @Test

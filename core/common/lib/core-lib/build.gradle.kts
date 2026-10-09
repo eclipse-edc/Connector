@@ -24,8 +24,10 @@ dependencies {
     api(project(":spi:decentralized-claims-spi"))
     api(libs.nimbus.jwt) // nimbus classes are exposed on the API surface of CryptoConverter and DefaultJwsSignerProvider
     api(libs.bouncyCastle.bcpkixJdk18on)
+    api(libs.jakarta.json.api)
+    api(libs.jackson.datatype.jakarta.jsonp)
+    api(libs.titaniumJsonLd)
 
-    implementation(project(":core:common:lib:jsonld-lib"))
     // Java does not natively implement elliptic curve multiplication, so we need to get bouncy
     implementation(libs.bouncyCastle.bcprovJdk18on)
     // used for the Ed25519 Verifier in conjunction with OctetKeyPairs (OKP)
@@ -40,8 +42,7 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":core:common:junit")))
-    testImplementation(project(":core:common:lib:jsonld-lib"))
-    testImplementation(testFixtures(project(":core:common:lib:jsonld-lib")))
+    testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     testImplementation(testFixtures(project(":spi:core-spi")))
     testImplementation(testFixtures(project(":spi:decentralized-claims-spi")))
     testImplementation(project(":extensions:common:json-ld"))
@@ -61,4 +62,6 @@ dependencies {
     testFixturesImplementation(libs.nimbus.jwt)
     testFixturesImplementation(libs.nats.client)
     testFixturesImplementation(libs.testcontainers.junit)
+
+    testFixturesApi(project(":spi:core-spi"))
 }

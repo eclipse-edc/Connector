@@ -32,11 +32,11 @@ dependencies {
 
     testImplementation(testFixtures(project(":core:common:junit")))
     testImplementation(project(":extensions:common:crypto:lib:jws2020-lib"))
-    testImplementation(project(":core:common:lib:jsonld-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
 
     // deps for test fixtures
     testFixturesImplementation(project(":spi:core-spi"))
-    testFixturesImplementation(project(":core:common:lib:jsonld-lib"))
+    testFixturesImplementation(project(":core:common:lib:core-lib"))
     testFixturesImplementation(project(":extensions:common:crypto:lib:jws2020-lib"))
     testFixturesApi(libs.nimbus.jwt)
     testFixturesApi(testFixtures(project(":extensions:common:crypto:lib:jws2020-lib")))

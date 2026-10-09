@@ -16,8 +16,8 @@ package org.eclipse.edc.protocol.dsp.catalog.http.api.decorator;
 
 import jakarta.json.Json;
 import org.apache.commons.codec.binary.Base64;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -51,7 +51,7 @@ class Base64ContinuationTokenSerDesTest {
 
     private final TypeManager typeManager = mock();
     private final TypeTransformerRegistryImpl typeTransformerRegistry = new TypeTransformerRegistryImpl(mock());
-    private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapperFactory.defaultJsonMapper();
     private final Base64continuationTokenSerDes serDes = new Base64continuationTokenSerDes(typeTransformerRegistry, new TitaniumJsonLd(mock()));
 
     @BeforeEach

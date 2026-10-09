@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.controlplane.transform.to;
 
 import jakarta.json.Json;
 import org.assertj.core.api.Assertions;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
@@ -42,7 +42,7 @@ class JsonObjectToCallbackAddressTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToCallbackAddressTransformer();
-        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+        when(typeManager.getMapper("test")).thenReturn(JsonMapperFactory.defaultJsonMapper());
     }
 
     @Test

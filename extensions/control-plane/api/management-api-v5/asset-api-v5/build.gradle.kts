@@ -25,7 +25,6 @@ dependencies {
     api(project(":spi:control-plane-spi"))
 
     implementation(project(":core:common:lib:core-lib"))
-    implementation(project(":core:common:lib:jsonld-lib"))
     implementation(libs.jakarta.rsApi)
     implementation(libs.jakarta.annotation)
 

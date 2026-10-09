@@ -23,6 +23,5 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:core-lib"))
-    testImplementation(project(":core:common:lib:jsonld-lib"))
     testImplementation(testFixtures(project(":spi:core-spi")))
 }

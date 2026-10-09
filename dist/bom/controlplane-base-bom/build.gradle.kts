@@ -56,7 +56,7 @@ dependencies {
 
 
     // libs
-    api(project(":core:common:lib:jsonld-lib"))
+    api(project(":core:common:lib:core-lib"))
 }
 
 edcBuild {

@@ -24,7 +24,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.transform.Payload;
 import org.eclipse.edc.controlplane.DataAddress;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +67,7 @@ class JsonObjectFromAssetTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectFromAssetTransformer(Json.createBuilderFactory(Map.of()), typeManager, "test");
-        when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+        when(typeManager.getMapper("test")).thenReturn(JsonMapperFactory.defaultJsonMapper());
         when(context.transform(isA(DataplaneMetadata.class), eq(JsonObject.class)))
                 .thenReturn(createObjectBuilder().add(EDC_ASSET_DATAPLANE_METADATA, createObjectBuilder()).build());
     }

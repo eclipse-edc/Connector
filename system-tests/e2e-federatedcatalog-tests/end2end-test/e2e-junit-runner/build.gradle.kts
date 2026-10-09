@@ -18,7 +18,7 @@ plugins {
 
 dependencies {
     testImplementation(project(":spi:control-plane-spi"))
-    testImplementation(project(":core:common:lib:jsonld-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(project(":core:control-plane:control-plane-transform"))
     testImplementation(libs.awaitility)
     testImplementation(project(":data-protocols:dsp:dsp-lib"))

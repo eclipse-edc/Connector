@@ -18,7 +18,7 @@ import com.apicatalog.jsonld.loader.SchemeRouter;
 import com.apicatalog.ld.DocumentError;
 import com.apicatalog.ld.signature.VerificationError;
 import com.apicatalog.vc.verifier.Verifier;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +29,7 @@ import static org.eclipse.edc.security.signature.jws2020.TestFunctions.readResou
 
 class VerifierTests {
 
-    private final Jws2020SignatureSuite jws2020suite = new Jws2020SignatureSuite(JacksonJsonLd.createObjectMapper());
+    private final Jws2020SignatureSuite jws2020suite = new Jws2020SignatureSuite(JsonMapperFactory.defaultJsonMapper());
     private final TestDocumentLoader loader = new TestDocumentLoader("https://org.eclipse.edc/", "jws2020/verifying/", SchemeRouter.defaultInstance());
     private final Verifier verifier = Verifier.with(jws2020suite).loader(loader);
 

@@ -18,7 +18,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.decentralizedclaims.transform.TestContextProvider;
 import org.eclipse.edc.iam.decentralizedclaims.transform.from.JsonObjectFromPresentationResponseMessageTransformer;
 import org.eclipse.edc.iam.decentralizedclaims.transform.to.JsonObjectToPresentationResponseMessageTransformer;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TransformerContextImpl;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 public class PresentationResponseMessageSerdeTest {
 
 
-    private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
+    private final ObjectMapper mapper = JsonMapperFactory.defaultJsonMapper();
     private final TypeManager typeManager = mock();
     private final TypeTransformerRegistry trr = new TypeTransformerRegistryImpl(mock());
     private final TransformerContext context = new TransformerContextImpl(trr);

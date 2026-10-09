@@ -19,7 +19,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +47,7 @@ class JsonObjectFromContractAgreementTransformerTest {
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromContractAgreementTransformer(Json.createBuilderFactory(Map.of()), JacksonJsonLd::createObjectMapper);
+        transformer = new JsonObjectFromContractAgreementTransformer(Json.createBuilderFactory(Map.of()), () -> JsonMapperFactory.defaultJsonMapper());
     }
 
     @Test

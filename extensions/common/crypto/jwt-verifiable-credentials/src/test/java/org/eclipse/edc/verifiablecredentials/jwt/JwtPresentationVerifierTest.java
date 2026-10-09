@@ -24,7 +24,7 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.VerifierContext;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -72,7 +72,7 @@ class JwtPresentationVerifierTest {
     private final PublicKeyResolver publicKeyResolverMock = mock();
     private final TokenValidationService tokenValidationService = new TokenValidationServiceImpl();
     private final TokenValidationRulesRegistry ruleRegistry = new TokenValidationRulesRegistryImpl();
-    private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
+    private final ObjectMapper mapper = JsonMapperFactory.defaultJsonMapper();
     private final TypeManager typeManager = mock();
     private final JwtPresentationVerifier verifier = new JwtPresentationVerifier(typeManager, "test", tokenValidationService, ruleRegistry, publicKeyResolverMock);
     private ECKey vpSigningKey;

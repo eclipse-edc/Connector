@@ -20,7 +20,7 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":spi:decentralized-claims-spi")))
     testImplementation(testFixtures(project(":spi:core-spi")))
-    testImplementation(project(":core:common:lib:jsonld-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(libs.awaitility)
 }
