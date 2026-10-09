@@ -44,6 +44,9 @@ public class ContractAgreement implements ParticipantResource {
     public static final String CONTRACT_AGREEMENT_SIGNING_DATE = EDC_NAMESPACE + "contractSigningDate";
     public static final String CONTRACT_AGREEMENT_POLICY = EDC_NAMESPACE + "policy";
     public static final String CONTRACT_AGREEMENT_CLAIMS = EDC_NAMESPACE + "claims";
+    public static final String CONTRACT_AGREEMENT_RETIRED = EDC_NAMESPACE + "retired";
+    public static final String CONTRACT_AGREEMENT_RETIREMENT_REASON = EDC_NAMESPACE + "retirementReason";
+    public static final String CONTRACT_AGREEMENT_RETIREMENT_DATE = EDC_NAMESPACE + "retirementDate";
 
     private String id;
     private String providerId;
@@ -54,6 +57,9 @@ public class ContractAgreement implements ParticipantResource {
     private String participantContextId;
     private String agreementId;
     private Map<String, Object> claims;
+    private boolean retired;
+    private String retirementReason;
+    private long retirementDate;
 
     private ContractAgreement() {
     }
@@ -144,6 +150,36 @@ public class ContractAgreement implements ParticipantResource {
         return claims;
     }
 
+    /**
+     * Whether this {@link ContractAgreement} has been retired. A retired agreement cannot be used to start new
+     * transfers and any ongoing transfer based on it is terminated.
+     *
+     * @return true if the agreement is retired, false otherwise.
+     */
+    public boolean isRetired() {
+        return retired;
+    }
+
+    /**
+     * The reason why this {@link ContractAgreement} has been retired, or null if it is not retired.
+     *
+     * @return the retirement reason.
+     */
+    public String getRetirementReason() {
+        return retirementReason;
+    }
+
+    /**
+     * The date when this {@link ContractAgreement} has been retired. <br>
+     * Numeric value representing the number of seconds from 1970-01-01T00:00:00Z UTC until the specified UTC date/time,
+     * or 0 if the agreement is not retired.
+     *
+     * @return the retirement date.
+     */
+    public long getRetirementDate() {
+        return retirementDate;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(id, providerId, consumerId, contractSigningDate, assetId, policy, participantContextId, agreementId);
@@ -174,7 +210,10 @@ public class ContractAgreement implements ParticipantResource {
                 .policy(policy)
                 .participantContextId(participantContextId)
                 .agreementId(agreementId)
-                .claims(claims);
+                .claims(claims)
+                .retired(retired)
+                .retirementReason(retirementReason)
+                .retirementDate(retirementDate);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -233,6 +272,21 @@ public class ContractAgreement implements ParticipantResource {
 
         public Builder claims(Map<String, Object> claims) {
             instance.claims = claims;
+            return this;
+        }
+
+        public Builder retired(boolean retired) {
+            instance.retired = retired;
+            return this;
+        }
+
+        public Builder retirementReason(String retirementReason) {
+            instance.retirementReason = retirementReason;
+            return this;
+        }
+
+        public Builder retirementDate(long retirementDate) {
+            instance.retirementDate = retirementDate;
             return this;
         }
 

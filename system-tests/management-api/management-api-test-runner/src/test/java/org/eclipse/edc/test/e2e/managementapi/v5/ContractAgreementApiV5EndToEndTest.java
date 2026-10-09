@@ -45,6 +45,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createArrayBuilder;
+import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
@@ -285,6 +287,114 @@ public class ContractAgreementApiV5EndToEndTest {
                     .log().ifValidationFails()
                     .statusCode(403)
                     .body(containsString("User '%s' is not authorized to access this resource.".formatted(otherParticipantId)));
+        }
+
+        @Test
+        void retireAgreement(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
+            var agreement = createContractAgreement("agreement-id");
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(retireAgreementBody("a reason"))
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractagreements/agreement-id/retire")
+                    .then()
+                    .log().ifError()
+                    .statusCode(204);
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractagreements/agreement-id")
+                    .then()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body("retired", is(true))
+                    .body("retirementReason", is("a reason"));
+        }
+
+        @Test
+        void retireAgreement_shouldReturnConflict_whenAlreadyRetired(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(retireAgreementBody("a reason"))
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractagreements/agreement-id/retire")
+                    .then()
+                    .statusCode(204);
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(retireAgreementBody("another reason"))
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractagreements/agreement-id/retire")
+                    .then()
+                    .statusCode(409);
+        }
+
+        @Test
+        void retireAgreement_shouldReturnNotFound_whenAgreementDoesNotExist(ManagementEndToEndV5TestContext context) {
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(retireAgreementBody("a reason"))
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractagreements/not-exist/retire")
+                    .then()
+                    .statusCode(404);
+        }
+
+        @Test
+        void retireAgreement_shouldReturnBadRequest_whenReasonMissing(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+
+            var body = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "RetireAgreement")
+                    .build();
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(body)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractagreements/agreement-id/retire")
+                    .then()
+                    .statusCode(400);
+        }
+
+        @Test
+        void retireAgreement_tokenBearerDoesNotOwnResource(ManagementEndToEndV5TestContext context, OauthServer authServer,
+                                                           ContractNegotiationStore store, ParticipantContextService srv) {
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+
+            var otherParticipantId = UUID.randomUUID().toString();
+            createParticipant(srv, otherParticipantId);
+            var token = authServer.createToken(otherParticipantId);
+
+            context.baseRequest(token)
+                    .contentType(JSON)
+                    .body(retireAgreementBody("a reason"))
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractagreements/agreement-id/retire")
+                    .then()
+                    .statusCode(403);
+        }
+
+        @Test
+        void retireAgreement_tokenLacksRequiredScope(ManagementEndToEndV5TestContext context, OauthServer authServer, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:read"));
+
+            context.baseRequest(token)
+                    .contentType(JSON)
+                    .body(retireAgreementBody("a reason"))
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractagreements/agreement-id/retire")
+                    .then()
+                    .statusCode(403);
+        }
+
+        private jakarta.json.JsonObject retireAgreementBody(String reason) {
+            return createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "RetireAgreement")
+                    .add("reason", reason)
+                    .build();
         }
 
         private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {

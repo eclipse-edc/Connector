@@ -88,6 +88,24 @@ public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStor
         return agreementQueryResolver.query(getAgreements(), querySpec);
     }
 
+    @Override
+    public StoreResult<Void> retireAgreement(ContractAgreement agreement) {
+        lock.writeLock().lock();
+        try {
+            return super.findAll()
+                    .filter(negotiation -> negotiation.getContractAgreement() != null)
+                    .filter(negotiation -> Objects.equals(agreement.getId(), negotiation.getContractAgreement().getId()))
+                    .findFirst()
+                    .map(negotiation -> {
+                        negotiation.setContractAgreement(agreement);
+                        return StoreResult.<Void>success();
+                    })
+                    .orElseGet(() -> StoreResult.notFound(format("ContractAgreement %s not found", agreement.getId())));
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
     @NotNull
     private Stream<ContractAgreement> getAgreements() {
         return super.findAll()

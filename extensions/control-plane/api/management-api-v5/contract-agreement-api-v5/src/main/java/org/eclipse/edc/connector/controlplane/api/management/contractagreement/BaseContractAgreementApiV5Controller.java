@@ -19,6 +19,7 @@ import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.RetireAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -35,6 +36,7 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import java.util.Optional;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.RetireAgreement.RETIRE_AGREEMENT_TYPE;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
@@ -101,6 +103,19 @@ public abstract class BaseContractAgreementApiV5Controller {
                 .map(it -> transformerRegistry.transform(it, JsonObject.class)
                         .orElseThrow(failure -> new EdcException(failure.getFailureDetail())))
                 .orElseThrow(() -> new ObjectNotFoundException(ContractAgreement.class, id));
+    }
+
+    public void retireAgreement(String participantContextId, String id, JsonObject requestBody, SecurityContext securityContext) {
+        authorizationService.authorize(securityContext, participantContextId, id, ContractAgreement.class)
+                .orElseThrow(exceptionMapper(ContractAgreement.class, id));
+
+        validatorRegistry.validate(RETIRE_AGREEMENT_TYPE, requestBody).orElseThrow(ValidationFailureException::new);
+
+        var retireAgreement = transformerRegistry.transform(requestBody, RetireAgreement.class)
+                .orElseThrow(InvalidRequestException::new);
+
+        service.retireAgreement(id, retireAgreement.reason())
+                .orElseThrow(exceptionMapper(ContractAgreement.class, id));
     }
 
 }
