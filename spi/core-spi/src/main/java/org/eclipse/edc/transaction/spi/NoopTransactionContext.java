@@ -25,15 +25,20 @@ public class NoopTransactionContext implements TransactionContext {
 
     @Override
     public void execute(TransactionBlock block) {
-        block.execute();
-        notifyAndClearSyncs();
+        try {
+            block.execute();
+        } finally {
+            notifyAndClearSyncs();
+        }
     }
 
     @Override
     public <T> T execute(ResultTransactionBlock<T> block) {
-        var result = block.execute();
-        notifyAndClearSyncs();
-        return result;
+        try {
+            return block.execute();
+        } finally {
+            notifyAndClearSyncs();
+        }
     }
 
     @Override
