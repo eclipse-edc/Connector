@@ -18,6 +18,8 @@ import org.eclipse.edc.connector.controlplane.test.system.utils.client.Managemen
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.ContractNegotiationDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.ContractRequestDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.QuerySpectDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.RejectNegotiationDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.TerminateNegotiationDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.WithContext;
 
 import java.util.Arrays;
@@ -78,6 +80,57 @@ public class ContractNegotiationApi {
                 .statusCode(200)
                 .contentType(JSON)
                 .extract().as(ContractNegotiationDto.class);
+    }
+
+    /**
+     * Terminates a contract negotiation.
+     *
+     * @param participantContextId the participant context ID
+     * @param negotiationId        the contract negotiation ID
+     * @param reason               the termination reason
+     */
+    public void terminate(String participantContextId, String negotiationId, String reason) {
+        connector.baseManagementRequest(participantContextId)
+                .contentType(JSON)
+                .body(new WithContext<>(new TerminateNegotiationDto(reason)))
+                .when()
+                .post("/v5/participants/%s/contractnegotiations/%s/terminate".formatted(participantContextId, negotiationId))
+                .then()
+                .log().ifValidationFails()
+                .statusCode(204);
+    }
+
+    /**
+     * Approves a provider contract negotiation held for manual approval.
+     *
+     * @param participantContextId the participant context ID
+     * @param negotiationId        the contract negotiation ID
+     */
+    public void approve(String participantContextId, String negotiationId) {
+        connector.baseManagementRequest(participantContextId)
+                .contentType(JSON)
+                .when()
+                .post("/v5/participants/%s/contractnegotiations/%s/approve".formatted(participantContextId, negotiationId))
+                .then()
+                .log().ifValidationFails()
+                .statusCode(204);
+    }
+
+    /**
+     * Rejects a provider contract negotiation held for manual approval.
+     *
+     * @param participantContextId the participant context ID
+     * @param negotiationId        the contract negotiation ID
+     */
+    public void reject(String participantContextId, String negotiationId) {
+        connector.baseManagementRequest(participantContextId)
+                .contentType(JSON)
+                .body(new WithContext<>(new RejectNegotiationDto()))
+                .when()
+                .post("/v5/participants/%s/contractnegotiations/%s/reject".formatted(participantContextId, negotiationId))
+                .then()
+                .log().ifValidationFails()
+                .statusCode(204);
     }
 
     public List<ContractNegotiationDto> search(String participantContextId, QuerySpectDto filter) {

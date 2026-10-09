@@ -80,6 +80,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -195,7 +196,7 @@ class ContractNegotiationTaskExecutorImplTest {
     }
 
     @Test
-    void handle_shouldSkipWhenPendingGuardMatches() {
+    void handle_shouldHoldWhenPendingGuardMatches() {
         var negotiation = createContractNegotiation("negotiation-123", INITIAL);
 
         var task = RequestNegotiation.Builder.newInstance()
@@ -210,6 +211,28 @@ class ContractNegotiationTaskExecutorImplTest {
         var result = executor.handle(task);
 
         assertThat(result.succeeded()).isTrue();
+        verify(negotiationStore).save(argThat(n -> n.isPending() && n.getState() == INITIAL.code()));
+        verify(taskService, never()).create(any());
+    }
+
+    @Test
+    void handle_shouldSkipWhenNegotiationIsPending() {
+        var negotiation = createContractNegotiation("negotiation-123", INITIAL);
+        negotiation.setPending(true);
+
+        var task = RequestNegotiation.Builder.newInstance()
+                .processId("negotiation-123")
+                .processState(INITIAL.code())
+                .processType(CONSUMER.name())
+                .build();
+
+        when(negotiationStore.findById("negotiation-123")).thenReturn(negotiation);
+
+        var result = executor.handle(task);
+
+        assertThat(result.succeeded()).isTrue();
+        verify(pendingGuard, never()).test(any());
+        verify(negotiationStore, never()).save(any());
         verify(taskService, never()).create(any());
     }
 

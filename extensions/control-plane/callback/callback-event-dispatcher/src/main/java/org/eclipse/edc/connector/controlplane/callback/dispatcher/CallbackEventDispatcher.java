@@ -16,8 +16,10 @@ package org.eclipse.edc.connector.controlplane.callback.dispatcher;
 
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackClient;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry;
+import org.eclipse.edc.connector.controlplane.services.spi.callback.ParticipantCallbackResolver;
 import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.controlplane.CallbackAddresses;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantEvent;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
@@ -39,10 +41,17 @@ public class CallbackEventDispatcher implements EventSubscriber {
     private final boolean transactional;
     private final Monitor monitor;
     private final CallbackRegistry callbackRegistry;
+    private final ParticipantCallbackResolver participantCallbackResolver;
 
     public CallbackEventDispatcher(CallbackClient callbackClient, CallbackRegistry callbackRegistry, boolean transactional, Monitor monitor) {
+        this(callbackClient, callbackRegistry, (participantContextId, eventName) -> List.of(), transactional, monitor);
+    }
+
+    public CallbackEventDispatcher(CallbackClient callbackClient, CallbackRegistry callbackRegistry, ParticipantCallbackResolver participantCallbackResolver,
+                                   boolean transactional, Monitor monitor) {
         this.callbackClient = callbackClient;
         this.callbackRegistry = callbackRegistry;
+        this.participantCallbackResolver = participantCallbackResolver;
         this.transactional = transactional;
         this.monitor = monitor;
     }
@@ -54,18 +63,31 @@ public class CallbackEventDispatcher implements EventSubscriber {
 
         for (var callback : callbacks) {
             if (matches(eventName, callback)) {
-                try {
-                    callbackClient.dispatch(callback, eventEnvelope);
-                } catch (Exception e) {
-                    monitor.severe(format("Failed to invoke callback at URI: %s", callback.getUri()), e);
-                    throw new EdcException(e);
-                }
+                invoke(callback, () -> callbackClient.dispatch(callback, eventEnvelope));
             }
+        }
+
+        // participant callbacks resolve their secrets from the vault partition of the participant context
+        if (eventEnvelope.getPayload() instanceof ParticipantEvent participantEvent && participantEvent.getParticipantContextId() != null) {
+            var participantContextId = participantEvent.getParticipantContextId();
+            participantCallbackResolver.resolve(participantContextId, eventName).stream()
+                    .filter(cb -> cb.isTransactional() == transactional)
+                    .filter(cb -> matches(eventName, cb))
+                    .forEach(callback -> invoke(callback, () -> callbackClient.dispatch(callback, eventEnvelope, participantContextId)));
         }
     }
 
     public boolean isTransactional() {
         return transactional;
+    }
+
+    private void invoke(CallbackAddress callback, Runnable dispatch) {
+        try {
+            dispatch.run();
+        } catch (Exception e) {
+            monitor.severe(format("Failed to invoke callback at URI: %s", callback.getUri()), e);
+            throw new EdcException(e);
+        }
     }
 
     private <E extends Event> List<CallbackAddress> getCallbacks(EventEnvelope<E> eventEnvelope) {

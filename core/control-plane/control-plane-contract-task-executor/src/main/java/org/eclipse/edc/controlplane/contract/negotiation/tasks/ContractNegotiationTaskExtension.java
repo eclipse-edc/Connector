@@ -15,6 +15,7 @@
 package org.eclipse.edc.controlplane.contract.negotiation.tasks;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuardRegistry;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationProcessors;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
@@ -45,6 +46,8 @@ public class ContractNegotiationTaskExtension implements ServiceExtension {
     @Inject
     private ContractNegotiationPendingGuard pendingGuard;
     @Inject
+    private ContractNegotiationPendingGuardRegistry pendingGuardRegistry;
+    @Inject
     private Monitor monitor;
     @Inject
     private TaskService taskService;
@@ -69,7 +72,7 @@ public class ContractNegotiationTaskExtension implements ServiceExtension {
                 .clock(clock)
                 .store(contractNegotiationStore)
                 .transactionContext(transactionContext)
-                .pendingGuard(pendingGuard)
+                .pendingGuard(negotiation -> pendingGuard.test(negotiation) || pendingGuardRegistry.test(negotiation))
                 .monitor(monitor)
                 .build();
     }

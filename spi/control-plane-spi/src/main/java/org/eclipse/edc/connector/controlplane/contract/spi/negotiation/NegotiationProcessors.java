@@ -121,4 +121,12 @@ public interface NegotiationProcessors {
      * @return success if succeeded, failure otherwise.
      */
     CompletableFuture<StatusResult<Void>> processTerminating(ContractNegotiation negotiation);
+
+    /**
+     * Processes a {@link ContractNegotiation} matched by a {@link ContractNegotiationPendingGuard}. It sets the negotiation
+     * as pending, so it waits for an external interaction, and notifies the listeners that it has been held.
+     *
+     * @return success if succeeded, failure otherwise.
+     */
+    CompletableFuture<StatusResult<Void>> processHeld(ContractNegotiation negotiation);
 }

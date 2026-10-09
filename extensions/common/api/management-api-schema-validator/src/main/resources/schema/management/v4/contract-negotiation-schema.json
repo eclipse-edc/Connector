@@ -32,6 +32,9 @@
         "state": {
           "type": "string"
         },
+        "pending": {
+          "type": "boolean"
+        },
         "stateTimestamp": {
           "type": "integer"
         },

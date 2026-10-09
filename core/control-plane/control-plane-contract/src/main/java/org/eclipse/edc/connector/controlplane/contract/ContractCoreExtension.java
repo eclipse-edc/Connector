@@ -20,11 +20,15 @@ package org.eclipse.edc.connector.controlplane.contract;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.listener.ContractNegotiationEventListener;
+import org.eclipse.edc.connector.controlplane.contract.negotiation.ContractNegotiationApprovalGuard;
+import org.eclipse.edc.connector.controlplane.contract.negotiation.ContractNegotiationPendingGuardRegistryImpl;
 import org.eclipse.edc.connector.controlplane.contract.negotiation.NegotiationProcessorsImpl;
 import org.eclipse.edc.connector.controlplane.contract.policy.PolicyEquality;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuardRegistry;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationProcessors;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.contract.spi.policy.ApprovalContractNegotiationPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.policy.ContractNegotiationPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.policy.TransferProcessPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -41,6 +45,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -51,13 +56,14 @@ import org.eclipse.edc.statemachine.StateMachineConfiguration;
 import java.time.Clock;
 
 import static org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext.CATALOG_SCOPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.policy.ApprovalContractNegotiationPolicyContext.APPROVAL_SCOPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.policy.ContractNegotiationPolicyContext.NEGOTIATION_SCOPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.policy.TransferProcessPolicyContext.TRANSFER_SCOPE;
 import static org.eclipse.edc.connector.controlplane.policy.contract.ContractExpiryCheckFunction.CONTRACT_EXPIRY_EVALUATION_KEY;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_USE_ACTION_ATTRIBUTE;
 
 @Provides({
-        ContractValidationService.class
+        ContractValidationService.class, ContractNegotiationPendingGuardRegistry.class
 })
 @Extension(value = ContractCoreExtension.NAME)
 public class ContractCoreExtension implements ServiceExtension {
@@ -66,6 +72,10 @@ public class ContractCoreExtension implements ServiceExtension {
 
     @Configuration(context = "edc.negotiation")
     private StateMachineConfiguration stateMachineConfiguration;
+
+    @Setting(description = "Enables the manual approval of provider contract negotiations, driven by the contract policy evaluation in the 'approval.contract.negotiation' scope",
+            key = "edc.negotiation.approval.enabled", defaultValue = "false")
+    private boolean approvalEnabled;
 
     @Inject
     private AssetIndex assetIndex;
@@ -101,6 +111,7 @@ public class ContractCoreExtension implements ServiceExtension {
         policyEngine.registerScope(CATALOG_SCOPE, CatalogPolicyContext.class);
         policyEngine.registerScope(NEGOTIATION_SCOPE, ContractNegotiationPolicyContext.class);
         policyEngine.registerScope(TRANSFER_SCOPE, TransferProcessPolicyContext.class);
+        policyEngine.registerScope(APPROVAL_SCOPE, ApprovalContractNegotiationPolicyContext.class);
         registerServices(context);
     }
 
@@ -120,9 +131,18 @@ public class ContractCoreExtension implements ServiceExtension {
         policyEngine.bindScope(ODRL_USE_ACTION_ATTRIBUTE, TRANSFER_SCOPE);
         policyEngine.bindScope(CONTRACT_EXPIRY_EVALUATION_KEY, TRANSFER_SCOPE);
 
+        // bind the use action to the approval scope, so that permissions are not filtered out when evaluating approval
+        policyEngine.bindScope(ODRL_USE_ACTION_ATTRIBUTE, APPROVAL_SCOPE);
+
         policyEngine.registerFunction(TransferProcessPolicyContext.class, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY,
                 new ContractExpiryCheckFunction<>());
 
         observable.registerListener(new ContractNegotiationEventListener(eventRouter));
+
+        var pendingGuardRegistry = new ContractNegotiationPendingGuardRegistryImpl();
+        if (approvalEnabled) {
+            pendingGuardRegistry.register(new ContractNegotiationApprovalGuard(policyEngine, monitor));
+        }
+        context.registerService(ContractNegotiationPendingGuardRegistry.class, pendingGuardRegistry);
     }
 }

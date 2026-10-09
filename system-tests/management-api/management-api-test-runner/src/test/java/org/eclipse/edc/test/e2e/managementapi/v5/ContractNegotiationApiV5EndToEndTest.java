@@ -599,6 +599,97 @@ public class ContractNegotiationApiV5EndToEndTest {
         }
 
         @Test
+        void approve(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.PROVIDER).pending(true).build());
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/approve")
+                    .then()
+                    .log().ifError()
+                    .statusCode(204);
+
+            var negotiation = store.findById("cn1");
+            assertThat(negotiation.isPending()).isFalse();
+            assertThat(negotiation.getState()).isNotEqualTo(REQUESTED.code());
+        }
+
+        @Test
+        void approve_shouldReturnConflict_whenNotPending(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.PROVIDER).build());
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/approve")
+                    .then()
+                    .statusCode(409);
+        }
+
+        @Test
+        void approve_tokenBearerDoesNotOwnResource(ManagementEndToEndV5TestContext context, OauthServer authServer,
+                                                   ContractNegotiationStore store, ParticipantContextService srv) {
+            store.save(createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.PROVIDER).pending(true).build());
+            var otherParticipantId = UUID.randomUUID().toString();
+            createParticipant(srv, otherParticipantId);
+
+            context.baseRequest(authServer.createToken(otherParticipantId))
+                    .contentType(JSON)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/approve")
+                    .then()
+                    .statusCode(403);
+
+            assertThat(store.findById("cn1").isPending()).isTrue();
+        }
+
+        @Test
+        void reject(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.PROVIDER).pending(true).build());
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(rejectRequestBody().toString())
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/reject")
+                    .then()
+                    .log().ifError()
+                    .statusCode(204);
+
+            var negotiation = store.findById("cn1");
+            assertThat(negotiation.isPending()).isFalse();
+            assertThat(negotiation.getErrorDetail()).isEqualTo("Negotiation manually rejected");
+        }
+
+        @Test
+        void reject_shouldReturnConflict_whenConsumer(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.CONSUMER).pending(true).build());
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(rejectRequestBody().toString())
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/reject")
+                    .then()
+                    .statusCode(409);
+        }
+
+        @Test
+        void reject_tokenLacksRequiredScope(ManagementEndToEndV5TestContext context, OauthServer authServer, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.PROVIDER).pending(true).build());
+
+            context.baseRequest(authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:missing")))
+                    .contentType(JSON)
+                    .body(rejectRequestBody().toString())
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/reject")
+                    .then()
+                    .statusCode(403);
+        }
+
+        private JsonObject rejectRequestBody() {
+            return createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "RejectNegotiation")
+                    .build();
+        }
+
+        @Test
         void delete(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
             store.save(createContractNegotiationBuilder("cn1")
                     .state(TERMINATED.code()).build());

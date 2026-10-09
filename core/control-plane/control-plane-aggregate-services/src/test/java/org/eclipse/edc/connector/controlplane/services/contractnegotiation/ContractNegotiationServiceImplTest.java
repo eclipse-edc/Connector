@@ -16,7 +16,9 @@ package org.eclipse.edc.connector.controlplane.services.contractnegotiation;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.ApproveNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.InitiateNegotiationCommand;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.RejectNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
@@ -240,6 +242,46 @@ class ContractNegotiationServiceImplTest {
         var result = service.terminate(command);
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+    }
+
+    @Test
+    void approve_shouldExecuteCommand() {
+        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success());
+        var command = new ApproveNegotiationCommand("negotiationId");
+
+        var result = service.approve(command);
+
+        assertThat(result).isSucceeded();
+        verify(commandHandlerRegistry).execute(command);
+    }
+
+    @Test
+    void approve_shouldFail_whenCommandConflicts() {
+        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.conflict("not pending"));
+
+        var result = service.approve(new ApproveNegotiationCommand("negotiationId"));
+
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+    }
+
+    @Test
+    void reject_shouldExecuteCommand() {
+        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success());
+        var command = new RejectNegotiationCommand("negotiationId");
+
+        var result = service.reject(command);
+
+        assertThat(result).isSucceeded();
+        verify(commandHandlerRegistry).execute(command);
+    }
+
+    @Test
+    void reject_shouldFail_whenCommandConflicts() {
+        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.conflict("not pending"));
+
+        var result = service.reject(new RejectNegotiationCommand("negotiationId"));
+
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
     }
 
     private ContractNegotiation createContractNegotiation(String negotiationId) {

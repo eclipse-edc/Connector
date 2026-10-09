@@ -26,7 +26,6 @@ import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
 import java.util.List;
@@ -34,7 +33,6 @@ import java.util.UUID;
 
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
@@ -44,6 +42,7 @@ import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,21 +67,18 @@ class ProviderContractNegotiationManagerImplTest {
     }
 
     @Test
-    void pendingGuard_shouldSetTheNegotiationPending_whenPendingGuardMatches() {
+    void pendingGuard_shouldHoldTheNegotiation_whenPendingGuardMatches() {
         when(pendingGuard.test(any())).thenReturn(true);
         var negotiation = contractNegotiationBuilder().state(AGREEING.code()).build();
         when(store.nextNotLeased(anyInt(), stateIs(AGREEING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
-        when(negotiationProcessors.processAgreeing(any())).thenReturn(completedFuture(success()));
+        when(negotiationProcessors.processHeld(any())).thenReturn(completedFuture(success()));
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(pendingGuard).test(any());
-            var captor = ArgumentCaptor.forClass(ContractNegotiation.class);
-            verify(store).save(captor.capture());
-            var saved = captor.getValue();
-            assertThat(saved.getState()).isEqualTo(AGREEING.code());
-            assertThat(saved.isPending()).isTrue();
+            verify(negotiationProcessors).processHeld(negotiation);
+            verify(negotiationProcessors, never()).processAgreeing(any());
         });
     }
 

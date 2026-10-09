@@ -49,6 +49,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreemen
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState.NEGOTIATION_STATE_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.RejectNegotiation.REJECT_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE_TERM;
@@ -114,6 +115,7 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
             put(CONTRACT_NEGOTIATION_TYPE_TERM, V4.CONTRACT_NEGOTIATION);
             put(NEGOTIATION_STATE_TYPE_TERM, V4.CONTRACT_NEGOTIATION_STATE);
             put(TERMINATE_NEGOTIATION_TYPE_TERM, V4.TERMINATE_NEGOTIATION);
+            put(REJECT_NEGOTIATION_TYPE_TERM, V4.REJECT_NEGOTIATION);
             put(CONTRACT_AGREEMENT_TYPE_TERM, V4.CONTRACT_AGREEMENT);
             put(TRANSFER_REQUEST_TYPE_TERM, V4.TRANSFER_REQUEST);
             put(TRANSFER_PROCESS_TYPE_TERM, V4.TRANSFER_PROCESS);

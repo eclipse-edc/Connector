@@ -62,6 +62,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> imp
     public static final String CONTRACT_NEGOTIATION_PROTOCOL = EDC_NAMESPACE + "protocol";
     public static final String CONTRACT_NEGOTIATION_PROFILE = EDC_NAMESPACE + "profile";
     public static final String CONTRACT_NEGOTIATION_STATE = EDC_NAMESPACE + "state";
+    public static final String CONTRACT_NEGOTIATION_PENDING = EDC_NAMESPACE + "pending";
     public static final String CONTRACT_NEGOTIATION_NEG_TYPE = EDC_NAMESPACE + "type";
     public static final String CONTRACT_NEGOTIATION_CALLBACK_ADDR = EDC_NAMESPACE + "callbackAddresses";
     public static final String CONTRACT_NEGOTIATION_CORRELATION_ID = EDC_NAMESPACE + "correlationId";

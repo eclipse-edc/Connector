@@ -78,6 +78,17 @@ public class ParticipantContextConfigImplTest {
 
 
     @ParameterizedTest
+    @ArgumentsSource(SettingProviderWithDefault.class)
+    <T> void shouldGetDefault_whenConfigNotFound(SettingCallWithDefault<T> setting, String key, T defaultValue) {
+
+        when(store.get(PARTICIPANT_CONTEXT_ID)).thenReturn(null);
+
+        var result = setting.call(contextConfig, PARTICIPANT_CONTEXT_ID, key, defaultValue);
+
+        assertThat(result).isEqualTo(defaultValue);
+    }
+
+    @ParameterizedTest
     @ArgumentsSource(SettingProvider.class)
     void notFound(SettingCall setting, String key, String value, Object expectedValue) {
 
