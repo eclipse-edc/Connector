@@ -44,6 +44,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.eclipse.edc.spi.iam.IdentityService;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -134,10 +135,12 @@ public class DcpCoreExtension implements ServiceExtension {
 
     private PresentationVerifier presentationVerifier;
     private ScheduledFuture<?> jtiEntryReaperThread;
+    private Monitor monitor;
 
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        monitor = context.getMonitor();
         discoveryService.registerResolver(new DidDiscoveryUrlResolver(didResolverRegistry));
 
         // add all rules for self-issued ID tokens
@@ -169,7 +172,7 @@ public class DcpCoreExtension implements ServiceExtension {
     public void start() {
         if (activateJtiValidation) {
             jtiEntryReaperThread = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), "JTI Validation Entry Reaper Thread")
-                    .scheduleAtFixedRate(jtiValidationStore::deleteExpired, reaperCleanupPeriod, reaperCleanupPeriod, TimeUnit.SECONDS);
+                    .scheduleAtFixedRate(this::deleteExpiredJtiEntries, reaperCleanupPeriod, reaperCleanupPeriod, TimeUnit.SECONDS);
         }
     }
 
@@ -177,6 +180,16 @@ public class DcpCoreExtension implements ServiceExtension {
     public void shutdown() {
         if (jtiEntryReaperThread != null && !jtiEntryReaperThread.isCancelled()) {
             jtiEntryReaperThread.cancel(true);
+        }
+    }
+
+    private void deleteExpiredJtiEntries() {
+        // an exception would end the periodic execution, e.g. when the database is not reachable for a moment
+        try {
+            jtiValidationStore.deleteExpired()
+                    .onFailure(f -> monitor.warning("Failed to delete expired JTI entries: %s".formatted(f.getFailureDetail())));
+        } catch (RuntimeException e) {
+            monitor.warning("Failed to delete expired JTI entries", e);
         }
     }
 

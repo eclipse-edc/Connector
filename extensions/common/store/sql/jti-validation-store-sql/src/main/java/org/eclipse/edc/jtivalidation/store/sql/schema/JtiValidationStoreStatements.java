@@ -38,5 +38,11 @@ public interface JtiValidationStoreStatements extends SqlStatements {
 
     String getInsertTemplate();
 
+    /**
+     * Inserts an entry, or replaces an expired entry with the same token ID. Changes nothing if an entry with the same token
+     * ID exists that is not expired. Parameters: the token ID, the expiration time and the current time, in epoch millis.
+     */
+    String getInsertOrReplaceExpiredTemplate();
+
     String deleteWhereExpiredTemplate();
 }

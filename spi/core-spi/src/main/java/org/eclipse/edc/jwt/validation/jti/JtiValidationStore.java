@@ -15,11 +15,20 @@
 package org.eclipse.edc.jwt.validation.jti;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 
 @ExtensionPoint
 public interface JtiValidationStore {
 
+    /**
+     * Stores an entry, unless an entry with the same token ID exists that is not expired. An expired entry is replaced.
+     * This is atomic, so that of several concurrent calls with the same token ID, only one succeeds.
+     *
+     * @param entry the entry to store
+     * @return success if the entry was stored, a failure with reason {@link StoreFailure.Reason#ALREADY_EXISTS} if an entry
+     *         with the same token ID exists that is not expired
+     */
     StoreResult<Void> storeEntry(JtiValidationEntry entry);
 
     JtiValidationEntry findById(String id, boolean autoRemove);

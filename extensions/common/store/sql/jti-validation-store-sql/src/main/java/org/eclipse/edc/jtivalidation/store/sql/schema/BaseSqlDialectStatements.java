@@ -47,6 +47,14 @@ public class BaseSqlDialectStatements implements JtiValidationStoreStatements {
     }
 
     @Override
+    public String getInsertOrReplaceExpiredTemplate() {
+        return executeStatement()
+                .column(getTokenIdColumn())
+                .column(getExpirationTimeColumn())
+                .upsertInto(getJtiValidationTable(), getTokenIdColumn(), "%s.%s < ?".formatted(getJtiValidationTable(), getExpirationTimeColumn()));
+    }
+
+    @Override
     public String deleteWhereExpiredTemplate() {
         return executeStatement().delete(getJtiValidationTable(), new Criterion(getExpirationTimeColumn(), "<", "?"));
     }
