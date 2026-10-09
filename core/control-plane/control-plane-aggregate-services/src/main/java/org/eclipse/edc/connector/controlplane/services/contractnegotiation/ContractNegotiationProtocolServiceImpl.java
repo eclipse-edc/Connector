@@ -107,11 +107,11 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
 
                             if (message.getProviderPid() == null) {
                                 var negotiation = createNegotiation(participantContext, message, agent.getIdentity(), PROVIDER, message.getCallbackAddress());
-                                return requestedAction(message, negotiation, contractOffer);
+                                return requestedAction(message, negotiation, contractOffer, agent);
                             }
 
                             return onMessageDo(participantContext, message, agent,
-                                    negotiation -> requestedAction(message, negotiation, contractOffer));
+                                    negotiation -> requestedAction(message, negotiation, contractOffer, agent));
                         })
                 ));
     }
@@ -257,10 +257,12 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
         return ServiceResult.notFound("Not found");
     }
 
-    private ServiceResult<ContractNegotiation> requestedAction(ContractRequestMessage message, ContractNegotiation negotiation, ContractOffer contractOffer) {
+    private ServiceResult<ContractNegotiation> requestedAction(ContractRequestMessage message, ContractNegotiation negotiation, ContractOffer contractOffer, ParticipantAgent agent) {
         if (negotiation.getType().equals(PROVIDER) && negotiation.canBeRequestedProvider()) {
             negotiation.protocolMessageReceived(message.getId());
             negotiation.addContractOffer(contractOffer);
+            // the claims of the latest verified request are used, e.g. by the approval of the negotiation
+            negotiation.setClaims(agent.getClaims());
             negotiation.transitionRequested();
             return update(negotiation)
                     .onSuccess(i -> observable.invokeForEach(l -> l.requested(negotiation)))

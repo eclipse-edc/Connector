@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.edc.sql.lease.StatefulEntityMapping;
+import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 
 /**
  * Maps fields of a {@link ContractNegotiation}
@@ -33,6 +34,7 @@ public class ContractNegotiationMapping extends StatefulEntityMapping {
     private static final String FIELD_CONTRACT_AGREEMENT = "contractAgreement";
     private static final String FIELD_TRACECONTEXT = "traceContext";
     private static final String FIELD_PENDING = "pending";
+    private static final String FIELD_CLAIMS = "claims";
 
     public ContractNegotiationMapping(ContractNegotiationStatements statements) {
         super(statements, state -> ContractNegotiationStates.valueOf(state).code());
@@ -45,6 +47,7 @@ public class ContractNegotiationMapping extends StatefulEntityMapping {
         add(FIELD_CONTRACT_AGREEMENT, new ContractAgreementMapping(statements));
         add(FIELD_TRACECONTEXT, statements.getTraceContextColumn());
         add(FIELD_PARTICIPANT_CONTEXT_ID, statements.getParticipantContextIdColumn());
+        add(FIELD_CLAIMS, new JsonFieldTranslator(statements.getNegotiationClaimsColumn()));
     }
 
 

@@ -30,8 +30,8 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
  * Holds provider negotiations in {@code REQUESTED} state whose contract policy is not fulfilled in the
  * {@link ApprovalContractNegotiationPolicyContext#APPROVAL_SCOPE} scope, so that they need to be approved manually.
  * <p>
- * The counterparty is represented by a {@link ParticipantAgent} rebuilt from the negotiation's counterparty id, without
- * claims, as they are not stored on the negotiation.
+ * The counterparty is represented by a {@link ParticipantAgent} rebuilt from the negotiation's counterparty id and the
+ * claims captured when the contract request was received.
  */
 public class ContractNegotiationApprovalGuard implements ContractNegotiationPendingGuard {
 
@@ -54,7 +54,8 @@ public class ContractNegotiationApprovalGuard implements ContractNegotiationPend
             return false;
         }
 
-        var agent = new ParticipantAgent(negotiation.getCounterPartyId(), Map.of(), Map.of());
+        var claims = negotiation.getClaims() == null ? Map.<String, Object>of() : negotiation.getClaims();
+        var agent = new ParticipantAgent(negotiation.getCounterPartyId(), claims, Map.of());
         var context = new ApprovalContractNegotiationPolicyContext(negotiation.getParticipantContextId(), agent);
         var result = policyEngine.evaluate(offer.getPolicy(), context);
         if (result.failed()) {

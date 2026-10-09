@@ -205,11 +205,29 @@ public abstract class ContractNegotiationStoreTestBase {
         }
 
         @Test
+        void shouldSaveEntity_withClaims() {
+            var negotiation = createNegotiationBuilder("test-id1")
+                    .type(ContractNegotiation.Type.PROVIDER)
+                    .claims(Map.of("claim", "value", "nested", Map.of("key", "value")))
+                    .build();
+            getContractNegotiationStore().save(negotiation);
+
+            var actual = getContractNegotiationStore().findById(negotiation.getId());
+
+            assertThat(actual).isNotNull();
+            assertThat(actual.getClaims()).isEqualTo(Map.of("claim", "value", "nested", Map.of("key", "value")));
+        }
+
+        @Test
         void shouldSaveAndRetrieve_whenAgreementExists() {
             var agreement = TestFunctions.createAgreementBuilder(ContractOfferId.create("definition", "asset").toString())
                     .claims(Map.of("claim", "value"))
                     .build();
-            var negotiation = createNegotiation("test-negotiation", agreement);
+            // negotiation and agreement claims are different, to verify they are stored separately
+            var negotiation = createNegotiationBuilder("test-negotiation")
+                    .contractAgreement(agreement)
+                    .claims(Map.of("negotiationClaim", "negotiationValue"))
+                    .build();
 
             getContractNegotiationStore().save(negotiation);
             var actual = getContractNegotiationStore().findById(negotiation.getId());
@@ -219,6 +237,8 @@ public abstract class ContractNegotiationStoreTestBase {
                     .usingRecursiveComparison()
                     .isEqualTo(negotiation);
             assertThat(actual.getContractAgreement()).usingRecursiveComparison().isEqualTo(agreement);
+            assertThat(actual.getClaims()).isEqualTo(Map.of("negotiationClaim", "negotiationValue"));
+            assertThat(actual.getContractAgreement().getClaims()).isEqualTo(Map.of("claim", "value"));
         }
     }
 
@@ -455,6 +475,19 @@ public abstract class ContractNegotiationStoreTestBase {
             var result = getContractNegotiationStore().queryNegotiations(querySpec);
 
             assertThat(result).extracting(ContractNegotiation::getId).containsOnly("test-neg-3");
+        }
+
+        @Test
+        void shouldFilterByClaim() {
+            var negotiation = createNegotiationBuilder("with-claims").claims(Map.of("claim", "value")).build();
+            getContractNegotiationStore().save(negotiation);
+            getContractNegotiationStore().save(createNegotiationBuilder("other-claims").claims(Map.of("claim", "other")).build());
+            getContractNegotiationStore().save(createNegotiation("no-claims"));
+            var querySpec = QuerySpec.Builder.newInstance().filter(criterion("claims.claim", "=", "value")).build();
+
+            var result = getContractNegotiationStore().queryNegotiations(querySpec);
+
+            assertThat(result).extracting(ContractNegotiation::getId).containsExactly("with-claims");
         }
 
         @Test

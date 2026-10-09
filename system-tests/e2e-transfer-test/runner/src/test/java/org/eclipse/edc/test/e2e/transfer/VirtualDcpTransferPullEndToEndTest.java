@@ -22,10 +22,14 @@ import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.CatalogDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.CatalogRequestDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.CelExpressionDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.ContractNegotiationDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.CriterionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.DatasetDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.DatasetRequestDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PermissionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.QuerySpectDto;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.iam.decentralizedclaims.spi.credentialservice.CredentialService;
 import org.eclipse.edc.iam.decentralizedclaims.spi.credentialservice.CredentialServiceEndToEndExtension;
 import org.eclipse.edc.iam.decentralizedclaims.spi.issuerservice.IssuerService;
@@ -56,16 +60,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.controlplane.contract.spi.policy.ApprovalContractNegotiationPolicyContext.APPROVAL_SCOPE;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER_DP;
 import static org.eclipse.edc.test.e2e.transfer.VirtualTransferEndToEndTestBase.CONSUMER_CONTEXT;
 import static org.eclipse.edc.test.e2e.transfer.VirtualTransferEndToEndTestBase.PROVIDER_CONTEXT;
@@ -356,6 +364,97 @@ class VirtualDcpTransferPullEndToEndTest {
 
         }
 
+        @Test
+        void policyMonitor_shouldNotTerminateTransfer_whenCredentialIsValid(ManagementApiClientV5 connectorClient,
+                                                                            Participants participants) {
+
+            // evaluated only by the policy monitor, against the claims stored on the agreement
+            var leftOperand = "https://w3id.org/example/monitor/MembershipCredential";
+            var expression = "ctx.agent.claims.vc.valid().withType('MembershipCredential').hasClaim('status', 'active')";
+
+            var expr = new CelExpressionDto(leftOperand, expression, Set.of("policy.monitor"), "membership monitor expression");
+            connectorClient.expressions().createExpression(expr);
+
+            var providerAddress = participants.provider().getProtocolEndpoint();
+            var policy = new PolicyDto(List.of(new PermissionDto(new AtomicConstraintDto(leftOperand, "eq", "active"))));
+
+            var assetId = setup(connectorClient, participants.provider(), policy);
+            var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.consumer().profile(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "NonFinite-PULL");
+
+            // the policy monitor evaluates the agreement policy multiple times during this period
+            await().during(Duration.ofSeconds(5)).atMost(Duration.ofSeconds(10)).untilAsserted(() ->
+                    assertThat(connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId).getState())
+                            .isEqualTo(TransferProcessStates.STARTED.name()));
+        }
+
+        @Test
+        void policyMonitor_shouldTerminateTransfer_whenCredentialIsMissing(ManagementApiClientV5 connectorClient,
+                                                                           Participants participants) {
+
+            var leftOperand = "https://w3id.org/example/monitor/DataAccessCredential";
+            var expression = "ctx.agent.claims.vc.hasCredential('DataAccessCredential')";
+
+            var expr = new CelExpressionDto(leftOperand, expression, Set.of("policy.monitor"), "data access monitor expression");
+            connectorClient.expressions().createExpression(expr);
+
+            var providerAddress = participants.provider().getProtocolEndpoint();
+            var policy = new PolicyDto(List.of(new PermissionDto(new AtomicConstraintDto(leftOperand, "eq", "active"))));
+
+            var assetId = setup(connectorClient, participants.provider(), policy);
+            var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.consumer().profile(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "NonFinite-PULL");
+
+            connectorClient.waitTransferInState(participants.consumer().contextId(), transferProcessId, TransferProcessStates.TERMINATED);
+        }
+
+        @Test
+        void negotiation_isApprovedAutomatically_withCredentialHelperFunction(ManagementApiClientV5 connectorClient,
+                                                                               Participants participants) {
+
+            var leftOperand = "https://w3id.org/example/approval/MembershipCredential";
+            var expression = "ctx.agent.claims.vc.valid().withType('MembershipCredential').hasClaim('status', 'active')";
+
+            var expr = new CelExpressionDto(leftOperand, expression, Set.of(APPROVAL_SCOPE), "membership approval expression");
+            connectorClient.expressions().createExpression(expr);
+
+            var providerAddress = participants.provider().getProtocolEndpoint();
+            var policy = new PolicyDto(List.of(new PermissionDto(new AtomicConstraintDto(leftOperand, "eq", "active"))));
+
+            var assetId = setup(connectorClient, participants.provider(), policy);
+            var negotiationId = connectorClient.initContractNegotiation(participants.consumer().contextId(), participants.consumer().profile(), assetId, providerAddress, participants.provider().id());
+
+            // the claims stored on the provider negotiation contain the consumer's MembershipCredential, so no manual approval is needed
+            connectorClient.waitForContractNegotiationState(participants.consumer().contextId(), negotiationId, ContractNegotiationStates.FINALIZED.name());
+        }
+
+        @Test
+        void negotiation_isHeld_withMissingCredentialHelperFunction_andApproved(ManagementApiClientV5 connectorClient,
+                                                                                Participants participants) {
+
+            var leftOperand = "https://w3id.org/example/approval/DataAccessCredential";
+            var expression = "ctx.agent.claims.vc.hasCredential('DataAccessCredential')";
+
+            var expr = new CelExpressionDto(leftOperand, expression, Set.of(APPROVAL_SCOPE), "data access approval expression");
+            connectorClient.expressions().createExpression(expr);
+
+            var providerAddress = participants.provider().getProtocolEndpoint();
+            var policy = new PolicyDto(List.of(new PermissionDto(new AtomicConstraintDto(leftOperand, "eq", "active"))));
+
+            var assetId = setup(connectorClient, participants.provider(), policy);
+            var negotiationId = connectorClient.initContractNegotiation(participants.consumer().contextId(), participants.consumer().profile(), assetId, providerAddress, participants.provider().id());
+
+            // the consumer has no DataAccessCredential, so the provider negotiation is held for manual approval
+            var providerNegotiation = await().until(() -> connectorClient.negotiations()
+                            .search(participants.provider().contextId(), new QuerySpectDto(List.of(new CriterionDto("correlationId", "=", negotiationId))))
+                            .stream().filter(ContractNegotiationDto::isPending).findFirst(),
+                    Optional::isPresent).orElseThrow();
+            assertThat(providerNegotiation.getState()).isEqualTo(ContractNegotiationStates.REQUESTED.name());
+
+            connectorClient.negotiations().approve(participants.provider().contextId(), providerNegotiation.getId());
+
+            connectorClient.waitForContractNegotiationState(participants.consumer().contextId(), negotiationId, ContractNegotiationStates.FINALIZED.name());
+            connectorClient.waitForContractNegotiationState(participants.provider().contextId(), providerNegotiation.getId(), ContractNegotiationStates.FINALIZED.name());
+        }
+
 
     }
 
@@ -451,6 +550,8 @@ class VirtualDcpTransferPullEndToEndTest {
                     put("edc.iam.dcp.scopes.data-access.type", "POLICY");
                     put("edc.iam.dcp.scopes.data-access.value", "org.eclipse.dspace.dcp.vc.type:DataAccessCredential:read");
                     put("edc.iam.dcp.scopes.data-access.prefix.mapping", "https://w3id.org/example/credentials/DataAccessCredential");
+                    put("edc.negotiation.approval.enabled", "true");
+                    put("edc.policy.monitor.period", "PT1S");
                 }
             });
         }
