@@ -14,13 +14,20 @@
 
 package org.eclipse.edc.jwt.validation.jti;
 
+import org.eclipse.edc.spi.result.StoreFailure;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 
 public abstract class JtiValidationStoreTestBase {
     @Test
@@ -39,6 +46,51 @@ public abstract class JtiValidationStoreTestBase {
         assertThat(getStore().storeEntry(new JtiValidationEntry("test-id", Instant.now().plusSeconds(10).toEpochMilli())))
                 .isFailed()
                 .detail().isEqualTo("JTI Validation Entry with ID 'test-id' already exists");
+    }
+
+    @Test
+    void storeEntry_whenExistingEntryIsExpired_shouldReplaceIt() {
+        getStore().storeEntry(new JtiValidationEntry("test-id", Instant.now().minusSeconds(10).toEpochMilli()));
+        var entry = new JtiValidationEntry("test-id", Instant.now().plusSeconds(10).toEpochMilli());
+
+        assertThat(getStore().storeEntry(entry)).isSucceeded();
+
+        assertThat(getStore().findById("test-id", false)).usingRecursiveComparison().isEqualTo(entry);
+    }
+
+    @Test
+    void storeEntry_whenExistingEntryHasNoExpiration_shouldFail() {
+        getStore().storeEntry(new JtiValidationEntry("test-id"));
+
+        assertThat(getStore().storeEntry(new JtiValidationEntry("test-id", Instant.now().plusSeconds(10).toEpochMilli())))
+                .isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_EXISTS);
+    }
+
+    @Test
+    void storeEntry_concurrently_shouldStoreOnce() throws Exception {
+        var threads = 16;
+        var barrier = new CyclicBarrier(threads);
+        var executor = Executors.newFixedThreadPool(threads);
+        try {
+            var tasks = range(0, threads).mapToObj(i -> (Callable<StoreResult<Void>>) () -> {
+                barrier.await(30, TimeUnit.SECONDS);
+                return getStore().storeEntry(new JtiValidationEntry("test-id", Instant.now().plusSeconds(10).toEpochMilli()));
+            }).toList();
+
+            var stored = 0;
+            for (var future : executor.invokeAll(tasks, 60, TimeUnit.SECONDS)) {
+                // rethrows an exception of the store, e.g. a violated primary key
+                var result = future.get();
+                if (result.succeeded()) {
+                    stored++;
+                } else {
+                    assertThat(result.reason()).isEqualTo(ALREADY_EXISTS);
+                }
+            }
+            assertThat(stored).isEqualTo(1);
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     @Test
