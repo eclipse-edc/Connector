@@ -169,6 +169,55 @@ public abstract class ContractNegotiationStoreTestBase {
     }
 
     @Nested
+    class RetireAgreement {
+
+        @Test
+        void retireAgreement_shouldPersistRetiredState() {
+            var agreement = createAgreement(ContractOfferId.create("test-cd1", "test-as1"));
+            getContractNegotiationStore().save(createNegotiation("test-cn1", agreement));
+            var retired = agreement.toBuilder()
+                    .retired(true)
+                    .retirementReason("a reason")
+                    .retirementDate(1234L)
+                    .build();
+
+            var result = getContractNegotiationStore().retireAgreement(retired);
+
+            assertThat(result).isSucceeded();
+            var stored = getContractNegotiationStore().findContractAgreement(agreement.getId());
+            assertThat(stored).isNotNull();
+            assertThat(stored.isRetired()).isTrue();
+            assertThat(stored.getRetirementReason()).isEqualTo("a reason");
+            assertThat(stored.getRetirementDate()).isEqualTo(1234L);
+        }
+
+        @Test
+        void retireAgreement_shouldReturnNotFound_whenAgreementDoesNotExist() {
+            var agreement = createAgreementBuilder("not-exist")
+                    .retired(true)
+                    .retirementReason("a reason")
+                    .build();
+
+            var result = getContractNegotiationStore().retireAgreement(agreement);
+
+            assertThat(result).isFailed();
+        }
+
+        @Test
+        void retireAgreement_retiredAgreementShouldBeQueryable() {
+            var agreement = createAgreement(ContractOfferId.create("test-cd1", "test-as1"));
+            getContractNegotiationStore().save(createNegotiation("test-cn1", agreement));
+            getContractNegotiationStore().retireAgreement(agreement.toBuilder().retired(true).retirementReason("a reason").build());
+
+            var query = QuerySpec.Builder.newInstance().filter(new Criterion("retired", "=", true)).build();
+
+            assertThat(getContractNegotiationStore().queryAgreements(query))
+                    .hasSize(1)
+                    .first().satisfies(it -> assertThat(it.isRetired()).isTrue());
+        }
+    }
+
+    @Nested
     class Save {
         @Test
         void shouldSaveEntity() {

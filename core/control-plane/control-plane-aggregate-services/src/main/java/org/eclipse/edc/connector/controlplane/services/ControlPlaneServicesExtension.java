@@ -208,7 +208,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public ContractAgreementService contractAgreementService() {
-        return new ContractAgreementServiceImpl(contractNegotiationStore, transactionContext, QueryValidators.contractAgreement());
+        return new ContractAgreementServiceImpl(contractNegotiationStore, transactionContext, QueryValidators.contractAgreement(), clock);
     }
 
     @Provider

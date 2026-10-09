@@ -23,10 +23,14 @@ import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -36,10 +40,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -49,7 +56,7 @@ class ContractAgreementServiceImplTest {
     private final ContractNegotiationStore store = mock();
     private final TransactionContext transactionContext = new NoopTransactionContext();
     private final QueryValidator queryValidator = mock();
-    private final ContractAgreementService service = new ContractAgreementServiceImpl(store, transactionContext, queryValidator);
+    private final ContractAgreementService service = new ContractAgreementServiceImpl(store, transactionContext, queryValidator, Clock.systemUTC());
 
     @Test
     void findById_filtersById() {
@@ -111,6 +118,44 @@ class ContractAgreementServiceImplTest {
         var result = service.findNegotiation("agreementId");
 
         assertThat(result).isNull();
+    }
+
+    @Nested
+    class RetireAgreement {
+        @Test
+        void retireAgreement_shouldRetireAgreement_whenFound() {
+            var agreement = createContractAgreement("agreementId");
+            when(store.findContractAgreement("agreementId")).thenReturn(agreement);
+            when(store.retireAgreement(any())).thenReturn(StoreResult.success());
+
+            var result = service.retireAgreement("agreementId", "a reason");
+
+            assertThat(result).isSucceeded();
+            verify(store).retireAgreement(argThat(a -> a.isRetired() &&
+                    "a reason".equals(a.getRetirementReason()) &&
+                    a.getRetirementDate() > 0));
+        }
+
+        @Test
+        void retireAgreement_shouldReturnNotFound_whenAgreementDoesNotExist() {
+            when(store.findContractAgreement("agreementId")).thenReturn(null);
+
+            var result = service.retireAgreement("agreementId", "a reason");
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+            verify(store, never()).retireAgreement(any());
+        }
+
+        @Test
+        void retireAgreement_shouldReturnConflict_whenAgreementAlreadyRetired() {
+            var agreement = createContractAgreement("agreementId").toBuilder().retired(true).build();
+            when(store.findContractAgreement("agreementId")).thenReturn(agreement);
+
+            var result = service.retireAgreement("agreementId", "a reason");
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            verify(store, never()).retireAgreement(any());
+        }
     }
 
     private ContractAgreement createContractAgreement(String agreementId) {

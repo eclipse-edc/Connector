@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.api.management.contractagreement;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.RetireAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.spi.EdcException;
@@ -32,6 +33,7 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import java.util.Optional;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.RetireAgreement.RETIRE_AGREEMENT_TYPE;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -82,6 +84,16 @@ public abstract class BaseContractAgreementApiController {
                 .map(it -> transformerRegistry.transform(it, JsonObject.class)
                         .orElseThrow(failure -> new EdcException(failure.getFailureDetail())))
                 .orElseThrow(() -> new ObjectNotFoundException(ContractAgreement.class, id));
+    }
+
+    public void retireAgreement(String id, JsonObject requestBody) {
+        validatorRegistry.validate(RETIRE_AGREEMENT_TYPE, requestBody).orElseThrow(ValidationFailureException::new);
+
+        var retireAgreement = transformerRegistry.transform(requestBody, RetireAgreement.class)
+                .orElseThrow(InvalidRequestException::new);
+
+        service.retireAgreement(id, retireAgreement.reason())
+                .orElseThrow(exceptionMapper(ContractAgreement.class, id));
     }
 
 }

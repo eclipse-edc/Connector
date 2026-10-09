@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.contract.listener.ContractNegotiat
 import org.eclipse.edc.connector.controlplane.contract.negotiation.ContractNegotiationApprovalGuard;
 import org.eclipse.edc.connector.controlplane.contract.negotiation.ContractNegotiationPendingGuardRegistryImpl;
 import org.eclipse.edc.connector.controlplane.contract.negotiation.NegotiationProcessorsImpl;
+import org.eclipse.edc.connector.controlplane.contract.policy.AgreementRetirementValidator;
 import org.eclipse.edc.connector.controlplane.contract.policy.PolicyEquality;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuardRegistry;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationProcessors;
@@ -36,6 +37,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractVa
 import org.eclipse.edc.connector.controlplane.contract.validation.ContractValidationServiceImpl;
 import org.eclipse.edc.connector.controlplane.policy.contract.ContractExpiryCheckFunction;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
+import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorContext;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Permission;
@@ -136,6 +138,9 @@ public class ContractCoreExtension implements ServiceExtension {
 
         policyEngine.registerFunction(TransferProcessPolicyContext.class, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY,
                 new ContractExpiryCheckFunction<>());
+
+        policyEngine.registerPreValidator(TransferProcessPolicyContext.class, new AgreementRetirementValidator<>());
+        policyEngine.registerPreValidator(PolicyMonitorContext.class, new AgreementRetirementValidator<>());
 
         observable.registerListener(new ContractNegotiationEventListener(eventRouter));
 

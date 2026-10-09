@@ -68,4 +68,18 @@ public interface ContractAgreementApiV5 {
     )
     JsonObject getNegotiationByAgreementIdV5(String participantContextId, String id, SecurityContext securityContext);
 
+    @Operation(description = "Retires a contract agreement with the given ID. A retired agreement cannot be used to " +
+            "start new transfers and the ongoing ones based on it are terminated.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "The contract agreement has been retired"),
+                    @ApiResponse(responseCode = "400", description = "Request body was malformed, e.g. the reason was missing",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
+                    @ApiResponse(responseCode = "404", description = "A contract agreement with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
+                    @ApiResponse(responseCode = "409", description = "The contract agreement is already retired",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
+            }
+    )
+    void retireAgreementV5(String participantContextId, String id, JsonObject requestBody, SecurityContext securityContext);
+
 }
