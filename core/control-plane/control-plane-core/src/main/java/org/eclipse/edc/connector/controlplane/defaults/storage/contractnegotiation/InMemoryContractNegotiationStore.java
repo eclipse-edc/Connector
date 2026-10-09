@@ -92,7 +92,7 @@ public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStor
     public StoreResult<Void> retireAgreement(ContractAgreement agreement) {
         lock.writeLock().lock();
         try {
-            return super.findAll()
+            return findAll()
                     .filter(negotiation -> negotiation.getContractAgreement() != null)
                     .filter(negotiation -> Objects.equals(agreement.getId(), negotiation.getContractAgreement().getId()))
                     .findFirst()

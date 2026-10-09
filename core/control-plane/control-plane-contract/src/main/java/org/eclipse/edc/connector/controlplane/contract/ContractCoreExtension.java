@@ -139,7 +139,6 @@ public class ContractCoreExtension implements ServiceExtension {
         policyEngine.registerFunction(TransferProcessPolicyContext.class, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY,
                 new ContractExpiryCheckFunction<>());
 
-        // retired agreements cannot be used to start new transfers, and the policy monitor terminates the ongoing ones
         policyEngine.registerPreValidator(TransferProcessPolicyContext.class, new AgreementRetirementValidator<>());
         policyEngine.registerPreValidator(PolicyMonitorContext.class, new AgreementRetirementValidator<>());
 

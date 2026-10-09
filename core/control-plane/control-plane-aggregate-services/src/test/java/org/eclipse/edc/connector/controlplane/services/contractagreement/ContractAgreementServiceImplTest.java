@@ -27,6 +27,7 @@ import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -119,39 +120,42 @@ class ContractAgreementServiceImplTest {
         assertThat(result).isNull();
     }
 
-    @Test
-    void retireAgreement_shouldRetireAgreement_whenFound() {
-        var agreement = createContractAgreement("agreementId");
-        when(store.findContractAgreement("agreementId")).thenReturn(agreement);
-        when(store.retireAgreement(any())).thenReturn(StoreResult.success());
+    @Nested
+    class RetireAgreement {
+        @Test
+        void retireAgreement_shouldRetireAgreement_whenFound() {
+            var agreement = createContractAgreement("agreementId");
+            when(store.findContractAgreement("agreementId")).thenReturn(agreement);
+            when(store.retireAgreement(any())).thenReturn(StoreResult.success());
 
-        var result = service.retireAgreement("agreementId", "a reason");
+            var result = service.retireAgreement("agreementId", "a reason");
 
-        assertThat(result).isSucceeded();
-        verify(store).retireAgreement(argThat(a -> a.isRetired() &&
-                "a reason".equals(a.getRetirementReason()) &&
-                a.getRetirementDate() > 0));
-    }
+            assertThat(result).isSucceeded();
+            verify(store).retireAgreement(argThat(a -> a.isRetired() &&
+                    "a reason".equals(a.getRetirementReason()) &&
+                    a.getRetirementDate() > 0));
+        }
 
-    @Test
-    void retireAgreement_shouldReturnNotFound_whenAgreementDoesNotExist() {
-        when(store.findContractAgreement("agreementId")).thenReturn(null);
+        @Test
+        void retireAgreement_shouldReturnNotFound_whenAgreementDoesNotExist() {
+            when(store.findContractAgreement("agreementId")).thenReturn(null);
 
-        var result = service.retireAgreement("agreementId", "a reason");
+            var result = service.retireAgreement("agreementId", "a reason");
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
-        verify(store, never()).retireAgreement(any());
-    }
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+            verify(store, never()).retireAgreement(any());
+        }
 
-    @Test
-    void retireAgreement_shouldReturnConflict_whenAgreementAlreadyRetired() {
-        var agreement = createContractAgreement("agreementId").toBuilder().retired(true).build();
-        when(store.findContractAgreement("agreementId")).thenReturn(agreement);
+        @Test
+        void retireAgreement_shouldReturnConflict_whenAgreementAlreadyRetired() {
+            var agreement = createContractAgreement("agreementId").toBuilder().retired(true).build();
+            when(store.findContractAgreement("agreementId")).thenReturn(agreement);
 
-        var result = service.retireAgreement("agreementId", "a reason");
+            var result = service.retireAgreement("agreementId", "a reason");
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        verify(store, never()).retireAgreement(any());
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            verify(store, never()).retireAgreement(any());
+        }
     }
 
     private ContractAgreement createContractAgreement(String agreementId) {

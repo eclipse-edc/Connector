@@ -38,6 +38,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createArrayBuilder;
+import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
@@ -125,6 +127,65 @@ public class ContractAgreementApiV4EndToEndTest {
                     .body(TYPE, equalTo("ContractNegotiation"))
                     .body(ID, is("negotiation-id"));
 
+        }
+
+        @Test
+        void retire(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .body(retireAgreementBody("a reason"))
+                    .post("/v4/contractagreements/agreement-id/retire")
+                    .then()
+                    .log().ifError()
+                    .statusCode(204);
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .get("/v4/contractagreements/agreement-id")
+                    .then()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body("retired", is(true))
+                    .body("retirementReason", is("a reason"));
+        }
+
+        @Test
+        void retire_shouldReturnConflict_whenAlreadyRetired(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .body(retireAgreementBody("a reason"))
+                    .post("/v4/contractagreements/agreement-id/retire")
+                    .then()
+                    .statusCode(204);
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .body(retireAgreementBody("another reason"))
+                    .post("/v4/contractagreements/agreement-id/retire")
+                    .then()
+                    .statusCode(409);
+        }
+
+        @Test
+        void retire_shouldReturnNotFound_whenAgreementDoesNotExist(ManagementEndToEndTestContext context) {
+            context.baseRequest()
+                    .contentType(JSON)
+                    .body(retireAgreementBody("a reason"))
+                    .post("/v4/contractagreements/not-exist/retire")
+                    .then()
+                    .statusCode(404);
+        }
+
+        private jakarta.json.JsonObject retireAgreementBody(String reason) {
+            return createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "RetireAgreement")
+                    .add("reason", reason)
+                    .build();
         }
 
         private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {

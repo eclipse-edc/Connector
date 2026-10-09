@@ -16,7 +16,10 @@
 package org.eclipse.edc.connector.controlplane.api.management.contractagreement;
 
 import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v4.ContractAgreementApiV4Controller;
+import org.eclipse.edc.connector.controlplane.api.management.contractagreement.validation.RetireAgreementValidator;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.RetireAgreement;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractagreement.to.JsonObjectToRetireAgreementTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -67,6 +70,9 @@ public class ContractAgreementApiExtension implements ServiceExtension {
 
         var managementApiTransformerRegistry = transformerRegistry.forContext(MANAGEMENT_API_CONTEXT);
         var managementApiTransformerRegistryV4 = managementApiTransformerRegistry.forContext(MANAGEMENT_API_V_4);
+
+        managementApiTransformerRegistry.register(new JsonObjectToRetireAgreementTransformer());
+        validatorRegistry.register(RetireAgreement.RETIRE_AGREEMENT_TYPE, RetireAgreementValidator.instance());
 
         webService.registerResource(ApiContext.MANAGEMENT, new ContractAgreementApiV4Controller(service, managementApiTransformerRegistryV4, monitor, validatorRegistry));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractAgreementApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
