@@ -34,8 +34,11 @@ import java.time.Clock;
 public class IdentityDidCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Identity Did Core";
+    public static final int DEFAULT_DID_CACHE_SIZE = 50;
     @Setting(description = "Expiry time for caching DID Documents in milliseconds", key = "edc.did.resolver.cache.expiry", defaultValue = 1000 * 60 * 5 + "")
     private long didCacheExpiryMillis;
+    @Setting(description = "The maximum number of cached DID Documents. 0 deactivates the cache", key = "edc.did.resolver.cache.size", defaultValue = DEFAULT_DID_CACHE_SIZE + "")
+    private int didCacheSize;
     @Inject
     private KeyParserRegistry keyParserRegistry;
 
@@ -49,7 +52,7 @@ public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var didResolverRegistry = new DidResolverRegistryImpl(clock, didCacheExpiryMillis);
+        var didResolverRegistry = new DidResolverRegistryImpl(didCacheSize, didCacheExpiryMillis, clock);
         context.registerService(DidResolverRegistry.class, didResolverRegistry);
 
         var publicKeyResolver = new DidPublicKeyResolverImpl(keyParserRegistry, didResolverRegistry);
