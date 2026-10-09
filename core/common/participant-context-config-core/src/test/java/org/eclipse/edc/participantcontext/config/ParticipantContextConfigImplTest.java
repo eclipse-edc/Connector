@@ -19,8 +19,11 @@ import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.transaction.local.LocalTransactionContext;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -36,6 +39,8 @@ import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -176,6 +181,117 @@ public class ParticipantContextConfigImplTest {
 
             assertThat(result).isNull();
             verifyNoInteractions(registry);
+        }
+    }
+
+    @Nested
+    class TransactionCache {
+
+        private final TransactionContext transactionContext = new LocalTransactionContext(mock(Monitor.class));
+        private final ParticipantContextConfig cachingConfig = new ParticipantContextConfigImpl(registry, "any", store, transactionContext);
+
+        @Test
+        void shouldFetchConfigOnce_withinTransaction() {
+            var cfg = ParticipantContextConfiguration.Builder.newInstance().participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .entries(Map.of("string", "value", "integer", "10", "boolean", "true"))
+                    .privateEntries(Map.of("private.key", "encryptedValue"))
+                    .build();
+            when(store.get(PARTICIPANT_CONTEXT_ID)).thenReturn(cfg);
+            when(registry.decrypt("any", "encryptedValue")).thenReturn(Result.success("decryptedValue"));
+
+            transactionContext.execute(() -> {
+                assertThat(cachingConfig.getString(PARTICIPANT_CONTEXT_ID, "string")).isEqualTo("value");
+                assertThat(cachingConfig.getInteger(PARTICIPANT_CONTEXT_ID, "integer")).isEqualTo(10);
+                assertThat(cachingConfig.getBoolean(PARTICIPANT_CONTEXT_ID, "boolean")).isTrue();
+                assertThat(cachingConfig.getLong(PARTICIPANT_CONTEXT_ID, "missing", 5L)).isEqualTo(5L);
+                assertThat(cachingConfig.getSensitiveString(PARTICIPANT_CONTEXT_ID, "private.key")).isEqualTo("decryptedValue");
+            });
+
+            verify(store, times(1)).get(PARTICIPANT_CONTEXT_ID);
+        }
+
+        @Test
+        void shouldFetchConfigAgain_inNewTransaction() {
+            var cfg = ParticipantContextConfiguration.Builder.newInstance().participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .entries(Map.of("string", "value"))
+                    .build();
+            when(store.get(PARTICIPANT_CONTEXT_ID)).thenReturn(cfg);
+
+            transactionContext.execute(() -> {
+                cachingConfig.getString(PARTICIPANT_CONTEXT_ID, "string");
+                cachingConfig.getString(PARTICIPANT_CONTEXT_ID, "string");
+            });
+            transactionContext.execute(() -> {
+                cachingConfig.getString(PARTICIPANT_CONTEXT_ID, "string");
+            });
+
+            verify(store, times(2)).get(PARTICIPANT_CONTEXT_ID);
+        }
+
+        @Test
+        void shouldFetchConfigOnEachCall_withoutEnclosingTransaction() {
+            var cfg = ParticipantContextConfiguration.Builder.newInstance().participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .entries(Map.of("string", "value"))
+                    .build();
+            when(store.get(PARTICIPANT_CONTEXT_ID)).thenReturn(cfg);
+
+            cachingConfig.getString(PARTICIPANT_CONTEXT_ID, "string");
+            cachingConfig.getString(PARTICIPANT_CONTEXT_ID, "string");
+
+            verify(store, times(2)).get(PARTICIPANT_CONTEXT_ID);
+        }
+
+        @Test
+        void shouldCacheMissingConfig_withinTransaction() {
+            when(store.get(PARTICIPANT_CONTEXT_ID)).thenReturn(null);
+
+            transactionContext.execute(() -> {
+                assertThat(cachingConfig.getString(PARTICIPANT_CONTEXT_ID, "string", "default")).isEqualTo("default");
+                assertThat(cachingConfig.getInteger(PARTICIPANT_CONTEXT_ID, "integer", 1)).isEqualTo(1);
+            });
+
+            verify(store, times(1)).get(PARTICIPANT_CONTEXT_ID);
+        }
+
+        @Test
+        void shouldFetchConfigOncePerParticipant_withinTransaction() {
+            var cfg = ParticipantContextConfiguration.Builder.newInstance().participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .entries(Map.of("string", "value"))
+                    .build();
+            var otherCfg = ParticipantContextConfiguration.Builder.newInstance().participantContextId("other")
+                    .entries(Map.of("string", "otherValue"))
+                    .build();
+            when(store.get(PARTICIPANT_CONTEXT_ID)).thenReturn(cfg);
+            when(store.get("other")).thenReturn(otherCfg);
+
+            transactionContext.execute(() -> {
+                assertThat(cachingConfig.getString(PARTICIPANT_CONTEXT_ID, "string")).isEqualTo("value");
+                assertThat(cachingConfig.getString("other", "string")).isEqualTo("otherValue");
+                assertThat(cachingConfig.getString(PARTICIPANT_CONTEXT_ID, "string")).isEqualTo("value");
+                assertThat(cachingConfig.getString("other", "string")).isEqualTo("otherValue");
+            });
+
+            verify(store, times(1)).get(PARTICIPANT_CONTEXT_ID);
+            verify(store, times(1)).get("other");
+        }
+
+        @Test
+        void shouldClearCache_whenTransactionFails() {
+            var cfg = ParticipantContextConfiguration.Builder.newInstance().participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .entries(Map.of("string", "value"))
+                    .build();
+            when(store.get(PARTICIPANT_CONTEXT_ID)).thenReturn(cfg);
+
+            assertThatThrownBy(() -> transactionContext.execute(() -> {
+                cachingConfig.getString(PARTICIPANT_CONTEXT_ID, "string");
+                throw new EdcException("error");
+            })).isInstanceOf(EdcException.class);
+
+            transactionContext.execute(() -> {
+                cachingConfig.getString(PARTICIPANT_CONTEXT_ID, "string");
+            });
+
+            verify(store, times(2)).get(PARTICIPANT_CONTEXT_ID);
         }
     }
 }

@@ -23,12 +23,24 @@ import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
 import static java.lang.String.format;
 
+/**
+ * Default implementation of {@link ParticipantContextConfig} backed by the {@link ParticipantContextConfigStore}.
+ * <p>
+ * Participant configurations are cached for the duration of the enclosing transaction: within a single transaction
+ * the store is queried at most once per participant context, regardless of how many settings are read. The cache is
+ * cleared when the transaction completes. When no enclosing transaction is active, every call hits the store.
+ * <p>
+ * Note: changes to a participant configuration made within the same transaction after it has been read (e.g. via
+ * {@link org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService}) are not visible to
+ * subsequent reads in that transaction.
+ */
 public class ParticipantContextConfigImpl implements ParticipantContextConfig {
 
 
@@ -36,6 +48,7 @@ public class ParticipantContextConfigImpl implements ParticipantContextConfig {
     private final String encryptionAlgorithm;
     private final ParticipantContextConfigStore configStore;
     private final TransactionContext transactionContext;
+    private final ThreadLocal<Map<String, Optional<ParticipantContextConfiguration>>> cache = new ThreadLocal<>();
 
 
     public ParticipantContextConfigImpl(EncryptionAlgorithmRegistry registry, String encryptionAlgorithm, ParticipantContextConfigStore configStore, TransactionContext transactionContext) {
@@ -116,8 +129,23 @@ public class ParticipantContextConfigImpl implements ParticipantContextConfig {
     }
 
     private Optional<Config> fetchConfig(String participantContextId, Function<ParticipantContextConfiguration, Map<String, String>> supplier) {
-        return transactionContext.execute(() -> Optional.ofNullable(configStore.get(participantContextId))
+        return transactionContext.execute(() -> transactionCache()
+                .computeIfAbsent(participantContextId, id -> Optional.ofNullable(configStore.get(id)))
                 .map(cfg -> ConfigFactory.fromMap(supplier.apply(cfg))));
+    }
+
+    /**
+     * Returns the cache bound to the current transaction, creating it and registering its cleanup on the first access.
+     * Must be called within a transaction block.
+     */
+    private Map<String, Optional<ParticipantContextConfiguration>> transactionCache() {
+        var configurations = cache.get();
+        if (configurations == null) {
+            configurations = new HashMap<>();
+            cache.set(configurations);
+            transactionContext.registerSynchronization(cache::remove);
+        }
+        return configurations;
     }
 
 }

@@ -17,6 +17,7 @@ package org.eclipse.edc.transaction.spi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,6 +33,22 @@ class NoopTransactionContextTest {
         transactionContext.execute(() -> transactionContext.registerSynchronization(sync));
 
         // the sync should be cleared and should not be invoked again
+        transactionContext.execute(() -> {
+        });
+
+        verify(sync, times(1)).beforeCompletion();
+    }
+
+    @Test
+    void verifySynchronization_whenBlockThrows() {
+        var sync = mock(TransactionContext.TransactionSynchronization.class);
+
+        assertThatThrownBy(() -> transactionContext.execute(() -> {
+            transactionContext.registerSynchronization(sync);
+            throw new RuntimeException("error");
+        })).isInstanceOf(RuntimeException.class);
+
+        // the sync should have been cleared despite the failure
         transactionContext.execute(() -> {
         });
 
