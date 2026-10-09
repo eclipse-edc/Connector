@@ -89,6 +89,24 @@ class ContractNegotiationSqlQueryStatementTest {
         assertThat(t.getParameters()).containsOnly("yomama", 50, 0);
     }
 
+    @Test
+    void latestContractOffer_equalsOperator() {
+        var criterion = new Criterion("latestContractOffer.assetId", "=", "test-asset");
+        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new ContractNegotiationMapping(postresStatements), new PostgresqlOperatorTranslator());
+
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE contract_offers -> -1 ->> 'assetId' = ? LIMIT ? OFFSET ?;");
+        assertThat(t.getParameters()).containsOnly("test-asset", 50, 0);
+    }
+
+    @Test
+    void latestContractOffer_nestedPath() {
+        var criterion = new Criterion("latestContractOffer.policy.assignee", "=", "testassignee");
+        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new ContractNegotiationMapping(postresStatements), new PostgresqlOperatorTranslator());
+
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE contract_offers -> -1 -> 'policy' ->> 'assignee' = ? LIMIT ? OFFSET ?;");
+        assertThat(t.getParameters()).containsOnly("testassignee", 50, 0);
+    }
+
     private QuerySpec query(Criterion... criterion) {
         return QuerySpec.Builder.newInstance().filter(List.of(criterion)).build();
     }

@@ -29,9 +29,12 @@ import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.MultiplicityConstraint;
 import org.eclipse.edc.policy.model.OrConstraint;
 import org.eclipse.edc.policy.model.XoneConstraint;
+import org.eclipse.edc.spi.result.Result;
 
 import java.util.List;
 import java.util.Map;
+
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.LATEST_CONTRACT_OFFER_PROPERTY;
 
 /**
  * Factory methods to instantiate {@link QueryValidators}
@@ -62,7 +65,17 @@ public final class QueryValidators {
      * @return the validator.
      */
     public static QueryValidator contractNegotiation() {
-        return new QueryValidator(ContractNegotiation.class);
+        return new QueryValidator(ContractNegotiation.class) {
+            @Override
+            protected Result<Void> isValid(String path) {
+                // latestContractOffer is a virtual property that resolves to the last element of contractOffers
+                var latestContractOfferPrefix = LATEST_CONTRACT_OFFER_PROPERTY + ".";
+                if (path.startsWith(latestContractOfferPrefix)) {
+                    return super.isValid("contractOffers." + path.substring(latestContractOfferPrefix.length()));
+                }
+                return super.isValid(path);
+            }
+        };
     }
 
     /**
