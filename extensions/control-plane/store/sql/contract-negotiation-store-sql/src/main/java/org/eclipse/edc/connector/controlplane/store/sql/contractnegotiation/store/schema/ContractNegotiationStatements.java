@@ -134,6 +134,14 @@ public interface ContractNegotiationStatements extends StatefulEntityStatements,
         return "claims";
     }
 
+    /**
+     * The column of the counter-party claims of the negotiation. It is named differently from {@link #getClaimsColumn()},
+     * the claims of the agreement, as the two tables are joined when querying negotiations.
+     */
+    default String getNegotiationClaimsColumn() {
+        return "negotiation_claims";
+    }
+
     SqlQueryStatement createNegotiationsQuery(QuerySpec querySpec);
 
     SqlQueryStatement createNegotiationNextNotLeaseQuery(QuerySpec querySpec);

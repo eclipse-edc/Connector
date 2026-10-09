@@ -155,7 +155,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                         negotiation.getUpdatedAt(),
                         negotiation.isPending(),
                         toJson(negotiation.getProtocolMessages()),
-                        negotiation.getParticipantContextId());
+                        negotiation.getParticipantContextId(),
+                        toJson(negotiation.getClaims()));
 
                 return leaseContext.withConnection(connection).breakLease(negotiation.getId());
             } catch (SQLException e) {
@@ -306,6 +307,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .pending(resultSet.getBoolean(statements.getPendingColumn()))
                 .protocolMessages(fromJson(resultSet.getString(statements.getProtocolMessagesColumn()), ProtocolMessages.class))
                 .participantContextId(resultSet.getString(statements.getParticipantContextIdColumn()))
+                .claims(fromJson(resultSet.getString(statements.getNegotiationClaimsColumn()), getTypeRef()))
                 .build();
     }
 

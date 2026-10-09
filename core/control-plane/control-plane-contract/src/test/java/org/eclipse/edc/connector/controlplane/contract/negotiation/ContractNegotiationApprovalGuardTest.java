@@ -26,6 +26,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 
+import java.util.List;
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.policy.ApprovalContractNegotiationPolicyContext.APPROVAL_SCOPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
@@ -59,6 +62,19 @@ class ContractNegotiationApprovalGuardTest {
         assertThat(context.participantContextId()).isEqualTo("participantContextId");
         assertThat(context.participantAgent().getIdentity()).isEqualTo("counter-party");
         assertThat(context.participantAgent().getClaims()).isEmpty();
+    }
+
+    @Test
+    void shouldEvaluateWithNegotiationClaims() {
+        when(policyEngine.evaluate(any(), any())).thenReturn(Result.success());
+        var negotiation = negotiation(PROVIDER, REQUESTED, Policy.Builder.newInstance().build());
+        negotiation.setClaims(Map.of("vc", List.of("credential")));
+
+        guard.test(negotiation);
+
+        var captor = ArgumentCaptor.forClass(ApprovalContractNegotiationPolicyContext.class);
+        verify(policyEngine).evaluate(any(), captor.capture());
+        assertThat(captor.getValue().participantAgent().getClaims()).isEqualTo(Map.of("vc", List.of("credential")));
     }
 
     @Test
