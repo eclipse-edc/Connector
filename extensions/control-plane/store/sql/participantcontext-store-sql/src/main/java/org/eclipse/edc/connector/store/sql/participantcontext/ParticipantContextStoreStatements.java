@@ -59,6 +59,12 @@ public interface ParticipantContextStoreStatements extends SqlStatements {
 
     String getFindByIdTemplate();
 
+    /**
+     * Selects a participant context by id, taking an exclusive row lock that is held until the enclosing transaction
+     * completes. Must be executed within a transaction.
+     */
+    String getFindByIdForUpdateTemplate();
+
     SqlQueryStatement createQuery(QuerySpec query);
 
     String getSelectStatement();

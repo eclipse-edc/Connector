@@ -25,5 +25,8 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":spi:core-spi")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
+    // needed by SqlParticipantContextStoreConcurrencyTest: the standard test fixture wires a
+    // NoopTransactionContext over autocommit connections, under which SELECT ... FOR UPDATE holds no lock
+    testImplementation(project(":extensions:common:transaction:transaction-local"))
     testImplementation(libs.postgres)
 }

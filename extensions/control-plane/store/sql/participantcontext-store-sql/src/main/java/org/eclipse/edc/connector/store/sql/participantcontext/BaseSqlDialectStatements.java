@@ -58,6 +58,11 @@ public class BaseSqlDialectStatements implements ParticipantContextStoreStatemen
     }
 
     @Override
+    public String getFindByIdForUpdateTemplate() {
+        return format("SELECT * FROM %s WHERE %s = ? FOR UPDATE", getParticipantContextTable(), getIdColumn());
+    }
+
+    @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
         var select = getSelectStatement();
         return new SqlQueryStatement(select, querySpec, new ParticipantContextMapping(this), new PostgresqlOperatorTranslator());

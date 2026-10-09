@@ -62,6 +62,18 @@ public interface ParticipantContextStore {
      */
     StoreResult<ParticipantContext> findById(String participantContextId);
 
+    /**
+     * Finds a ParticipantContext by its unique identifier and locks it until the enclosing transaction completes, so
+     * that concurrent read-modify-write cycles on the same ParticipantContext do not overwrite each other's changes.
+     * Must be called within a transaction. Stores that do not support locking fall back to {@link #findById(String)}.
+     *
+     * @param participantContextId The unique identifier of the ParticipantContext.
+     * @return The {@link ParticipantContext} if found, a not-found failure otherwise.
+     */
+    default StoreResult<ParticipantContext> findByIdForUpdate(String participantContextId) {
+        return findById(participantContextId);
+    }
+
     default String alreadyExistsErrorMessage(String id) {
         return "A ParticipantContext with ID '%s' already exists.".formatted(id);
     }
