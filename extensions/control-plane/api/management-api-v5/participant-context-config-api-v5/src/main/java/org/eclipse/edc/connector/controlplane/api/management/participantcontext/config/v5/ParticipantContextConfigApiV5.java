@@ -35,7 +35,7 @@ public interface ParticipantContextConfigApiV5 {
             requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.PARTICIPANT_CONTEXT_CONFIG), mediaType = "application/json")),
             responses = {
                     @ApiResponse(responseCode = "204", description = "The Config was set successfully"),
-                    @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
+                    @ApiResponse(responseCode = "400", description = "Request body was malformed, or the config is not valid",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
@@ -50,7 +50,7 @@ public interface ParticipantContextConfigApiV5 {
             requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.PARTICIPANT_CONTEXT_CONFIG), mediaType = "application/json")),
             responses = {
                     @ApiResponse(responseCode = "204", description = "The Config was merged successfully"),
-                    @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
+                    @ApiResponse(responseCode = "400", description = "Request body was malformed, or the resulting config is not valid",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
@@ -73,5 +73,19 @@ public interface ParticipantContextConfigApiV5 {
             }
     )
     JsonObject getConfigV5(String participantContextId, SecurityContext securityContext);
+
+    @Operation(description = "Validates the stored ParticipantContext config against the configuration keys registered by the runtime, " +
+            "reporting e.g. the required keys that are missing. Writes are validated as well, but a stored config can become invalid " +
+            "when the runtime changes.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "The validation outcome of the ParticipantContext config",
+                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.PARTICIPANT_CONTEXT_CONFIG_VALIDATION))),
+                    @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
+                    @ApiResponse(responseCode = "404", description = "A ParticipantContext config with the given ID does not exist.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
+            }
+    )
+    JsonObject validateConfigV5(String participantContextId);
 
 }
