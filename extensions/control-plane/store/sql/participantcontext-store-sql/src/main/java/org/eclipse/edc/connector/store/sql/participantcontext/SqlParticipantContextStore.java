@@ -139,9 +139,18 @@ public class SqlParticipantContextStore extends AbstractSqlStore implements Part
 
     @Override
     public StoreResult<ParticipantContext> findById(String participantContextId) {
+        return findById(participantContextId, statements.getFindByIdTemplate());
+    }
+
+    @Override
+    public StoreResult<ParticipantContext> findByIdForUpdate(String participantContextId) {
+        return findById(participantContextId, statements.getFindByIdForUpdateTemplate());
+    }
+
+    private StoreResult<ParticipantContext> findById(String participantContextId, String statement) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var entity = findByIdInternal(connection, participantContextId);
+                var entity = queryExecutor.single(connection, false, this::mapResultSet, statement, participantContextId);
                 if (entity != null) {
                     return StoreResult.success(entity);
                 }

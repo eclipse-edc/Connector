@@ -65,6 +65,25 @@ public abstract class ParticipantContextStoreTestBase {
     }
 
     @Test
+    void findByIdForUpdate() {
+        range(0, 5)
+                .mapToObj(i -> createParticipantContext("id" + i))
+                .forEach(getStore()::create);
+
+        var result = getStore().findByIdForUpdate("id2");
+
+        assertThat(result).isSucceeded()
+                .satisfies(participantContext -> assertThat(participantContext.getId()).isEqualTo("id2"));
+    }
+
+    @Test
+    void findByIdForUpdate_whenNotExists() {
+        var result = getStore().findByIdForUpdate("not-exist");
+
+        assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
+    }
+
+    @Test
     void query_byIdentity() {
         range(0, 5)
                 .mapToObj(i -> createParticipantContext("id" + i, "identity" + i))
