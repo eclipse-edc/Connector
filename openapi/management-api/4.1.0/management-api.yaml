@@ -266,124 +266,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v5/participants/{participantContextId}/partnergroups/{id}:
-    get:
-      tags:
-      - Partner Group v5
-      description: Gets a partner group with the given ID
-      operationId: getPartnerGroupV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: The partner group
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/partner-group-schema"
-        "404":
-          description: A partner group with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-    put:
-      tags:
-      - Partner Group v5
-      description: Updates an existing partner group
-      operationId: updatePartnerGroupV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/partner-group-schema"
-      responses:
-        "204":
-          description: The partner group was updated
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: A partner group with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/api-error-schema"
-    delete:
-      tags:
-      - Partner Group v5
-      description: Removes a partner group with the given ID. A group that is still
-        referenced by a partner cannot be deleted.
-      operationId: deletePartnerGroupV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "204":
-          description: The partner group was deleted
-        "404":
-          description: A partner group with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "409":
-          description: The partner group is still referenced by at least one partner
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v4/policydefinitions:
     post:
       tags:
@@ -679,217 +561,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/api-error-schema"
-  /v5/participants/{participantContextId}/partners/{id}:
-    get:
-      tags:
-      - Partner v5
-      description: Gets a partner with the given ID
-      operationId: getPartnerV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: The partner
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/partner-schema"
-        "404":
-          description: A partner with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-    put:
-      tags:
-      - Partner v5
-      description: Updates an existing partner. Every referenced partner group must
-        exist in the participant context.
-      operationId: updatePartnerV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/partner-schema"
-      responses:
-        "204":
-          description: The partner was updated
-        "400":
-          description: Request body was malformed or a referenced group does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: A partner with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/api-error-schema"
-        "409":
-          description: Another partner already has the requested identity
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-    delete:
-      tags:
-      - Partner v5
-      description: Removes a partner with the given ID
-      operationId: deletePartnerV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "204":
-          description: The partner was deleted
-        "404":
-          description: A partner with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v5/participants/{participantContextId}/discover/request:
-    post:
-      tags:
-      - Discovery v5
-      description: Discovers the dataspace profiles usable to communicate with a counter
-        party. Resolves the counter party's `.well-known/dspace-version` endpoint
-        (either directly via `counterPartyAddress` or by resolving the `DataService`
-        entry of the DID document for `counterPartyId`) and returns the intersection
-        with the profiles associated to the participant context.
-      operationId: discoverV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/discovery-request-schema"
-      responses:
-        "200":
-          description: The profiles that match the counter party.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/discovery-response-schema"
-        "400":
-          description: "Request body was malformed, the counter party could not be\
-            \ reached, or no DID service endpoint was found."
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "401":
-          description: "The request could not be completed, because either the authentication\
-            \ was missing or was not valid."
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: A ParticipantContext with the given ID does not exist.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v5/celexpressions/test:
-    post:
-      tags:
-      - Cel Expressions v5
-      description: Test a Cel Expression.
-      operationId: testExpressionV5
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/cel-expression-test-request-schema"
-      responses:
-        "200":
-          description: The Cel Expression was tested successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/cel-expression-test-response-schema"
-        "400":
-          description: "Request body was malformed, or the request could not be processed"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "401":
-          description: "The request could not be completed, because either the authentication\
-            \ was missing or was not valid."
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v4/catalogs/request:
     post:
       tags:
@@ -987,59 +658,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v5/participants/{participantContextId}/policydefinitions/request:
-    post:
-      tags:
-      - Policy Definition v5
-      description: Returns all policy definitions according to a query
-      operationId: queryPolicyDefinitionsV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The policy definitions matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/policy-definition-schema"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v4/catalog/request:
-    post:
-      tags:
-      - Catalog v4
-      operationId: requestCatalogV4
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/catalog-request-schema"
-      responses:
-        default:
-          description: Gets contract offers (=catalog) of a single connector
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/catalog-schema"
   /v5/participants/{participantContextId}/contractdefinitions:
     put:
       tags:
@@ -1122,13 +740,13 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v5/participants/{participantContextId}/partners:
+  /v5/participants/{participantContextId}/contractnegotiations/{id}/approve:
     post:
       tags:
-      - Partner v5
-      description: Creates a new partner. Every referenced partner group must exist
-        in the participant context.
-      operationId: createPartnerV5
+      - Contract Negotiation v5
+      description: Approves a provider contract negotiation held for manual approval
+        in the REQUESTED state.
+      operationId: approveNegotiationV5
       parameters:
       - name: participantContextId
         in: path
@@ -1137,21 +755,26 @@ paths:
         explode: false
         schema:
           type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/partner-schema"
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       responses:
-        "200":
-          description: The partner was created. Returns the partner id and created
-            timestamp
+        "204":
+          description: ContractNegotiation is approved
+        "400":
+          description: Request was malformed
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/id-response-schema"
-        "400":
-          description: Request body was malformed or a referenced group does not exist
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A contract negotiation with the given ID does not exist
           content:
             application/json:
               schema:
@@ -1159,7 +782,8 @@ paths:
                 items:
                   $ref: "#/components/schemas/api-error-schema"
         "409":
-          description: A partner with that id or identity already exists
+          description: The contract negotiation is not a provider negotiation held
+            in the REQUESTED state
           content:
             application/json:
               schema:
@@ -1276,148 +900,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/contract-negotiation-schema"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v5/participants/{participantContextId}/policydefinitions:
-    post:
-      tags:
-      - Policy Definition v5
-      description: Creates a new policy definition
-      operationId: createPolicyDefinitionV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/policy-definition-schema"
-      responses:
-        "200":
-          description: policy definition was created successfully. Returns the Policy
-            Definition Id and created timestamp
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/id-response-schema"
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "409":
-          description: "Could not create policy definition, because a contract definition\
-            \ with that ID already exists"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v5/dataspaceprofiles/{name}:
-    get:
-      tags:
-      - Dataspace Profile v5
-      description: Gets a dataspace profile by its name.
-      operationId: getProfileV5
-      parameters:
-      - name: name
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The dataspace profile
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/dataspace-profile-schema"
-        "404":
-          description: A dataspace profile with the given name does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-    delete:
-      tags:
-      - Dataspace Profile v5
-      description: Deletes a dataspace profile by its name. The profile is removed
-        from the store and deregistered from the running connector's dataspace profile
-        context registry.
-      operationId: deleteProfileV5
-      parameters:
-      - name: name
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "204":
-          description: The dataspace profile was deleted successfully
-        "404":
-          description: A dataspace profile with the given name does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v5/participants/{participantContextId}/partners/request:
-    post:
-      tags:
-      - Partner v5
-      description: "Returns all partners of the participant context matching a query.\
-        \ Partner properties can be filtered with nested criteria, e.g. `properties.businessId\
-        \ = BID-0001`, group membership with `groupIds contains <groupId>`"
-      operationId: queryPartnersV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The partners matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/partner-schema"
         "400":
           description: Request was malformed
           content:
@@ -1747,42 +1229,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v5/participants/{participantContextId}/contractagreements/request:
-    post:
-      tags:
-      - Contract Agreement v5
-      description: Gets all contract agreements according to a particular query
-      operationId: queryAgreementsV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The contract agreements matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/contract-agreement-schema"
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v5/participants/{participantContextId}/assets/{id}:
     get:
       tags:
@@ -1935,41 +1381,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v4/contractnegotiations:
-    post:
-      tags:
-      - Contract Negotiation v4
-      description: "Initiates a contract negotiation for a given offer and with the\
-        \ given counter part. Please note that successfully invoking this endpoint\
-        \ only means that the negotiation was initiated. Clients must poll the /{id}/state\
-        \ endpoint to track the state"
-      operationId: initiateContractNegotiationV4
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/contract-request-schema"
-      responses:
-        "200":
-          description: The negotiation was successfully initiated. Returns the contract
-            negotiation ID and created timestamp
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/id-response-schema"
-          links:
-            poll-state:
-              operationId: getNegotiationStateV3
-              parameters:
-                id: $response.body#/id
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v5/participants/{participantContextId}/assets/request:
     post:
       tags:
@@ -2006,354 +1417,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v5/participants/{participantContextId}/profiles:
-    get:
-      tags:
-      - Dataspace Profile Context  v5
-      description: Gets Dataspace Profile contexts configured for the participant
-        context id.
-      operationId: getProfilesV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: The dataspace profile contexts of the participant
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/dataspace-profile-schema"
-        "400":
-          description: "Request body was malformed, or the request could not be processed"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "401":
-          description: "The request could not be completed, because either the authentication\
-            \ was missing or was not valid."
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: A ParticipantContext with the given ID does not exist.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-    put:
-      tags:
-      - Dataspace Profile Context  v5
-      description: Associate Dataspace Profile contexts to a participant context.
-      operationId: associateProfiles
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/associate-dataspace-profile-schema"
-      responses:
-        "204":
-          description: The dataspace profile contexts was successfully associated
-            to the participant context
-        "400":
-          description: "Request body was malformed, or the request could not be processed"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "401":
-          description: "The request could not be completed, because either the authentication\
-            \ was missing or was not valid."
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: A ParticipantContext with the given ID does not exist.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v5/participants/{participantContextId}/assets:
-    put:
-      tags:
-      - Asset v5
-      description: "Updates an asset with the given ID if it exists. If the asset\
-        \ is not found, no further action is taken. DANGER ZONE: Note that updating\
-        \ assets can have unexpected results, especially for contract offers that\
-        \ have been sent out or are ongoing in contract negotiations."
-      operationId: updateAssetV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/asset-schema"
-      responses:
-        "204":
-          description: Asset was updated successfully
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: "Asset could not be updated, because it does not exist."
-    post:
-      tags:
-      - Asset v5
-      description: Creates a new asset together with a data address
-      operationId: createAssetV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/asset-schema"
-      responses:
-        "200":
-          description: Asset was created successfully. Returns the asset Id and created
-            timestamp
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/id-response-schema"
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "409":
-          description: "Could not create asset, because an asset with that ID already\
-            \ exists"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-  /v5/participants/{participantContextId}/contractnegotiations/{id}/state:
-    get:
-      tags:
-      - Contract Negotiation v5
-      description: Gets the state of a contract negotiation with the given ID
-      operationId: getNegotiationStateV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: The contract negotiation's state
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NegotiationState"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: An contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v5/participants/{participantContextId}/contractnegotiations/request:
-    post:
-      tags:
-      - Contract Negotiation v5
-      description: Returns all contract negotiations according to a query
-      operationId: queryNegotiationsV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The contract negotiations that match the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/contract-negotiation-schema"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v5/participants/{participantContextId}/contractnegotiations/{id}:
-    get:
-      tags:
-      - Contract Negotiation v5
-      description: Gets a contract negotiation with the given ID
-      operationId: getNegotiationV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: The contract negotiation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/contract-negotiation-schema"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: An contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-    delete:
-      tags:
-      - Contract Negotiation v5
-      description: Deletes the contract negotiation with the given ID. Only terminated
-        negotiations without agreement will be deleted
-      operationId: deleteNegotiationV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "204":
-          description: ContractNegotiation is deleted
-          links:
-            poll-state:
-              operationId: getNegotiationStateV3
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: A contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "409":
-          description: The given contract negotiation cannot be deleted due to a wrong
-            state or has existing contract agreement
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v5/participants/{participantContextId}/contractdefinitions/request:
     post:
       tags:
@@ -2412,102 +1475,6 @@ paths:
                   $ref: "#/components/schemas/policy-definition-schema"
         "400":
           description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v5/participants:
-    get:
-      tags:
-      - Participant Context v5
-      description: Get all DID documents across all Participant Contexts. Requires
-        elevated access.
-      operationId: getAllParticipantsV5
-      parameters:
-      - name: offset
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-          default: 0
-      - name: limit
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: integer
-          format: int32
-          default: 50
-      responses:
-        "200":
-          description: The list of ParticipantContexts.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/participant-context-schema"
-        "400":
-          description: The query was malformed or was not understood by the server.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "401":
-          description: "The request could not be completed, because either the authentication\
-            \ was missing or was not valid."
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-    post:
-      tags:
-      - Participant Context v5
-      description: Creates a new ParticipantContext object.
-      operationId: createParticipantV5
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/participant-context-schema"
-      responses:
-        "201":
-          description: "The ParticipantContext was created successfully, its API token\
-            \ is returned in the response body."
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/id-response-schema"
-        "400":
-          description: "Request body was malformed, or the request could not be processed"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "401":
-          description: "The request could not be completed, because either the authentication\
-            \ was missing or was not valid."
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "409":
-          description: "Can't create the ParticipantContext, because a object with\
-            \ the same ID already exists"
           content:
             application/json:
               schema:
@@ -2635,42 +1602,6 @@ paths:
         "409":
           description: "Could not create contract definition, because a contract definition\
             \ with that ID already exists"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v5/participants/{participantContextId}/transferprocesses/request:
-    post:
-      tags:
-      - Transfer Process v5
-      description: Returns all transfer process according to a query
-      operationId: queryTransferProcessesV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The transfer processes matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/transfer-process-schema"
-        "400":
-          description: Request was malformed
           content:
             application/json:
               schema:
@@ -2855,28 +1786,52 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v5/celexpressions/request:
+  /v4/contractnegotiations/{id}/reject:
     post:
       tags:
-      - Cel Expressions v5
-      description: Returns all cel expressions according to a query
-      operationId: queryExpressionV5
+      - Contract Negotiation v4
+      description: Rejects a provider contract negotiation held for manual approval
+        in the REQUESTED state. The counter-party is notified with the fixed reason
+        'Negotiation manually rejected'.
+      operationId: rejectNegotiationV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/query-spec-schema"
+              $ref: "#/components/schemas/contract-reject-schema"
       responses:
-        "200":
-          description: The cel expressions matching the query
+        "204":
+          description: ContractNegotiation is rejected and terminating
+          links:
+            poll-state:
+              operationId: getNegotiationStateV4
+        "400":
+          description: Request was malformed
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/cel-expression-schema"
-        "400":
-          description: Request was malformed
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: The contract negotiation is not a provider negotiation held
+            in the REQUESTED state
           content:
             application/json:
               schema:
@@ -3366,59 +2321,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v4/transferprocesses/{id}/suspend:
-    post:
-      tags:
-      - Transfer Process v4
-      description: "Requests the suspension of a transfer process. Due to the asynchronous\
-        \ nature of transfers, a successful response only indicates that the request\
-        \ was successfully received. This may take a long time, so clients must poll\
-        \ the /{id}/state endpoint to track the state."
-      operationId: suspendTransferProcessV4
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/transfer-suspend-schema"
-      responses:
-        "204":
-          description: Request to suspend the transfer process was successfully received
-          links:
-            poll-state:
-              operationId: suspendTransferProcessV3
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: A transfer process with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "409":
-          description: "Could not suspend the transfer process, because it is already\
-            \ completed or terminated."
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v4/policydefinitions/{id}/validate:
     post:
       tags:
@@ -3448,88 +2350,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/api-error-schema"
-  /v4/contractnegotiations/{id}:
-    get:
-      tags:
-      - Contract Negotiation v4
-      description: Gets a contract negotiation with the given ID
-      operationId: getNegotiationV4
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: The contract negotiation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/contract-negotiation-schema"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: An contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-    delete:
-      tags:
-      - Contract Negotiation v4
-      description: Deletes the contract negotiation with the given ID. Only terminated
-        negotiations without agreement will be deleted
-      operationId: deleteNegotiationV4
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "204":
-          description: ContractNegotiation is deleted
-          links:
-            poll-state:
-              operationId: getNegotiationStateV3
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: A contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "409":
-          description: The given contract negotiation cannot be deleted due to a wrong
-            state or has existing contract agreement
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v5/participants/{participantContextId}/catalog/dataset/request:
     post:
       tags:
@@ -3580,34 +2400,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/catalog-schema"
-  /v4/contractagreements/request:
-    post:
-      tags:
-      - Contract Agreement v4
-      description: Gets all contract agreements according to a particular query
-      operationId: queryAgreementsV4
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The contract agreements matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/contract-agreement-schema"
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v5/participants/{participantContextId}/dataplanes:
     put:
       tags:
@@ -3646,34 +2438,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v4/contractdefinitions/request:
-    post:
-      tags:
-      - Contract Definition v4
-      description: Returns all contract definitions according to a query
-      operationId: queryContractDefinitionsV4
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The contract definitions matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/contract-definition-schema"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v5/participants/{participantContextId}/contractagreements/{id}:
     get:
       tags:
@@ -3877,45 +2641,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v4/contractnegotiations/{id}/agreement:
-    get:
-      tags:
-      - Contract Negotiation v4
-      description: Gets a contract agreement for a contract negotiation with the given
-        ID
-      operationId: getAgreementForNegotiationV4
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: "The contract agreement that is attached to the negotiation,\
-            \ or null"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/contract-agreement-schema"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: An contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v4/policydefinitions/{id}/evaluationplan:
     post:
       tags:
@@ -4024,6 +2749,1731 @@ paths:
                   $ref: "#/components/schemas/api-error-schema"
         "404":
           description: A DcpScope with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/dcpscopes/request:
+    post:
+      tags:
+      - DcpScope v5
+      description: Returns all DcpScope objects according to a query.
+      operationId: queryDcpScopesV5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The list of DcpScopes.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/dcp-scope-schema"
+        "400":
+          description: The query was malformed or was not understood by the server.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4/dataplanes:
+    put:
+      tags:
+      - Dataplane Signaling Registration v4
+      description: Register or update a Dataplane instance
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DataPlaneRegistrationMessage"
+      responses:
+        "200":
+          description: Dataplane instance correctly registered
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v5/participants/{participantContextId}/contractnegotiations/{id}/terminate:
+    post:
+      tags:
+      - Contract Negotiation v5
+      description: Terminates the contract negotiation.
+      operationId: terminateNegotiationV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/contract-terminate-schema"
+      responses:
+        "200":
+          description: ContractNegotiation is terminating
+          links:
+            poll-state:
+              operationId: getNegotiationStateV3
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4/contractnegotiations/{id}/terminate:
+    post:
+      tags:
+      - Contract Negotiation v4
+      description: Terminates the contract negotiation.
+      operationId: terminateNegotiationV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/contract-terminate-schema"
+      responses:
+        "200":
+          description: ContractNegotiation is terminating
+          links:
+            poll-state:
+              operationId: getNegotiationStateV3
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/transferprocesses/{id}/resume:
+    post:
+      tags:
+      - Transfer Process v5
+      description: "Requests the resumption of a suspended transfer process. Due to\
+        \ the asynchronous nature of transfers, a successful response only indicates\
+        \ that the request was successfully received. This may take a long time, so\
+        \ clients must poll the /{id}/state endpoint to track the state."
+      operationId: resumeTransferProcessV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Request to resume the transfer process was successfully received
+          links:
+            poll-state:
+              operationId: resumeTransferProcessV3
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A transfer process with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/transferprocesses/{id}/state:
+    get:
+      tags:
+      - Transfer Process v5
+      description: Gets the state of a transfer process with the given ID
+      operationId: getTransferProcessStateV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The  transfer process's state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransferState"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: An  transfer process with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/partnergroups/{id}:
+    get:
+      tags:
+      - Partner Group v5
+      description: Gets a partner group with the given ID
+      operationId: getPartnerGroupV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The partner group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/partner-group-schema"
+        "404":
+          description: A partner group with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    put:
+      tags:
+      - Partner Group v5
+      description: Updates an existing partner group
+      operationId: updatePartnerGroupV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/partner-group-schema"
+      responses:
+        "204":
+          description: The partner group was updated
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A partner group with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api-error-schema"
+    delete:
+      tags:
+      - Partner Group v5
+      description: Removes a partner group with the given ID. A group that is still
+        referenced by a partner cannot be deleted.
+      operationId: deletePartnerGroupV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: The partner group was deleted
+        "404":
+          description: A partner group with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: The partner group is still referenced by at least one partner
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4/contractnegotiations/{id}/approve:
+    post:
+      tags:
+      - Contract Negotiation v4
+      description: Approves a provider contract negotiation held for manual approval
+        in the REQUESTED state.
+      operationId: approveNegotiationV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: ContractNegotiation is approved
+          links:
+            poll-state:
+              operationId: getNegotiationStateV4
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: The contract negotiation is not a provider negotiation held
+            in the REQUESTED state
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/partners/{id}:
+    get:
+      tags:
+      - Partner v5
+      description: Gets a partner with the given ID
+      operationId: getPartnerV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The partner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/partner-schema"
+        "404":
+          description: A partner with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    put:
+      tags:
+      - Partner v5
+      description: Updates an existing partner. Every referenced partner group must
+        exist in the participant context.
+      operationId: updatePartnerV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/partner-schema"
+      responses:
+        "204":
+          description: The partner was updated
+        "400":
+          description: Request body was malformed or a referenced group does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A partner with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: Another partner already has the requested identity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    delete:
+      tags:
+      - Partner v5
+      description: Removes a partner with the given ID
+      operationId: deletePartnerV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: The partner was deleted
+        "404":
+          description: A partner with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/discover/request:
+    post:
+      tags:
+      - Discovery v5
+      description: Discovers the dataspace profiles usable to communicate with a counter
+        party. Resolves the counter party's `.well-known/dspace-version` endpoint
+        (either directly via `counterPartyAddress` or by resolving the `DataService`
+        entry of the DID document for `counterPartyId`) and returns the intersection
+        with the profiles associated to the participant context.
+      operationId: discoverV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/discovery-request-schema"
+      responses:
+        "200":
+          description: The profiles that match the counter party.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/discovery-response-schema"
+        "400":
+          description: "Request body was malformed, the counter party could not be\
+            \ reached, or no DID service endpoint was found."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A ParticipantContext with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/celexpressions/test:
+    post:
+      tags:
+      - Cel Expressions v5
+      description: Test a Cel Expression.
+      operationId: testExpressionV5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/cel-expression-test-request-schema"
+      responses:
+        "200":
+          description: The Cel Expression was tested successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/cel-expression-test-response-schema"
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/policydefinitions/request:
+    post:
+      tags:
+      - Policy Definition v5
+      description: Returns all policy definitions according to a query
+      operationId: queryPolicyDefinitionsV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The policy definitions matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/policy-definition-schema"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4/catalog/request:
+    post:
+      tags:
+      - Catalog v4
+      operationId: requestCatalogV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/catalog-request-schema"
+      responses:
+        default:
+          description: Gets contract offers (=catalog) of a single connector
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/catalog-schema"
+  /v5/participants/{participantContextId}/partners:
+    post:
+      tags:
+      - Partner v5
+      description: Creates a new partner. Every referenced partner group must exist
+        in the participant context.
+      operationId: createPartnerV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/partner-schema"
+      responses:
+        "200":
+          description: The partner was created. Returns the partner id and created
+            timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+        "400":
+          description: Request body was malformed or a referenced group does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: A partner with that id or identity already exists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/policydefinitions:
+    post:
+      tags:
+      - Policy Definition v5
+      description: Creates a new policy definition
+      operationId: createPolicyDefinitionV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/policy-definition-schema"
+      responses:
+        "200":
+          description: policy definition was created successfully. Returns the Policy
+            Definition Id and created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: "Could not create policy definition, because a contract definition\
+            \ with that ID already exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/dataspaceprofiles/{name}:
+    get:
+      tags:
+      - Dataspace Profile v5
+      description: Gets a dataspace profile by its name.
+      operationId: getProfileV5
+      parameters:
+      - name: name
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The dataspace profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dataspace-profile-schema"
+        "404":
+          description: A dataspace profile with the given name does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    delete:
+      tags:
+      - Dataspace Profile v5
+      description: Deletes a dataspace profile by its name. The profile is removed
+        from the store and deregistered from the running connector's dataspace profile
+        context registry.
+      operationId: deleteProfileV5
+      parameters:
+      - name: name
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: The dataspace profile was deleted successfully
+        "404":
+          description: A dataspace profile with the given name does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/partners/request:
+    post:
+      tags:
+      - Partner v5
+      description: "Returns all partners of the participant context matching a query.\
+        \ Partner properties can be filtered with nested criteria, e.g. `properties.businessId\
+        \ = BID-0001`, group membership with `groupIds contains <groupId>`"
+      operationId: queryPartnersV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The partners matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/partner-schema"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/contractagreements/request:
+    post:
+      tags:
+      - Contract Agreement v5
+      description: Gets all contract agreements according to a particular query
+      operationId: queryAgreementsV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The contract agreements matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/contract-agreement-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4/contractnegotiations:
+    post:
+      tags:
+      - Contract Negotiation v4
+      description: "Initiates a contract negotiation for a given offer and with the\
+        \ given counter part. Please note that successfully invoking this endpoint\
+        \ only means that the negotiation was initiated. Clients must poll the /{id}/state\
+        \ endpoint to track the state"
+      operationId: initiateContractNegotiationV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/contract-request-schema"
+      responses:
+        "200":
+          description: The negotiation was successfully initiated. Returns the contract
+            negotiation ID and created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+          links:
+            poll-state:
+              operationId: getNegotiationStateV3
+              parameters:
+                id: $response.body#/id
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/profiles:
+    get:
+      tags:
+      - Dataspace Profile Context  v5
+      description: Gets Dataspace Profile contexts configured for the participant
+        context id.
+      operationId: getProfilesV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The dataspace profile contexts of the participant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dataspace-profile-schema"
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A ParticipantContext with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    put:
+      tags:
+      - Dataspace Profile Context  v5
+      description: Associate Dataspace Profile contexts to a participant context.
+      operationId: associateProfiles
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/associate-dataspace-profile-schema"
+      responses:
+        "204":
+          description: The dataspace profile contexts was successfully associated
+            to the participant context
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A ParticipantContext with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/assets:
+    put:
+      tags:
+      - Asset v5
+      description: "Updates an asset with the given ID if it exists. If the asset\
+        \ is not found, no further action is taken. DANGER ZONE: Note that updating\
+        \ assets can have unexpected results, especially for contract offers that\
+        \ have been sent out or are ongoing in contract negotiations."
+      operationId: updateAssetV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/asset-schema"
+      responses:
+        "204":
+          description: Asset was updated successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: "Asset could not be updated, because it does not exist."
+    post:
+      tags:
+      - Asset v5
+      description: Creates a new asset together with a data address
+      operationId: createAssetV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/asset-schema"
+      responses:
+        "200":
+          description: Asset was created successfully. Returns the asset Id and created
+            timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: "Could not create asset, because an asset with that ID already\
+            \ exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v5/participants/{participantContextId}/contractnegotiations/{id}/state:
+    get:
+      tags:
+      - Contract Negotiation v5
+      description: Gets the state of a contract negotiation with the given ID
+      operationId: getNegotiationStateV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The contract negotiation's state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NegotiationState"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: An contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/contractnegotiations/request:
+    post:
+      tags:
+      - Contract Negotiation v5
+      description: Returns all contract negotiations according to a query
+      operationId: queryNegotiationsV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The contract negotiations that match the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/contract-negotiation-schema"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/contractnegotiations/{id}:
+    get:
+      tags:
+      - Contract Negotiation v5
+      description: Gets a contract negotiation with the given ID
+      operationId: getNegotiationV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The contract negotiation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/contract-negotiation-schema"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: An contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    delete:
+      tags:
+      - Contract Negotiation v5
+      description: Deletes the contract negotiation with the given ID. Only terminated
+        negotiations without agreement will be deleted
+      operationId: deleteNegotiationV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: ContractNegotiation is deleted
+          links:
+            poll-state:
+              operationId: getNegotiationStateV3
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: The given contract negotiation cannot be deleted due to a wrong
+            state or has existing contract agreement
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants:
+    get:
+      tags:
+      - Participant Context v5
+      description: Get all DID documents across all Participant Contexts. Requires
+        elevated access.
+      operationId: getAllParticipantsV5
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+          default: 50
+      responses:
+        "200":
+          description: The list of ParticipantContexts.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/participant-context-schema"
+        "400":
+          description: The query was malformed or was not understood by the server.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    post:
+      tags:
+      - Participant Context v5
+      description: Creates a new ParticipantContext object.
+      operationId: createParticipantV5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/participant-context-schema"
+      responses:
+        "201":
+          description: "The ParticipantContext was created successfully, its API token\
+            \ is returned in the response body."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: "Can't create the ParticipantContext, because a object with\
+            \ the same ID already exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/transferprocesses/request:
+    post:
+      tags:
+      - Transfer Process v5
+      description: Returns all transfer process according to a query
+      operationId: queryTransferProcessesV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The transfer processes matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/transfer-process-schema"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/celexpressions/request:
+    post:
+      tags:
+      - Cel Expressions v5
+      description: Returns all cel expressions according to a query
+      operationId: queryExpressionV5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The cel expressions matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/cel-expression-schema"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4/transferprocesses/{id}/suspend:
+    post:
+      tags:
+      - Transfer Process v4
+      description: "Requests the suspension of a transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received. This may take a long time, so clients must poll\
+        \ the /{id}/state endpoint to track the state."
+      operationId: suspendTransferProcessV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/transfer-suspend-schema"
+      responses:
+        "204":
+          description: Request to suspend the transfer process was successfully received
+          links:
+            poll-state:
+              operationId: suspendTransferProcessV3
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A transfer process with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: "Could not suspend the transfer process, because it is already\
+            \ completed or terminated."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4/contractnegotiations/{id}:
+    get:
+      tags:
+      - Contract Negotiation v4
+      description: Gets a contract negotiation with the given ID
+      operationId: getNegotiationV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The contract negotiation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/contract-negotiation-schema"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: An contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    delete:
+      tags:
+      - Contract Negotiation v4
+      description: Deletes the contract negotiation with the given ID. Only terminated
+        negotiations without agreement will be deleted
+      operationId: deleteNegotiationV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: ContractNegotiation is deleted
+          links:
+            poll-state:
+              operationId: getNegotiationStateV3
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: The given contract negotiation cannot be deleted due to a wrong
+            state or has existing contract agreement
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4/contractagreements/request:
+    post:
+      tags:
+      - Contract Agreement v4
+      description: Gets all contract agreements according to a particular query
+      operationId: queryAgreementsV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The contract agreements matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/contract-agreement-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4/contractdefinitions/request:
+    post:
+      tags:
+      - Contract Definition v4
+      description: Returns all contract definitions according to a query
+      operationId: queryContractDefinitionsV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The contract definitions matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/contract-definition-schema"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4/contractnegotiations/{id}/agreement:
+    get:
+      tags:
+      - Contract Negotiation v4
+      description: Gets a contract agreement for a contract negotiation with the given
+        ID
+      operationId: getAgreementForNegotiationV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: "The contract agreement that is attached to the negotiation,\
+            \ or null"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/contract-agreement-schema"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: An contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/contractnegotiations/{id}/reject:
+    post:
+      tags:
+      - Contract Negotiation v5
+      description: Rejects a provider contract negotiation held for manual approval
+        in the REQUESTED state. The counter-party is notified with the fixed reason
+        'Negotiation manually rejected'.
+      operationId: rejectNegotiationV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/contract-reject-schema"
+      responses:
+        "204":
+          description: ContractNegotiation is rejected and terminating
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: The contract negotiation is not a provider negotiation held
+            in the REQUESTED state
           content:
             application/json:
               schema:
@@ -4314,73 +4764,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v5/dcpscopes/request:
-    post:
-      tags:
-      - DcpScope v5
-      description: Returns all DcpScope objects according to a query.
-      operationId: queryDcpScopesV5
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The list of DcpScopes.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/dcp-scope-schema"
-        "400":
-          description: The query was malformed or was not understood by the server.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "401":
-          description: "The request could not be completed, because either the authentication\
-            \ was missing or was not valid."
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v4/dataplanes:
-    put:
-      tags:
-      - Dataplane Signaling Registration v4
-      description: Register or update a Dataplane instance
-      operationId: register
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DataPlaneRegistrationMessage"
-      responses:
-        "200":
-          description: Dataplane instance correctly registered
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v4/assets/request:
     post:
       tags:
@@ -4403,54 +4786,6 @@ paths:
                   $ref: "#/components/schemas/asset-schema"
         "400":
           description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v5/participants/{participantContextId}/contractnegotiations/{id}/terminate:
-    post:
-      tags:
-      - Contract Negotiation v5
-      description: Terminates the contract negotiation.
-      operationId: terminateNegotiationV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/contract-terminate-schema"
-      responses:
-        "200":
-          description: ContractNegotiation is terminating
-          links:
-            poll-state:
-              operationId: getNegotiationStateV3
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: A contract negotiation with the given ID does not exist
           content:
             application/json:
               schema:
@@ -4716,47 +5051,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/api-error-schema"
-  /v4/contractnegotiations/{id}/terminate:
-    post:
-      tags:
-      - Contract Negotiation v4
-      description: Terminates the contract negotiation.
-      operationId: terminateNegotiationV4
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/contract-terminate-schema"
-      responses:
-        "200":
-          description: ContractNegotiation is terminating
-          links:
-            poll-state:
-              operationId: getNegotiationStateV3
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: A contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v5/dcpscopes:
     post:
       tags:
@@ -4922,96 +5216,6 @@ paths:
         "409":
           description: "Can't create the Cel expression, because a object with the\
             \ same ID already exists"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v5/participants/{participantContextId}/transferprocesses/{id}/resume:
-    post:
-      tags:
-      - Transfer Process v5
-      description: "Requests the resumption of a suspended transfer process. Due to\
-        \ the asynchronous nature of transfers, a successful response only indicates\
-        \ that the request was successfully received. This may take a long time, so\
-        \ clients must poll the /{id}/state endpoint to track the state."
-      operationId: resumeTransferProcessV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "204":
-          description: Request to resume the transfer process was successfully received
-          links:
-            poll-state:
-              operationId: resumeTransferProcessV3
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: A transfer process with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v5/participants/{participantContextId}/transferprocesses/{id}/state:
-    get:
-      tags:
-      - Transfer Process v5
-      description: Gets the state of a transfer process with the given ID
-      operationId: getTransferProcessStateV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: The  transfer process's state
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/TransferState"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: An  transfer process with the given ID does not exist
           content:
             application/json:
               schema:
@@ -5856,203 +6060,6 @@ components:
           type: array
           items:
             type: string
-    partner-schema:
-      title: PartnerSchema
-      type: object
-      example:
-        '@type': '@type'
-        identity: identity
-        groupIds:
-        - groupIds
-        - groupIds
-        name: name
-        '@id': '@id'
-        '@context':
-        - '@context'
-        - '@context'
-        properties: "{}"
-      allOf:
-      - $ref: "#/components/schemas/Partner"
-    Partner:
-      required:
-      - '@context'
-      - '@type'
-      - identity
-      type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
-        '@type':
-          type: string
-        '@id':
-          type: string
-        identity:
-          minLength: 1
-          type: string
-        name:
-          type: string
-        properties:
-          type: object
-        groupIds:
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-    discovery-response-schema:
-      title: DiscoveryResponseSchema
-      type: object
-      example:
-        '@type': '@type'
-        profile: profile
-        binding: binding
-        counterParty:
-          path: path
-          dataServiceEndpoint: dataServiceEndpoint
-        '@context':
-        - '@context'
-        - '@context'
-        version: version
-      allOf:
-      - $ref: "#/components/schemas/DiscoveryResponse"
-    DiscoveryResponse:
-      required:
-      - '@type'
-      - binding
-      - counterParty
-      - profile
-      - version
-      type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
-        '@type':
-          type: string
-        profile:
-          type: string
-          description: The local dataspace profile id that matches a protocol version
-            advertised by the counter party.
-        version:
-          type: string
-          description: The DSP protocol version shared by the local profile and the
-            counter party entry.
-        counterParty:
-          $ref: "#/components/schemas/CounterParty"
-        binding:
-          type: string
-          description: The protocol binding for this match (copied from the counter
-            party version entry).
-    CounterParty:
-      required:
-      - path
-      type: object
-      properties:
-        path:
-          type: string
-          description: "The path under the counter party's base URL where the matching\
-            \ DSP version is exposed, as returned in the well-known versions document."
-        dataServiceEndpoint:
-          type: string
-          description: The counter party's data service endpoint URL.
-      description: Counter party coordinates for a matched protocol version.
-      example:
-        path: path
-        dataServiceEndpoint: dataServiceEndpoint
-    discovery-request-schema:
-      title: DiscoveryRequestSchema
-      type: object
-      allOf:
-      - $ref: "#/components/schemas/DiscoveryRequest"
-    DiscoveryRequest:
-      required:
-      - '@context'
-      - '@type'
-      type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
-        '@type':
-          type: string
-        counterPartyId:
-          type: string
-          description: The counter party's DID. The DID is resolved and the 'DataService'
-            entry of the DID document provides the base URL of the well-known endpoint.
-        counterPartyAddress:
-          type: string
-          description: "The counter party's discovery URL pointing directly at the\
-            \ '/.well-known/dspace-version' endpoint, or the host that serves it.\
-            \ Takes precedence over counterPartyId."
-          format: uri
-      nullable: true
-    cel-expression-test-response-schema:
-      title: CelExpressionTestRequestSchema
-      type: object
-      example:
-        '@type': '@type'
-        evaluationResult: true
-        error: error
-        '@context':
-        - '@context'
-        - '@context'
-      allOf:
-      - $ref: "#/components/schemas/CelExpressionTestResponse"
-    CelExpressionTestResponse:
-      required:
-      - '@context'
-      - '@type'
-      type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
-        '@type':
-          type: string
-        evaluationResult:
-          type: boolean
-        error:
-          type: string
-    cel-expression-test-request-schema:
-      title: CelExpressionTestRequestSchema
-      type: object
-      allOf:
-      - $ref: "#/components/schemas/CelExpressionTestRequest"
-    CelExpressionTestRequest:
-      required:
-      - '@context'
-      - '@type'
-      - expression
-      - leftOperand
-      - operator
-      - rightOperand
-      type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
-        '@type':
-          type: string
-        expression:
-          type: string
-        leftOperand:
-          type: string
-        operator:
-          type: string
-        rightOperand:
-          $ref: "#/components/schemas/CelExpressionTestRequest_rightOperand"
-        params:
-          type: object
     catalog-schema:
       title: CatalogSchema
       type: object
@@ -6499,43 +6506,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DataspaceProfile_trustedIssuers_inner"
-    catalog-request-schema:
-      title: CatalogRequestSchema
-      type: object
-      allOf:
-      - $ref: "#/components/schemas/CatalogRequest"
-    CatalogRequest:
-      required:
-      - '@context'
-      - '@type'
-      - counterPartyAddress
-      - counterPartyId
-      type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
-        '@type':
-          type: string
-        '@id':
-          type: string
-        protocol:
-          type: string
-        profile:
-          type: string
-        counterPartyAddress:
-          type: string
-        counterPartyId:
-          type: string
-        additionalScopes:
-          type: array
-          items:
-            type: string
-        querySpec:
-          $ref: "#/components/schemas/QuerySpec"
-      nullable: true
     contract-definition-schema:
       title: ContractDefinitionSchema
       type: object
@@ -6627,6 +6597,7 @@ components:
       example:
         stateTimestamp: 0
         '@type': '@type'
+        pending: true
         profile: profile
         counterPartyId: counterPartyId
         type: CONSUMER
@@ -6767,6 +6738,8 @@ components:
           - PROVIDER
         state:
           type: string
+        pending:
+          type: boolean
         stateTimestamp:
           type: integer
         protocol:
@@ -7071,132 +7044,6 @@ components:
               .[0-9]+)?|(24:00:00(\\.0+)?))(Z|(\\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?"
             type: string
       - nullable: true
-    contract-request-schema:
-      title: ContractRequestSchema
-      type: object
-      allOf:
-      - $ref: "#/components/schemas/ContractRequest"
-    ContractRequest:
-      required:
-      - '@context'
-      - '@type'
-      - counterPartyAddress
-      - policy
-      type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
-        '@type':
-          type: string
-        '@id':
-          type: string
-        counterPartyAddress:
-          type: string
-        protocol:
-          type: string
-        profile:
-          type: string
-        policy:
-          $ref: "#/components/schemas/contract-offer-schema"
-        callbackAddresses:
-          type: array
-          items:
-            $ref: "#/components/schemas/callback-address-schema"
-      nullable: true
-    contract-offer-schema:
-      title: ContractOfferSchema
-      type: object
-      allOf:
-      - $ref: "#/components/schemas/ContractOffer"
-    ContractOffer:
-      required:
-      - assigner
-      - target
-      type: object
-      allOf:
-      - $ref: "#/components/schemas/MessageOffer"
-      - properties:
-          assigner:
-            type: string
-    MessageOffer:
-      required:
-      - '@type'
-      type: object
-      allOf:
-      - $ref: "#/components/schemas/PolicyClass_1"
-      - properties:
-          '@type':
-            type: string
-          target:
-            type: string
-      - nullable: true
-    associate-dataspace-profile-schema:
-      title: AssociateDataspaceProfileSchema
-      type: object
-      allOf:
-      - $ref: "#/components/schemas/AssociateDataspaceProfile"
-    AssociateDataspaceProfile:
-      required:
-      - '@context'
-      - '@type'
-      - profiles
-      type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
-        '@type':
-          type: string
-        profiles:
-          type: array
-          items:
-            minItems: 1
-            type: string
-    participant-context-schema:
-      title: ParticipantContextSchema
-      type: object
-      example:
-        '@type': '@type'
-        identity: identity
-        '@id': '@id'
-        state: CREATED
-        '@context':
-        - '@context'
-        - '@context'
-        properties: "{}"
-      allOf:
-      - $ref: "#/components/schemas/ParticipantContext"
-    ParticipantContext:
-      required:
-      - '@context'
-      - '@type'
-      - identity
-      type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
-        '@type':
-          type: string
-        '@id':
-          type: string
-        identity:
-          type: string
-        properties:
-          type: object
-        state:
-          type: string
-          enum:
-          - CREATED
-          - ACTIVATED
-          - DEACTIVATED
     schema-validator-registration-schema:
       title: SchemaValidatorRegistrationSchema
       type: object
@@ -7331,6 +7178,86 @@ components:
           - "TRUE"
           - "FALSE"
           - "NULL"
+    contract-reject-schema:
+      title: ContractRejectSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/RejectNegotiation"
+    RejectNegotiation:
+      required:
+      - '@context'
+      - '@type'
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+    contract-request-schema:
+      title: ContractRequestSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/ContractRequest"
+    ContractRequest:
+      required:
+      - '@context'
+      - '@type'
+      - counterPartyAddress
+      - policy
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        '@id':
+          type: string
+        counterPartyAddress:
+          type: string
+        protocol:
+          type: string
+        profile:
+          type: string
+        policy:
+          $ref: "#/components/schemas/contract-offer-schema"
+        callbackAddresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/callback-address-schema"
+      nullable: true
+    contract-offer-schema:
+      title: ContractOfferSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/ContractOffer"
+    ContractOffer:
+      required:
+      - assigner
+      - target
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/MessageOffer"
+      - properties:
+          assigner:
+            type: string
+    MessageOffer:
+      required:
+      - '@type'
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/PolicyClass_1"
+      - properties:
+          '@type':
+            type: string
+          target:
+            type: string
+      - nullable: true
     cached-document-schema:
       title: CachedDocumentSchema
       type: object
@@ -7861,6 +7788,43 @@ components:
             $ref: "#/components/schemas/context-schema_1"
         example: null
       example: null
+    catalog-request-schema:
+      title: CatalogRequestSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/CatalogRequest"
+    CatalogRequest:
+      required:
+      - '@context'
+      - '@type'
+      - counterPartyAddress
+      - counterPartyId
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        '@id':
+          type: string
+        protocol:
+          type: string
+        profile:
+          type: string
+        counterPartyAddress:
+          type: string
+        counterPartyId:
+          type: string
+        additionalScopes:
+          type: array
+          items:
+            type: string
+        querySpec:
+          $ref: "#/components/schemas/QuerySpec"
+      nullable: true
     TransferState:
       required:
       - '@context'
@@ -7932,6 +7896,46 @@ components:
         labels:
         - labels
         - labels
+    participant-context-schema:
+      title: ParticipantContextSchema
+      type: object
+      example:
+        '@type': '@type'
+        identity: identity
+        '@id': '@id'
+        state: CREATED
+        '@context':
+        - '@context'
+        - '@context'
+        properties: "{}"
+      allOf:
+      - $ref: "#/components/schemas/ParticipantContext"
+    ParticipantContext:
+      required:
+      - '@context'
+      - '@type'
+      - identity
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        '@id':
+          type: string
+        identity:
+          type: string
+        properties:
+          type: object
+        state:
+          type: string
+          enum:
+          - CREATED
+          - ACTIVATED
+          - DEACTIVATED
     policy-evaluation-plan-schema:
       title: PolicyEvaluationPlanSchema
       type: object
@@ -8370,6 +8374,227 @@ components:
           type: string
         reason:
           type: string
+    partner-schema:
+      title: PartnerSchema
+      type: object
+      example:
+        '@type': '@type'
+        identity: identity
+        groupIds:
+        - groupIds
+        - groupIds
+        name: name
+        '@id': '@id'
+        '@context':
+        - '@context'
+        - '@context'
+        properties: "{}"
+      allOf:
+      - $ref: "#/components/schemas/Partner"
+    Partner:
+      required:
+      - '@context'
+      - '@type'
+      - identity
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        '@id':
+          type: string
+        identity:
+          minLength: 1
+          type: string
+        name:
+          type: string
+        properties:
+          type: object
+        groupIds:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+    discovery-response-schema:
+      title: DiscoveryResponseSchema
+      type: object
+      example:
+        '@type': '@type'
+        profile: profile
+        binding: binding
+        counterParty:
+          path: path
+          dataServiceEndpoint: dataServiceEndpoint
+        '@context':
+        - '@context'
+        - '@context'
+        version: version
+      allOf:
+      - $ref: "#/components/schemas/DiscoveryResponse"
+    DiscoveryResponse:
+      required:
+      - '@type'
+      - binding
+      - counterParty
+      - profile
+      - version
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        profile:
+          type: string
+          description: The local dataspace profile id that matches a protocol version
+            advertised by the counter party.
+        version:
+          type: string
+          description: The DSP protocol version shared by the local profile and the
+            counter party entry.
+        counterParty:
+          $ref: "#/components/schemas/CounterParty"
+        binding:
+          type: string
+          description: The protocol binding for this match (copied from the counter
+            party version entry).
+    CounterParty:
+      required:
+      - path
+      type: object
+      properties:
+        path:
+          type: string
+          description: "The path under the counter party's base URL where the matching\
+            \ DSP version is exposed, as returned in the well-known versions document."
+        dataServiceEndpoint:
+          type: string
+          description: The counter party's data service endpoint URL.
+      description: Counter party coordinates for a matched protocol version.
+      example:
+        path: path
+        dataServiceEndpoint: dataServiceEndpoint
+    discovery-request-schema:
+      title: DiscoveryRequestSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/DiscoveryRequest"
+    DiscoveryRequest:
+      required:
+      - '@context'
+      - '@type'
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        counterPartyId:
+          type: string
+          description: The counter party's DID. The DID is resolved and the 'DataService'
+            entry of the DID document provides the base URL of the well-known endpoint.
+        counterPartyAddress:
+          type: string
+          description: "The counter party's discovery URL pointing directly at the\
+            \ '/.well-known/dspace-version' endpoint, or the host that serves it.\
+            \ Takes precedence over counterPartyId."
+          format: uri
+      nullable: true
+    cel-expression-test-response-schema:
+      title: CelExpressionTestRequestSchema
+      type: object
+      example:
+        '@type': '@type'
+        evaluationResult: true
+        error: error
+        '@context':
+        - '@context'
+        - '@context'
+      allOf:
+      - $ref: "#/components/schemas/CelExpressionTestResponse"
+    CelExpressionTestResponse:
+      required:
+      - '@context'
+      - '@type'
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        evaluationResult:
+          type: boolean
+        error:
+          type: string
+    cel-expression-test-request-schema:
+      title: CelExpressionTestRequestSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/CelExpressionTestRequest"
+    CelExpressionTestRequest:
+      required:
+      - '@context'
+      - '@type'
+      - expression
+      - leftOperand
+      - operator
+      - rightOperand
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        expression:
+          type: string
+        leftOperand:
+          type: string
+        operator:
+          type: string
+        rightOperand:
+          $ref: "#/components/schemas/CelExpressionTestRequest_rightOperand"
+        params:
+          type: object
+    associate-dataspace-profile-schema:
+      title: AssociateDataspaceProfileSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/AssociateDataspaceProfile"
+    AssociateDataspaceProfile:
+      required:
+      - '@context'
+      - '@type'
+      - profiles
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        profiles:
+          type: array
+          items:
+            minItems: 1
+            type: string
     dataplane-instance-schema:
       title: DataPlaneInstanceSchema
       type: object
@@ -8453,10 +8678,6 @@ components:
           type: string
       example:
         key: value
-    CelExpressionTestRequest_rightOperand:
-      oneOf:
-      - type: string
-      - type: object
     Distribution_accessService:
       oneOf:
       - type: string
@@ -8499,3 +8720,7 @@ components:
         supportedTypes:
         - supportedTypes
         - supportedTypes
+    CelExpressionTestRequest_rightOperand:
+      oneOf:
+      - type: string
+      - type: object
