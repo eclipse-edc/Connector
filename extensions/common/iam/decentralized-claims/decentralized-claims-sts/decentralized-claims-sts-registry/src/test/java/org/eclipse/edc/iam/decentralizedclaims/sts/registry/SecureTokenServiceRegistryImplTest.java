@@ -22,7 +22,7 @@ import static org.mockito.Mockito.mock;
 
 class SecureTokenServiceRegistryImplTest {
 
-    private final SecureTokenServiceRegistryImpl registry = new SecureTokenServiceRegistryImpl();
+    private final SecureTokenServiceRegistryImpl registry = new SecureTokenServiceRegistryImpl("oauth");
 
     @Test
     void resolve_whenRegistered_shouldReturnImplementation() {

@@ -18,12 +18,15 @@ import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackClie
 import org.eclipse.edc.connector.controlplane.services.spi.callback.ParticipantCallbackResolver;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigEntry;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantContextConfigValidatorRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
 import java.util.List;
@@ -41,12 +44,24 @@ public class CallbackEventDispatcherDefaultExtension implements ServiceExtension
     Vault vault;
     @Inject(required = false)
     ParticipantContextConfig participantContextConfig;
+    @Inject(required = false)
+    ParticipantContextConfigValidatorRegistry configValidatorRegistry;
     @Inject
     Monitor monitor;
 
     @Override
     public String name() {
         return NAME;
+    }
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        if (configValidatorRegistry != null) {
+            configValidatorRegistry.register(ParticipantConfigEntry.Builder.newInstance(ParticipantContextConfigCallbackResolver.CALLBACKS_CONFIG_KEY)
+                    .description("JSON array of the callback addresses notified of the participant context events")
+                    .validator(ParticipantContextConfigCallbackResolver.callbacksValidator(typeManager::getMapper))
+                    .build());
+        }
     }
 
     @Provider(isDefault = true)

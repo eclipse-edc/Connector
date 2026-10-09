@@ -23,6 +23,7 @@ import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
+import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
@@ -43,7 +44,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.createParticipant;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.jsonLdContext;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 
 public class ParticipantContextConfigApiV5EndToEndTest {
 
@@ -107,6 +110,69 @@ public class ParticipantContextConfigApiV5EndToEndTest {
                     .statusCode(400)
                     .body("[0].message", equalTo("string found, object expected"))
                     .body("[0].path", equalTo("/entries"));
+        }
+
+        @Test
+        void set_shouldFail_whenRegisteredEntryIsInvalid(ManagementEndToEndV5TestContext context, OauthServer authServer) {
+            var participantContextId = "test-user";
+
+            var body = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "ParticipantContextConfig")
+                    .add("entries", createObjectBuilder().add("edc.callbacks", "not-a-json"))
+                    .build()
+                    .toString();
+
+            context.baseRequest(authServer.createAdminToken())
+                    .contentType(ContentType.JSON)
+                    .body(body)
+                    .put("/v5/participants/" + participantContextId + "/config")
+                    .then()
+                    .statusCode(400)
+                    .body("[0].message", containsString("'edc.callbacks' must be a JSON array of callback addresses"));
+        }
+
+        @Test
+        void validate(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigStore store) {
+            var participantContextId = "test-user";
+            // stored bypassing the service validation, as a configuration stored before the entry got registered
+            store.save(ParticipantContextConfiguration.Builder.newInstance().participantContextId(participantContextId)
+                    .entries(Map.of("edc.dataspace.profiles", "unknown-profile"))
+                    .build());
+
+            context.baseRequest(authServer.createAdminToken())
+                    .get("/v5/participants/" + participantContextId + "/config/validation")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .body(TYPE, equalTo("ParticipantContextConfigValidation"))
+                    .body("valid", equalTo(false))
+                    .body("violations", hasSize(1))
+                    .body("violations[0].key", equalTo("edc.dataspace.profiles"))
+                    .body("violations[0].message", containsString("unknown-profile"));
+        }
+
+        @Test
+        void validate_whenValid(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service) {
+            var participantContextId = "test-user";
+            service.save(ParticipantContextConfiguration.Builder.newInstance().participantContextId(participantContextId)
+                    .entries(Map.of("key", "value"))
+                    .build());
+
+            context.baseRequest(authServer.createAdminToken())
+                    .get("/v5/participants/" + participantContextId + "/config/validation")
+                    .then()
+                    .statusCode(200)
+                    .body("valid", equalTo(true))
+                    .body("violations", hasSize(0));
+        }
+
+        @Test
+        void validate_notFound(ManagementEndToEndV5TestContext context, OauthServer authServer) {
+            context.baseRequest(authServer.createAdminToken())
+                    .get("/v5/participants/unknown/config/validation")
+                    .then()
+                    .statusCode(404);
         }
 
         @Test

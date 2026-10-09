@@ -18,6 +18,8 @@ package org.eclipse.edc.vault.hashicorp;
 
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigEntry;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantContextConfigValidatorRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -37,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
+import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_CONFIG;
 import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
 @Extension(value = HashicorpVaultExtension.NAME)
@@ -55,6 +58,9 @@ public class HashicorpVaultExtension implements ServiceExtension {
 
     @Inject
     private ParticipantContextConfig participantContextConfig;
+
+    @Inject
+    private ParticipantContextConfigValidatorRegistry configValidatorRegistry;
 
     /**
      * this is the vault config for the default vault partition, which is used if no other vault partition is given.
@@ -84,6 +90,12 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor().withPrefix(NAME);
+
+        configValidatorRegistry.register(ParticipantConfigEntry.Builder.newInstance(VAULT_CONFIG)
+                .description("JSON settings of the Hashicorp vault partition of the participant context")
+                .sensitive()
+                .validator(HashicorpVaultSettings.validator())
+                .build());
 
         var tokenRenewService = new HashicorpVaultTokenRenewService(httpClient, MAPPER, defaultVaultConfig, tokenProviderFactory.create(null));
         tokenRenewalTask = new HashicorpVaultTokenRenewTask(

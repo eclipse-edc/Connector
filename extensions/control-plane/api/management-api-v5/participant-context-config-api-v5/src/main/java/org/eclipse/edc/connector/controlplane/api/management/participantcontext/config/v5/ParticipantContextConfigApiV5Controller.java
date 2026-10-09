@@ -95,4 +95,17 @@ public class ParticipantContextConfigApiV5Controller implements ParticipantConte
         return transformerRegistry.transform(config, JsonObject.class)
                 .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
     }
+
+    @GET
+    @Path("/validation")
+    @RequiredScope("management-api:admin")
+    @Override
+    public JsonObject validateConfigV5(@PathParam("participantContextId") String participantContextId) {
+
+        var validation = configService.validate(participantContextId)
+                .orElseThrow(exceptionMapper(ParticipantContextConfiguration.class, participantContextId));
+
+        return transformerRegistry.transform(validation, JsonObject.class)
+                .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
+    }
 }

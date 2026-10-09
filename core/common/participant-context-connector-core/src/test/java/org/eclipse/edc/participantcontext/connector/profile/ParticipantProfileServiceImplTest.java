@@ -30,6 +30,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.protocol.spi.ParticipantProfileService.PROFILES_CONFIG_KEY;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -209,4 +210,16 @@ class ParticipantProfileServiceImplTest {
         return new DataspaceProfileContext(id, new ProtocolVersion("v", "/v", "https"),
                 () -> "url", ct -> "id", NAMESPACE, List.of(), List.of());
     }
+
+    @Test
+    void profilesValidator_shouldFail_whenProfileUnknown() {
+        when(registry.getProfile("known")).thenReturn(profile("known"));
+        var validator = ParticipantProfileServiceImpl.profilesValidator(registry);
+
+        assertThat(validator.validate("known, unknown")).isFailed()
+                .detail().contains("references unknown profiles [unknown]");
+        assertThat(validator.validate("known")).isSucceeded();
+        assertThat(validator.validate("")).isSucceeded();
+    }
+
 }

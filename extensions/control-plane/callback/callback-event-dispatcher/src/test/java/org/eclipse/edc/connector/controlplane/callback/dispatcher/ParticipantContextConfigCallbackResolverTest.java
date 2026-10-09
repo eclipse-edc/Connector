@@ -21,6 +21,8 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.callback.dispatcher.ParticipantContextConfigCallbackResolver.CALLBACKS_CONFIG_KEY;
+import static org.eclipse.edc.connector.controlplane.callback.dispatcher.ParticipantContextConfigCallbackResolver.callbacksValidator;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -68,5 +70,22 @@ class ParticipantContextConfigCallbackResolverTest {
 
         assertThat(resolver.resolve("participantContextId", "contract.negotiation.held")).isEmpty();
         verify(monitor).warning(anyString());
+    }
+
+    @Test
+    void callbacksValidator_shouldSucceed_whenValid() {
+        var validator = callbacksValidator(new JacksonTypeManager()::getMapper);
+
+        assertThat(validator.validate("[{\"uri\": \"http://all\", \"events\": [\"contract.negotiation\"]}]")).isSucceeded();
+        assertThat(validator.validate("")).isSucceeded();
+    }
+
+    @Test
+    void callbacksValidator_shouldFail_whenInvalid() {
+        var validator = callbacksValidator(new JacksonTypeManager()::getMapper);
+
+        assertThat(validator.validate("not-a-json")).isFailed().detail().contains("must be a JSON array of callback addresses");
+        assertThat(validator.validate("[{\"events\": [\"contract.negotiation\"]}]")).isFailed().detail().contains("URI should not be null");
+        assertThat(validator.validate("[null]")).isFailed().detail().contains("must not contain null callbacks");
     }
 }

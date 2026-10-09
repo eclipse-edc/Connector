@@ -22,6 +22,7 @@ import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.validator.spi.ValidationResult;
+import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,7 +48,21 @@ public class ParticipantProfileServiceImpl implements ParticipantProfileService 
         this.dspEnableAllProfiles = dspEnableAllProfiles;
     }
 
-    private Set<String> parse(String csv) {
+    /**
+     * Validator for the {@link #PROFILES_CONFIG_KEY} configuration value: every listed profile must be registered.
+     *
+     * @param profileRegistry the profile registry.
+     * @return the validator.
+     */
+    public static Validator<String> profilesValidator(DataspaceProfileContextRegistry profileRegistry) {
+        return value -> {
+            var unknown = parse(value).stream().filter(profile -> profileRegistry.getProfile(profile) == null).toList();
+            return unknown.isEmpty() ? ValidationResult.success() :
+                    ValidationResult.failure(Violation.violation("references unknown profiles %s".formatted(unknown), null));
+        };
+    }
+
+    private static Set<String> parse(String csv) {
         return Stream.of(csv.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isBlank())
@@ -61,7 +76,7 @@ public class ParticipantProfileServiceImpl implements ParticipantProfileService 
         }
         return transactionContext.execute(() -> {
             var result = readRaw(participantContextId)
-                    .map(this::parse)
+                    .map(ParticipantProfileServiceImpl::parse)
                     .map(profiles -> profiles.stream()
                             .map(profileRegistry::getProfile)
                             .filter(Objects::nonNull)
@@ -84,7 +99,7 @@ public class ParticipantProfileServiceImpl implements ParticipantProfileService 
 
         return transactionContext.execute(() -> {
             var result = readRaw(participantContextId)
-                    .map(this::parse)
+                    .map(ParticipantProfileServiceImpl::parse)
                     .map(configured -> configured.contains(profileId));
 
             if (result.failed() || !result.getContent()) {

@@ -16,9 +16,11 @@ package org.eclipse.edc.participantcontext.config;
 
 import org.eclipse.edc.encryption.EncryptionAlgorithmRegistry;
 import org.eclipse.edc.participantcontext.config.service.ParticipantContextConfigServiceImpl;
+import org.eclipse.edc.participantcontext.config.validation.ParticipantContextConfigValidatorRegistryImpl;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantContextConfigValidatorRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -44,6 +46,13 @@ public class ParticipantContextConfigServicesExtension implements ServiceExtensi
     )
     private String encryptionAlgorithm;
 
+    @Setting(
+            description = "Whether participant context configuration keys that are not registered by any extension are rejected.",
+            key = "edc.participants.config.validation.strict",
+            defaultValue = "false"
+    )
+    private boolean strictValidation;
+
     @Inject
     private ParticipantContextConfigStore configStore;
 
@@ -59,9 +68,19 @@ public class ParticipantContextConfigServicesExtension implements ServiceExtensi
     @Inject
     private Clock clock;
 
+    private ParticipantContextConfigValidatorRegistry validatorRegistry;
+
     @Provider
     public ParticipantContextConfigService participantContextConfigService() {
-        return new ParticipantContextConfigServiceImpl(encryptionRegistry, encryptionAlgorithm, configStore, transactionContext, clock);
+        return new ParticipantContextConfigServiceImpl(encryptionRegistry, encryptionAlgorithm, configStore, transactionContext, clock, participantContextConfigValidatorRegistry());
+    }
+
+    @Provider
+    public ParticipantContextConfigValidatorRegistry participantContextConfigValidatorRegistry() {
+        if (validatorRegistry == null) {
+            validatorRegistry = new ParticipantContextConfigValidatorRegistryImpl(strictValidation);
+        }
+        return validatorRegistry;
     }
 
     @Provider

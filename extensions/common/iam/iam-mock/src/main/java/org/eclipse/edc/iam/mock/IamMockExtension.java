@@ -17,6 +17,8 @@ package org.eclipse.edc.iam.mock;
 
 import org.eclipse.edc.controlplane.iam.AudienceResolver;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigEntry;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantContextConfigValidatorRegistry;
 import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -28,6 +30,8 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+
+import static org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigValidators.notBlank;
 
 /**
  * An IAM provider mock used for testing.
@@ -49,6 +53,8 @@ public class IamMockExtension implements ServiceExtension {
     private TypeManager typeManager;
     @Inject
     private ParticipantContextConfig contextConfig;
+    @Inject
+    private ParticipantContextConfigValidatorRegistry configValidatorRegistry;
 
     @Override
     public String name() {
@@ -58,6 +64,9 @@ public class IamMockExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         context.registerService(IdentityService.class, new MockIdentityService(contextConfig, typeManager));
+        // registered for strict validation only: being a test utility, the participant id is not enforced
+        configValidatorRegistry.register(ParticipantConfigEntry.Builder.newInstance(PARTICIPANT_ID).validator(notBlank()).build());
+        configValidatorRegistry.register(ParticipantConfigEntry.Builder.newInstance(EDC_MOCK_FAULTY_CLIENT_ID).validator(notBlank()).build());
     }
 
     @Provider(isDefault = true)
