@@ -45,6 +45,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
@@ -381,6 +382,36 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .body("size()", is(2))
                     .body("[0].message", startsWith("leftOperand 'https://w3id.org/edc/v0.0.1/ns/left' is not bound to any scopes"))
                     .body("[1].message", startsWith("leftOperand 'https://w3id.org/edc/v0.0.1/ns/left' is not bound to any functions"));
+        }
+
+        @Test
+        void shouldNotStorePolicyDefinition_whenRightOperandIsIdReference(ManagementEndToEndTestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "PolicyDefinition")
+                    .add("policy", odrlPolicyWithIdRightOperand())
+                    .build();
+
+            context.baseRequest()
+                    .body(requestBody)
+                    .contentType(JSON)
+                    .post("/v4/policydefinitions")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(400)
+                    .body(containsString("use the plain string"));
+        }
+
+        private JsonObject odrlPolicyWithIdRightOperand() {
+            return createObjectBuilder()
+                    .add(TYPE, "Set")
+                    .add("permission", createArrayBuilder().add(createObjectBuilder()
+                            .add("action", "use")
+                            .add("constraint", createArrayBuilder().add(createObjectBuilder()
+                                    .add("leftOperand", "inForceDate")
+                                    .add("operator", "eq")
+                                    .add("rightOperand", createObjectBuilder().add(ID, "https://w3id.org/example/EU"))))))
+                    .build();
         }
 
         private JsonObject emptyOdrlPolicy() {

@@ -131,7 +131,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectFromCriterionTransformer(factory, typeManager, JSON_LD));
         managementApiTransformerRegistry.register(new JsonObjectFromCallbackAddressTransformer(factory));
 
-        OdrlTransformersFactory.jsonObjectToOdrlTransformers(participantIdMapper).forEach(managementApiTransformerRegistry::register);
+        OdrlTransformersFactory.jsonObjectToOdrlTransformers(participantIdMapper, true).forEach(managementApiTransformerRegistry::register);
         managementApiTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToCriterionTransformer(criterionOperatorRegistry));

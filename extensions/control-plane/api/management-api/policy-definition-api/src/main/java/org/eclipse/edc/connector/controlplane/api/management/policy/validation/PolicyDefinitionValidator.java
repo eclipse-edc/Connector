@@ -20,7 +20,6 @@ import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
-import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdArray;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
 import org.eclipse.edc.validator.jsonobject.validators.TypeIs;
@@ -35,6 +34,8 @@ import java.util.Set;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
+import static org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToConstraintTransformer.NON_LITERAL_RIGHT_OPERAND_MESSAGE;
+import static org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToConstraintTransformer.isLiteralRightOperand;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_SEQUENCE_CONSTRAINT_ATTRIBUTE;
@@ -173,11 +174,22 @@ public class PolicyDefinitionValidator {
                     .verifyObject(ODRL_OPERATOR_ATTRIBUTE, b -> b
                             .verifyId(OptionalIdNotBlank::new)
                             .verifyId(OperatorValidator::new))
-                    .verify(ODRL_RIGHT_OPERAND_ATTRIBUTE, MandatoryValue::new)
+                    .verify(ODRL_RIGHT_OPERAND_ATTRIBUTE, RightOperandValidator::new)
                     .build()
                     .validate(input);
         }
 
+    }
+
+    private record RightOperandValidator(JsonLdPath path) implements Validator<JsonObject> {
+
+        @Override
+        public ValidationResult validate(JsonObject input) {
+            if (isLiteralRightOperand(input.get(path.last()))) {
+                return ValidationResult.success();
+            }
+            return ValidationResult.failure(violation(NON_LITERAL_RIGHT_OPERAND_MESSAGE, path.toString()));
+        }
     }
 
     private record OperatorValidator(JsonLdPath path) implements Validator<JsonString> {

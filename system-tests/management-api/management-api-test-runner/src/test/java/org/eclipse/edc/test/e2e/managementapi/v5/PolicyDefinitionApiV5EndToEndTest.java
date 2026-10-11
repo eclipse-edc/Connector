@@ -281,6 +281,24 @@ public class PolicyDefinitionApiV5EndToEndTest {
         }
 
         @Test
+        void create_whenRightOperandIsIdReference_shouldFail(ManagementEndToEndV5TestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "PolicyDefinition")
+                    .add("policy", odrlPolicyWithIdRightOperand())
+                    .build();
+
+            context.baseRequest(participantTokenJwt)
+                    .body(requestBody.toString())
+                    .contentType(JSON)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(400)
+                    .body(containsString("use the plain string"));
+        }
+
+        @Test
         void create_tokenBearerWrong(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService service) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -949,6 +967,18 @@ public class PolicyDefinitionApiV5EndToEndTest {
                     .then()
                     .statusCode(403);
 
+        }
+
+        private JsonObject odrlPolicyWithIdRightOperand() {
+            return createObjectBuilder()
+                    .add(TYPE, "Set")
+                    .add("permission", createArrayBuilder().add(createObjectBuilder()
+                            .add("action", "use")
+                            .add("constraint", createArrayBuilder().add(createObjectBuilder()
+                                    .add("leftOperand", "inForceDate")
+                                    .add("operator", "eq")
+                                    .add("rightOperand", createObjectBuilder().add(ID, "https://w3id.org/example/EU"))))))
+                    .build();
         }
 
         private JsonObject emptyOdrlPolicy() {
