@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
@@ -55,6 +56,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_RIGHT_OPERAND
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAINT_ATTRIBUTE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeast;
@@ -112,6 +114,49 @@ class JsonObjectToConstraintTransformerTest {
         assertThat(result).isNotNull().asInstanceOf(type(AtomicConstraint.class)).satisfies(atomicConstraint -> {
             assertThat(((LiteralExpression) atomicConstraint.getRightExpression()).getValue()).isEqualTo(List.of("right1", "right2"));
         });
+    }
+
+    @Test
+    void atomicConstraint_rightOperandAsIdReference_readAsString() {
+        when(context.transform(any(), eq(Operator.class))).thenReturn(Operator.EQ);
+
+        var result = transformer.transform(TestJsonLd.expand(atomicConstraint(id("https://w3id.org/example/EU"))), context);
+
+        assertThat(result).isNotNull().asInstanceOf(type(AtomicConstraint.class))
+                .extracting(it -> ((LiteralExpression) it.getRightExpression()).getValue())
+                .isEqualTo("https://w3id.org/example/EU");
+    }
+
+    @Test
+    void atomicConstraint_strict_rightOperandAsIdReference_reportsProblem() {
+        when(context.transform(any(), eq(Operator.class))).thenReturn(Operator.EQ);
+
+        var result = new JsonObjectToConstraintTransformer(true)
+                .transform(TestJsonLd.expand(atomicConstraint(id("https://w3id.org/example/EU"))), context);
+
+        assertThat(result).isNull();
+        verify(context).reportProblem(contains("use the plain string"));
+    }
+
+    @Test
+    void atomicConstraint_strict_blankRightOperand_reportsProblem() {
+        when(context.transform(any(), eq(Operator.class))).thenReturn(Operator.EQ);
+
+        var result = new JsonObjectToConstraintTransformer(true).transform(TestJsonLd.expand(atomicConstraint(Json.createValue(" "))), context);
+
+        assertThat(result).isNull();
+        verify(context).reportProblem(anyString());
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(LiteralRightOperands.class)
+    void atomicConstraint_strict_literalRightOperand_returnConstraint(JsonValue rightOperand) {
+        when(context.transform(any(), eq(Operator.class))).thenReturn(Operator.EQ);
+
+        var result = new JsonObjectToConstraintTransformer(true).transform(TestJsonLd.expand(atomicConstraint(rightOperand)), context);
+
+        assertThat(result).isNotNull();
+        verify(context, never()).reportProblem(anyString());
     }
 
     @Test
@@ -183,12 +228,39 @@ class JsonObjectToConstraintTransformerTest {
         verify(context, never()).transform(any(JsonObject.class), eq(Constraint.class));
     }
 
+    private JsonObject atomicConstraint(JsonObjectBuilder rightOperand) {
+        return atomicConstraint(rightOperand.build());
+    }
+
+    private JsonObject atomicConstraint(JsonValue rightOperand) {
+        return jsonFactory.createObjectBuilder()
+                .add(ODRL_LEFT_OPERAND_ATTRIBUTE, jsonFactory.createArrayBuilder().add(id("left")))
+                .add(ODRL_OPERATOR_ATTRIBUTE, jsonFactory.createArrayBuilder().add(id("eq")))
+                .add(ODRL_RIGHT_OPERAND_ATTRIBUTE, rightOperand)
+                .build();
+    }
+
     private JsonObjectBuilder id(String value) {
         return jsonFactory.createObjectBuilder().add(ID, value);
     }
 
     private JsonObjectBuilder value(String value) {
         return jsonFactory.createObjectBuilder().add(VALUE, value);
+    }
+
+    static class LiteralRightOperands implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            var factory = Json.createBuilderFactory(Map.of());
+            return Stream.of(
+                    Arguments.of(Json.createValue("EU")),
+                    Arguments.of(Json.createValue(5)),
+                    Arguments.of(JsonValue.TRUE),
+                    Arguments.of(factory.createObjectBuilder().add(VALUE, "2025-01-01").add(TYPE, "http://www.w3.org/2001/XMLSchema#date").build()),
+                    Arguments.of(factory.createArrayBuilder().add("a").add(5).build())
+            );
+        }
     }
 
     static class OperandsProvider implements ArgumentsProvider {

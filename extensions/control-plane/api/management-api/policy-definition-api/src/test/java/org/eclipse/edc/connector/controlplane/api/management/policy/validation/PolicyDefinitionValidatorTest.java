@@ -14,12 +14,17 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.policy.validation;
 
+import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import java.io.StringReader;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
@@ -206,6 +211,40 @@ class PolicyDefinitionValidatorTest {
     }
 
     @Test
+    void shouldFail_whenRightOperandIsIdReference() {
+        var result = validator.validate(policyDefinitionWithRightOperand("[{\"@id\": \"https://w3id.org/example/EU\"}]"));
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .anySatisfy(violation -> assertThat(violation.message()).contains("use the plain string"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "[{\"@value\": \"\"}]",
+            "[{\"@value\": \" \"}]",
+            "[{\"@value\": \"a\"}, {\"@value\": \" \"}]"
+    })
+    void shouldFail_whenRightOperandIsBlank(String rightOperand) {
+        var result = validator.validate(policyDefinitionWithRightOperand(rightOperand));
+
+        assertThat(result).isFailed();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "[{\"@value\": \"EU\"}]",
+            "[{\"@value\": 5}]",
+            "[{\"@value\": true}]",
+            "[{\"@value\": \"2025-01-01\", \"@type\": \"http://www.w3.org/2001/XMLSchema#date\"}]",
+            "[{\"@value\": \"a\"}, {\"@value\": 5}]"
+    })
+    void shouldSucceed_whenRightOperandIsLiteral(String rightOperand) {
+        var result = validator.validate(policyDefinitionWithRightOperand(rightOperand));
+
+        assertThat(result).isSucceeded();
+    }
+
+    @Test
     void shouldSucceed_whenLogicalConstraintIsPresent() {
         var permission = createArrayBuilder().add(createObjectBuilder()
                 .add(ODRL_ACTION_ATTRIBUTE, createValidAction())
@@ -330,6 +369,22 @@ class PolicyDefinitionValidatorTest {
                 .isNotEmpty()
                 .filteredOn(it -> ODRL_PROFILE_ATTRIBUTE.equals(it.path()))
                 .anySatisfy(violation -> assertThat(violation.message()).contains("empty"));
+    }
+
+    private JsonObject policyDefinitionWithRightOperand(String rightOperand) {
+        var constraint = createObjectBuilder()
+                .add(ODRL_LEFT_OPERAND_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, "left")))
+                .add(ODRL_OPERATOR_ATTRIBUTE, createArrayBuilder().add(createObjectBuilder().add(ID, ODRL_SCHEMA + "eq")))
+                .add(ODRL_RIGHT_OPERAND_ATTRIBUTE, Json.createReader(new StringReader(rightOperand)).readArray());
+        var permission = createObjectBuilder()
+                .add(ODRL_ACTION_ATTRIBUTE, createValidAction())
+                .add(ODRL_CONSTRAINT_ATTRIBUTE, createArrayBuilder().add(constraint));
+        var policy = createObjectBuilder()
+                .add(TYPE, policySet())
+                .add(ODRL_PERMISSION_ATTRIBUTE, createArrayBuilder().add(permission));
+        return createObjectBuilder()
+                .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder().add(policy))
+                .build();
     }
 
     private JsonArrayBuilder policySet() {

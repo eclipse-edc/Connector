@@ -490,6 +490,25 @@ class JsonObjectFromPolicyTransformerTest {
         verify(context, never()).reportProblem(anyString());
     }
 
+    @Test
+    void shouldTransformIriRightOperandAsLiteral() {
+        var constraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression("left"))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression("https://w3id.org/example/EU"))
+                .build();
+        var policy = Policy.Builder.newInstance()
+                .permission(Permission.Builder.newInstance().action(getAction()).constraint(constraint).build())
+                .build();
+
+        var result = transformer.transform(policy, context);
+
+        assertThat(result.getJsonArray(ODRL_PERMISSION_ATTRIBUTE).getJsonObject(0).getJsonArray(ODRL_CONSTRAINT_ATTRIBUTE)
+                .getJsonObject(0).getJsonArray(ODRL_RIGHT_OPERAND_ATTRIBUTE))
+                .singleElement().extracting(JsonValue::asJsonObject)
+                .satisfies(it -> assertThat(it).doesNotContainKey(ID).containsEntry(VALUE, Json.createValue("https://w3id.org/example/EU")));
+    }
+
     private Action getAction() {
         return Action.Builder.newInstance().type("use").build();
     }

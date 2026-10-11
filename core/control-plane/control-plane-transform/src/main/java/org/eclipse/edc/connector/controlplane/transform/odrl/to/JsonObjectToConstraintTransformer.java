@@ -33,8 +33,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.JSON;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.LANGUAGE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_CONSTRAINT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_TYPE;
@@ -53,9 +58,11 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAI
  *     <li>Json-Ld arrays that contain a single element (Json-Ld scalar or complex type) will return the extracted element. </li>
  *     <li>Json-Ld arrays that contain multiple elements will be returned as-is.</li>
  *     <li>Json-Ld objects that contain an @code{value} property will have that property extracted and returned.</li>
+ *     <li>Json-Ld objects that contain an {@code @id} property and no {@code @value} are read as the {@code @id} string.</li>
  *     <li>All other Json-Ld forms are returned as-is.</li>
  * </ul>
- * -
+ * In strict mode, used by the Management API, a right operand that is not a literal or an array of literals is
+ * reported as a problem.
  */
 public class JsonObjectToConstraintTransformer extends JsonLdToModelTransformer<JsonObject, Constraint> {
 
@@ -65,8 +72,43 @@ public class JsonObjectToConstraintTransformer extends JsonLdToModelTransformer<
             ODRL_XONE_CONSTRAINT_ATTRIBUTE, XoneConstraint.Builder::newInstance
     );
 
+    public static final String NON_LITERAL_RIGHT_OPERAND_MESSAGE = "rightOperand must be a literal (non-blank string, number, boolean or typed literal) " +
+            "or an array of literals: use the plain string instead of {\"@id\": ...} or other objects";
+
+    private static final Set<String> LITERAL_KEYS = Set.of(VALUE, TYPE, LANGUAGE);
+
+    private final boolean strict;
+
     public JsonObjectToConstraintTransformer() {
+        this(false);
+    }
+
+    public JsonObjectToConstraintTransformer(boolean strict) {
         super(JsonObject.class, Constraint.class);
+        this.strict = strict;
+    }
+
+    /**
+     * Returns true if the expanded right operand is a literal or a non-empty array of literals. A literal is a value
+     * object whose {@code @value} is a string, a number or a boolean, optionally with an {@code @type} or {@code @language}.
+     */
+    public static boolean isLiteralRightOperand(JsonValue rightOperand) {
+        if (rightOperand instanceof JsonArray array) {
+            return !array.isEmpty() && array.stream().allMatch(JsonObjectToConstraintTransformer::isLiteral);
+        }
+        return isLiteral(rightOperand);
+    }
+
+    private static boolean isLiteral(JsonValue item) {
+        if (!(item instanceof JsonObject object) || !LITERAL_KEYS.containsAll(object.keySet()) || JSON.equals(object.getString(TYPE, null))) {
+            return false;
+        }
+        var value = object.get(VALUE);
+        return value != null && switch (value.getValueType()) {
+            case STRING -> !((JsonString) value).getString().isBlank();
+            case NUMBER, TRUE, FALSE -> true;
+            default -> false;
+        };
     }
 
     @Override
@@ -104,7 +146,13 @@ public class JsonObjectToConstraintTransformer extends JsonLdToModelTransformer<
 
         builder.operator(transformObject(jsonOperator, Operator.class, context));
 
-        var rightOperand = extractComplexValue(object.get(ODRL_RIGHT_OPERAND_ATTRIBUTE));
+        var jsonRightOperand = object.get(ODRL_RIGHT_OPERAND_ATTRIBUTE);
+        if (strict && !isLiteralRightOperand(jsonRightOperand)) {
+            context.reportProblem(NON_LITERAL_RIGHT_OPERAND_MESSAGE);
+            return null;
+        }
+
+        var rightOperand = extractComplexValue(jsonRightOperand);
 
         builder.rightExpression(new LiteralExpression(rightOperand));
 
@@ -136,6 +184,10 @@ public class JsonObjectToConstraintTransformer extends JsonLdToModelTransformer<
                 return extractComplexValue(array.get(0));
             }
             return array.stream().map(this::extractComplexValue).toList();
+        }
+
+        if (root instanceof JsonObject object && !object.containsKey(VALUE) && object.get(ID) instanceof JsonString id) {
+            return id.getString();
         }
 
         return extractValue(root);

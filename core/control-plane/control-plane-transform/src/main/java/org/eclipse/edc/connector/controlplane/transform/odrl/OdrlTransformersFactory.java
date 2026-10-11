@@ -32,13 +32,25 @@ public final class OdrlTransformersFactory {
     }
 
     public static Stream<TypeTransformer<?, ?>> jsonObjectToOdrlTransformers(ParticipantIdMapper participantIdMapper) {
+        return jsonObjectToOdrlTransformers(participantIdMapper, false);
+    }
+
+    /**
+     * Creates the JSON-LD to ODRL transformers.
+     *
+     * @param participantIdMapper the participant id mapper.
+     * @param strictRightOperand  if true, a constraint right operand that is not a literal or an array of literals is
+     *                            rejected, e.g. a node reference ({@code {"@id": X}}) is not read as the string X.
+     * @return the transformers.
+     */
+    public static Stream<TypeTransformer<?, ?>> jsonObjectToOdrlTransformers(ParticipantIdMapper participantIdMapper, boolean strictRightOperand) {
         return Stream.of(
                 new JsonObjectToPolicyTransformer(participantIdMapper),
                 new JsonObjectToPermissionTransformer(),
                 new JsonObjectToProhibitionTransformer(),
                 new JsonObjectToDutyTransformer(),
                 new JsonObjectToActionTransformer(),
-                new JsonObjectToConstraintTransformer(),
+                new JsonObjectToConstraintTransformer(strictRightOperand),
                 new JsonObjectToOperatorTransformer()
         );
     }

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.validator.jsonobject;
 
+import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryArray;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
@@ -24,6 +25,10 @@ import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.eclipse.edc.validator.spi.Violation;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import java.io.StringReader;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
@@ -204,6 +209,21 @@ class JsonObjectValidatorTest {
                 assertThat(violation.path()).contains("arrayProperty");
             });
         });
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "{\"@id\": \"https://example.com/id\"}", "{\"@value\": 42}" })
+    void shouldValidateMandatoryValue_failure_whenValueIsNotString(String item) {
+        var input = createObjectBuilder()
+                .add("property", createArrayBuilder().add(Json.createReader(new StringReader(item)).readObject()));
+
+        var result = JsonObjectValidator.newValidator()
+                .verify("property", MandatoryValue::new)
+                .build()
+                .validate(input.build());
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .hasSize(1).first().satisfies(violation -> assertThat(violation.path()).isEqualTo("property"));
     }
 
     @Test
