@@ -320,6 +320,26 @@ class BitstringStatusListRevocationServiceTest {
                     .startsWith("Failed to read status list credential from http://localhost:%d/credentials/status/3".formatted(server.getPort()));
             server.verify(1, getRequestedFor(urlEqualTo("/credentials/status/3")));
         }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "{}", "null" })
+        void checkValidity_responseContainsNoCredential_shouldFail(String body) {
+            server.stubFor(get("/credentials/status/3").willReturn(ok(body)));
+
+            assertThat(revocationService.checkValidity(statusListEntry(NOT_REVOKED_INDEX))).isFailed()
+                    .detail()
+                    .isEqualTo("Failed to read status list credential from http://localhost:%d/credentials/status/3: it contains no credentialSubject".formatted(server.getPort()));
+        }
+
+        @Test
+        void checkValidity_encodedListMissing_shouldFail() {
+            var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE
+                    .replace("\"encodedList\": \"%s\"", "\"ttl\": 300000");
+            server.stubFor(get("/credentials/status/3").willReturn(ok(bitstringCredential)));
+
+            assertThat(revocationService.checkValidity(statusListEntry(NOT_REVOKED_INDEX))).isFailed()
+                    .detail().isEqualTo("The encoded list is missing.");
+        }
     }
 
     @Nested
@@ -501,6 +521,21 @@ class BitstringStatusListRevocationServiceTest {
             assertThat(acceptJwtService.checkValidity(credential)).isFailed();
             verify(tokenValidationService, times(1)).validate(eq(jwtCredential), eq(didPublicKeyResolver), any(List.class));
         }
+
+        @Test
+        void downloadStatusListCredential_asJwtWithoutCredential_shouldFail() {
+            var jwtCredential = "eyABCDE";
+            server.stubFor(get("/credentials/status/3").willReturn(ok(jwtCredential)));
+            when(tokenValidationService.validate(eq(jwtCredential), eq(didPublicKeyResolver), any(List.class)))
+                    .thenReturn(Result.success(ClaimToken.Builder.newInstance()
+                            .claim("iss", "did:example:12345")
+                            .claim("jti", "test-jti")
+                            .claim("exp", Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
+                            .build()));
+
+            assertThat(acceptJwtService.checkValidity(statusListEntry(NOT_REVOKED_INDEX))).isFailed()
+                    .detail().isEqualTo("Failed to read status list credential from http://localhost:%d/credentials/status/3: it contains no credentialSubject".formatted(server.getPort()));
+        }
     }
 
     /**
@@ -566,6 +601,20 @@ class BitstringStatusListRevocationServiceTest {
 
             assertThat(acceptJwtService.checkValidity(statusListEntry(REVOKED_INDEX))).isFailed()
                     .detail().isEqualTo("Credential status is 'revocation', status at index 10 is '1'");
+        }
+
+        @Test
+        void checkValidity_withoutCredential_shouldFail() throws Exception {
+            var claims = new JWTClaimsSet.Builder()
+                    .issuer("did:example:12345")
+                    .jwtID("test-jti")
+                    .issueTime(new Date())
+                    .expirationTime(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
+                    .build();
+            server.stubFor(get("/credentials/status/3").willReturn(ok(sign(claims))));
+
+            assertThat(acceptJwtService.checkValidity(statusListEntry(NOT_REVOKED_INDEX))).isFailed()
+                    .detail().isEqualTo("Failed to read status list credential from http://localhost:%d/credentials/status/3: it contains no credentialSubject".formatted(server.getPort()));
         }
 
         /**

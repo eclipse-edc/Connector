@@ -145,6 +145,9 @@ public class BitString {
         }
 
         public Result<BitString> parse(String encodedList) {
+            if (encodedList == null || encodedList.isEmpty()) {
+                return Result.failure("The encoded list is missing.");
+            }
             if (encodedList.charAt(0) == 'z') { //base58btc
                 return Result.failure("The encoded list is using the Base58-BTC alphabet ('z' multibase header), which is not supported.");
             }

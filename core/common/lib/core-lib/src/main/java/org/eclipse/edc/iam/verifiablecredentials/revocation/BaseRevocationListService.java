@@ -187,7 +187,12 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
         // retrying would not change the outcome
         try (var response = httpClient.execute(request, List.of(retryWhenStatusNot2xxOr4xx()))) {
             if (response.isSuccessful()) {
-                return parseStatusListCredentialResponse(response, acceptHeader);
+                var credential = parseStatusListCredentialResponse(response, acceptHeader);
+                if (credential == null || credential.getCredentialSubject().isEmpty()) {
+                    // e.g. a JWT that is valid, but contains no credential
+                    throw new IllegalArgumentException("Failed to read status list credential from " + credentialUrl + ": it contains no credentialSubject");
+                }
+                return credential;
             }
             throw new IllegalArgumentException("Failed to download status list credential from " + credentialUrl + ": " + response.code() + " " + response.message());
         } catch (EdcHttpClientException e) {
