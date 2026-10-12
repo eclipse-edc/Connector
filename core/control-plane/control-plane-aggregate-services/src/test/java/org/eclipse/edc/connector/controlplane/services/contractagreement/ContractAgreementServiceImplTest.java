@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.services.contractagreement;
 
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractagreement.ContractAgreementRetired;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractagreement.ContractAgreementUnretired;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -21,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
@@ -56,7 +59,8 @@ class ContractAgreementServiceImplTest {
     private final ContractNegotiationStore store = mock();
     private final TransactionContext transactionContext = new NoopTransactionContext();
     private final QueryValidator queryValidator = mock();
-    private final ContractAgreementService service = new ContractAgreementServiceImpl(store, transactionContext, queryValidator, Clock.systemUTC());
+    private final EventRouter eventRouter = mock();
+    private final ContractAgreementService service = new ContractAgreementServiceImpl(store, transactionContext, queryValidator, Clock.systemUTC(), eventRouter);
 
     @Test
     void findById_filtersById() {
@@ -134,6 +138,8 @@ class ContractAgreementServiceImplTest {
             verify(store).retireAgreement(argThat(a -> a.isRetired() &&
                     "a reason".equals(a.getRetirementReason()) &&
                     a.getRetirementDate() > 0));
+            verify(eventRouter).publish(argThat((ContractAgreementRetired e) ->
+                    e.getContractAgreementId().equals("agreementId") && "a reason".equals(e.getReason())));
         }
 
         @Test
@@ -144,6 +150,7 @@ class ContractAgreementServiceImplTest {
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
             verify(store, never()).retireAgreement(any());
+            verifyNoInteractions(eventRouter);
         }
 
         @Test
@@ -155,6 +162,7 @@ class ContractAgreementServiceImplTest {
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
             verify(store, never()).retireAgreement(any());
+            verifyNoInteractions(eventRouter);
         }
     }
 
@@ -176,6 +184,8 @@ class ContractAgreementServiceImplTest {
             verify(store).retireAgreement(argThat(a -> !a.isRetired() &&
                     a.getRetirementReason() == null &&
                     a.getRetirementDate() == 0));
+            verify(eventRouter).publish(argThat((ContractAgreementUnretired e) ->
+                    e.getContractAgreementId().equals("agreementId")));
         }
 
         @Test
@@ -186,6 +196,7 @@ class ContractAgreementServiceImplTest {
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
             verify(store, never()).retireAgreement(any());
+            verifyNoInteractions(eventRouter);
         }
 
         @Test
@@ -197,6 +208,7 @@ class ContractAgreementServiceImplTest {
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
             verify(store, never()).retireAgreement(any());
+            verifyNoInteractions(eventRouter);
         }
     }
 
