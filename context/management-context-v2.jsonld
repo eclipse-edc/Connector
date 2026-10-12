@@ -248,7 +248,16 @@
         "assetId": "edc:assetId",
         "agreementId": "edc:agreementId",
         "contractSigningDate": "edc:contractSigningDate",
-        "claims": "edc:claims"
+        "claims": "edc:claims",
+        "retired": "edc:retired",
+        "retirementReason": "edc:retirementReason",
+        "retirementDate": "edc:retirementDate"
+      }
+    },
+    "RetireAgreement": {
+      "@id": "edc:RetireAgreement",
+      "@context": {
+        "reason": "edc:reason"
       }
     },
     "TransferRequest": {
