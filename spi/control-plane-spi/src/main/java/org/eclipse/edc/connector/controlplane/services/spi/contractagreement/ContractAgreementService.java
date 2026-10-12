@@ -50,4 +50,15 @@ public interface ContractAgreementService {
      */
     ContractNegotiation findNegotiation(String contractAgreementId);
 
+    /**
+     * Retires a contract agreement. Once retired, the agreement cannot be used to start new transfers and any ongoing
+     * transfer based on it will be terminated.
+     *
+     * @param contractAgreementId the id of the contract agreement to retire.
+     * @param reason              the reason why the agreement is being retired.
+     * @return success if the agreement has been retired, a not found failure if the agreement does not exist, a
+     *         conflict failure if the agreement is already retired.
+     */
+    ServiceResult<Void> retireAgreement(String contractAgreementId, String reason);
+
 }

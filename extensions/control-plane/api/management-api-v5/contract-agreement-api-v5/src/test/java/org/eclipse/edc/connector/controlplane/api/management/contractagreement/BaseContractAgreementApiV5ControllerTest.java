@@ -19,6 +19,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.RetireAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.controlplane.CallbackAddress;
@@ -249,6 +250,54 @@ public abstract class BaseContractAgreementApiV5ControllerTest extends RestContr
         verify(service).findNegotiation("agreement-id");
         verify(transformerRegistry).transform(isA(ContractNegotiation.class), eq(JsonObject.class));
         verifyNoMoreInteractions(service, transformerRegistry);
+    }
+
+    @Test
+    void retireAgreement() {
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+        when(transformerRegistry.transform(any(JsonObject.class), eq(RetireAgreement.class))).thenReturn(Result.success(new RetireAgreement("a reason")));
+        when(service.retireAgreement(eq("id1"), eq("a reason"))).thenReturn(ServiceResult.success());
+
+        baseRequest(participantContextId)
+                .contentType(JSON)
+                .body(createObjectBuilder().add(TYPE, "RetireAgreement").build())
+                .post("/id1/retire")
+                .then()
+                .statusCode(204);
+
+        verify(validatorRegistry).validate(any(), any());
+        verify(service).retireAgreement("id1", "a reason");
+        verifyNoMoreInteractions(service);
+    }
+
+    @Test
+    void retireAgreement_shouldReturnBadRequest_whenValidationFails() {
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(Violation.violation("failure", "failing path")));
+
+        baseRequest(participantContextId)
+                .contentType(JSON)
+                .body(createObjectBuilder().add(TYPE, "RetireAgreement").build())
+                .post("/id1/retire")
+                .then()
+                .statusCode(400);
+
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void retireAgreement_shouldReturnNotFound_whenAgreementDoesNotExist() {
+        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+        when(transformerRegistry.transform(any(JsonObject.class), eq(RetireAgreement.class))).thenReturn(Result.success(new RetireAgreement("a reason")));
+        when(service.retireAgreement(eq("id1"), any())).thenReturn(ServiceResult.notFound("not found"));
+
+        baseRequest(participantContextId)
+                .contentType(JSON)
+                .body(createObjectBuilder().add(TYPE, "RetireAgreement").build())
+                .post("/id1/retire")
+                .then()
+                .statusCode(404);
+
+        verify(service).retireAgreement("id1", "a reason");
     }
 
     private RequestSpecification baseRequest(String participantContextId) {

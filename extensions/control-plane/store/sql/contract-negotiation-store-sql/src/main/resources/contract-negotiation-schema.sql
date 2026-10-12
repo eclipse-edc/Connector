@@ -28,6 +28,9 @@ CREATE TABLE IF NOT EXISTS edc_contract_agreement
     agr_participant_context_id VARCHAR NOT NULL,
     agr_agreement_id VARCHAR NOT NULL,
     claims            JSON,
+    retired           BOOLEAN DEFAULT FALSE NOT NULL,
+    retirement_reason VARCHAR,
+    retirement_date   BIGINT  DEFAULT 0 NOT NULL,
     UNIQUE (agr_agreement_id, agr_participant_context_id)
 );
 

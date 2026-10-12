@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import java.time.Clock;
 import java.util.List;
 
 import static java.lang.String.format;
@@ -32,11 +33,13 @@ public class ContractAgreementServiceImpl implements ContractAgreementService {
     private final ContractNegotiationStore store;
     private final TransactionContext transactionContext;
     private final QueryValidator queryValidator;
+    private final Clock clock;
 
-    public ContractAgreementServiceImpl(ContractNegotiationStore store, TransactionContext transactionContext, QueryValidator queryValidator) {
+    public ContractAgreementServiceImpl(ContractNegotiationStore store, TransactionContext transactionContext, QueryValidator queryValidator, Clock clock) {
         this.store = store;
         this.transactionContext = transactionContext;
         this.queryValidator = queryValidator;
+        this.clock = clock;
     }
 
     @Override
@@ -58,6 +61,25 @@ public class ContractAgreementServiceImpl implements ContractAgreementService {
         var criterion = criterion("contractAgreement.id", "=", contractAgreementId);
         var query = QuerySpec.Builder.newInstance().filter(criterion).build();
         return transactionContext.execute(() -> store.queryNegotiations(query).findFirst().orElse(null));
+    }
+
+    @Override
+    public ServiceResult<Void> retireAgreement(String contractAgreementId, String reason) {
+        return transactionContext.execute(() -> {
+            var agreement = store.findContractAgreement(contractAgreementId);
+            if (agreement == null) {
+                return ServiceResult.notFound(format("Contract Agreement %s not found", contractAgreementId));
+            }
+            if (agreement.isRetired()) {
+                return ServiceResult.conflict(format("Contract Agreement %s is already retired", contractAgreementId));
+            }
+            var retired = agreement.toBuilder()
+                    .retired(true)
+                    .retirementReason(reason)
+                    .retirementDate(clock.instant().getEpochSecond())
+                    .build();
+            return store.retireAgreement(retired).flatMap(ServiceResult::from);
+        });
     }
 
     private List<ContractAgreement> queryAgreements(QuerySpec query) {

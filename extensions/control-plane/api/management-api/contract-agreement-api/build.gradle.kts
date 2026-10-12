@@ -23,6 +23,7 @@ dependencies {
     api(project(":spi:control-plane-spi"))
 
     implementation(project(":core:common:lib:core-lib"))
+    implementation(project(":core:control-plane:control-plane-transform"))
 
     implementation(libs.jakarta.rsApi)
 

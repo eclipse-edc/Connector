@@ -38,6 +38,8 @@ public interface ContractNegotiationStatements extends StatefulEntityStatements,
 
     String getUpsertAgreementTemplate();
 
+    String getRetireAgreementTemplate();
+
     default String getContractNegotiationTable() {
         return "edc_contract_negotiation";
     }
@@ -140,6 +142,18 @@ public interface ContractNegotiationStatements extends StatefulEntityStatements,
      */
     default String getNegotiationClaimsColumn() {
         return "negotiation_claims";
+    }
+
+    default String getRetiredColumn() {
+        return "retired";
+    }
+
+    default String getRetirementReasonColumn() {
+        return "retirement_reason";
+    }
+
+    default String getRetirementDateColumn() {
+        return "retirement_date";
     }
 
     SqlQueryStatement createNegotiationsQuery(QuerySpec querySpec);

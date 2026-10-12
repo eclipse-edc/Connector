@@ -35,6 +35,9 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreemen
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_POLICY;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_PROVIDER_ID;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_RETIRED;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_RETIREMENT_DATE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_RETIREMENT_REASON;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -74,5 +77,31 @@ class JsonObjectFromContractAgreementTransformerTest {
         assertThat(result.getJsonString(CONTRACT_AGREEMENT_ID)).extracting(JsonString::getString).isEqualTo("agreement-id");
         assertThat(result.getJsonObject(CONTRACT_AGREEMENT_POLICY)).isNotNull();
         assertThat(result.getJsonObject(CONTRACT_AGREEMENT_CLAIMS)).isNotNull().hasSize(1).contains(entry("key", Json.createValue("value")));
+        assertThat(result.getBoolean(CONTRACT_AGREEMENT_RETIRED)).isFalse();
+        assertThat(result.containsKey(CONTRACT_AGREEMENT_RETIREMENT_REASON)).isFalse();
+    }
+
+    @Test
+    void transform_retiredAgreement() {
+        var agreement = ContractAgreement.Builder.newInstance()
+                .id("test-id")
+                .providerId("test-provider")
+                .consumerId("test-consumer")
+                .assetId("test-asset")
+                .agreementId("agreement-id")
+                .policy(Policy.Builder.newInstance().build())
+                .retired(true)
+                .retirementReason("a reason")
+                .retirementDate(1234L)
+                .build();
+        var context = mock(TransformerContext.class);
+        when(context.transform(any(Policy.class), eq(JsonObject.class))).thenReturn(Json.createObjectBuilder().build());
+
+        var result = transformer.transform(agreement, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getBoolean(CONTRACT_AGREEMENT_RETIRED)).isTrue();
+        assertThat(result.getJsonString(CONTRACT_AGREEMENT_RETIREMENT_REASON)).extracting(JsonString::getString).isEqualTo("a reason");
+        assertThat(result.getJsonNumber(CONTRACT_AGREEMENT_RETIREMENT_DATE).longValue()).isEqualTo(1234L);
     }
 }

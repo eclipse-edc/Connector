@@ -130,7 +130,10 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                             toJson(contractAgreement.getPolicy()),
                             contractAgreement.getParticipantContextId(),
                             contractAgreement.getAgreementId(),
-                            toJson(contractAgreement.getClaims())
+                            toJson(contractAgreement.getClaims()),
+                            contractAgreement.isRetired(),
+                            contractAgreement.getRetirementReason(),
+                            contractAgreement.getRetirementDate()
                     );
                 }
 
@@ -239,6 +242,25 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
         });
     }
 
+    @Override
+    public StoreResult<Void> retireAgreement(ContractAgreement agreement) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                var rowsUpdated = queryExecutor.execute(connection, statements.getRetireAgreementTemplate(),
+                        agreement.isRetired(),
+                        agreement.getRetirementReason(),
+                        agreement.getRetirementDate(),
+                        agreement.getId());
+                if (rowsUpdated == 0) {
+                    return StoreResult.notFound(format("ContractAgreement %s not found", agreement.getId()));
+                }
+                return StoreResult.success();
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
     private Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec, Connection connection) {
         var statement = statements.createNegotiationsQuery(querySpec);
         return queryExecutor.query(connection, true, contractNegotiationMapper(), statement.getQueryAsString(), statement.getParameters());
@@ -265,6 +287,9 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .participantContextId(resultSet.getString(statements.getAgreementParticipantContextIdColumn()))
                 .agreementId(resultSet.getString(statements.getContractAgreementContractIdColumn()))
                 .claims(fromJson(resultSet.getString(statements.getClaimsColumn()), getTypeRef()))
+                .retired(resultSet.getBoolean(statements.getRetiredColumn()))
+                .retirementReason(resultSet.getString(statements.getRetirementReasonColumn()))
+                .retirementDate(resultSet.getLong(statements.getRetirementDateColumn()))
                 .build();
     }
 
