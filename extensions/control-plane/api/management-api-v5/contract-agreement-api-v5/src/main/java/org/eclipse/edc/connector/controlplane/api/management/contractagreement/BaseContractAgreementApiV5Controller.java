@@ -118,4 +118,12 @@ public abstract class BaseContractAgreementApiV5Controller {
                 .orElseThrow(exceptionMapper(ContractAgreement.class, id));
     }
 
+    public void unretireAgreement(String participantContextId, String id, SecurityContext securityContext) {
+        authorizationService.authorize(securityContext, participantContextId, id, ContractAgreement.class)
+                .orElseThrow(exceptionMapper(ContractAgreement.class, id));
+
+        service.unretireAgreement(id)
+                .orElseThrow(exceptionMapper(ContractAgreement.class, id));
+    }
+
 }

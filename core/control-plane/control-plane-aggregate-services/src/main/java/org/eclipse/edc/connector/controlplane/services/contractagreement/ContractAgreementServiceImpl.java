@@ -82,6 +82,25 @@ public class ContractAgreementServiceImpl implements ContractAgreementService {
         });
     }
 
+    @Override
+    public ServiceResult<Void> unretireAgreement(String contractAgreementId) {
+        return transactionContext.execute(() -> {
+            var agreement = store.findContractAgreement(contractAgreementId);
+            if (agreement == null) {
+                return ServiceResult.notFound(format("Contract Agreement %s not found", contractAgreementId));
+            }
+            if (!agreement.isRetired()) {
+                return ServiceResult.conflict(format("Contract Agreement %s is not retired", contractAgreementId));
+            }
+            var unretired = agreement.toBuilder()
+                    .retired(false)
+                    .retirementReason(null)
+                    .retirementDate(0)
+                    .build();
+            return store.retireAgreement(unretired).flatMap(ServiceResult::from);
+        });
+    }
+
     private List<ContractAgreement> queryAgreements(QuerySpec query) {
         return transactionContext.execute(() -> {
             try (var stream = store.queryAgreements(query)) {

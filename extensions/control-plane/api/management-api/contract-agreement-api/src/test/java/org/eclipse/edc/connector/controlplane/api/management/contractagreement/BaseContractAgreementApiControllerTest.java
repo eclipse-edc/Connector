@@ -288,6 +288,46 @@ public abstract class BaseContractAgreementApiControllerTest extends RestControl
         verify(service).retireAgreement("id1", "a reason");
     }
 
+    @Test
+    void unretireAgreement() {
+        when(service.unretireAgreement(eq("id1"))).thenReturn(ServiceResult.success());
+
+        baseRequest()
+                .contentType(JSON)
+                .post("/id1/unretire")
+                .then()
+                .statusCode(204);
+
+        verify(service).unretireAgreement("id1");
+        verifyNoMoreInteractions(service);
+    }
+
+    @Test
+    void unretireAgreement_shouldReturnNotFound_whenAgreementDoesNotExist() {
+        when(service.unretireAgreement(eq("id1"))).thenReturn(ServiceResult.notFound("not found"));
+
+        baseRequest()
+                .contentType(JSON)
+                .post("/id1/unretire")
+                .then()
+                .statusCode(404);
+
+        verify(service).unretireAgreement("id1");
+    }
+
+    @Test
+    void unretireAgreement_shouldReturnConflict_whenAgreementNotRetired() {
+        when(service.unretireAgreement(eq("id1"))).thenReturn(ServiceResult.conflict("not retired"));
+
+        baseRequest()
+                .contentType(JSON)
+                .post("/id1/unretire")
+                .then()
+                .statusCode(409);
+
+        verify(service).unretireAgreement("id1");
+    }
+
     protected abstract RequestSpecification baseRequest();
 
     private ContractAgreement createContractAgreement(String negotiationId) {

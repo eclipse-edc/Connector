@@ -67,4 +67,11 @@ public class ContractAgreementApiV4Controller extends BaseContractAgreementApiCo
     public void retireAgreementV4(@PathParam("id") String id, JsonObject requestBody) {
         retireAgreement(id, requestBody);
     }
+
+    @POST
+    @Path("{id}/unretire")
+    @Override
+    public void unretireAgreementV4(@PathParam("id") String id) {
+        unretireAgreement(id);
+    }
 }

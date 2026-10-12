@@ -389,6 +389,82 @@ public class ContractAgreementApiV5EndToEndTest {
                     .statusCode(403);
         }
 
+        @Test
+        void unretireAgreement(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(retireAgreementBody("a reason"))
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractagreements/agreement-id/retire")
+                    .then()
+                    .statusCode(204);
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractagreements/agreement-id/unretire")
+                    .then()
+                    .log().ifError()
+                    .statusCode(204);
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractagreements/agreement-id")
+                    .then()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body("retired", is(false));
+        }
+
+        @Test
+        void unretireAgreement_shouldReturnConflict_whenNotRetired(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractagreements/agreement-id/unretire")
+                    .then()
+                    .statusCode(409);
+        }
+
+        @Test
+        void unretireAgreement_shouldReturnNotFound_whenAgreementDoesNotExist(ManagementEndToEndV5TestContext context) {
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractagreements/not-exist/unretire")
+                    .then()
+                    .statusCode(404);
+        }
+
+        @Test
+        void unretireAgreement_tokenBearerDoesNotOwnResource(ManagementEndToEndV5TestContext context, OauthServer authServer,
+                                                            ContractNegotiationStore store, ParticipantContextService srv) {
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+
+            var otherParticipantId = UUID.randomUUID().toString();
+            createParticipant(srv, otherParticipantId);
+            var token = authServer.createToken(otherParticipantId);
+
+            context.baseRequest(token)
+                    .contentType(JSON)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractagreements/agreement-id/unretire")
+                    .then()
+                    .statusCode(403);
+        }
+
+        @Test
+        void unretireAgreement_tokenLacksRequiredScope(ManagementEndToEndV5TestContext context, OauthServer authServer, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+
+            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:read"));
+
+            context.baseRequest(token)
+                    .contentType(JSON)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractagreements/agreement-id/unretire")
+                    .then()
+                    .statusCode(403);
+        }
+
         private jakarta.json.JsonObject retireAgreementBody(String reason) {
             return createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))

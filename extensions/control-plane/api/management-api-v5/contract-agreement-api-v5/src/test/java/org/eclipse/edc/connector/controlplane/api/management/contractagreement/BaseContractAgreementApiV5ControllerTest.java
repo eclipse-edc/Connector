@@ -300,6 +300,46 @@ public abstract class BaseContractAgreementApiV5ControllerTest extends RestContr
         verify(service).retireAgreement("id1", "a reason");
     }
 
+    @Test
+    void unretireAgreement() {
+        when(service.unretireAgreement(eq("id1"))).thenReturn(ServiceResult.success());
+
+        baseRequest(participantContextId)
+                .contentType(JSON)
+                .post("/id1/unretire")
+                .then()
+                .statusCode(204);
+
+        verify(service).unretireAgreement("id1");
+        verifyNoMoreInteractions(service);
+    }
+
+    @Test
+    void unretireAgreement_shouldReturnNotFound_whenAgreementDoesNotExist() {
+        when(service.unretireAgreement(eq("id1"))).thenReturn(ServiceResult.notFound("not found"));
+
+        baseRequest(participantContextId)
+                .contentType(JSON)
+                .post("/id1/unretire")
+                .then()
+                .statusCode(404);
+
+        verify(service).unretireAgreement("id1");
+    }
+
+    @Test
+    void unretireAgreement_shouldReturnConflict_whenAgreementNotRetired() {
+        when(service.unretireAgreement(eq("id1"))).thenReturn(ServiceResult.conflict("not retired"));
+
+        baseRequest(participantContextId)
+                .contentType(JSON)
+                .post("/id1/unretire")
+                .then()
+                .statusCode(409);
+
+        verify(service).unretireAgreement("id1");
+    }
+
     private RequestSpecification baseRequest(String participantContextId) {
         return given()
                 .baseUri("http://localhost:" + port + "/" + versionPath() + "/participants/" + participantContextId + "/contractagreements")
