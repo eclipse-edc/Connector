@@ -321,6 +321,17 @@ class BitstringStatusListRevocationServiceTest {
             server.verify(1, getRequestedFor(urlEqualTo("/credentials/status/3")));
         }
 
+        @Test
+        void checkValidity_malformedCredential_shouldFail() {
+            var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(generateBitstring())
+                    .replace("\"validFrom\": \"2021-04-05T14:27:40Z\"", "\"validFrom\": \"not a date\"");
+            server.stubFor(get("/credentials/status/3").willReturn(ok(bitstringCredential)));
+
+            assertThat(revocationService.checkValidity(statusListEntry(NOT_REVOKED_INDEX))).isFailed()
+                    .detail()
+                    .startsWith("Failed to read status list credential from http://localhost:%d/credentials/status/3".formatted(server.getPort()));
+        }
+
         @ParameterizedTest
         @ValueSource(strings = { "{}", "null" })
         void checkValidity_responseContainsNoCredential_shouldFail(String body) {
@@ -615,6 +626,16 @@ class BitstringStatusListRevocationServiceTest {
 
             assertThat(acceptJwtService.checkValidity(statusListEntry(NOT_REVOKED_INDEX))).isFailed()
                     .detail().isEqualTo("Failed to read status list credential from http://localhost:%d/credentials/status/3: it contains no credentialSubject".formatted(server.getPort()));
+        }
+
+        @Test
+        void checkValidity_malformedCredential_shouldFail() throws Exception {
+            var credential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(generateBitstring())
+                    .replace("\"validFrom\": \"2021-04-05T14:27:40Z\"", "\"validFrom\": \"not a date\"");
+            server.stubFor(get("/credentials/status/3").willReturn(ok(signVcdm20Jose(credential))));
+
+            assertThat(acceptJwtService.checkValidity(statusListEntry(NOT_REVOKED_INDEX))).isFailed()
+                    .detail().startsWith("Failed to read status list credential from http://localhost:%d/credentials/status/3".formatted(server.getPort()));
         }
 
         /**

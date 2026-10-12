@@ -28,7 +28,7 @@ import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.util.collection.Cache;
-import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 
@@ -200,8 +200,9 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
             // code is reported, if there was a response at all
             var reason = e.getStatusCode() > 0 ? String.valueOf(e.getStatusCode()) : e.getMessage();
             throw new IllegalArgumentException("Failed to download status list credential from " + credentialUrl + ": " + reason);
-        } catch (IOException | StreamReadException e) {
-            // the response body could not be read, e.g. because it is not a status list credential
+        } catch (IOException | JacksonException e) {
+            // the response body could not be read, e.g. because it is not a status list credential, or a value of it is
+            // malformed
             throw new EdcException("Failed to read status list credential from " + credentialUrl + ": " + e.getMessage(), e);
         }
     }
