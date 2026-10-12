@@ -22,6 +22,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -159,6 +160,14 @@ public class BitStringTest {
             var result = BitString.Parser.newInstance().parse(base58Btc);
             assertThat(result.succeeded()).isFalse();
             assertThat(result.getFailureDetail()).contains("Base58-BTC alphabet");
+        }
+
+        @ParameterizedTest
+        @NullAndEmptySource
+        void parse_missing(String encodedList) {
+            var result = BitString.Parser.newInstance().parse(encodedList);
+            assertThat(result.failed()).isTrue();
+            assertThat(result.getFailureDetail()).isEqualTo("The encoded list is missing.");
         }
     }
 
