@@ -16,7 +16,16 @@ package org.eclipse.edc.iam.verifiablecredentials.revocation.bitstring;
 
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
@@ -30,6 +39,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstrings
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.TokenValidationServiceImpl;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -39,7 +49,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import tools.jackson.databind.ObjectMapper;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -488,5 +501,109 @@ class BitstringStatusListRevocationServiceTest {
             assertThat(acceptJwtService.checkValidity(credential)).isFailed();
             verify(tokenValidationService, times(1)).validate(eq(jwtCredential), eq(didPublicKeyResolver), any(List.class));
         }
+    }
+
+    /**
+     * Status list credentials, that are signed and validated for real, so that the claims have the types of a parsed JWT.
+     */
+    @Nested
+    public class SignedStatusListCredential {
+
+        private static final String KEY_ID = "did:example:12345#key-1";
+        private final BitstringStatusListRevocationService acceptJwtService = new BitstringStatusListRevocationService(mapper, 5 * 60 * 1000,
+                singleton("application/vc+jwt"), new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock()),
+                new TokenValidationServiceImpl(), didPublicKeyResolver);
+        private ECKey signingKey;
+
+        @BeforeEach
+        void setUp() throws JOSEException {
+            signingKey = new ECKeyGenerator(Curve.P_256).keyID(KEY_ID).generate();
+            when(didPublicKeyResolver.resolveKey(KEY_ID)).thenReturn(Result.success(signingKey.toPublicKey()));
+        }
+
+        @Test
+        void checkValidity_vcdm20Jose_revoked() throws Exception {
+            var credential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(generateBitstring(REVOKED_INDEX, 1));
+            server.stubFor(get("/credentials/status/3").willReturn(ok(signVcdm20Jose(credential))));
+
+            assertThat(acceptJwtService.checkValidity(statusListEntry(REVOKED_INDEX))).isFailed()
+                    .detail().isEqualTo("Credential status is 'revocation', status at index 10 is '1'");
+        }
+
+        @Test
+        void checkValidity_vcdm20Jose_notRevoked() throws Exception {
+            var credential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(generateBitstring(REVOKED_INDEX, 1));
+            server.stubFor(get("/credentials/status/3").willReturn(ok(signVcdm20Jose(credential))));
+
+            assertThat(acceptJwtService.checkValidity(statusListEntry(NOT_REVOKED_INDEX))).isSucceeded();
+        }
+
+        @Test
+        void checkValidity_vcdm20Jose_subjectIsArray_revoked() throws Exception {
+            var credential = BITSTRING_STATUS_LIST_CREDENTIAL_ARRAY_SUBJECT_TEMPLATE.formatted(generateBitstring(REVOKED_INDEX, 1));
+            server.stubFor(get("/credentials/status/3").willReturn(ok(signVcdm20Jose(credential))));
+
+            assertThat(acceptJwtService.checkValidity(statusListEntry(REVOKED_INDEX))).isFailed()
+                    .detail().isEqualTo("Credential status is 'revocation', status at index 10 is '1'");
+        }
+
+        @Test
+        void getStatusPurpose_vcdm20Jose_revoked() throws Exception {
+            var credential = BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("revocation", generateBitstring(REVOKED_INDEX, 1));
+            server.stubFor(get("/credentials/status/3").willReturn(ok(signVcdm20Jose(credential))));
+
+            var verifiableCredential = TestFunctions.createCredentialBuilder()
+                    .credentialStatus(statusListEntry(REVOKED_INDEX))
+                    .build();
+            assertThat(acceptJwtService.getStatusPurpose(verifiableCredential)).isSucceeded()
+                    .isEqualTo("revocation");
+        }
+
+        @Test
+        void checkValidity_vc11Jwt_revoked() throws Exception {
+            var credential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(generateBitstring(REVOKED_INDEX, 1));
+            server.stubFor(get("/credentials/status/3").willReturn(ok(signVc11Jwt(credential))));
+
+            assertThat(acceptJwtService.checkValidity(statusListEntry(REVOKED_INDEX))).isFailed()
+                    .detail().isEqualTo("Credential status is 'revocation', status at index 10 is '1'");
+        }
+
+        /**
+         * Secures the credential like VC-JOSE-COSE does: the credential is the payload, in addition to registered claims.
+         */
+        private String signVcdm20Jose(String credential) throws Exception {
+            var claims = new JWTClaimsSet.Builder(JWTClaimsSet.parse(mapper.readValue(credential, Map.class)))
+                    .issueTime(new Date())
+                    .expirationTime(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
+                    .build();
+            return sign(claims);
+        }
+
+        /**
+         * Secures the credential like a VC 1.1 JWT: the credential is the "vc" claim.
+         */
+        private String signVc11Jwt(String credential) throws Exception {
+            var claims = new JWTClaimsSet.Builder()
+                    .issuer("did:example:12345")
+                    .issueTime(new Date())
+                    .expirationTime(Date.from(Instant.now().plus(1, ChronoUnit.HOURS)))
+                    .claim("vc", mapper.readValue(credential, Map.class))
+                    .build();
+            return sign(claims);
+        }
+
+        private String sign(JWTClaimsSet claims) throws JOSEException {
+            var jwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(KEY_ID).build(), claims);
+            jwt.sign(new ECDSASigner(signingKey));
+            return jwt.serialize();
+        }
+    }
+
+    private CredentialStatus statusListEntry(int index) {
+        return new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
+                Map.of(STATUS_LIST_PURPOSE, "revocation",
+                        STATUS_LIST_INDEX, index,
+                        STATUS_LIST_SIZE, 1,
+                        STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
     }
 }

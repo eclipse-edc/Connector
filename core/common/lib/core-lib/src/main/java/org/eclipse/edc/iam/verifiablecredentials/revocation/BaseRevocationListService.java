@@ -37,6 +37,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusNot2xxOr4xx;
@@ -52,6 +53,7 @@ import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusNot2xxOr
  * Currently, StatusList2021 and BitStringStatusList are supported.
  */
 public abstract class BaseRevocationListService<C extends VerifiableCredential, S> implements RevocationListService {
+    private static final String VC_CLAIM = "vc";
     private final Cache<String, C> statusListCredentialCache;
     private final Collection<String> acceptedContentTypes;
     private final EdcHttpClient httpClient;
@@ -209,7 +211,10 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
             throw new IllegalArgumentException("Validation of status list credential JWT failed.");
         }
 
-        var vc = result.getContent().getClaim("vc");
+        // a VC 1.1 JWT contains the credential in its "vc" claim, whereas the payload of a VCDM 2.0 credential that is
+        // secured with JOSE (VC-JOSE-COSE) is the credential itself
+        var claims = result.getContent();
+        var vc = Optional.ofNullable(claims.getClaim(VC_CLAIM)).orElseGet(claims::getClaims);
         return objectMapper.convertValue(vc, credentialClass);
     }
 }
