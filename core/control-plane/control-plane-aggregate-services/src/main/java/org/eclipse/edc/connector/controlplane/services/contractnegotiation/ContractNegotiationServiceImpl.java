@@ -16,7 +16,9 @@ package org.eclipse.edc.connector.controlplane.services.contractnegotiation;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.ApproveNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.InitiateNegotiationCommand;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.RejectNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
@@ -96,6 +98,16 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
 
     @Override
     public ServiceResult<Void> terminate(TerminateNegotiationCommand command) {
+        return transactionContext.execute(() -> commandHandlerRegistry.execute(command).flatMap(ServiceResult::from));
+    }
+
+    @Override
+    public ServiceResult<Void> approve(ApproveNegotiationCommand command) {
+        return transactionContext.execute(() -> commandHandlerRegistry.execute(command).flatMap(ServiceResult::from));
+    }
+
+    @Override
+    public ServiceResult<Void> reject(RejectNegotiationCommand command) {
         return transactionContext.execute(() -> commandHandlerRegistry.execute(command).flatMap(ServiceResult::from));
     }
 

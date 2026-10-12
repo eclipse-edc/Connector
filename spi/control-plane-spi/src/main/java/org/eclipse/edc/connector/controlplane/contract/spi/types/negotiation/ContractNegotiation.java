@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -62,6 +63,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> imp
     public static final String CONTRACT_NEGOTIATION_PROTOCOL = EDC_NAMESPACE + "protocol";
     public static final String CONTRACT_NEGOTIATION_PROFILE = EDC_NAMESPACE + "profile";
     public static final String CONTRACT_NEGOTIATION_STATE = EDC_NAMESPACE + "state";
+    public static final String CONTRACT_NEGOTIATION_PENDING = EDC_NAMESPACE + "pending";
     public static final String CONTRACT_NEGOTIATION_NEG_TYPE = EDC_NAMESPACE + "type";
     public static final String CONTRACT_NEGOTIATION_CALLBACK_ADDR = EDC_NAMESPACE + "callbackAddresses";
     public static final String CONTRACT_NEGOTIATION_CORRELATION_ID = EDC_NAMESPACE + "correlationId";
@@ -84,6 +86,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> imp
     private ContractAgreement contractAgreement;
     private List<ContractOffer> contractOffers = new ArrayList<>();
     private ProtocolMessages protocolMessages = new ProtocolMessages();
+    private Map<String, Object> claims;
 
     public Type getType() {
         return type;
@@ -187,6 +190,25 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> imp
      */
     public void setContractAgreement(ContractAgreement agreement) {
         contractAgreement = agreement;
+        setModified();
+    }
+
+    /**
+     * Claims of the counter-party, captured when the last contract request was received by the provider.
+     *
+     * @return the claims map, null if not available.
+     */
+    public Map<String, Object> getClaims() {
+        return claims;
+    }
+
+    /**
+     * Sets the claims of the counter-party.
+     *
+     * @param claims the claims map.
+     */
+    public void setClaims(Map<String, Object> claims) {
+        this.claims = claims;
         setModified();
     }
 
@@ -432,7 +454,8 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> imp
                 .contractOffers(contractOffers)
                 .callbackAddresses(callbackAddresses)
                 .protocolMessages(protocolMessages)
-                .participantContextId(participantContextId);
+                .participantContextId(participantContextId)
+                .claims(claims);
         return copy(builder);
     }
 
@@ -574,6 +597,11 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> imp
 
         public Builder participantContextId(String participantContextId) {
             entity.participantContextId = participantContextId;
+            return this;
+        }
+
+        public Builder claims(Map<String, Object> claims) {
+            entity.claims = claims;
             return this;
         }
 

@@ -41,36 +41,43 @@ public class ContractNegotiationGuardTask {
 
     public void sendOffer(ContractNegotiation contractNegotiation) {
         contractNegotiation.transitionOffering();
+        contractNegotiation.setPending(false);
         storeTask(baseBuilder(SendOffer.Builder.newInstance(), contractNegotiation).build());
     }
 
     public void sendAgreement(ContractNegotiation contractNegotiation) {
         contractNegotiation.transitionAgreeing();
+        contractNegotiation.setPending(false);
         storeTask(baseBuilder(SendAgreement.Builder.newInstance(), contractNegotiation).build());
     }
 
     public void sendTermination(ContractNegotiation contractNegotiation) {
         contractNegotiation.transitionTerminating();
+        contractNegotiation.setPending(false);
         storeTask(baseBuilder(SendTerminateNegotiation.Builder.newInstance(), contractNegotiation).build());
     }
 
     public void sendAccept(ContractNegotiation contractNegotiation) {
         contractNegotiation.transitionAccepting();
+        contractNegotiation.setPending(false);
         storeTask(baseBuilder(SendAccept.Builder.newInstance(), contractNegotiation).build());
     }
 
     public void contractRequest(ContractNegotiation contractNegotiation) {
         contractNegotiation.transitionRequesting();
+        contractNegotiation.setPending(false);
         storeTask(baseBuilder(SendRequestNegotiation.Builder.newInstance(), contractNegotiation).build());
     }
 
     public void sendVerification(ContractNegotiation contractNegotiation) {
         contractNegotiation.transitionVerifying();
+        contractNegotiation.setPending(false);
         storeTask(baseBuilder(SendVerificationNegotiation.Builder.newInstance(), contractNegotiation).build());
     }
 
     public void sendFinalize(ContractNegotiation contractNegotiation) {
         contractNegotiation.transitionFinalizing();
+        contractNegotiation.setPending(false);
         storeTask(baseBuilder(SendFinalizeNegotiation.Builder.newInstance(), contractNegotiation).build());
     }
 

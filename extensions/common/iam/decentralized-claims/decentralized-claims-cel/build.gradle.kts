@@ -24,5 +24,6 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     // exercises the VC helper functions through the real CEL engine
     testImplementation(project(":core:common:cel-core"))
+    testImplementation(project(":core:common:lib:core-lib"))
 }
 

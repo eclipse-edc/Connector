@@ -313,6 +313,21 @@ class NegotiationProcessorsImplTest {
     }
 
     @Nested
+    class ProcessHeld {
+
+        @Test
+        void shouldSetPendingAndNotifyHeld() {
+            var negotiation = providerNegotiationBuilder().state(REQUESTED.code()).build();
+
+            processors.processHeld(negotiation).join();
+
+            verify(store).save(argThat(n -> n.isPending() && n.getState() == REQUESTED.code()));
+            verify(listener).held(negotiation);
+            verifyNoInteractions(messageDispatcher);
+        }
+    }
+
+    @Nested
     class ProcessAccepted {
 
         @Test

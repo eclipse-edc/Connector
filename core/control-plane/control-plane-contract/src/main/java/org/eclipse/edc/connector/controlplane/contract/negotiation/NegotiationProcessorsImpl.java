@@ -166,6 +166,15 @@ public class NegotiationProcessorsImpl implements NegotiationProcessors {
 
     @WithSpan
     @Override
+    public CompletableFuture<StatusResult<Void>> processHeld(ContractNegotiation negotiation) {
+        negotiation.setPending(true);
+        update(negotiation);
+        observable.invokeForEach(l -> l.held(negotiation));
+        return CompletableFuture.completedFuture(StatusResult.success());
+    }
+
+    @WithSpan
+    @Override
     public CompletableFuture<StatusResult<Void>> processAccepted(ContractNegotiation negotiation) {
         transitionToAgreeing(negotiation);
         return CompletableFuture.completedFuture(StatusResult.success());

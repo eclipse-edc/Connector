@@ -16,11 +16,29 @@ package org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 
 public class ContractNegotiationTest {
+
+    @Test
+    void copy_shouldKeepClaims() {
+        var negotiation = ContractNegotiation.Builder.newInstance()
+                .id("id")
+                .counterPartyId("counterPartyId")
+                .counterPartyAddress("address")
+                .protocol("protocol")
+                .claims(Map.of("claim", "value"))
+                .build();
+
+        var copy = negotiation.copy();
+
+        assertThat(copy.getClaims()).isEqualTo(Map.of("claim", "value"));
+    }
 
     @Test
     void verify_consumerComplete() {

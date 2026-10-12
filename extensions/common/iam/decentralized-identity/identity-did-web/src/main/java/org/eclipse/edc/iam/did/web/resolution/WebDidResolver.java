@@ -15,6 +15,7 @@
 package org.eclipse.edc.iam.did.web.resolution;
 
 import okhttp3.Request;
+import okhttp3.Response;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolver;
@@ -24,8 +25,10 @@ import org.jetbrains.annotations.NotNull;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.util.List;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusNot2xxOr4xx;
 
 /**
  * Resolves a Web DID according to the Web DID specification (https://w3c-ccg.github.io/did-method-web).
@@ -65,17 +68,21 @@ public class WebDidResolver implements DidResolver {
         }
 
         var request = new Request.Builder().url(url).get().build();
-        try (var response = httpClient.execute(request)) {
-            if (response.code() != 200) {
-                return Result.failure(format("Error resolving DID: %s. HTTP Code was: %s", didKey, response.code()));
+        // a server error may be gone with the next attempt, so it is retried like a failed connection. The result is a
+        // failure once the retries are exhausted.
+        return httpClient.execute(request, List.of(retryWhenStatusNot2xxOr4xx()), response -> toDidDocument(didKey, response));
+    }
+
+    private Result<DidDocument> toDidDocument(String didKey, Response response) {
+        if (response.code() != 200) {
+            return Result.failure(format("Error resolving DID: %s. HTTP Code was: %s", didKey, response.code()));
+        }
+        try (var body = response.body()) {
+            if (body == null) {
+                return Result.failure("DID response contained an empty body: " + didKey);
             }
-            try (var body = response.body()) {
-                if (body == null) {
-                    return Result.failure("DID response contained an empty body: " + didKey);
-                }
-                var didDocument = mapper.readValue(body.string(), DidDocument.class);
-                return Result.success(didDocument);
-            }
+            var didDocument = mapper.readValue(body.string(), DidDocument.class);
+            return Result.success(didDocument);
         } catch (IOException e) {
             monitor.severe("Error resolving DID: " + didKey, e);
             return Result.failure("Error resolving DID: " + e.getMessage());

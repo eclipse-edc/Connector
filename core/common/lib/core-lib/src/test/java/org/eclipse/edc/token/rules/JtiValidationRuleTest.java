@@ -18,7 +18,6 @@ import org.eclipse.edc.jwt.validation.jti.JtiValidationEntry;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -26,10 +25,10 @@ import java.util.Map;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class JtiValidationRuleTest {
@@ -37,52 +36,48 @@ class JtiValidationRuleTest {
     private final JtiValidationStore store = mock();
     private final JtiValidationRule rule = new JtiValidationRule(store, mock());
 
-    @BeforeEach
-    void setUp() {
+    @Test
+    void checkRule_whenFirstUse_shouldStoreEntryExpiringWithToken() {
+        var expiration = Instant.now().plusSeconds(3600).getEpochSecond();
         when(store.storeEntry(any())).thenReturn(StoreResult.success());
+
+        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("jti", "test-id").claim("exp", expiration).build(), Map.of())).isSucceeded();
+
+        verify(store).storeEntry(new JtiValidationEntry("test-id", expiration * 1000));
+        // looking the entry up before storing it would let a concurrent replay pass
+        verifyNoMoreInteractions(store);
     }
 
     @Test
-    void checkRule_noExpiration_success() {
-        when(store.findById(eq("test-id"))).thenReturn(new JtiValidationEntry("test-id"));
+    void checkRule_whenTokenHasNoExpiration_shouldStoreEntryThatNeverExpires() {
+        when(store.storeEntry(any())).thenReturn(StoreResult.success());
+
+        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("jti", "test-id").build(), Map.of())).isSucceeded();
+
+        verify(store).storeEntry(new JtiValidationEntry("test-id", null));
+    }
+
+    @Test
+    void checkRule_whenAlreadyUsed_shouldFail() {
+        when(store.storeEntry(any())).thenReturn(StoreResult.alreadyExists("foobar"));
+
         assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("jti", "test-id").build(), Map.of())).isFailed()
                 .detail().isEqualTo("The JWT id 'test-id' was already used.");
         verify(store).storeEntry(any());
+        verifyNoMoreInteractions(store);
     }
 
     @Test
-    void checkRule_withExpiration_success() {
-        when(store.findById(eq("test-id"))).thenReturn(new JtiValidationEntry("test-id", Instant.now().plusSeconds(3600).toEpochMilli()));
-        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("jti", "test-id").build(), Map.of())).isFailed()
-                .detail().isEqualTo("The JWT id 'test-id' was already used.");
-        verify(store).storeEntry(any());
-    }
+    void checkRule_whenStoreFails_shouldFail() {
+        when(store.storeEntry(any())).thenReturn(StoreResult.generalError("foobar"));
 
-    @Test
-    void checkRule_withExpiration_alreadyExpired() {
-        when(store.findById(eq("test-id"))).thenReturn(new JtiValidationEntry("test-id", Instant.now().minusSeconds(3600).toEpochMilli()));
-        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("jti", "test-id").build(), Map.of())).isSucceeded();
-        verify(store).storeEntry(any());
-    }
-
-    @Test
-    void checkRule_entryNotFound_success() {
-        when(store.findById(eq("test-id"))).thenReturn(null);
-        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("jti", "test-id").build(), Map.of())).isSucceeded();
-        verify(store).storeEntry(any());
-    }
-
-    @Test
-    void checkRule_entryNotFound_storeFails_failure() {
-        when(store.findById(eq("test-id"))).thenReturn(null);
-        when(store.storeEntry(any())).thenReturn(StoreResult.duplicateKeys("foobar"));
         assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("jti", "test-id").build(), Map.of())).isFailed()
                 .detail().isEqualTo("foobar");
     }
 
     @Test
-    void checkRule_whenClaimTokenNoKid() {
+    void checkRule_whenClaimTokenNoJti() {
         assertThat(rule.checkRule(ClaimToken.Builder.newInstance().build(), Map.of())).isSucceeded();
-        verify(store, never()).storeEntry(any());
+        verifyNoInteractions(store);
     }
 }

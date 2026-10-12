@@ -47,13 +47,13 @@ public class SqlJtiValidationStore extends AbstractSqlStore implements JtiValida
     @Override
     public StoreResult<Void> storeEntry(JtiValidationEntry entry) {
         return transactionContext.execute(() -> {
-            var stmt = statements.getInsertTemplate();
+            var stmt = statements.getInsertOrReplaceExpiredTemplate();
             try (var connection = getConnection()) {
-
-                if (findByIdInternal(connection, entry.tokenId()) != null) {
+                // a single statement, so that of several concurrent calls with the same token ID, only one stores its entry
+                var rows = queryExecutor.execute(connection, stmt, entry.tokenId(), entry.expirationTimestamp(), Instant.now().toEpochMilli());
+                if (rows == 0) {
                     return StoreResult.alreadyExists("JTI Validation Entry with ID '%s' already exists".formatted(entry.tokenId()));
                 }
-                queryExecutor.execute(connection, stmt, entry.tokenId(), entry.expirationTimestamp());
                 return StoreResult.success();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);

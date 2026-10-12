@@ -107,4 +107,31 @@ public interface ContractNegotiationListener {
     default void finalized(ContractNegotiation negotiation) {
 
     }
+
+    /**
+     * Called after a {@link ContractNegotiation} was held by a pending guard, waiting for an external interaction.
+     *
+     * @param negotiation the contract negotiation that has been held.
+     */
+    default void held(ContractNegotiation negotiation) {
+
+    }
+
+    /**
+     * Called after a held {@link ContractNegotiation} was approved by the provider.
+     *
+     * @param negotiation the contract negotiation that has been approved.
+     */
+    default void approved(ContractNegotiation negotiation) {
+
+    }
+
+    /**
+     * Called after a held {@link ContractNegotiation} was rejected by the provider.
+     *
+     * @param negotiation the contract negotiation that has been rejected.
+     */
+    default void rejected(ContractNegotiation negotiation) {
+
+    }
 }

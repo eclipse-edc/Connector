@@ -127,7 +127,7 @@ class ContractNegotiationProtocolServiceImplTest {
     class NotifyRequested {
         @Test
         void shouldInitiateNegotiation_whenNegotiationDoesNotExist() {
-            var participantAgent = participantAgent();
+            var participantAgent = new ParticipantAgent("counterPartyId", Map.of("claim", "value"), emptyMap());
             var tokenRepresentation = tokenRepresentation();
             var contractOffer = contractOffer();
             var message = ContractRequestMessage.Builder.newInstance()
@@ -158,6 +158,7 @@ class ContractNegotiationProtocolServiceImplTest {
                 assertThat(n.getProtocol()).isEqualTo(message.getProtocol());
                 assertThat(n.getCorrelationId()).isEqualTo(message.getConsumerPid());
                 assertThat(n.getContractOffers()).hasSize(1);
+                assertThat(n.getClaims()).isEqualTo(Map.of("claim", "value"));
                 assertThat(n.getLastContractOffer()).usingRecursiveComparison().isEqualTo(ContractOffer.Builder.newInstance()
                         .id(offerId.toString())
                         .policy(contractPolicy.toBuilder().type(PolicyType.OFFER).target(offerId.assetIdPart()).build())
@@ -171,7 +172,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
         @Test
         void shouldTransitionToRequested_whenNegotiationFound() {
-            var participantAgent = participantAgent();
+            var participantAgent = new ParticipantAgent("counterPartyId", Map.of("claim", "value"), emptyMap());
             var tokenRepresentation = tokenRepresentation();
             var contractOffer = contractOffer();
             var negotiation = contractNegotiationBuilder().state(OFFERED.code()).type(PROVIDER).contractOffer(contractOffer()).build();
@@ -205,6 +206,7 @@ class ContractNegotiationProtocolServiceImplTest {
                 assertThat(n.getState()).isEqualTo(REQUESTED.code());
                 assertThat(n.getProtocol()).isEqualTo(message.getProtocol());
                 assertThat(n.getContractOffers()).hasSize(2);
+                assertThat(n.getClaims()).isEqualTo(Map.of("claim", "value"));
                 assertThat(n.getLastContractOffer()).usingRecursiveComparison().isEqualTo(ContractOffer.Builder.newInstance()
                         .id(offerId.toString())
                         .policy(contractPolicy.toBuilder().type(PolicyType.OFFER).target(offerId.assetIdPart()).build())

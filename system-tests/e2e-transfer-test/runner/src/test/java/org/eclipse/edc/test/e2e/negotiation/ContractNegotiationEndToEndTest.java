@@ -14,6 +14,9 @@
 
 package org.eclipse.edc.test.e2e.negotiation;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.verification.LoggedRequest;
+import io.restassured.path.json.JsonPath;
 import org.eclipse.edc.connector.controlplane.test.system.utils.ManagementApiClientV4;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
@@ -22,10 +25,13 @@ import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.policy.cel.model.CelExpression;
 import org.eclipse.edc.policy.cel.service.CelPolicyExpressionService;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.Runtimes;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -35,22 +41,30 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.controlplane.contract.spi.policy.ApprovalContractNegotiationPolicyContext.APPROVAL_SCOPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.atomicConstraint;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.inForceDatePermission;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.policy;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 
-
-@SuppressWarnings("JUnitMalformedDeclaration")
 class ContractNegotiationEndToEndTest {
 
     abstract static class Tests {
@@ -59,7 +73,22 @@ class ContractNegotiationEndToEndTest {
         public static final String PROVIDER_ID = "urn:connector:provider";
         public static final String CONSUMER_NAME = "consumer";
         public static final String PROVIDER_NAME = "provider";
+        protected static final int CALLBACK_PORT = getFreePort();
+        @RegisterExtension
+        static final WireMockExtension CALLBACK_SERVER = WireMockExtension.newInstance()
+                .options(wireMockConfig().port(CALLBACK_PORT))
+                .build();
         protected static String noConstraintPolicyId;
+
+        /**
+         * Provider configuration that enables the manual approval and registers a participant callback for the negotiations held for it.
+         */
+        protected static Config providerCallbacksConfig() {
+            var callbacks = """
+                    [{"uri": "http://localhost:%d/callbacks", "events": ["contract.negotiation.held"], "transactional": false}]
+                    """.formatted(CALLBACK_PORT);
+            return ConfigFactory.fromMap(Map.of("edc.callbacks", callbacks, "edc.negotiation.approval.enabled", "true"));
+        }
 
         @BeforeAll
         static void createNoConstraintPolicy(@Runtime(PROVIDER_NAME) ManagementApiClientV4 provider) {
@@ -72,6 +101,12 @@ class ContractNegotiationEndToEndTest {
                     "baseUrl", "http://any/source",
                     "type", "HttpData"
             ));
+        }
+
+        @BeforeEach
+        void stubCallbacks() {
+            // stubs are reset by the WireMock extension before each test
+            CALLBACK_SERVER.stubFor(post("/callbacks").willReturn(aResponse().withStatus(200)));
         }
 
         protected void createResourcesOnProvider(ManagementApiClientV4 provider, String assetId, Map<String, Object> dataAddressProperties, String accessPolicyId, String contractPolicyId) {
@@ -200,6 +235,43 @@ class ContractNegotiationEndToEndTest {
         }
 
         @Test
+        void contractNegotiation_withManualApproval_approved(@Runtime(PROVIDER_NAME) ManagementApiClientV4 provider,
+                                                             @Runtime(CONSUMER_NAME) ManagementApiClientV4 consumer,
+                                                             @Runtime(PROVIDER_NAME) CelPolicyExpressionService expressionService) {
+            var assetId = UUID.randomUUID().toString();
+            createResourcesWithApprovalPolicy(provider, expressionService, assetId);
+
+            var consumerNegotiationId = consumer.initContractNegotiation(provider.asCounterParty(), assetId);
+
+            var providerNegotiationId = awaitHeldNegotiation(assetId);
+            assertThat(provider.getContractNegotiationState(providerNegotiationId)).isEqualTo(REQUESTED.name());
+            assertThat(provider.isContractNegotiationPending(providerNegotiationId)).isTrue();
+
+            provider.approveContractNegotiation(providerNegotiationId);
+
+            await().untilAsserted(() -> assertThat(consumer.getContractNegotiationState(consumerNegotiationId)).isEqualTo(FINALIZED.name()));
+            assertThat(provider.getContractNegotiationState(providerNegotiationId)).isEqualTo(FINALIZED.name());
+            assertThat(provider.isContractNegotiationPending(providerNegotiationId)).isFalse();
+        }
+
+        @Test
+        void contractNegotiation_withManualApproval_rejected(@Runtime(PROVIDER_NAME) ManagementApiClientV4 provider,
+                                                             @Runtime(CONSUMER_NAME) ManagementApiClientV4 consumer,
+                                                             @Runtime(PROVIDER_NAME) CelPolicyExpressionService expressionService) {
+            var assetId = UUID.randomUUID().toString();
+            createResourcesWithApprovalPolicy(provider, expressionService, assetId);
+
+            var consumerNegotiationId = consumer.initContractNegotiation(provider.asCounterParty(), assetId);
+
+            var providerNegotiationId = awaitHeldNegotiation(assetId);
+
+            provider.rejectContractNegotiation(providerNegotiationId);
+
+            await().untilAsserted(() -> assertThat(consumer.getContractNegotiationState(consumerNegotiationId)).isEqualTo(TERMINATED.name()));
+            await().untilAsserted(() -> assertThat(provider.getContractNegotiationState(providerNegotiationId)).isEqualTo(TERMINATED.name()));
+        }
+
+        @Test
         void contractNegotiation_policyMismatch_failure(@Runtime(PROVIDER_NAME) ManagementApiClientV4 provider,
                                                         @Runtime(CONSUMER_NAME) ManagementApiClientV4 consumer) {
             var assetId = UUID.randomUUID().toString();
@@ -221,6 +293,37 @@ class ContractNegotiationEndToEndTest {
                 var state = consumer.getContractNegotiationState(contractNegotiationId);
                 assertThat(state).isEqualTo(TERMINATED.name());
             });
+        }
+
+        /**
+         * Creates an asset whose contract policy has a constraint evaluated only in the approval scope, which fails for the
+         * consumer, so that the provider negotiation is held for manual approval.
+         */
+        private void createResourcesWithApprovalPolicy(ManagementApiClientV4 provider, CelPolicyExpressionService expressionService, String assetId) {
+            var leftOperand = "trustedPartner-" + UUID.randomUUID();
+            expressionService.create(CelExpression.Builder.newInstance()
+                    .id(UUID.randomUUID().toString())
+                    .scopes(Set.of(APPROVAL_SCOPE))
+                    .leftOperand(leftOperand)
+                    .expression("ctx.agent.id == 'a-trusted-partner'")
+                    .description("approval expression")
+                    .build());
+
+            var permission = createObjectBuilder()
+                    .add("action", "use")
+                    .add("constraint", atomicConstraint(leftOperand, "eq", "true"))
+                    .build();
+            var policyId = provider.createPolicyDefinition(policy(List.of(permission)));
+
+            createResourcesOnProvider(provider, assetId, httpSourceDataAddress(), noConstraintPolicyId, policyId);
+        }
+
+        private String awaitHeldNegotiation(String assetId) {
+            return await().until(() -> CALLBACK_SERVER.findAll(postRequestedFor(urlEqualTo("/callbacks"))).stream()
+                    .map(LoggedRequest::getBodyAsString)
+                    .filter(body -> body.contains(assetId))
+                    .map(body -> JsonPath.from(body).getString("payload.contractNegotiationId"))
+                    .findFirst(), Optional::isPresent).orElseThrow();
         }
 
     }
@@ -245,6 +348,7 @@ class ContractNegotiationEndToEndTest {
                 .modules(":core:common:cel-core")
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
+                .configurationProvider(Tests::providerCallbacksConfig)
                 .paramProvider(ManagementApiClientV4.class, ManagementApiClientV4::forContext)
                 .build();
 
@@ -284,6 +388,7 @@ class ContractNegotiationEndToEndTest {
                 .modules(":core:common:cel-core")
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
+                .configurationProvider(Tests::providerCallbacksConfig)
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER_NAME))
                 .paramProvider(ManagementApiClientV4.class, ManagementApiClientV4::forContext)
                 .build();

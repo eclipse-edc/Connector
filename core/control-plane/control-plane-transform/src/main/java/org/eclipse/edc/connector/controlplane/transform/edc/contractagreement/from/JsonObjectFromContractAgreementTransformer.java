@@ -32,6 +32,9 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreemen
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_POLICY;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_PROVIDER_ID;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_RETIRED;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_RETIREMENT_DATE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_RETIREMENT_REASON;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_SIGNING_DATE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -57,7 +60,15 @@ public class JsonObjectFromContractAgreementTransformer extends JsonLdFromModelT
                 .add(CONTRACT_AGREEMENT_POLICY, context.transform(agreement.getPolicy(), JsonObject.class))
                 .add(CONTRACT_AGREEMENT_SIGNING_DATE, agreement.getContractSigningDate())
                 .add(CONTRACT_AGREEMENT_CONSUMER_ID, agreement.getConsumerId())
-                .add(CONTRACT_AGREEMENT_PROVIDER_ID, agreement.getProviderId());
+                .add(CONTRACT_AGREEMENT_PROVIDER_ID, agreement.getProviderId())
+                .add(CONTRACT_AGREEMENT_RETIRED, agreement.isRetired());
+
+        if (agreement.isRetired()) {
+            if (agreement.getRetirementReason() != null) {
+                builder.add(CONTRACT_AGREEMENT_RETIREMENT_REASON, agreement.getRetirementReason());
+            }
+            builder.add(CONTRACT_AGREEMENT_RETIREMENT_DATE, agreement.getRetirementDate());
+        }
 
         if (agreement.getClaims() != null) {
             var propBuilder = jsonFactory.createObjectBuilder();

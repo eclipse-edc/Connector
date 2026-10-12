@@ -28,7 +28,7 @@ import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.util.collection.Cache;
-import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 
@@ -37,6 +37,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusNot2xxOr4xx;
@@ -52,6 +53,7 @@ import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusNot2xxOr
  * Currently, StatusList2021 and BitStringStatusList are supported.
  */
 public abstract class BaseRevocationListService<C extends VerifiableCredential, S> implements RevocationListService {
+    private static final String VC_CLAIM = "vc";
     private final Cache<String, C> statusListCredentialCache;
     private final Collection<String> acceptedContentTypes;
     private final EdcHttpClient httpClient;
@@ -185,7 +187,12 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
         // retrying would not change the outcome
         try (var response = httpClient.execute(request, List.of(retryWhenStatusNot2xxOr4xx()))) {
             if (response.isSuccessful()) {
-                return parseStatusListCredentialResponse(response, acceptHeader);
+                var credential = parseStatusListCredentialResponse(response, acceptHeader);
+                if (credential == null || credential.getCredentialSubject().isEmpty()) {
+                    // e.g. a JWT that is valid, but contains no credential
+                    throw new IllegalArgumentException("Failed to read status list credential from " + credentialUrl + ": it contains no credentialSubject");
+                }
+                return credential;
             }
             throw new IllegalArgumentException("Failed to download status list credential from " + credentialUrl + ": " + response.code() + " " + response.message());
         } catch (EdcHttpClientException e) {
@@ -193,8 +200,9 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
             // code is reported, if there was a response at all
             var reason = e.getStatusCode() > 0 ? String.valueOf(e.getStatusCode()) : e.getMessage();
             throw new IllegalArgumentException("Failed to download status list credential from " + credentialUrl + ": " + reason);
-        } catch (IOException | StreamReadException e) {
-            // the response body could not be read, e.g. because it is not a status list credential
+        } catch (IOException | JacksonException e) {
+            // the response body could not be read, e.g. because it is not a status list credential, or a value of it is
+            // malformed
             throw new EdcException("Failed to read status list credential from " + credentialUrl + ": " + e.getMessage(), e);
         }
     }
@@ -209,7 +217,10 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
             throw new IllegalArgumentException("Validation of status list credential JWT failed.");
         }
 
-        var vc = result.getContent().getClaim("vc");
+        // a VC 1.1 JWT contains the credential in its "vc" claim, whereas the payload of a VCDM 2.0 credential that is
+        // secured with JOSE (VC-JOSE-COSE) is the credential itself
+        var claims = result.getContent();
+        var vc = Optional.ofNullable(claims.getClaim(VC_CLAIM)).orElseGet(claims::getClaims);
         return objectMapper.convertValue(vc, credentialClass);
     }
 }

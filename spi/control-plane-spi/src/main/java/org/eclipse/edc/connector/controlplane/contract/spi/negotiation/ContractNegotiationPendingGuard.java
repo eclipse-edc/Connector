@@ -21,6 +21,9 @@ import org.eclipse.edc.spi.entity.PendingGuard;
 /**
  * Marker interface to define a service that permits to choose whether a ContractNegotiation will be waiting for an external
  * interaction.
+ * <p>
+ * Providing a single guard as a service is deprecated: guards should be registered in the
+ * {@link ContractNegotiationPendingGuardRegistry}, so that multiple guards can be active at the same time.
  */
 @FunctionalInterface
 @ExtensionPoint

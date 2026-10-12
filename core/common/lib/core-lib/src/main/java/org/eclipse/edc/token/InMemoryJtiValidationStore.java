@@ -20,17 +20,23 @@ import org.eclipse.edc.spi.result.StoreResult;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class InMemoryJtiValidationStore implements JtiValidationStore {
     private final Map<String, JtiValidationEntry> jtiValidationEntries = new ConcurrentHashMap<>();
 
     @Override
     public StoreResult<Void> storeEntry(JtiValidationEntry entry) {
-        if (jtiValidationEntries.containsKey(entry.tokenId())) {
-            return StoreResult.alreadyExists("JTI Validation Entry with ID '%s' already exists".formatted(entry.tokenId()));
-        }
-        jtiValidationEntries.put(entry.tokenId(), entry);
-        return StoreResult.success();
+        var stored = new AtomicBoolean();
+        jtiValidationEntries.compute(entry.tokenId(), (id, existing) -> {
+            if (existing != null && !existing.isExpired()) {
+                return existing;
+            }
+            stored.set(true);
+            return entry;
+        });
+        return stored.get() ? StoreResult.success() :
+                StoreResult.alreadyExists("JTI Validation Entry with ID '%s' already exists".formatted(entry.tokenId()));
     }
 
     @Override

@@ -28,6 +28,9 @@ CREATE TABLE IF NOT EXISTS edc_contract_agreement
     agr_participant_context_id VARCHAR NOT NULL,
     agr_agreement_id VARCHAR NOT NULL,
     claims            JSON,
+    retired           BOOLEAN DEFAULT FALSE NOT NULL,
+    retirement_reason VARCHAR,
+    retirement_date   BIGINT  DEFAULT 0 NOT NULL,
     UNIQUE (agr_agreement_id, agr_participant_context_id)
 );
 
@@ -55,12 +58,14 @@ CREATE TABLE IF NOT EXISTS edc_contract_negotiation
     trace_context        JSON,
     pending              BOOLEAN DEFAULT FALSE,
     protocol_messages    JSON,
-    participant_context_id VARCHAR NOT NULL
+    participant_context_id VARCHAR NOT NULL,
+    negotiation_claims   JSON
 );
 
 COMMENT ON COLUMN edc_contract_negotiation.agreement_id IS 'ContractAgreement serialized as JSON';
 COMMENT ON COLUMN edc_contract_negotiation.contract_offers IS 'List<ContractOffer> serialized as JSON';
 COMMENT ON COLUMN edc_contract_negotiation.trace_context IS 'Map<String,String> serialized as JSON';
+COMMENT ON COLUMN edc_contract_negotiation.negotiation_claims IS 'Claims of the counter-party (Map<String,Object>) serialized as JSON';
 
 CREATE INDEX IF NOT EXISTS contract_negotiation_correlationid_index
     ON edc_contract_negotiation (correlation_id);

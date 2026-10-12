@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.callback.dispatcher;
 
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackClient;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry;
+import org.eclipse.edc.connector.controlplane.services.spi.callback.ParticipantCallbackResolver;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessCompleted;
 import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.spi.EdcException;
@@ -33,6 +34,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -147,6 +149,51 @@ public class CallbackEventDispatcherTest {
         dispatcher.on(envelope(event));
 
         verifyNoInteractions(callbackClient);
+    }
+
+    @Test
+    void shouldDispatchParticipantCallbacks_withParticipantVaultPartition() {
+        var participantCallbackResolver = mock(ParticipantCallbackResolver.class);
+        dispatcher = new CallbackEventDispatcher(callbackClient, callbackRegistry, participantCallbackResolver, false, monitor);
+        var callback = CallbackAddress.Builder.newInstance()
+                .uri("http://test")
+                .events(Set.of("transfer.process"))
+                .transactional(false)
+                .build();
+        var event = TransferProcessCompleted.Builder.newInstance().transferProcessId("id").participantContextId("participantContextId").build();
+        when(participantCallbackResolver.resolve("participantContextId", event.name())).thenReturn(List.of(callback));
+
+        dispatcher.on(envelope(event));
+
+        verify(callbackClient).dispatch(eq(callback), any(), eq("participantContextId"));
+    }
+
+    @Test
+    void shouldNotDispatchParticipantCallbacks_withDifferentTransactionalConfiguration() {
+        var participantCallbackResolver = mock(ParticipantCallbackResolver.class);
+        dispatcher = new CallbackEventDispatcher(callbackClient, callbackRegistry, participantCallbackResolver, true, monitor);
+        var callback = CallbackAddress.Builder.newInstance()
+                .uri("http://test")
+                .events(Set.of("transfer.process"))
+                .transactional(false)
+                .build();
+        var event = TransferProcessCompleted.Builder.newInstance().transferProcessId("id").participantContextId("participantContextId").build();
+        when(participantCallbackResolver.resolve("participantContextId", event.name())).thenReturn(List.of(callback));
+
+        dispatcher.on(envelope(event));
+
+        verifyNoInteractions(callbackClient);
+    }
+
+    @Test
+    void shouldNotResolveParticipantCallbacks_whenEventHasNoParticipantContext() {
+        var participantCallbackResolver = mock(ParticipantCallbackResolver.class);
+        dispatcher = new CallbackEventDispatcher(callbackClient, callbackRegistry, participantCallbackResolver, false, monitor);
+        var event = TransferProcessCompleted.Builder.newInstance().transferProcessId("id").build();
+
+        dispatcher.on(envelope(event));
+
+        verifyNoInteractions(participantCallbackResolver, callbackClient);
     }
 
     @SuppressWarnings("unchecked")

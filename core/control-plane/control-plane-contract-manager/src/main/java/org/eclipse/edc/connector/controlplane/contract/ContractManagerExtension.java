@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.controlplane.contract.negotiation.ConsumerContr
 import org.eclipse.edc.connector.controlplane.contract.negotiation.ProviderContractNegotiationManagerImpl;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuardRegistry;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationProcessors;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationWaitStrategy;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ProviderContractNegotiationManager;
@@ -55,6 +56,8 @@ public class ContractManagerExtension implements ServiceExtension {
     @Inject
     private ContractNegotiationPendingGuard pendingGuard;
     @Inject
+    private ContractNegotiationPendingGuardRegistry pendingGuardRegistry;
+    @Inject
     private ExecutorInstrumentation executorInstrumentation;
     @Inject
     private NegotiationProcessors negotiationProcessors;
@@ -73,6 +76,8 @@ public class ContractManagerExtension implements ServiceExtension {
                 ? context.getService(NegotiationWaitStrategy.class)
                 : stateMachineConfiguration.iterationWaitExponentialWaitStrategy();
 
+        ContractNegotiationPendingGuard guard = negotiation -> pendingGuard.test(negotiation) || pendingGuardRegistry.test(negotiation);
+
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .negotiationProcessors(negotiationProcessors)
                 .waitStrategy(waitStrategy)
@@ -83,7 +88,7 @@ public class ContractManagerExtension implements ServiceExtension {
                 .store(store)
                 .batchSize(stateMachineConfiguration.batchSize())
                 .entityRetryProcessConfiguration(stateMachineConfiguration.entityRetryProcessConfiguration())
-                .pendingGuard(pendingGuard)
+                .pendingGuard(guard)
                 .build();
 
         providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
@@ -96,7 +101,7 @@ public class ContractManagerExtension implements ServiceExtension {
                 .store(store)
                 .batchSize(stateMachineConfiguration.batchSize())
                 .entityRetryProcessConfiguration(stateMachineConfiguration.entityRetryProcessConfiguration())
-                .pendingGuard(pendingGuard)
+                .pendingGuard(guard)
                 .build();
 
         context.registerService(ConsumerContractNegotiationManager.class, consumerNegotiationManager);

@@ -19,6 +19,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.AgreeNegotiation;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.FinalizeNegotiation;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.RequestNegotiation;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendAgreement;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendTerminateNegotiation;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.VerifyNegotiation;
 import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
 import org.eclipse.edc.controlplane.tasks.Task;
@@ -80,6 +82,22 @@ public class ContractNegotiationStateListener implements ContractNegotiationList
         }
     }
 
+
+    @Override
+    public void approved(ContractNegotiation negotiation) {
+        if (negotiation.getType() == ContractNegotiation.Type.PROVIDER) {
+            var task = baseBuilder(SendAgreement.Builder.newInstance(), negotiation)
+                    .build();
+            storeTask(task);
+        }
+    }
+
+    @Override
+    public void terminating(ContractNegotiation negotiation) {
+        var task = baseBuilder(SendTerminateNegotiation.Builder.newInstance(), negotiation)
+                .build();
+        storeTask(task);
+    }
 
     protected <T extends ProcessTaskPayload, B extends ProcessTaskPayload.Builder<T, B>> B baseBuilder(B builder, ContractNegotiation negotiation) {
         return builder.processId(negotiation.getId())

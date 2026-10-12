@@ -20,6 +20,7 @@ import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,22 +44,21 @@ public class JtiValidationRule implements TokenValidationRule {
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
         var jti = toVerify.getStringClaim(JwtRegisteredClaimNames.JWT_ID);
-        if (jti != null) {
-            var entry = jtiValidationStore.findById(jti); // check if existed before
-            var res = jtiValidationStore.storeEntry(new JtiValidationEntry(jti));
-            if (res.failed()) {
-                return Result.failure(res.getFailureDetail());
-            }
+        if (jti == null) {
+            return Result.success();
+        }
 
-            if (entry == null) {
-                return Result.success();
-            }
-            if (entry.isExpired()) {
-                monitor.warning("JTI Validation entry with id '%s' is expired".formatted(jti));
-                return Result.success();
-            }
+        // the entry expires with the token, which is rejected afterwards anyway. Storing it fails if it exists, so that a
+        // token that is presented several times at once, e.g. to several replicas, is only accepted once
+        var expiration = toVerify.getInstantClaim(JwtRegisteredClaimNames.EXPIRATION_TIME);
+        var result = jtiValidationStore.storeEntry(new JtiValidationEntry(jti, expiration != null ? expiration.toEpochMilli() : null));
+        if (result.succeeded()) {
+            return Result.success();
+        }
+        if (result.reason() == StoreFailure.Reason.ALREADY_EXISTS) {
             return Result.failure("The JWT id '%s' was already used.".formatted(jti));
         }
-        return Result.success();
+        monitor.warning("Failed to store the JWT id '%s': %s".formatted(jti, result.getFailureDetail()));
+        return Result.failure(result.getFailureDetail());
     }
 }

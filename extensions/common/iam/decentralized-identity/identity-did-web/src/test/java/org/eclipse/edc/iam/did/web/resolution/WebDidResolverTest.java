@@ -25,6 +25,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static okhttp3.Protocol.HTTP_1_1;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -68,6 +69,58 @@ class WebDidResolverTest {
         var result = resolver.resolve("did:web:foo.com:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
 
         assertThat(result.failed()).isTrue();
+    }
+
+    @Test
+    void verifyResolve_whenServerErrorIsTransient_shouldRetry() {
+        var calls = new AtomicInteger();
+        var resolver = createResolver(chain -> calls.incrementAndGet() == 1 ? response(chain, 503, "") : response(chain, 200, didDocument()));
+
+        var result = resolver.resolve("did:web:foo.com:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
+
+        assertThat(result.succeeded()).isTrue();
+        assertThat(calls).hasValue(2);
+    }
+
+    @Test
+    void verifyResolve_whenServerErrorPersists_shouldFail() {
+        var calls = new AtomicInteger();
+        var resolver = createResolver(chain -> {
+            calls.incrementAndGet();
+            return response(chain, 503, "");
+        });
+
+        var result = resolver.resolve("did:web:foo.com:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
+
+        assertThat(result.failed()).isTrue();
+        // the test client's retry policy retries twice
+        assertThat(calls).hasValue(3);
+    }
+
+    @Test
+    void verifyResolve_whenClientError_shouldNotRetry() {
+        var calls = new AtomicInteger();
+        var resolver = createResolver(chain -> {
+            calls.incrementAndGet();
+            return response(chain, 404, "");
+        });
+
+        var result = resolver.resolve("did:web:foo.com:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
+
+        assertThat(result.failed()).isTrue();
+        assertThat(calls).hasValue(1);
+    }
+
+    private Response response(Interceptor.Chain chain, int code, String body) {
+        return new Response.Builder().body(ResponseBody.create(body, MediaType.get("application/json"))).protocol(HTTP_1_1)
+                .request(chain.request()).code(code).message("message").build();
+    }
+
+    private String didDocument() throws IOException {
+        try (var didStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("did.json")) {
+            assert didStream != null;
+            return new String(didStream.readAllBytes(), StandardCharsets.UTF_8);
+        }
     }
 
     private WebDidResolver createResolver(Interceptor... interceptors) {

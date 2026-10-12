@@ -18,8 +18,10 @@ import org.eclipse.edc.iam.decentralizedclaims.cel.VcClaimMapper;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.type.TypeReference;
 
 import java.time.Instant;
 import java.util.List;
@@ -103,6 +105,50 @@ public class VeClaimMapperTest {
                 .satisfies(credential -> {
                     assertThat(credential).containsEntry("issuer",
                             Map.of("id", "https://example.edu/issuers/14", "name", "Example University"));
+                });
+    }
+
+    @Test
+    void mapClaim_shouldMapPersistedCredentials_likeTheOriginalOnes() {
+        var vc = VerifiableCredential.Builder.newInstance()
+                .id("credential-1")
+                .types(List.of("VerifiableCredential", "MembershipCredential"))
+                .issuer(new Issuer("did:web:issuer", Map.of("name", "Issuer")))
+                .issuanceDate(Instant.parse("2026-01-01T00:00:00Z"))
+                .expirationDate(Instant.parse("2027-01-01T00:00:00Z"))
+                .credentialSubject(CredentialSubject.Builder.newInstance().id("did:web:subject").claim("status", "active").build())
+                .build();
+        Map<String, Object> claims = Map.of("vc", List.of(vc));
+
+        // claims are serialized as JSON when persisted, e.g. in a SQL store, and read back as plain maps
+        var objectMapper = new JacksonTypeManager().getMapper();
+        Map<String, Object> persistedClaims = objectMapper.readValue(objectMapper.writeValueAsString(claims), new TypeReference<>() { });
+
+        var expected = mapper.mapClaim(new ParticipantAgent("agent-id", claims, Map.of()));
+        var result = mapper.mapClaim(new ParticipantAgent("agent-id", persistedClaims, Map.of()));
+
+        assertThat(result.value()).isEqualTo(expected.value());
+    }
+
+    @Test
+    void mapClaim_shouldMapPersistedCredential_withPlainIssuerAndTimestamps() {
+        Map<String, Object> credential = Map.of(
+                "id", "credential-1",
+                "type", List.of("VerifiableCredential"),
+                "issuer", "did:web:issuer",
+                "issuanceDate", 1767225600,
+                "credentialSubject", List.of(Map.of("status", "active")));
+        var agent = new ParticipantAgent("agent-id", Map.of("vc", List.of(credential)), Map.of());
+
+        var result = mapper.mapClaim(agent);
+
+        assertThat(result.value()).asInstanceOf(list(Map.class))
+                .singleElement()
+                .satisfies(mapped -> {
+                    assertThat(mapped).containsEntry("issuer", Map.of("id", "did:web:issuer"));
+                    assertThat(mapped).containsEntry("issuanceDate", "2026-01-01T00:00:00Z");
+                    assertThat(mapped).doesNotContainKey("expirationDate");
+                    assertThat(mapped).containsEntry("@context", List.of());
                 });
     }
 

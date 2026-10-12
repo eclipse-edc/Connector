@@ -17,10 +17,13 @@ package org.eclipse.edc.connector.controlplane.contract.spi.event;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionCreated;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionDeleted;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationAccepted;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationApproved;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationEvent;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationFinalized;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationHeld;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationInitiated;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationOffered;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationRejected;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationRequested;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationTerminated;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
@@ -77,6 +80,9 @@ class ContractEventTest {
                     baseBuilder(ContractNegotiationInitiated.Builder.newInstance()).build(),
                     baseBuilder(ContractNegotiationOffered.Builder.newInstance()).build(),
                     baseBuilder(ContractNegotiationRequested.Builder.newInstance()).build(),
+                    baseBuilder(ContractNegotiationHeld.Builder.newInstance()).build(),
+                    baseBuilder(ContractNegotiationApproved.Builder.newInstance()).build(),
+                    baseBuilder(ContractNegotiationRejected.Builder.newInstance()).build(),
                     baseBuilder(ContractNegotiationTerminated.Builder.newInstance()).build(),
                     baseBuilder(ContractNegotiationFinalized.Builder.newInstance())
                             .contractAgreement(ContractAgreement.Builder.newInstance()

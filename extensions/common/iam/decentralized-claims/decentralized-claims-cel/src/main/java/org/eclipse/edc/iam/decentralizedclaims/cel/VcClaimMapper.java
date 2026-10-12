@@ -21,9 +21,12 @@ import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.cel.function.context.CelClaim;
 import org.eclipse.edc.policy.cel.function.context.CelParticipantAgentClaimMapper;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class VcClaimMapper implements CelParticipantAgentClaimMapper {
@@ -43,11 +46,22 @@ public class VcClaimMapper implements CelParticipantAgentClaimMapper {
     private List<Map<String, Object>> toVcList(Object vcClaim) {
         if (vcClaim instanceof List<?> vcList) {
             return vcList.stream()
-                    .filter(item -> item instanceof VerifiableCredential)
-                    .map(item -> toMap((VerifiableCredential) item))
+                    .map(this::toCredentialMap)
+                    .filter(Objects::nonNull)
                     .toList();
         }
         return List.of();
+    }
+
+    private Map<String, Object> toCredentialMap(Object item) {
+        if (item instanceof VerifiableCredential credential) {
+            return toMap(credential);
+        }
+        // credentials read back from a persisted claims map (e.g. a SQL store) are deserialized as plain maps
+        if (item instanceof Map<?, ?> credential) {
+            return fromSerializedMap(credential);
+        }
+        return null;
     }
 
     private Map<String, Object> toMap(VerifiableCredential credential) {
@@ -63,6 +77,57 @@ public class VcClaimMapper implements CelParticipantAgentClaimMapper {
             cred.put("expirationDate", credential.getExpirationDate().toString());
         }
         return cred;
+    }
+
+    /**
+     * Normalizes a {@link VerifiableCredential} serialized as JSON and deserialized as a map to the same shape produced by
+     * {@link #toMap(VerifiableCredential)}.
+     */
+    private Map<String, Object> fromSerializedMap(Map<?, ?> credential) {
+        var cred = new HashMap<String, Object>();
+        cred.put("@context", credential.get("@context") instanceof List<?> context ? context : List.of());
+        cred.put("id", credential.get("id"));
+        cred.put("type", credential.get("type") instanceof List<?> type ? type : List.of());
+        cred.put("credentialSubject", credential.get("credentialSubject") instanceof List<?> subjects ? subjects : List.of());
+        cred.put("issuer", toSerializedIssuerMap(credential.get("issuer")));
+        cred.put("issuanceDate", toDateString(credential.get("issuanceDate")));
+        var expirationDate = toDateString(credential.get("expirationDate"));
+        if (expirationDate != null) {
+            cred.put("expirationDate", expirationDate);
+        }
+        return cred;
+    }
+
+    private Object toSerializedIssuerMap(Object issuer) {
+        if (issuer instanceof String id) {
+            return Map.of("id", id);
+        }
+        if (issuer instanceof Map<?, ?> issuerMap) {
+            // an Issuer is serialized as {"id": ..., "additionalProperties": {...}}
+            var map = new HashMap<Object, Object>();
+            if (issuerMap.get("additionalProperties") instanceof Map<?, ?> additionalProperties) {
+                map.putAll(additionalProperties);
+            }
+            issuerMap.forEach((key, value) -> {
+                if (!"additionalProperties".equals(key)) {
+                    map.put(key, value);
+                }
+            });
+            return map;
+        }
+        return issuer;
+    }
+
+    private String toDateString(Object date) {
+        if (date instanceof String string) {
+            return string;
+        }
+        // instants serialized as timestamps are expressed in seconds, with an optional fraction of nanoseconds
+        if (date instanceof Number number) {
+            var seconds = new BigDecimal(number.toString());
+            return Instant.ofEpochSecond(seconds.longValue(), seconds.remainder(BigDecimal.ONE).movePointRight(9).longValue()).toString();
+        }
+        return null;
     }
 
     private Map<String, Object> toSubjectMap(CredentialSubject subject) {

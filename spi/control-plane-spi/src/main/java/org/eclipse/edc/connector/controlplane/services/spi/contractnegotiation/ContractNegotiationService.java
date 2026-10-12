@@ -15,6 +15,8 @@
 package org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.ApproveNegotiationCommand;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.RejectNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
@@ -75,6 +77,22 @@ public interface ContractNegotiationService {
      * @return successful result if the contract negotiation is terminated correctly, failure otherwise
      */
     ServiceResult<Void> terminate(TerminateNegotiationCommand command);
+
+    /**
+     * Approve a provider contract negotiation held for manual approval.
+     *
+     * @param command the approval command.
+     * @return successful result if the contract negotiation is approved correctly, failure otherwise
+     */
+    ServiceResult<Void> approve(ApproveNegotiationCommand command);
+
+    /**
+     * Reject a provider contract negotiation held for manual approval.
+     *
+     * @param command the rejection command.
+     * @return successful result if the contract negotiation is rejected correctly, failure otherwise
+     */
+    ServiceResult<Void> reject(RejectNegotiationCommand command);
 
     /**
      * Remove a contract negotiation

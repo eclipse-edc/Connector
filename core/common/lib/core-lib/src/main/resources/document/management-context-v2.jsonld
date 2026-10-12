@@ -200,6 +200,7 @@
         },
         "counterPartyId": "edc:counterPartyId",
         "state": "edc:state",
+        "pending": "edc:pending",
         "errorDetail": "edc:errorDetail",
         "contractAgreementId": "edc:contractAgreementId",
         "createdAt": "edc:createdAt",
@@ -231,6 +232,9 @@
         "reason": "edc:reason"
       }
     },
+    "RejectNegotiation": {
+      "@id": "edc:RejectNegotiation"
+    },
     "ContractAgreement": {
       "@id": "edc:ContractAgreement",
       "@context": {
@@ -244,7 +248,16 @@
         "assetId": "edc:assetId",
         "agreementId": "edc:agreementId",
         "contractSigningDate": "edc:contractSigningDate",
-        "claims": "edc:claims"
+        "claims": "edc:claims",
+        "retired": "edc:retired",
+        "retirementReason": "edc:retirementReason",
+        "retirementDate": "edc:retirementDate"
+      }
+    },
+    "RetireAgreement": {
+      "@id": "edc:RetireAgreement",
+      "@context": {
+        "reason": "edc:reason"
       }
     },
     "TransferRequest": {

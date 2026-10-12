@@ -18,7 +18,10 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.BaseContractNegotiationApiControllerTest;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.ApproveNegotiationCommand;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.RejectNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.RejectNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.result.Result;
@@ -28,6 +31,7 @@ import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.RejectNegotiation.REJECT_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -108,6 +112,72 @@ class ContractNegotiationApiV4ControllerTest extends BaseContractNegotiationApiC
 
         verify(validatorRegistry).validate(eq("v4:" + TERMINATE_NEGOTIATION_TYPE), any());
         verifyNoInteractions(transformerRegistry, service);
+    }
+
+    @Test
+    void approve_shouldCallService() {
+        when(service.approve(any())).thenReturn(ServiceResult.success());
+
+        baseRequest()
+                .contentType(JSON)
+                .post("/cn1/approve")
+                .then()
+                .statusCode(204);
+
+        verify(service).approve(refEq(new ApproveNegotiationCommand("cn1")));
+    }
+
+    @Test
+    void approve_shouldReturnConflict_whenServiceFails() {
+        when(service.approve(any())).thenReturn(ServiceResult.conflict("conflict"));
+
+        baseRequest()
+                .contentType(JSON)
+                .post("/cn1/approve")
+                .then()
+                .statusCode(409);
+    }
+
+    @Test
+    void reject_shouldCallService() {
+        when(transformerRegistry.transform(any(JsonObject.class), eq(RejectNegotiation.class))).thenReturn(Result.success(new RejectNegotiation()));
+        when(service.reject(any())).thenReturn(ServiceResult.success());
+
+        baseRequest()
+                .body(Json.createObjectBuilder().add(TYPE, REJECT_NEGOTIATION_TYPE_TERM).build())
+                .contentType(JSON)
+                .post("/cn1/reject")
+                .then()
+                .statusCode(204);
+
+        verify(service).reject(refEq(new RejectNegotiationCommand("cn1")));
+    }
+
+    @Test
+    void reject_shouldReturnBadRequest_whenTransformationFails() {
+        when(transformerRegistry.transform(any(JsonObject.class), eq(RejectNegotiation.class))).thenReturn(Result.failure("error"));
+
+        baseRequest()
+                .body(Json.createObjectBuilder().add(TYPE, REJECT_NEGOTIATION_TYPE_TERM).build())
+                .contentType(JSON)
+                .post("/cn1/reject")
+                .then()
+                .statusCode(400);
+
+        verifyNoInteractions(service);
+    }
+
+    @Test
+    void reject_shouldReturnConflict_whenServiceFails() {
+        when(transformerRegistry.transform(any(JsonObject.class), eq(RejectNegotiation.class))).thenReturn(Result.success(new RejectNegotiation()));
+        when(service.reject(any())).thenReturn(ServiceResult.conflict("conflict"));
+
+        baseRequest()
+                .body(Json.createObjectBuilder().add(TYPE, REJECT_NEGOTIATION_TYPE_TERM).build())
+                .contentType(JSON)
+                .post("/cn1/reject")
+                .then()
+                .statusCode(409);
     }
 
     protected RequestSpecification baseRequest() {

@@ -21,6 +21,8 @@ import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
+import org.eclipse.edc.spi.persistence.EdcPersistenceException;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -48,9 +50,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.DCP_SELF_ISSUED_TOKEN_CONTEXT;
 import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.PARTICIPANT_DID;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class DcpCoreExtensionTest {
@@ -134,6 +138,25 @@ class DcpCoreExtensionTest {
 
         await().atMost(Duration.ofSeconds(2))
                 .untilAsserted(() -> verify(storeMock, atLeastOnce()).deleteExpired());
+    }
+
+    @Test
+    void assertReaperThreadKeepsRunning_whenDeletingFails(TestExtensionContext context, ObjectFactory objectFactory) {
+        when(storeMock.deleteExpired())
+                .thenThrow(new EdcPersistenceException("database not reachable"))
+                .thenReturn(StoreResult.success(0));
+        var config = ConfigFactory.fromMap(Map.of(
+                PARTICIPANT_DID, "did:web:test",
+                CLEANUP_PERIOD, "1"
+        ));
+        context.setConfig(config);
+        var extension = objectFactory.constructInstance(DcpCoreExtension.class);
+        extension.initialize(context);
+        extension.start();
+
+        await().atMost(Duration.ofSeconds(4))
+                .untilAsserted(() -> verify(storeMock, atLeast(2)).deleteExpired());
+        extension.shutdown();
     }
 
     @Test

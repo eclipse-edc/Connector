@@ -35,5 +35,8 @@ public class ContractAgreementMapping extends TranslationMapping {
         add("participantContextId", statements.getAgreementParticipantContextIdColumn());
         add("agreementId", statements.getContractAgreementContractIdColumn());
         add("claims", new JsonFieldTranslator(statements.getClaimsColumn()));
+        add("retired", statements.getRetiredColumn());
+        add("retirementReason", statements.getRetirementReasonColumn());
+        add("retirementDate", statements.getRetirementDateColumn());
     }
 }

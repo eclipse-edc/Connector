@@ -11,6 +11,7 @@ dependencies {
     implementation(libs.bouncyCastle.bcpkixJdk18on)
 
     testImplementation(project(":core:common:junit-base"));
+    testImplementation(project(":core:common:junit"))
 
 }
 

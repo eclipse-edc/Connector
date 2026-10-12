@@ -25,6 +25,7 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class ContractNegotiationDto extends Typed {
     private String state;
+    private boolean pending;
     private String contractAgreementId;
     private String errorDetail;
     private Map<String, Object> privateProperties;
@@ -59,6 +60,10 @@ public final class ContractNegotiationDto extends Typed {
 
     public String getState() {
         return state;
+    }
+
+    public boolean isPending() {
+        return pending;
     }
 
     public String getContractAgreementId() {

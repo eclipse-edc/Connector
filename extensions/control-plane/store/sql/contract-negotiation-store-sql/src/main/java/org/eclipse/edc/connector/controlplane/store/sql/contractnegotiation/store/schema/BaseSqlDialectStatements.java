@@ -82,6 +82,7 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
                 .column(getPendingColumn())
                 .jsonColumn(getProtocolMessagesColumn())
                 .column(getParticipantContextIdColumn())
+                .jsonColumn(getNegotiationClaimsColumn())
                 .upsertInto(getContractNegotiationTable(), getIdColumn());
     }
 
@@ -102,7 +103,19 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
                 .column(getAgreementParticipantContextIdColumn())
                 .column(getContractAgreementContractIdColumn())
                 .jsonColumn(getClaimsColumn())
+                .column(getRetiredColumn())
+                .column(getRetirementReasonColumn())
+                .column(getRetirementDateColumn())
                 .upsertInto(getContractAgreementTable(), getContractAgreementIdColumn());
+    }
+
+    @Override
+    public String getRetireAgreementTemplate() {
+        return executeStatement()
+                .column(getRetiredColumn())
+                .column(getRetirementReasonColumn())
+                .column(getRetirementDateColumn())
+                .update(getContractAgreementTable(), getContractAgreementIdColumn());
     }
 
     @Override
