@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "ParticipantContextConfigValidationSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/ParticipantContextConfigValidation"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v5/participant-context-config-validation-schema.json",
+  "definitions": {
+    "ParticipantContextConfigValidation": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "@type": {
+          "type": "string",
+          "const": "ParticipantContextConfigValidation"
+        },
+        "valid": {
+          "type": "boolean"
+        },
+        "violations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "key",
+              "message"
+            ]
+          }
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "valid",
+        "violations"
+      ]
+    }
+  }
+}

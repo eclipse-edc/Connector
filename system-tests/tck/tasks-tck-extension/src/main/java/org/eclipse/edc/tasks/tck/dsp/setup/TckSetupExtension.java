@@ -88,7 +88,8 @@ public class TckSetupExtension implements ServiceExtension {
         participantContextConfigService.save(ParticipantContextConfiguration.Builder.newInstance()
                 .participantContextId(participantContextId)
                 .entries(Map.of("edc.participant.id", participantContextId))
-                .build());
+                .build())
+                .onFailure(f -> monitor.warning("Failed to save ParticipantContext config: " + f.getFailureDetail()));
     }
 
 }

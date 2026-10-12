@@ -27,6 +27,11 @@ import org.jetbrains.annotations.Nullable;
 public interface SecureTokenServiceRegistry {
 
     /**
+     * Participant context configuration key holding the STS type to use for that participant context.
+     */
+    String STS_TYPE_CONFIG_KEY = "edc.iam.sts.type";
+
+    /**
      * Registers a {@link SecureTokenService} for the given type. Registering a type that already exists overwrites the
      * previously registered implementation.
      *
@@ -43,5 +48,12 @@ public interface SecureTokenServiceRegistry {
      */
     @Nullable
     SecureTokenService resolve(String type);
+
+    /**
+     * The type used for participant contexts that do not configure one on {@link #STS_TYPE_CONFIG_KEY}.
+     *
+     * @return the default type.
+     */
+    String defaultType();
 
 }

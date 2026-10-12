@@ -19,12 +19,19 @@ import org.eclipse.edc.iam.decentralizedclaims.sts.remote.RemoteSecureTokenServi
 import org.eclipse.edc.iam.decentralizedclaims.sts.remote.StsRemoteClientConfiguration;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigEntry;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigView;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantContextConfigValidatorRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+
+import static org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenServiceRegistry.STS_TYPE_CONFIG_KEY;
+import static org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigValidators.httpUrl;
+import static org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigValidators.notBlank;
 
 /**
  * Registers the remote (OAuth2) {@link RemoteSecureTokenService} into the {@link SecureTokenServiceRegistry} bound to
@@ -55,6 +62,9 @@ public class StsRemoteRegistrarExtension implements ServiceExtension {
     @Inject
     private Vault vault;
 
+    @Inject
+    private ParticipantContextConfigValidatorRegistry configValidatorRegistry;
+
     @Override
     public String name() {
         return NAME;
@@ -63,6 +73,17 @@ public class StsRemoteRegistrarExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         secureTokenServiceRegistry.register(OAUTH_STS_TYPE, new RemoteSecureTokenService(oauth2Client, this::clientConfiguration, vault));
+
+        configValidatorRegistry.register(ParticipantConfigEntry.Builder.newInstance(TOKEN_URL)
+                .description("STS OAuth2 endpoint for requesting a token").validator(httpUrl()).requiredWhen(this::isOauthSts).build());
+        configValidatorRegistry.register(ParticipantConfigEntry.Builder.newInstance(CLIENT_ID)
+                .description("STS OAuth2 client id").validator(notBlank()).requiredWhen(this::isOauthSts).build());
+        configValidatorRegistry.register(ParticipantConfigEntry.Builder.newInstance(CLIENT_SECRET_ALIAS)
+                .description("Vault alias of STS OAuth2 client secret").validator(notBlank()).requiredWhen(this::isOauthSts).build());
+    }
+
+    private boolean isOauthSts(ParticipantConfigView config) {
+        return OAUTH_STS_TYPE.equals(config.getEntry(STS_TYPE_CONFIG_KEY).orElseGet(secureTokenServiceRegistry::defaultType));
     }
 
     private StsRemoteClientConfiguration clientConfiguration(String participantContextId) {

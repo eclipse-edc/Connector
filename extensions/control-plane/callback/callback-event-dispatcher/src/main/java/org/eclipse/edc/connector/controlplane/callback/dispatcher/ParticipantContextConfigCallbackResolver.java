@@ -18,12 +18,17 @@ import org.eclipse.edc.connector.controlplane.services.spi.callback.ParticipantC
 import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.validator.spi.ValidationResult;
+import org.eclipse.edc.validator.spi.Validator;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
+
+import static org.eclipse.edc.validator.spi.Violation.violation;
 
 /**
  * Resolves the callbacks of a participant context from its configuration entry {@value #CALLBACKS_CONFIG_KEY}, which holds a
@@ -41,6 +46,29 @@ public class ParticipantContextConfigCallbackResolver implements ParticipantCall
         this.participantContextConfig = participantContextConfig;
         this.mapperSupplier = mapperSupplier;
         this.monitor = monitor;
+    }
+
+    /**
+     * Validator for the {@value #CALLBACKS_CONFIG_KEY} configuration value.
+     *
+     * @param mapperSupplier supplies the mapper used to parse the value.
+     * @return the validator.
+     */
+    public static Validator<String> callbacksValidator(Supplier<ObjectMapper> mapperSupplier) {
+        return value -> {
+            if (value.isBlank()) {
+                return ValidationResult.success();
+            }
+            try {
+                var callbacks = mapperSupplier.get().readValue(value, new TypeReference<List<CallbackAddress>>() { });
+                if (callbacks.stream().anyMatch(Objects::isNull)) {
+                    return ValidationResult.failure(violation("must not contain null callbacks", null));
+                }
+                return ValidationResult.success();
+            } catch (JacksonException e) {
+                return ValidationResult.failure(violation("must be a JSON array of callback addresses: " + e.getOriginalMessage(), null));
+            }
+        };
     }
 
     @Override

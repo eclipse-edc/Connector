@@ -24,6 +24,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SecureTokenServiceRegistryImpl implements SecureTokenServiceRegistry {
 
     private final Map<String, SecureTokenService> entries = new ConcurrentHashMap<>();
+    private final String defaultType;
+
+    public SecureTokenServiceRegistryImpl(String defaultType) {
+        this.defaultType = defaultType;
+    }
 
     @Override
     public void register(String type, SecureTokenService secureTokenService) {
@@ -33,5 +38,10 @@ public class SecureTokenServiceRegistryImpl implements SecureTokenServiceRegistr
     @Override
     public @Nullable SecureTokenService resolve(String type) {
         return entries.get(type);
+    }
+
+    @Override
+    public String defaultType() {
+        return defaultType;
     }
 }

@@ -15,11 +15,17 @@
 package org.eclipse.edc.participantcontext.config.service;
 
 import org.eclipse.edc.encryption.EncryptionAlgorithmRegistry;
+import org.eclipse.edc.participantcontext.config.validation.ParticipantContextConfigValidatorRegistryImpl;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigEntry;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantContextConfigValidatorRegistry;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
+import org.eclipse.edc.validator.spi.ValidationResult;
+import org.eclipse.edc.validator.spi.Violation;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -28,7 +34,9 @@ import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigValidators.httpUrl;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -45,7 +53,9 @@ public class ParticipantContextConfigServiceImplTest {
 
     private final Clock clock = Clock.fixed(Instant.ofEpochMilli(5000), ZoneId.systemDefault());
 
-    private final ParticipantContextConfigService service = new ParticipantContextConfigServiceImpl(registry, "any", store, new NoopTransactionContext(), clock);
+    private final ParticipantContextConfigValidatorRegistry validatorRegistry = new ParticipantContextConfigValidatorRegistryImpl(false);
+
+    private final ParticipantContextConfigService service = new ParticipantContextConfigServiceImpl(registry, "any", store, new NoopTransactionContext(), clock, validatorRegistry);
 
 
     @Test
@@ -93,8 +103,12 @@ public class ParticipantContextConfigServiceImplTest {
     }
 
     @Test
-    void merge_shouldNotReadTheStore() {
+    void merge_shouldNotWriteBackTheStoredConfiguration() {
         when(registry.encrypt(anyString(), anyString())).then(a -> Result.success("enc(" + a.getArgument(1) + ")"));
+        when(store.get("participantContext")).thenReturn(ParticipantContextConfiguration.Builder.newInstance()
+                .participantContextId("participantContext")
+                .entries(Map.of("existing", "value"))
+                .build());
 
         var patch = ParticipantContextConfiguration.Builder.newInstance()
                 .participantContextId("participantContext")
@@ -103,8 +117,9 @@ public class ParticipantContextConfigServiceImplTest {
 
         assertThat(service.merge(patch)).isSucceeded();
 
-        // a read-modify-write here would race with concurrent merges and lose entries
-        verify(store, never()).get(any());
+        // the stored configuration is only read for validation: a read-modify-write here would race with concurrent
+        // merges and lose entries
+        verify(store).merge(argThat(applied -> applied.getEntries().equals(Map.of("key", "value"))));
         verify(store, never()).save(any());
     }
 
@@ -158,6 +173,125 @@ public class ParticipantContextConfigServiceImplTest {
 
         assertThat(result).isFailed().detail().contains("Null values are not allowed");
         verify(store, never()).save(any());
+    }
+
+    @Nested
+    class Validation {
+
+        @Test
+        void save_shouldReturnBadRequest_whenInvalid() {
+            validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("url").validator(httpUrl()).build());
+            validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("required").required().build());
+            var config = ParticipantContextConfiguration.Builder.newInstance()
+                    .participantContextId("participantContext")
+                    .entries(Map.of("url", "not-an-url"))
+                    .build();
+
+            var result = service.save(config);
+
+            assertThat(result).isFailed().messages()
+                    .containsExactlyInAnyOrder("'url' must be an absolute http(s) URL", "'required' is required");
+            verify(store, never()).save(any());
+            verify(registry, never()).encrypt(anyString(), anyString());
+        }
+
+        @Test
+        void save_shouldValidatePlainTextPrivateEntries() {
+            when(registry.encrypt(anyString(), anyString())).then(a -> Result.success("enc(" + a.getArgument(1) + ")"));
+            validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("secret").sensitive()
+                    .validator(value -> value.equals("plain") ? ValidationResult.success() :
+                            ValidationResult.failure(Violation.violation("invalid", null)))
+                    .build());
+            var config = ParticipantContextConfiguration.Builder.newInstance()
+                    .participantContextId("participantContext")
+                    .privateEntries(Map.of("secret", "plain"))
+                    .build();
+
+            assertThat(service.save(config)).isSucceeded();
+            verify(store).save(argThat(saved -> saved.getPrivateEntries().equals(Map.of("secret", "enc(plain)"))));
+        }
+
+        @Test
+        void merge_shouldReturnBadRequest_whenRemovingRequiredKey() {
+            validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("required").required().build());
+            when(store.get("participantContext")).thenReturn(ParticipantContextConfiguration.Builder.newInstance()
+                    .participantContextId("participantContext")
+                    .entries(Map.of("required", "value"))
+                    .build());
+            var entries = new HashMap<String, String>();
+            entries.put("required", null);
+            var patch = ParticipantContextConfiguration.Builder.newInstance()
+                    .participantContextId("participantContext")
+                    .entries(entries)
+                    .build();
+
+            assertThat(service.merge(patch)).isFailed().messages().containsExactly("'required' is required");
+            verify(store, never()).merge(any());
+        }
+
+        @Test
+        void merge_shouldSucceed_whenRequiredKeyIsStored() {
+            validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("required").sensitive().required().build());
+            when(store.get("participantContext")).thenReturn(ParticipantContextConfiguration.Builder.newInstance()
+                    .participantContextId("participantContext")
+                    .privateEntries(Map.of("required", "encrypted"))
+                    .build());
+            var patch = ParticipantContextConfiguration.Builder.newInstance()
+                    .participantContextId("participantContext")
+                    .entries(Map.of("other", "value"))
+                    .build();
+
+            assertThat(service.merge(patch)).isSucceeded();
+            verify(store).merge(any());
+        }
+
+        @Test
+        void merge_shouldReturnBadRequest_whenNoStoredConfigAndRequiredKeyMissing() {
+            validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("type").build());
+            validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("url")
+                    .requiredWhen(view -> view.getEntry("type").filter("remote"::equals).isPresent())
+                    .build());
+            var patch = ParticipantContextConfiguration.Builder.newInstance()
+                    .participantContextId("participantContext")
+                    .entries(Map.of("type", "remote"))
+                    .build();
+
+            assertThat(service.merge(patch)).isFailed().messages().containsExactly("'url' is required");
+            verify(store, never()).merge(any());
+        }
+
+        @Test
+        void validate_shouldReturnViolations() {
+            validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("required").required().build());
+            validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("url").validator(httpUrl()).build());
+            when(store.get("participantContext")).thenReturn(ParticipantContextConfiguration.Builder.newInstance()
+                    .participantContextId("participantContext")
+                    .entries(Map.of("url", "invalid"))
+                    .build());
+
+            var result = service.validate("participantContext");
+
+            assertThat(result).isSucceeded().satisfies(validation -> {
+                assertThat(validation.participantContextId()).isEqualTo("participantContext");
+                assertThat(validation.isValid()).isFalse();
+                assertThat(validation.violations()).extracting(Violation::path).containsExactlyInAnyOrder("required", "url");
+            });
+        }
+
+        @Test
+        void validate_shouldReturnEmpty_whenValid() {
+            when(store.get("participantContext")).thenReturn(ParticipantContextConfiguration.Builder.newInstance()
+                    .participantContextId("participantContext")
+                    .entries(Map.of("any", "value"))
+                    .build());
+
+            assertThat(service.validate("participantContext")).isSucceeded().satisfies(validation -> assertThat(validation.isValid()).isTrue());
+        }
+
+        @Test
+        void validate_shouldReturnNotFound() {
+            assertThat(service.validate("participantContext")).isFailed().detail().contains("No configuration found");
+        }
     }
 
     @Test

@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.api.management.participantcontext
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.controlplane.api.management.participantcontext.config.v5.ParticipantContextConfigApiV5Controller;
+import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.config.from.JsonObjectFromParticipantContextConfigValidationTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.config.from.JsonObjectFromParticipantContextConfigurationTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.config.to.JsonObjectToParticipantContextConfigurationTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -67,6 +68,7 @@ public class ParticipantContextConfigManagementApiExtension implements ServiceEx
         var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
 
         managementApiTransformerRegistry.register(new JsonObjectFromParticipantContextConfigurationTransformer(factory));
+        managementApiTransformerRegistry.register(new JsonObjectFromParticipantContextConfigValidationTransformer(factory));
         managementApiTransformerRegistry.register(new JsonObjectToParticipantContextConfigurationTransformer());
 
         webService.registerResource(ApiContext.MANAGEMENT, new ParticipantContextConfigApiV5Controller(configService, managementApiTransformerRegistry));

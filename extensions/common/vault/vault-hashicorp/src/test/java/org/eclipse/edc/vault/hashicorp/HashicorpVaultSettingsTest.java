@@ -23,6 +23,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -56,4 +57,18 @@ class HashicorpVaultSettingsTest {
                 .isNotNull()
                 .satisfies(settings -> assertThat(settings.config()).isNull());
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "{}", "{\"config\": {\"vaultUrl\": \"http://vault\"}}" })
+    @NullAndEmptySource
+    void validator_shouldSucceed(String vaultConfig) {
+        assertThat(HashicorpVaultSettings.validator().validate(vaultConfig)).isSucceeded();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "not-a-json", "{\"config\": {}}", "[]" })
+    void validator_shouldFail(String vaultConfig) {
+        assertThat(HashicorpVaultSettings.validator().validate(vaultConfig)).isFailed();
+    }
+
 }

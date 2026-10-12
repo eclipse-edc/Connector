@@ -59,6 +59,7 @@ public interface ManagementApiJsonSchema {
         String CATALOG_ASSET = EDC_MGMT_V5_SCHEMA_PREFIX + "/catalog-asset-schema.json";
         String PARTICIPANT_CONTEXT = EDC_MGMT_V5_SCHEMA_PREFIX + "/participant-context-schema.json";
         String PARTICIPANT_CONTEXT_CONFIG = EDC_MGMT_V5_SCHEMA_PREFIX + "/participant-context-config-schema.json";
+        String PARTICIPANT_CONTEXT_CONFIG_VALIDATION = EDC_MGMT_V5_SCHEMA_PREFIX + "/participant-context-config-validation-schema.json";
         String CEL_EXPRESSION = EDC_MGMT_V5_SCHEMA_PREFIX + "/cel-expression-schema.json";
         String CEL_EXPRESSION_TEST_REQUEST = EDC_MGMT_V5_SCHEMA_PREFIX + "/cel-expression-test-request-schema.json";
         String CEL_EXPRESSION_TEST_RESPONSE = EDC_MGMT_V5_SCHEMA_PREFIX + "/cel-expression-test-response-schema.json";

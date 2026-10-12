@@ -18,6 +18,8 @@ import org.eclipse.edc.participantcontext.connector.identity.ParticipantContextI
 import org.eclipse.edc.participantcontext.connector.profile.ParticipantProfileServiceImpl;
 import org.eclipse.edc.participantcontext.connector.webhook.ParticipantWebhookResolverImpl;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigEntry;
+import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantContextConfigValidatorRegistry;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
@@ -29,6 +31,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 @Extension(value = ConnectorParticipantContextExtension.NAME)
@@ -49,10 +52,20 @@ public class ConnectorParticipantContextExtension implements ServiceExtension {
     private TransactionContext transactionContext;
     @Inject
     private Monitor monitor;
+    @Inject
+    private ParticipantContextConfigValidatorRegistry configValidatorRegistry;
 
     @Override
     public String name() {
         return NAME;
+    }
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        configValidatorRegistry.register(ParticipantConfigEntry.Builder.newInstance(ParticipantProfileService.PROFILES_CONFIG_KEY)
+                .description("Comma separated list of the dataspace profiles enabled for the participant context")
+                .validator(ParticipantProfileServiceImpl.profilesValidator(dataspaceProfileContextRegistry))
+                .build());
     }
 
     @Provider
