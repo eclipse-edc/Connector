@@ -151,8 +151,7 @@ public class ControlPlaneCrawlerComponentTest {
     void crawlSingle_withResults(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
         directory.insert(targetNode());
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
-                .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 5))
-                .thenReturn(emptyCatalog(toBytes(ttr))); // this is important, otherwise there is an endless loop!
+                .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 5));
 
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
@@ -181,8 +180,7 @@ public class ControlPlaneCrawlerComponentTest {
     @DisplayName("Verify crawler inside control plane: crawl single target, correct originator")
     void crawlSingle_verifyOriginator(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
-                .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 3))
-                .thenReturn(emptyCatalog(toBytes(ttr)));
+                .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 3));
         directory.insert(targetNode());
 
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
@@ -197,11 +195,16 @@ public class ControlPlaneCrawlerComponentTest {
     @Test
     @DisplayName("Crawl a single targets, > 100 results, needs paging")
     void crawlSingle_withPagedResults(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
+        // pages are keyed by range offset, so that every crawl run yields the same 250 datasets
+        var pages = Map.of(
+                0, randomCatalog(toBytes(ttr), "test-catalog-id", 100),
+                100, randomCatalog(toBytes(ttr), "test-catalog-id", 100),
+                200, randomCatalog(toBytes(ttr), "test-catalog-id", 50));
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
-                .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 100))
-                .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 100))
-                .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 50))
-                .thenReturn(emptyCatalog(toBytes(ttr)));
+                .thenAnswer(i -> {
+                    var from = i.getArgument(2, CatalogRequestMessage.class).getQuerySpec().getRange().getFrom();
+                    return pages.getOrDefault(from, emptyCatalog(toBytes(ttr)));
+                });
 
         directory.insert(targetNode());
 
@@ -223,11 +226,9 @@ public class ControlPlaneCrawlerComponentTest {
         directory.insert(node2);
 
         when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(node1.id(), node1.targetUrl()))))
-                .thenReturn(catalogOf(toBytes(ttr), "catalog-node1", createDataset("offer1"), createDataset("offer2")))
-                .thenReturn(emptyCatalog(toBytes(ttr)));
+                .thenReturn(catalogOf(toBytes(ttr), "catalog-node1", createDataset("offer1"), createDataset("offer2")));
         when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(node2.id(), node2.targetUrl()))))
-                .thenReturn(catalogOf(toBytes(ttr), "catalog-node2", createDataset("offer3")))
-                .thenReturn(emptyCatalog(toBytes(ttr)));
+                .thenReturn(catalogOf(toBytes(ttr), "catalog-node2", createDataset("offer3")));
 
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
@@ -350,8 +351,7 @@ public class ControlPlaneCrawlerComponentTest {
         // prepare node directory
         directory.insert(targetNode());
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
-                .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 5))
-                .thenReturn(emptyCatalog(toBytes(ttr))); // this is important, otherwise there is an endless loop!
+                .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 5));
 
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
@@ -375,8 +375,7 @@ public class ControlPlaneCrawlerComponentTest {
                     var nodeId = "did:web:" + i + "-count-" + numAssets;
                     var node = new TargetNode("test-node-" + i, nodeId, nodeUrl, singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
                     when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(nodeId, nodeUrl))))
-                            .thenReturn(randomCatalog(toBytes(ttr), "catalog-" + nodeUrl, numAssets))
-                            .thenReturn(emptyCatalog(toBytes(ttr)));
+                            .thenReturn(randomCatalog(toBytes(ttr), "catalog-" + nodeUrl, numAssets));
 
                     directory.insert(node);
                     numTotalAssets.addAndGet(numAssets);
@@ -402,12 +401,10 @@ public class ControlPlaneCrawlerComponentTest {
         directory.insert(node2);
 
         when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(node1.id(), node1.targetUrl()))))
-                .thenReturn(catalogOf(toBytes(ttr), "catalog-" + node1.targetUrl(), createDataset("offer1"), createDataset("offer2"), createDataset("offer3")))
-                .thenReturn(emptyCatalog(toBytes(ttr)));
+                .thenReturn(catalogOf(toBytes(ttr), "catalog-" + node1.targetUrl(), createDataset("offer1"), createDataset("offer2"), createDataset("offer3")));
 
         when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(node2.id(), node2.targetUrl()))))
-                .thenReturn(catalogOf(toBytes(ttr), "catalog-" + node2.targetUrl(), createDataset("offer14"), createDataset("offer32"), /*this one is conflicting:*/createDataset("offer3")))
-                .thenReturn(emptyCatalog(toBytes(ttr)));
+                .thenReturn(catalogOf(toBytes(ttr), "catalog-" + node2.targetUrl(), createDataset("offer14"), createDataset("offer32"), /*this one is conflicting:*/createDataset("offer3")));
 
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
