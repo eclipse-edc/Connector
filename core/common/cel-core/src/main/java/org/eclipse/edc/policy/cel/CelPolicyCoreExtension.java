@@ -24,10 +24,12 @@ import org.eclipse.edc.policy.cel.function.CelExpressionFunction;
 import org.eclipse.edc.policy.cel.function.CelFunctionRegistry;
 import org.eclipse.edc.policy.cel.function.CelFunctionRegistryImpl;
 import org.eclipse.edc.policy.cel.function.context.AgreementContextMapper;
+import org.eclipse.edc.policy.cel.function.context.AssetContextMapper;
 import org.eclipse.edc.policy.cel.function.context.CelContextMapper;
 import org.eclipse.edc.policy.cel.function.context.CelParticipantAgentClaimMapperRegistry;
 import org.eclipse.edc.policy.cel.function.context.CelParticipantAgentClaimMapperRegistryImpl;
 import org.eclipse.edc.policy.cel.function.context.CompositeCelContextMapper;
+import org.eclipse.edc.policy.cel.function.context.ContractDefinitionContextMapper;
 import org.eclipse.edc.policy.cel.function.context.ParticipantAgentContextMapper;
 import org.eclipse.edc.policy.cel.function.context.ParticipantContextContextMapper;
 import org.eclipse.edc.policy.cel.function.context.PolicyMonitorContextMapper;
@@ -99,7 +101,12 @@ public class CelPolicyCoreExtension implements ServiceExtension {
             var transferMapper = new TransferProcessContextMapper(new AgreementContextMapper(), new ParticipantAgentContextMapper<>(claimMapperRegistry()));
             var monitorMapper = new PolicyMonitorContextMapper(new AgreementContextMapper(), new ParticipantAgentContextMapper<>(claimMapperRegistry()));
             bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), withParticipantContext(transferMapper)), c, TransferProcessPolicyContext.class);
-            bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), withParticipantContext(new ParticipantAgentContextMapper<>(claimMapperRegistry()))), c, ContractNegotiationPolicyContext.class);
+            // the asset and the contract definition are only available in contexts that carry them, e.g. the approval of the negotiation.
+            // A single binding is used for the negotiation contexts, as the first dynamic function bound to a parent context type would
+            // shadow one bound to a subclass of it (e.g. ApprovalContractNegotiationPolicyContext)
+            var negotiationMapper = CompositeCelContextMapper.<ContractNegotiationPolicyContext>of(
+                    new ParticipantAgentContextMapper<>(claimMapperRegistry()), new AssetContextMapper(), new ContractDefinitionContextMapper());
+            bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), withParticipantContext(negotiationMapper)), c, ContractNegotiationPolicyContext.class);
             bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), withParticipantContext(new ParticipantAgentContextMapper<>(claimMapperRegistry()))), c, CatalogPolicyContext.class);
             bindFunction(new CelExpressionFunction<>(policyExpressionEngine(), withParticipantContext(monitorMapper)), c, PolicyMonitorContext.class);
         });

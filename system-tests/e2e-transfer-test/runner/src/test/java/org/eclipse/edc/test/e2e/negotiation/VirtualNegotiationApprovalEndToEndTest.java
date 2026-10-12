@@ -72,6 +72,7 @@ class VirtualNegotiationApprovalEndToEndTest {
     private static final String CONSUMER_CONTEXT = "consumer";
     private static final String PROVIDER_ID = "provider-id";
     private static final String CONSUMER_ID = "consumer-id";
+    private static final String MANUAL_APPROVAL = "https://w3id.org/edc/v0.0.1/ns/manualApproval";
 
     @Order(0)
     @RegisterExtension
@@ -200,6 +201,88 @@ class VirtualNegotiationApprovalEndToEndTest {
      * Creates an asset whose contract policy has a constraint evaluated only in the approval scope, which fails for the
      * consumer, so that the provider negotiation is held for manual approval.
      */
+    @Test
+    void approve_whenAssetRequiresManualApproval(ManagementApiClientV5 connectorClient, Participants participants) {
+        var leftOperand = setupApprovalExpression(connectorClient, "!('%s' in ctx.asset.properties)".formatted(MANUAL_APPROVAL));
+        var asset = new AssetDto(Map.of("manualApproval", "true"), null);
+        var assetId = connectorClient.setupResources(participants.provider().contextId(), asset, accessPolicy(), approvalContractPolicy(leftOperand));
+
+        var negotiationId = connectorClient.initContractNegotiation(participants.consumer().contextId(), participants.consumer().profile(),
+                assetId, participants.provider().getProtocolEndpoint(), participants.provider().id());
+
+        var providerNegotiationId = awaitHeldNegotiation(assetId);
+        connectorClient.negotiations().approve(participants.provider().contextId(), providerNegotiationId);
+
+        connectorClient.waitForContractNegotiationState(participants.consumer().contextId(), negotiationId, FINALIZED.name());
+    }
+
+    @Test
+    void approvedAutomatically_whenAssetDoesNotRequireManualApproval(ManagementApiClientV5 connectorClient, Participants participants) {
+        var leftOperand = setupApprovalExpression(connectorClient, "!('%s' in ctx.asset.properties)".formatted(MANUAL_APPROVAL));
+        var assetId = connectorClient.setupResources(participants.provider().contextId(), new AssetDto(), accessPolicy(), approvalContractPolicy(leftOperand));
+
+        var negotiationId = connectorClient.initContractNegotiation(participants.consumer().contextId(), participants.consumer().profile(),
+                assetId, participants.provider().getProtocolEndpoint(), participants.provider().id());
+
+        connectorClient.waitForContractNegotiationState(participants.consumer().contextId(), negotiationId, FINALIZED.name());
+    }
+
+    @Test
+    void approve_whenContractDefinitionRequiresManualApproval(ManagementApiClientV5 connectorClient, Participants participants) {
+        var leftOperand = setupApprovalExpression(connectorClient, "!('%s' in ctx.contractDefinition.privateProperties)".formatted(MANUAL_APPROVAL));
+        var assetId = connectorClient.setupResources(participants.provider().contextId(), new AssetDto(), accessPolicy(), approvalContractPolicy(leftOperand),
+                Map.of("manualApproval", "true"));
+
+        var negotiationId = connectorClient.initContractNegotiation(participants.consumer().contextId(), participants.consumer().profile(),
+                assetId, participants.provider().getProtocolEndpoint(), participants.provider().id());
+
+        var providerNegotiationId = awaitHeldNegotiation(assetId);
+        connectorClient.negotiations().approve(participants.provider().contextId(), providerNegotiationId);
+
+        connectorClient.waitForContractNegotiationState(participants.consumer().contextId(), negotiationId, FINALIZED.name());
+    }
+
+    @Test
+    void approve_whenContractPolicyDeclaresManualApproval(ManagementApiClientV5 connectorClient, Participants participants) {
+        // the manual approval is declared publicly by a constraint of the contract policy, so the consumer sees it in the catalog
+        var leftOperand = "https://w3id.org/example/approval/manualApproval";
+        connectorClient.expressions().createExpression(new CelExpressionDto(leftOperand, "this.rightOperand != 'required'",
+                Set.of(APPROVAL_SCOPE), "manual approval declared by the contract policy"));
+        var contractPolicy = new PolicyDefinitionDto(new PolicyDto(List.of(new PermissionDto(new AtomicConstraintDto(leftOperand, "eq", "required")))));
+        var assetId = connectorClient.setupResources(participants.provider().contextId(), new AssetDto(), accessPolicy(), contractPolicy);
+
+        var dataset = connectorClient.fetchDataset(participants.consumer().contextId(), participants.consumer().profile(), assetId,
+                participants.provider().getProtocolEndpoint(), participants.provider().id());
+        assertThat(dataset.offers()).singleElement().satisfies(offer -> assertThat(offer.getPermissions())
+                .flatExtracting(PermissionDto::getConstraints)
+                .anySatisfy(constraint -> {
+                    assertThat(constraint.getLeftOperand()).isEqualTo(leftOperand);
+                    assertThat(constraint.getRightOperand()).isEqualTo("required");
+                }));
+
+        var negotiationId = connectorClient.initContractNegotiation(participants.consumer().contextId(), participants.consumer().profile(),
+                assetId, participants.provider().getProtocolEndpoint(), participants.provider().id());
+
+        var providerNegotiationId = awaitHeldNegotiation(assetId);
+        connectorClient.negotiations().approve(participants.provider().contextId(), providerNegotiationId);
+
+        connectorClient.waitForContractNegotiationState(participants.consumer().contextId(), negotiationId, FINALIZED.name());
+    }
+
+    private String setupApprovalExpression(ManagementApiClientV5 connectorClient, String expression) {
+        var leftOperand = "approval-" + UUID.randomUUID();
+        connectorClient.expressions().createExpression(new CelExpressionDto(leftOperand, expression, Set.of(APPROVAL_SCOPE), "approval expression"));
+        return leftOperand;
+    }
+
+    private PolicyDefinitionDto accessPolicy() {
+        return new PolicyDefinitionDto(new PolicyDto(List.of(new PermissionDto())));
+    }
+
+    private PolicyDefinitionDto approvalContractPolicy(String leftOperand) {
+        return new PolicyDefinitionDto(new PolicyDto(List.of(new PermissionDto(new AtomicConstraintDto(leftOperand, "eq", "true")))));
+    }
+
     private String setupAssetWithApprovalPolicy(ManagementApiClientV5 connectorClient, Participants participants) {
         var leftOperand = "trustedPartner-" + UUID.randomUUID();
         connectorClient.expressions().createExpression(new CelExpressionDto(leftOperand, "ctx.agent.id == 'a-trusted-partner'",
