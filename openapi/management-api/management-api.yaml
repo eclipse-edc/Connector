@@ -370,7 +370,7 @@ paths:
         "204":
           description: The Config was set successfully
         "400":
-          description: "Request body was malformed, or the request could not be processed"
+          description: "Request body was malformed, or the config is not valid"
           content:
             application/json:
               schema:
@@ -419,7 +419,8 @@ paths:
         "204":
           description: The Config was merged successfully
         "400":
-          description: "Request body was malformed, or the request could not be processed"
+          description: "Request body was malformed, or the resulting config is not\
+            \ valid"
           content:
             application/json:
               schema:
@@ -4583,6 +4584,47 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/config/validation:
+    get:
+      tags:
+      - Participant Context config v5
+      description: "Validates the stored ParticipantContext config against the configuration\
+        \ keys registered by the runtime, reporting e.g. the required keys that are\
+        \ missing. Writes are validated as well, but a stored config can become invalid\
+        \ when the runtime changes."
+      operationId: validateConfigV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The validation outcome of the ParticipantContext config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/participant-context-config-validation-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A ParticipantContext config with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v5/participants/{participantContextId}/partnergroups:
     post:
       tags:
@@ -8698,6 +8740,46 @@ components:
           items:
             minItems: 1
             type: string
+    participant-context-config-validation-schema:
+      title: ParticipantContextConfigValidationSchema
+      type: object
+      example:
+        valid: true
+        '@type': '@type'
+        violations:
+        - message: message
+          key: key
+        - message: message
+          key: key
+        '@id': '@id'
+        '@context':
+        - '@context'
+        - '@context'
+      allOf:
+      - $ref: "#/components/schemas/ParticipantContextConfigValidation"
+    ParticipantContextConfigValidation:
+      required:
+      - '@context'
+      - '@type'
+      - valid
+      - violations
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@id':
+          type: string
+        '@type':
+          type: string
+        valid:
+          type: boolean
+        violations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ParticipantContextConfigValidation_violations_inner"
     dataplane-instance-schema:
       title: DataPlaneInstanceSchema
       type: object
@@ -8827,3 +8909,16 @@ components:
       oneOf:
       - type: string
       - type: object
+    ParticipantContextConfigValidation_violations_inner:
+      required:
+      - key
+      - message
+      type: object
+      properties:
+        key:
+          type: string
+        message:
+          type: string
+      example:
+        message: message
+        key: key
