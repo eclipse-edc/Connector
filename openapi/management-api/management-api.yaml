@@ -5,7 +5,7 @@ info:
   license:
     name: "The Apache License, Version 2.0"
     url: http://www.apache.org/licenses/LICENSE-2.0.txt
-  version: 4.1.0
+  version: 4.2.0
 servers:
 - url: /
 paths:
@@ -1110,6 +1110,61 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v5/participants/{participantContextId}/contractagreements/{id}/retire:
+    post:
+      tags:
+      - Contract Agreement v5
+      description: Retires a contract agreement with the given ID. A retired agreement
+        cannot be used to start new transfers and the ongoing ones based on it are
+        terminated.
+      operationId: retireAgreementV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/retireAgreementV5_request"
+      responses:
+        "204":
+          description: The contract agreement has been retired
+        "400":
+          description: "Request body was malformed, e.g. the reason was missing"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A contract agreement with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: The contract agreement is already retired
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v4/policydefinitions/{id}:
     get:
       tags:
@@ -1375,6 +1430,54 @@ paths:
                   $ref: "#/components/schemas/api-error-schema"
         "404":
           description: A secret with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4/contractagreements/{id}/retire:
+    post:
+      tags:
+      - Contract Agreement v4
+      description: Retires a contract agreement with the given ID. A retired agreement
+        cannot be used to start new transfers and the ongoing ones based on it are
+        terminated.
+      operationId: retireAgreementV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/retireAgreementV5_request"
+      responses:
+        "204":
+          description: The contract agreement has been retired
+        "400":
+          description: "Request body was malformed, e.g. the reason was missing"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A contract agreement with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: The contract agreement is already retired
           content:
             application/json:
               schema:
@@ -1671,7 +1774,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/updateExpressionV5_request"
+              $ref: "#/components/schemas/retireAgreementV5_request"
       responses:
         "204":
           description: The Cel Expression was updated successfully.
@@ -2044,7 +2147,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/updateExpressionV5_request"
+              $ref: "#/components/schemas/retireAgreementV5_request"
       responses:
         "200":
           description: The dataspace profiles matching the query
@@ -7044,6 +7147,19 @@ components:
               .[0-9]+)?|(24:00:00(\\.0+)?))(Z|(\\+|-)((0[0-9]|1[0-3]):[0-5][0-9]|14:00))?"
             type: string
       - nullable: true
+    JsonValue:
+      type: object
+      properties:
+        valueType:
+          type: string
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
     schema-validator-registration-schema:
       title: SchemaValidatorRegistrationSchema
       type: object
@@ -7165,19 +7281,6 @@ components:
             - IS_ALL_OF
             - IS_ANY_OF
             - IS_NONE_OF
-    JsonValue:
-      type: object
-      properties:
-        valueType:
-          type: string
-          enum:
-          - ARRAY
-          - OBJECT
-          - STRING
-          - NUMBER
-          - "TRUE"
-          - "FALSE"
-          - "NULL"
     contract-reject-schema:
       title: ContractRejectSchema
       type: object
@@ -8648,7 +8751,7 @@ components:
           type: array
           items:
             type: string
-    updateExpressionV5_request:
+    retireAgreementV5_request:
       type: object
       properties:
         empty:
