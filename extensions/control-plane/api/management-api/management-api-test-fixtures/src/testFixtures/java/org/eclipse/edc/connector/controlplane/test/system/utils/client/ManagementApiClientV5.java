@@ -228,6 +228,11 @@ public class ManagementApiClientV5 {
     }
 
     public String setupResources(String participantContext, AssetDto asset, PolicyDefinitionDto accessPolicy, PolicyDefinitionDto contractPolicy) {
+        return setupResources(participantContext, asset, accessPolicy, contractPolicy, Map.of());
+    }
+
+    public String setupResources(String participantContext, AssetDto asset, PolicyDefinitionDto accessPolicy, PolicyDefinitionDto contractPolicy,
+                                 Map<String, Object> contractDefinitionPrivateProperties) {
 
         var assetId = assets.createAsset(participantContext, asset);
 
@@ -235,7 +240,7 @@ public class ManagementApiClientV5 {
         var contractPolicyId = policies.createPolicyDefinition(participantContext, contractPolicy);
 
         var selector = List.of(new CriterionDto(NS.toIri("id"), "=", assetId));
-        var contractDefinition = new ContractDefinitionDto(accessPolicyId, contractPolicyId, selector);
+        var contractDefinition = new ContractDefinitionDto(null, accessPolicyId, contractPolicyId, selector, contractDefinitionPrivateProperties);
         contractDefinitions.createContractDefinition(participantContext, contractDefinition);
 
         return assetId;

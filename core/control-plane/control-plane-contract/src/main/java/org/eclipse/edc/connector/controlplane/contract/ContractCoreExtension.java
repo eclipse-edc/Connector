@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractN
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationProcessors;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.policy.ApprovalContractNegotiationPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.policy.ContractNegotiationPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.policy.TransferProcessPolicyContext;
@@ -98,6 +99,8 @@ public class ContractCoreExtension implements ServiceExtension {
     @Inject
     private ContractNegotiationStore store;
     @Inject
+    private ContractDefinitionStore contractDefinitionStore;
+    @Inject
     private ParticipantIdentityResolver identityResolver;
     @Inject
     private ProtocolRemoteMessageDispatcher messageDispatcher;
@@ -146,7 +149,7 @@ public class ContractCoreExtension implements ServiceExtension {
 
         var pendingGuardRegistry = new ContractNegotiationPendingGuardRegistryImpl();
         if (approvalEnabled) {
-            pendingGuardRegistry.register(new ContractNegotiationApprovalGuard(policyEngine, monitor));
+            pendingGuardRegistry.register(new ContractNegotiationApprovalGuard(policyEngine, assetIndex, contractDefinitionStore, monitor));
         }
         context.registerService(ContractNegotiationPendingGuardRegistry.class, pendingGuardRegistry);
     }

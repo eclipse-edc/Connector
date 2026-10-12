@@ -14,9 +14,14 @@
 
 package org.eclipse.edc.connector.controlplane.contract.negotiation;
 
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
+import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.policy.ApprovalContractNegotiationPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
@@ -44,8 +49,64 @@ import static org.mockito.Mockito.when;
 
 class ContractNegotiationApprovalGuardTest {
 
+    private static final String OFFER_ID = ContractOfferId.create("definition-id", "asset-id").toString();
+
     private final PolicyEngine policyEngine = mock();
-    private final ContractNegotiationApprovalGuard guard = new ContractNegotiationApprovalGuard(policyEngine, mock());
+    private final AssetIndex assetIndex = mock();
+    private final ContractDefinitionStore contractDefinitionStore = mock();
+    private final ContractNegotiationApprovalGuard guard = new ContractNegotiationApprovalGuard(policyEngine, assetIndex, contractDefinitionStore, mock());
+
+    @Test
+    void shouldEvaluateWithAssetAndContractDefinition() {
+        var asset = Asset.Builder.newInstance().id("asset-id").build();
+        var definition = ContractDefinition.Builder.newInstance().id("definition-id").accessPolicyId("access").contractPolicyId("contract").build();
+        when(assetIndex.findById("participantContextId", "asset-id")).thenReturn(asset);
+        when(contractDefinitionStore.findById("participantContextId", "definition-id")).thenReturn(definition);
+        when(policyEngine.evaluate(any(), any())).thenReturn(Result.success());
+
+        guard.test(negotiation(PROVIDER, REQUESTED, Policy.Builder.newInstance().build()));
+
+        var captor = ArgumentCaptor.forClass(ApprovalContractNegotiationPolicyContext.class);
+        verify(policyEngine).evaluate(any(), captor.capture());
+        assertThat(captor.getValue().asset()).isSameAs(asset);
+        assertThat(captor.getValue().contractDefinition()).isSameAs(definition);
+    }
+
+    @Test
+    void shouldEvaluateWithoutAssetAndContractDefinition_whenNotFound() {
+        when(policyEngine.evaluate(any(), any())).thenReturn(Result.success());
+
+        guard.test(negotiation(PROVIDER, REQUESTED, Policy.Builder.newInstance().build()));
+
+        var captor = ArgumentCaptor.forClass(ApprovalContractNegotiationPolicyContext.class);
+        verify(policyEngine).evaluate(any(), captor.capture());
+        assertThat(captor.getValue().asset()).isNull();
+        assertThat(captor.getValue().contractDefinition()).isNull();
+        verify(assetIndex).findById("participantContextId", "asset-id");
+        verify(contractDefinitionStore).findById("participantContextId", "definition-id");
+    }
+
+    @Test
+    void shouldEvaluateWithoutContractDefinition_whenOfferIdCannotBeParsed() {
+        when(policyEngine.evaluate(any(), any())).thenReturn(Result.success());
+        var negotiation = ContractNegotiation.Builder.newInstance()
+                .id("id")
+                .type(PROVIDER)
+                .state(REQUESTED.code())
+                .participantContextId("participantContextId")
+                .counterPartyId("counter-party")
+                .counterPartyAddress("https://counter-party")
+                .protocol("protocol")
+                .contractOffer(ContractOffer.Builder.newInstance().id("not-an-offer-id").assetId("asset-id").policy(Policy.Builder.newInstance().build()).build())
+                .build();
+
+        guard.test(negotiation);
+
+        var captor = ArgumentCaptor.forClass(ApprovalContractNegotiationPolicyContext.class);
+        verify(policyEngine).evaluate(any(), captor.capture());
+        assertThat(captor.getValue().contractDefinition()).isNull();
+        verifyNoInteractions(contractDefinitionStore);
+    }
 
     @Test
     void shouldHold_whenApprovalPolicyFails() {
@@ -130,7 +191,7 @@ class ContractNegotiationApprovalGuardTest {
                 .counterPartyId("counter-party")
                 .counterPartyAddress("https://counter-party")
                 .protocol("protocol")
-                .contractOffer(ContractOffer.Builder.newInstance().id("offer-id").assetId("asset-id").policy(policy).build())
+                .contractOffer(ContractOffer.Builder.newInstance().id(OFFER_ID).assetId("asset-id").policy(policy).build())
                 .build();
     }
 }

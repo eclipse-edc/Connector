@@ -61,14 +61,25 @@ The policy engine selects functions by context class. Since the approval context
 `ContractNegotiationPolicyContext`, the functions registered for negotiations can be used for approval constraints too,
 including CEL with `ctx.agent` and `ctx.partners`.
 
-The counterparty is represented by a `ParticipantAgent` rebuilt from the negotiation's `counterPartyId`. Claims are not
-stored on a contract negotiation, so approval constraints can rely on the identity, for example:
+The counterparty is represented by a `ParticipantAgent` rebuilt from the negotiation's `counterPartyId` and the claims
+stored on the negotiation when the contract request was received, so approval constraints can rely on the identity and
+on the counterparty's credentials, for example:
 
 ```
 ctx.partners.byIdentity(ctx.agent.id).inGroup('trusted')
 ```
 
-but not on the counterparty's credentials. Storing the claims on the negotiation is a possible follow-up.
+The context also carries the negotiated `Asset` and the `ContractDefinition` that offered it, through the
+`AssetPolicyContext` and `ContractDefinitionPolicyContext` mixins, so that approval rules can be specific to an asset or
+generic for a contract definition. In CEL they are available as `ctx.asset` (`id`, `participantContextId`, `properties`,
+`privateProperties`) and `ctx.contractDefinition` (`id`, `participantContextId`, `accessPolicyId`, `contractPolicyId`,
+`privateProperties`, `assetsSelector`), for example:
+
+```
+!('https://w3id.org/edc/v0.0.1/ns/manualApproval' in ctx.asset.properties)
+```
+
+When the asset or the contract definition is not available anymore, it is not set in the context.
 
 Because approval constraints live in the contract policy, they are visible to the consumer in the catalog and in the
 agreement, like any other constraint of that policy.
