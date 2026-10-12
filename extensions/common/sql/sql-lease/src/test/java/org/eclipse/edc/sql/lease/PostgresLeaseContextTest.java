@@ -20,6 +20,7 @@ import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.sql.ResultSetMapper;
 import org.eclipse.edc.sql.SqlQueryExecutor;
 import org.eclipse.edc.sql.lease.spi.LeaseStatements;
+import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilder;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -187,6 +188,24 @@ class PostgresLeaseContextTest {
         assertThat(newLease.getLeasedBy()).isNotEqualTo(leaseBy);
     }
 
+
+    @Test
+    void acquireLease_withDuration_shouldNotExpireBefore(Connection connection) {
+        var entityId = "test-entity";
+        insertTestEntity(entityId, connection);
+        SqlLeaseContextBuilder otherBuilder = SqlLeaseContextBuilderImpl.with(transactionContext, "someone-else", "TestTarget", dialect, Clock.fixed(now, UTC), queryExecutor);
+
+        otherBuilder.forTime(Duration.ofMinutes(5)).withConnection(connection).acquireLease(entityId).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+
+        assertThat(leaseContext.getLease(entityId).getLeaseDuration()).isEqualTo(Duration.ofMinutes(5).toMillis());
+        // a lease of the default duration would have expired by then
+        var twoMinutesAheadClock = Clock.offset(Clock.fixed(now, UTC), Duration.of(2, ChronoUnit.MINUTES));
+        var twoMinutesAheadContext = SqlLeaseContextBuilderImpl.with(transactionContext, LEASE_HOLDER, "TestTarget", dialect, twoMinutesAheadClock, queryExecutor)
+                .withConnection(connection);
+        assertThat(twoMinutesAheadContext.acquireLease(entityId)).isFailed()
+                .extracting(StoreFailure::getReason)
+                .isEqualTo(StoreFailure.Reason.ALREADY_LEASED);
+    }
 
     @Test
     void acquireAndReleaseLease_WithMultipleLeaseHolders(PostgresqlStoreSetupExtension extension) throws InterruptedException {

@@ -17,6 +17,7 @@ package org.eclipse.edc.sql.lease.spi;
 import org.eclipse.edc.spi.persistence.LeaseContext;
 
 import java.sql.Connection;
+import java.time.Duration;
 
 /**
  * Builder for creating a {@link LeaseContext} for SQL-based leases.
@@ -37,4 +38,14 @@ public interface SqlLeaseContextBuilder {
      * @return the {@link SqlLeaseContextBuilder} instance
      */
     SqlLeaseContextBuilder by(String leasedBy);
+
+    /**
+     * Sets the duration for which a lease is acquired. Without it, a lease lasts 60 seconds. A lease must last longer than
+     * the work that is done under it, e.g. the processing of a batch of entities by a state machine, otherwise another
+     * runtime may lease the same entities while they are still being processed.
+     *
+     * @param duration the duration of a lease
+     * @return the {@link SqlLeaseContextBuilder} instance
+     */
+    SqlLeaseContextBuilder forTime(Duration duration);
 }
