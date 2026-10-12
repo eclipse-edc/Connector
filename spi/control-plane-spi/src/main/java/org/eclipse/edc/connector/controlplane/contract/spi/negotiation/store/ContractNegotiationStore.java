@@ -93,10 +93,11 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
     Stream<ContractAgreement> queryAgreements(QuerySpec querySpec);
 
     /**
-     * Persists the retired state of the given {@link ContractAgreement}. The agreement passed as argument is expected
-     * to already carry the retirement information (retired flag, reason and date).
+     * Persists the retirement state of the given {@link ContractAgreement}. The agreement passed as argument is
+     * expected to already carry the retirement information (retired flag, reason and date); this is used both to retire
+     * an agreement and to un-retire a previously retired one.
      *
-     * @param agreement the contract agreement to persist in its retired state.
+     * @param agreement the contract agreement to persist in its current retirement state.
      * @return success if the agreement was found and updated, a not found failure otherwise.
      */
     StoreResult<Void> retireAgreement(ContractAgreement agreement);

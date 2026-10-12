@@ -158,6 +158,48 @@ class ContractAgreementServiceImplTest {
         }
     }
 
+    @Nested
+    class UnretireAgreement {
+        @Test
+        void unretireAgreement_shouldUnretireAgreement_whenRetired() {
+            var agreement = createContractAgreement("agreementId").toBuilder()
+                    .retired(true)
+                    .retirementReason("a reason")
+                    .retirementDate(1234L)
+                    .build();
+            when(store.findContractAgreement("agreementId")).thenReturn(agreement);
+            when(store.retireAgreement(any())).thenReturn(StoreResult.success());
+
+            var result = service.unretireAgreement("agreementId");
+
+            assertThat(result).isSucceeded();
+            verify(store).retireAgreement(argThat(a -> !a.isRetired() &&
+                    a.getRetirementReason() == null &&
+                    a.getRetirementDate() == 0));
+        }
+
+        @Test
+        void unretireAgreement_shouldReturnNotFound_whenAgreementDoesNotExist() {
+            when(store.findContractAgreement("agreementId")).thenReturn(null);
+
+            var result = service.unretireAgreement("agreementId");
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+            verify(store, never()).retireAgreement(any());
+        }
+
+        @Test
+        void unretireAgreement_shouldReturnConflict_whenAgreementNotRetired() {
+            var agreement = createContractAgreement("agreementId");
+            when(store.findContractAgreement("agreementId")).thenReturn(agreement);
+
+            var result = service.unretireAgreement("agreementId");
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            verify(store, never()).retireAgreement(any());
+        }
+    }
+
     private ContractAgreement createContractAgreement(String agreementId) {
         return ContractAgreement.Builder.newInstance()
                 .id(agreementId)

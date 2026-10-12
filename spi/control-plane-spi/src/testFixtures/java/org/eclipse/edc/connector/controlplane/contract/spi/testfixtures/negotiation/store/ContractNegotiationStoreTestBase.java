@@ -215,6 +215,24 @@ public abstract class ContractNegotiationStoreTestBase {
                     .hasSize(1)
                     .first().satisfies(it -> assertThat(it.isRetired()).isTrue());
         }
+
+        @Test
+        void retireAgreement_shouldPersistUnretiredState_whenAgreementRetired() {
+            var agreement = createAgreement(ContractOfferId.create("test-cd1", "test-as1"));
+            getContractNegotiationStore().save(createNegotiation("test-cn1", agreement));
+            getContractNegotiationStore().retireAgreement(agreement.toBuilder()
+                    .retired(true).retirementReason("a reason").retirementDate(1234L).build());
+
+            var result = getContractNegotiationStore().retireAgreement(agreement.toBuilder()
+                    .retired(false).retirementReason(null).retirementDate(0).build());
+
+            assertThat(result).isSucceeded();
+            var stored = getContractNegotiationStore().findContractAgreement(agreement.getId());
+            assertThat(stored).isNotNull();
+            assertThat(stored.isRetired()).isFalse();
+            assertThat(stored.getRetirementReason()).isNull();
+            assertThat(stored.getRetirementDate()).isEqualTo(0L);
+        }
     }
 
     @Nested

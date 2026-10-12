@@ -84,4 +84,14 @@ public class ContractAgreementApiV5Controller extends BaseContractAgreementApiV5
                                   @Context SecurityContext securityContext) {
         retireAgreement(participantContextId, id, requestBody, securityContext);
     }
+
+    @POST
+    @Path("{id}/unretire")
+    @RequiredScope("management-api:agreements:write")
+    @Override
+    public void unretireAgreementV5(@PathParam("participantContextId") String participantContextId,
+                                   @PathParam("id") String id,
+                                   @Context SecurityContext securityContext) {
+        unretireAgreement(participantContextId, id, securityContext);
+    }
 }

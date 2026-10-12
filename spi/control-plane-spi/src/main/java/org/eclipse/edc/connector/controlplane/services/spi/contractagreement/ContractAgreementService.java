@@ -61,4 +61,14 @@ public interface ContractAgreementService {
      */
     ServiceResult<Void> retireAgreement(String contractAgreementId, String reason);
 
+    /**
+     * Un-retires a previously retired contract agreement. Once un-retired, the agreement can be used again to start new
+     * transfers.
+     *
+     * @param contractAgreementId the id of the contract agreement to un-retire.
+     * @return success if the agreement has been un-retired, a not found failure if the agreement does not exist, a
+     *         conflict failure if the agreement is not retired.
+     */
+    ServiceResult<Void> unretireAgreement(String contractAgreementId);
+
 }

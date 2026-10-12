@@ -96,4 +96,9 @@ public abstract class BaseContractAgreementApiController {
                 .orElseThrow(exceptionMapper(ContractAgreement.class, id));
     }
 
+    public void unretireAgreement(String id) {
+        service.unretireAgreement(id)
+                .orElseThrow(exceptionMapper(ContractAgreement.class, id));
+    }
+
 }

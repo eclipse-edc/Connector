@@ -24,12 +24,16 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndTestContext;
 import org.eclipse.edc.test.e2e.managementapi.Runtimes;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.List;
@@ -55,9 +59,20 @@ import static org.hamcrest.Matchers.notNullValue;
 public class ContractAgreementApiV4EndToEndTest {
 
     @SuppressWarnings("JUnitMalformedDeclaration")
+    // The runtime (and its store) is shared across all test methods. In SQL a finalized negotiation carrying an
+    // agreement cannot be deleted, so agreements persist for the whole class run: the teardown only clears the
+    // in-memory store. The count/lookup tests are therefore ordered first, before any test that introduces the shared
+    // "agreement-id".
+    @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
     abstract static class Tests {
 
+        @AfterEach
+        void teardown(ContractNegotiationStore store) {
+            store.queryNegotiations(QuerySpec.max()).forEach(cn -> store.deleteById(cn.getId()));
+        }
+
         @Test
+        @Order(1)
         void getAll(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
             store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
             store.save(createContractNegotiationBuilder("cn2").contractAgreement(createContractAgreement("cn2")).build());
@@ -112,6 +127,7 @@ public class ContractAgreementApiV4EndToEndTest {
         }
 
         @Test
+        @Order(2)
         void getNegotiationByAgreementId(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
             store.save(createContractNegotiationBuilder("negotiation-id")
                     .contractAgreement(createContractAgreement("agreement-id"))
@@ -176,6 +192,53 @@ public class ContractAgreementApiV4EndToEndTest {
                     .contentType(JSON)
                     .body(retireAgreementBody("a reason"))
                     .post("/v4/contractagreements/not-exist/retire")
+                    .then()
+                    .statusCode(404);
+        }
+
+        @Test
+        void unretire(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .body(retireAgreementBody("a reason"))
+                    .post("/v4/contractagreements/agreement-id/retire")
+                    .then()
+                    .statusCode(204);
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .post("/v4/contractagreements/agreement-id/unretire")
+                    .then()
+                    .log().ifError()
+                    .statusCode(204);
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .get("/v4/contractagreements/agreement-id")
+                    .then()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body("retired", is(false));
+        }
+
+        @Test
+        void unretire_shouldReturnConflict_whenNotRetired(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .post("/v4/contractagreements/agreement-id/unretire")
+                    .then()
+                    .statusCode(409);
+        }
+
+        @Test
+        void unretire_shouldReturnNotFound_whenAgreementDoesNotExist(ManagementEndToEndTestContext context) {
+            context.baseRequest()
+                    .contentType(JSON)
+                    .post("/v4/contractagreements/not-exist/unretire")
                     .then()
                     .statusCode(404);
         }

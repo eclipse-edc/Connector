@@ -82,4 +82,16 @@ public interface ContractAgreementApiV5 {
     )
     void retireAgreementV5(String participantContextId, String id, JsonObject requestBody, SecurityContext securityContext);
 
+    @Operation(description = "Un-retires a previously retired contract agreement with the given ID. An un-retired " +
+            "agreement can be used again to start new transfers.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "The contract agreement has been un-retired"),
+                    @ApiResponse(responseCode = "404", description = "A contract agreement with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
+                    @ApiResponse(responseCode = "409", description = "The contract agreement is not retired",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
+            }
+    )
+    void unretireAgreementV5(String participantContextId, String id, SecurityContext securityContext);
+
 }
