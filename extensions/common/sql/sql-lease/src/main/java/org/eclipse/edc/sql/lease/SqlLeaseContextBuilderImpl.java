@@ -80,6 +80,7 @@ public class SqlLeaseContextBuilderImpl implements SqlLeaseContextBuilder {
     /**
      * configures the duration for which the lease is acquired. Has no effect when breaking or getting the lease
      */
+    @Override
     public SqlLeaseContextBuilderImpl forTime(Duration duration) {
         leaseDuration = duration;
         return this;
