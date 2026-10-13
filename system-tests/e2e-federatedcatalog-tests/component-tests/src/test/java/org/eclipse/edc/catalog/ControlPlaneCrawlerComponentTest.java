@@ -135,9 +135,10 @@ public class ControlPlaneCrawlerComponentTest {
     @Test
     @DisplayName("Verify crawler inside control plane: crawl single target, no results")
     void crawlSingle_noResults(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
-        directory.insert(targetNode());
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(emptyCatalog(toBytes(ttr)));
+
+        directory.insert(targetNode());
 
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var response = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
@@ -149,9 +150,10 @@ public class ControlPlaneCrawlerComponentTest {
     @Test
     @DisplayName("Verify crawler inside control plane: crawl single target, yields results")
     void crawlSingle_withResults(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
-        directory.insert(targetNode());
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 5));
+
+        directory.insert(targetNode());
 
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
@@ -162,10 +164,11 @@ public class ControlPlaneCrawlerComponentTest {
     @Test
     @DisplayName("Crawl a single target, returns a catalog of catalogs")
     void crawlSingle_withCatalogOfCatalogs(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
-        directory.insert(targetNode());
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(randomCatalog(catalog -> StatusResult.success(TestUtils.getResourceFileContentAsString("catalog_of_catalogs.json").getBytes()), "root-catalog-id", 5))
                 .thenReturn(randomCatalog(catalog -> StatusResult.success(TestUtils.getResourceFileContentAsString("catalog.json").getBytes()), "sub-catalog-id", 5));
+
+        directory.insert(targetNode());
 
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
@@ -222,13 +225,14 @@ public class ControlPlaneCrawlerComponentTest {
     void crawlMultiple_shouldCollectAll(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
         var node1 = new TargetNode("test-node1", "did:web:" + UUID.randomUUID(), "http://test-node1.com", singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
         var node2 = new TargetNode("test-node2", "did:web:" + UUID.randomUUID(), "http://test-node2.com", singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
-        directory.insert(node1);
-        directory.insert(node2);
 
         when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(node1.id(), node1.targetUrl()))))
                 .thenReturn(catalogOf(toBytes(ttr), "catalog-node1", createDataset("offer1"), createDataset("offer2")));
         when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(node2.id(), node2.targetUrl()))))
                 .thenReturn(catalogOf(toBytes(ttr), "catalog-node2", createDataset("offer3")));
+
+        directory.insert(node1);
+        directory.insert(node2);
 
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
@@ -241,7 +245,6 @@ public class ControlPlaneCrawlerComponentTest {
     @Test
     @DisplayName("Verify crawler inside control plane: crawl with asset deletions")
     void crawlSingle_withDeletions(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
-        directory.insert(targetNode());
 
         var catalogId = "test-catalog-id";
         var catalog = catalogBuilder().id(catalogId)
@@ -256,6 +259,8 @@ public class ControlPlaneCrawlerComponentTest {
                 .thenReturn(emptyCatalog(toBytes(ttr), catalogId))
                 .thenReturn(completedFuture(result));
 
+        directory.insert(targetNode());
+
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
             assertThat(catalogs).hasSize(1);
@@ -267,7 +272,6 @@ public class ControlPlaneCrawlerComponentTest {
     @Test
     @DisplayName("Crawl a single target twice, emulate deletion of assets")
     void crawlSingle_withDeletions_shouldRemove(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
-        directory.insert(targetNode());
         var catalogDeletedDataset = catalogBuilder().id("test-catalog-id")
                 .datasets(List.of(createDataset("offer1"), createDataset("offer2")))
                 .build();
@@ -278,6 +282,8 @@ public class ControlPlaneCrawlerComponentTest {
                 .thenReturn(completedFuture(toBytes(ttr).apply(catalog)))
                 .thenReturn(emptyCatalog(toBytes(ttr), "test-catalog-id"))
                 .thenReturn(completedFuture(toBytes(ttr).apply(catalogDeletedDataset)));
+
+        directory.insert(targetNode());
 
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
@@ -291,7 +297,6 @@ public class ControlPlaneCrawlerComponentTest {
     @Test
     @DisplayName("Crawl a single target twice, emulate deleting and re-adding of assets with same ID")
     void crawlSingle_withUpdates_shouldReplace(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
-        directory.insert(targetNode());
         var catalog = catalogBuilder().id("test-catalog-id")
                 .datasets(List.of(createDataset("offer1"), createDataset("offer2"), createDataset("offer3")))
                 .build();
@@ -305,6 +310,8 @@ public class ControlPlaneCrawlerComponentTest {
                 .thenReturn(emptyCatalog(toBytes(ttr), "test-catalog-id"))
                 .thenReturn(completedFuture(result));
 
+        directory.insert(targetNode());
+
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
             assertThat(catalogs).hasSize(1);
@@ -316,8 +323,6 @@ public class ControlPlaneCrawlerComponentTest {
     @Test
     @DisplayName("Crawl a single target twice, emulate addition of assets")
     void crawlSingle_withAdditions_shouldAdd(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
-        // prepare node directory
-        directory.insert(targetNode());
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenAnswer(a -> {
                     var catalog = catalogBuilder().id("test-cat")
@@ -332,6 +337,8 @@ public class ControlPlaneCrawlerComponentTest {
                                     createDataset("dataset3"), createDataset("dataset4"))).build();
                     return completedFuture(toBytes(ttr).apply(catalog));
                 });
+
+        directory.insert(targetNode());
 
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
@@ -348,10 +355,10 @@ public class ControlPlaneCrawlerComponentTest {
     @Test
     @DisplayName("Crawl a single target, verify that the originator information is properly inserted")
     void crawlSingle_verifyCorrectOriginator(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
-        // prepare node directory
-        directory.insert(targetNode());
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 5));
+
+        directory.insert(targetNode());
 
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
@@ -368,6 +375,7 @@ public class ControlPlaneCrawlerComponentTest {
         var numTotalAssets = new AtomicInteger();
         var rnd = new SecureRandom();
         var numTargets = 10;
+        var nodes = new ArrayList<TargetNode>();
         range(0, numTargets)
                 .forEach(i -> {
                     var nodeUrl = format("http://test-node%s.com", i);
@@ -377,9 +385,11 @@ public class ControlPlaneCrawlerComponentTest {
                     when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(nodeId, nodeUrl))))
                             .thenReturn(randomCatalog(toBytes(ttr), "catalog-" + nodeUrl, numAssets));
 
-                    directory.insert(node);
+                    nodes.add(node);
                     numTotalAssets.addAndGet(numAssets);
                 });
+        // nodes are inserted only after all stubs are in place: stubbing the mock while the crawler invokes it is not thread-safe
+        nodes.forEach(directory::insert);
 
         await().pollDelay(ofSeconds(1))
                 .atMost(TEST_TIMEOUT)
@@ -397,14 +407,14 @@ public class ControlPlaneCrawlerComponentTest {
         var node1 = new TargetNode("test-node1", "did:web:" + UUID.randomUUID(), "http://test-node1.com", singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
         var node2 = new TargetNode("test-node2", "did:web:" + UUID.randomUUID(), "http://test-node2.com", singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
 
-        directory.insert(node1);
-        directory.insert(node2);
-
         when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(node1.id(), node1.targetUrl()))))
                 .thenReturn(catalogOf(toBytes(ttr), "catalog-" + node1.targetUrl(), createDataset("offer1"), createDataset("offer2"), createDataset("offer3")));
 
         when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(node2.id(), node2.targetUrl()))))
                 .thenReturn(catalogOf(toBytes(ttr), "catalog-" + node2.targetUrl(), createDataset("offer14"), createDataset("offer32"), /*this one is conflicting:*/createDataset("offer3")));
+
+        directory.insert(node1);
+        directory.insert(node2);
 
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
