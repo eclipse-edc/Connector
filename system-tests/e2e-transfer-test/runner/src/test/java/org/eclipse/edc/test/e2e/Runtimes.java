@@ -38,6 +38,10 @@ public interface Runtimes {
                 ":dist:bom:controlplane-virtual-base-bom"
         };
 
+        String[] VIRTUAL_POLL_MODULES = new String[]{
+                ":dist:bom:controlplane-virtual-poll-base-bom"
+        };
+
         String[] IAM_MOCK = new String[]{
                 ":extensions:common:iam:iam-mock"
         };

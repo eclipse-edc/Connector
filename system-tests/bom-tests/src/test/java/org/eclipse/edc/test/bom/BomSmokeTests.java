@@ -126,4 +126,32 @@ public class BomSmokeTests {
         );
     }
 
+    @Nested
+    @EndToEndTest
+    class VirtualPollControlPlaneDcp extends SmokeTest {
+
+        @RegisterExtension
+        protected RuntimeExtension runtime = new RuntimePerMethodExtension(
+                new EmbeddedRuntime("virtual-poll-control-plane-dcp-bom",
+                        ":dist:bom:controlplane-virtual-poll-base-bom",
+                        ":dist:bom:controlplane-virtual-feature-dcp-bom")
+                        .configurationProvider(() -> ConfigFactory.fromMap(new HashMap<>() {{
+                                    put("edc.iam.sts.oauth.token.url", "https://sts.com/token");
+                                    put("edc.iam.sts.oauth.client.id", "test-client");
+                                    put("edc.iam.sts.oauth.client.secret.alias", "test-alias");
+                                    put("web.http.port", DEFAULT_PORT);
+                                    put("web.http.path", DEFAULT_PATH);
+                                    put("web.http.management.port", "8081");
+                                    put("web.http.management.path", "/api/management");
+                                    put("edc.iam.sts.privatekey.alias", "privatekey");
+                                    put("edc.iam.sts.publickey.id", "publickey");
+                                    put("edc.participant.did", "did:web:someone");
+                                    put("edc.iam.oauth2.jwks.url", "https://example.com/jwks");
+                                    put("edc.iam.oauth2.issuer", "test-issuer");
+                                    put("web.http.protocol.virtual", "true");
+                                }})
+                        )
+        );
+    }
+
 }

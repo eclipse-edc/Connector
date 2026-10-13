@@ -36,6 +36,7 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER_DP;
 import static org.eclipse.edc.test.e2e.transfer.VirtualTransferEndToEndTestBase.CONSUMER_CONTEXT;
@@ -143,6 +144,69 @@ class VirtualTransferEndToEndTest {
             connectorClient.waitForContractNegotiationState(participants.consumer().contextId(), negotiationId, ContractNegotiationStates.TERMINATED.name());
 
         }
+
+    }
+
+    @Nested
+    @PostgresqlIntegrationTest
+    class PostgresPollTest extends VirtualTransferEndToEndTestBase {
+
+        // DPS registration
+        @RegisterExtension
+        @Order(0)
+        static final Oauth2Extension OAUTH_SERVER = new Oauth2Extension();
+
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
+
+        @Order(0)
+        @RegisterExtension
+        static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension();
+
+        @Order(1)
+        @RegisterExtension
+        static final BeforeAllCallback SETUP = context -> {
+            POSTGRESQL_EXTENSION.createDatabase(Runtimes.ControlPlane.NAME.toLowerCase());
+        };
+
+        @Order(2)
+        @RegisterExtension
+        static final RuntimeExtension CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.VIRTUAL_POLL_MODULES)
+                .modules(Runtimes.ControlPlane.VIRTUAL_SQL_MODULES)
+                .modules(Runtimes.ControlPlane.IAM_MOCK)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(VirtualTransferEndToEndTest::config)
+                .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
+                        "edc.negotiation.state-machine.iteration-wait-millis", "50",
+                        "edc.transfer.state-machine.iteration-wait-millis", "50")))
+                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
+                .paramProvider(ManagementApiClientV5.class, (ctx) -> ManagementApiClientV5.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
+                .paramProvider(Participants.class, VirtualTransferEndToEndTest::participants)
+                .build();
+
+        @RegisterExtension
+        @Order(1)
+        static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_DP)
+                .modules(Runtimes.SignalingDataPlane.MODULES)
+                .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.SignalingDataPlane.config(OAUTH_SERVER.jwksUri()))
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
+                .build();
+
+        @RegisterExtension
+        @Order(1)
+        static final RuntimeExtension CONSUMER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_DP)
+                .modules(Runtimes.SignalingDataPlane.MODULES)
+                .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.SignalingDataPlane.config(OAUTH_SERVER.jwksUri()))
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
+                .build();
 
     }
 
