@@ -89,6 +89,24 @@ class ContractNegotiationSqlQueryStatementTest {
         assertThat(t.getParameters()).containsOnly("yomama", 50, 0);
     }
 
+    @Test
+    void contractOffers_anyElement_equalsOperator() {
+        var criterion = new Criterion("contractOffers.id", "=", "offer-1");
+        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new ContractNegotiationMapping(postresStatements), new PostgresqlOperatorTranslator());
+
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE EXISTS (SELECT 1 FROM json_array_elements(contract_offers) AS element WHERE element.value ->> 'id' = ?) LIMIT ? OFFSET ?;");
+        assertThat(t.getParameters()).containsOnly("offer-1", 50, 0);
+    }
+
+    @Test
+    void contractOffers_anyElement_nestedPath() {
+        var criterion = new Criterion("contractOffers.policy.assignee", "=", "testassignee");
+        var t = new SqlQueryStatement(SELECT_STATEMENT, query(criterion), new ContractNegotiationMapping(postresStatements), new PostgresqlOperatorTranslator());
+
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE EXISTS (SELECT 1 FROM json_array_elements(contract_offers) AS element WHERE element.value -> 'policy' ->> 'assignee' = ?) LIMIT ? OFFSET ?;");
+        assertThat(t.getParameters()).containsOnly("testassignee", 50, 0);
+    }
+
     private QuerySpec query(Criterion... criterion) {
         return QuerySpec.Builder.newInstance().filter(List.of(criterion)).build();
     }

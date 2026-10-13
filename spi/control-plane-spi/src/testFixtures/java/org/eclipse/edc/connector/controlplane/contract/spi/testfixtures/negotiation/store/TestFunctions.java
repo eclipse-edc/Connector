@@ -60,7 +60,7 @@ public class TestFunctions {
                 .providerId("provider")
                 .consumerId("consumer")
                 .assetId(UUID.randomUUID().toString())
-                .policy(createPolicy())
+                .policy(createPolicyBuilder().build())
                 .contractSigningDate(Instant.now().getEpochSecond())
                 .participantContextId("participantContextId");
     }
@@ -87,7 +87,7 @@ public class TestFunctions {
                 .build();
     }
 
-    public static Policy createPolicy() {
+    public static Policy.Builder createPolicyBuilder() {
         return Policy.Builder.newInstance()
                 .permission(Permission.Builder.newInstance()
                         .action(Action.Builder.newInstance()
@@ -98,7 +98,6 @@ public class TestFunctions {
                                 .operator(Operator.EQ)
                                 .rightExpression(new LiteralExpression("bar"))
                                 .build())
-                        .build())
-                .build();
+                        .build());
     }
 }

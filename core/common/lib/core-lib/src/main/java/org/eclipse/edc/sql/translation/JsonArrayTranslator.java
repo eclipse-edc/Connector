@@ -30,6 +30,9 @@ import static org.eclipse.edc.sql.translation.FieldTranslator.toValuePlaceholder
  * because it always assumes one indirection from columnName to object name.
  * </p>
  * The {@link JsonArrayTranslator} explicitly ignores this indirection.
+ * <p>
+ * Not to be confused with {@link JsonArrayFieldTranslator}, which matches a field <em>within</em> each array element
+ * (e.g. {@code someObject.jsonArray.id = foobar}) using any operator.
  */
 public class JsonArrayTranslator implements FieldTranslator {
 
