@@ -29,6 +29,7 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":spi:control-plane-spi")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
+    testImplementation(project(":extensions:common:transaction:transaction-local"))
 
 }
 
