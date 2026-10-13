@@ -33,11 +33,38 @@ public interface PolicyMonitorStatements extends StatefulEntityStatements, SqlSt
         return "contract_id";
     }
 
+    default String getLeasedByColumn() {
+        return "leased_by";
+    }
+
+    default String getLeasedAtColumn() {
+        return "leased_at";
+    }
+
+    default String getLeaseDurationColumn() {
+        return "lease_duration";
+    }
+
     String getUpsertTemplate();
 
     String getSelectTemplate();
 
+    /**
+     * Template for acquiring the lease of an entry, it succeeds only if the entry is not leased or the lease is expired.
+     * Parameters: leased by, leased at, lease duration, entry id, now.
+     */
+    String getAcquireLeaseTemplate();
+
+    /**
+     * Template for breaking the lease of an entry, it succeeds only if the entry is not leased, is leased by the given
+     * holder or the lease is expired. Parameters: entry id, leased by, now.
+     */
+    String getBreakLeaseTemplate();
+
     SqlQueryStatement createQuery(QuerySpec querySpec);
 
-    SqlQueryStatement createNextNotLeaseQuery(QuerySpec querySpec);
+    /**
+     * Creates a query that selects and locks (skipping already locked rows) the entries that are not leased at the given time.
+     */
+    SqlQueryStatement createNextNotLeaseQuery(QuerySpec querySpec, long now);
 }

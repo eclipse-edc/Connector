@@ -1,18 +1,5 @@
 -- Statements are designed for and tested with Postgres only!
 
-CREATE TABLE IF NOT EXISTS edc_lease
-(
-    leased_by         VARCHAR NOT NULL,
-    leased_at         BIGINT,
-    lease_duration    INTEGER NOT NULL,
-    resource_id       VARCHAR NOT NULL,
-    resource_kind     VARCHAR NOT NULL,
-    PRIMARY KEY(resource_id, resource_kind)
-);
-
-COMMENT ON COLUMN edc_lease.leased_at IS 'posix timestamp of lease';
-COMMENT ON COLUMN edc_lease.lease_duration IS 'duration of lease in milliseconds';
-
 CREATE TABLE IF NOT EXISTS edc_policy_monitor
 (
     entry_id             VARCHAR NOT NULL PRIMARY KEY,
@@ -24,8 +11,19 @@ CREATE TABLE IF NOT EXISTS edc_policy_monitor
     trace_context        JSON,
     error_detail         VARCHAR,
     properties           JSON,
-    contract_id          VARCHAR
+    contract_id          VARCHAR,
+    leased_by            VARCHAR,
+    leased_at            BIGINT,
+    lease_duration       INTEGER
 );
+
+-- Add lease columns to tables created before the lease was moved from edc_lease to the entry row
+ALTER TABLE edc_policy_monitor ADD COLUMN IF NOT EXISTS leased_by VARCHAR;
+ALTER TABLE edc_policy_monitor ADD COLUMN IF NOT EXISTS leased_at BIGINT;
+ALTER TABLE edc_policy_monitor ADD COLUMN IF NOT EXISTS lease_duration INTEGER;
+
+COMMENT ON COLUMN edc_policy_monitor.leased_at IS 'posix timestamp of lease';
+COMMENT ON COLUMN edc_policy_monitor.lease_duration IS 'duration of lease in milliseconds';
 
 -- This will help to identify states that need to be transitioned without a table scan when the entries grow
 CREATE INDEX IF NOT EXISTS policy_monitor_state ON edc_policy_monitor (state,state_time_stamp);

@@ -22,7 +22,6 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilder;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -33,28 +32,44 @@ import tools.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Clock;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 
+/**
+ * SQL implementation of the {@link PolicyMonitorStore}.
+ * The lease is stored directly on the policy monitor entry row, entries are fetched with {@code FOR UPDATE SKIP LOCKED}
+ * so that concurrent runtimes never lease the same entry.
+ */
 public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMonitorStore {
 
+    public static final Duration DEFAULT_LEASE_DURATION = Duration.ofSeconds(60);
+
     private final PolicyMonitorStatements statements;
-    private final SqlLeaseContextBuilder leaseContext;
     private final String leaseHolderName;
+    private final Clock clock;
+    private final Duration leaseDuration;
 
     public SqlPolicyMonitorStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                                 PolicyMonitorStatements statements, SqlLeaseContextBuilder leaseContext, Supplier<ObjectMapper> objectMapperSupplier,
-                                 QueryExecutor queryExecutor, String leaseHolderName) {
+                                 PolicyMonitorStatements statements, Supplier<ObjectMapper> objectMapperSupplier,
+                                 QueryExecutor queryExecutor, String leaseHolderName, Clock clock) {
+        this(dataSourceRegistry, dataSourceName, transactionContext, statements, objectMapperSupplier, queryExecutor, leaseHolderName, clock, DEFAULT_LEASE_DURATION);
+    }
+
+    public SqlPolicyMonitorStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
+                                 PolicyMonitorStatements statements, Supplier<ObjectMapper> objectMapperSupplier,
+                                 QueryExecutor queryExecutor, String leaseHolderName, Clock clock, Duration leaseDuration) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
         this.leaseHolderName = leaseHolderName;
-        this.leaseContext = leaseContext;
+        this.clock = clock;
+        this.leaseDuration = leaseDuration;
     }
 
     @Override
@@ -73,21 +88,19 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
         return transactionContext.execute(() -> {
             var filter = Arrays.stream(criteria).collect(toList());
             var querySpec = QuerySpec.Builder.newInstance().filter(filter).sortField("stateTimestamp").limit(max).build();
-            var statement = statements.createNextNotLeaseQuery(querySpec);
+            var statement = statements.createNextNotLeaseQuery(querySpec, clock.millis());
             try (
                     var connection = getConnection();
-                    var stream = queryExecutor.query(connection, true, this::mapEntry, statement.getQueryAsString(), statement.getParameters())
+                    var stream = queryExecutor.query(connection, false, this::mapEntry, statement.getQueryAsString(), statement.getParameters())
             ) {
-                return stream.filter(entry -> lease(connection, entry))
-                        .collect(Collectors.toList());
+                // rows are locked until the end of the transaction, so the lease can be safely acquired on them
+                return stream.toList().stream()
+                        .filter(entry -> acquireLease(connection, entry.getId()))
+                        .toList();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
         });
-    }
-
-    private boolean lease(Connection connection, PolicyMonitorEntry entry) {
-        return leaseContext.withConnection(connection).acquireLease(entry.getId()).succeeded();
     }
 
     @Override
@@ -96,9 +109,12 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
             try (var connection = getConnection()) {
                 var entity = findByIdInternal(connection, id);
                 if (entity == null) {
-                    return StoreResult.notFound(format("DataFlow %s not found", id));
+                    return StoreResult.notFound(format("PolicyMonitorEntry %s not found", id));
                 }
-                return leaseContext.withConnection(connection).acquireLease(entity.getId()).map(v -> entity);
+                if (!acquireLease(connection, id)) {
+                    return StoreResult.alreadyLeased(format("PolicyMonitorEntry %s is currently leased!", id));
+                }
+                return StoreResult.success(entity);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -111,6 +127,7 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
             try (var connection = getConnection()) {
                 var sql = statements.getUpsertTemplate();
 
+                // saving the entry always breaks its lease
                 queryExecutor.execute(connection, sql,
                         entity.getId(),
                         entity.getState(),
@@ -120,10 +137,13 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
                         entity.getStateTimestamp(),
                         toJson(entity.getTraceContext()),
                         entity.getErrorDetail(),
-                        entity.getContractId()
+                        entity.getContractId(),
+                        null,
+                        null,
+                        null
                 );
 
-                return leaseContext.by(leaseHolderName).withConnection(connection).breakLease(entity.getId());
+                return StoreResult.success();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -134,11 +154,20 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
     public StoreResult<Void> breakLease(PolicyMonitorEntry entity) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                return leaseContext.withConnection(connection).breakLease(entity.getId());
+                var updated = queryExecutor.execute(connection, statements.getBreakLeaseTemplate(), entity.getId(), leaseHolderName, clock.millis());
+                if (updated == 0 && findByIdInternal(connection, entity.getId()) != null) {
+                    return StoreResult.alreadyLeased(format("Current runtime does not hold the lease for PolicyMonitorEntry %s, cannot break lease!", entity.getId()));
+                }
+                return StoreResult.success();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
         });
+    }
+
+    private boolean acquireLease(Connection connection, String id) {
+        var now = clock.millis();
+        return queryExecutor.execute(connection, statements.getAcquireLeaseTemplate(), leaseHolderName, now, leaseDuration.toMillis(), id, now) > 0;
     }
 
     private @Nullable PolicyMonitorEntry findByIdInternal(Connection conn, String id) {

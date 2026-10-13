@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.policy.monitor.store.sql;
 
+import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntry;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.connector.policy.monitor.spi.testfixtures.store.PolicyMonitorStoreTestBase;
 import org.eclipse.edc.connector.policy.monitor.store.sql.schema.PolicyMonitorStatements;
@@ -21,45 +22,47 @@ import org.eclipse.edc.connector.policy.monitor.store.sql.schema.PostgresPolicyM
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
-import org.eclipse.edc.sql.lease.SqlLeaseContextBuilderImpl;
-import org.eclipse.edc.sql.lease.spi.LeaseStatements;
-import org.eclipse.edc.sql.testfixtures.LeaseUtil;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
+import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Duration;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+import static java.util.stream.IntStream.range;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.STARTED;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
 
 
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 public class PostgresPolicyMonitorStoreTest extends PolicyMonitorStoreTestBase {
 
-    private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
-    private final PolicyMonitorStatements statements = new PostgresPolicyMonitorStatements(leaseStatements, Clock.systemUTC());
-    private LeaseUtil leaseUtil;
+    private final PolicyMonitorStatements statements = new PostgresPolicyMonitorStatements();
+    private final Clock clock = Clock.systemUTC();
+    private PostgresqlStoreSetupExtension extension;
+    private QueryExecutor queryExecutor;
     private SqlPolicyMonitorStore store;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
-
-        var typeManager = new JacksonTypeManager();
-
-        var clock = Clock.systemUTC();
-
-        leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements.getPolicyMonitorTable(), leaseStatements, clock);
-        var leaseContextBuilder = SqlLeaseContextBuilderImpl.with(extension.getTransactionContext(), CONNECTOR_NAME, statements.getPolicyMonitorTable(), leaseStatements, clock, queryExecutor);
-
-
-        store = new SqlPolicyMonitorStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(),
-                statements, leaseContextBuilder, typeManager::getMapper, queryExecutor, "test-connector");
-        var schema = TestUtils.getResourceFileContentAsString("policy-monitor-schema.sql");
-        extension.runQuery(schema);
+    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) {
+        this.extension = extension;
+        this.queryExecutor = queryExecutor;
+        store = createStore(CONNECTOR_NAME);
+        extension.runQuery(TestUtils.getResourceFileContentAsString("policy-monitor-schema.sql"));
     }
 
     @AfterEach
@@ -73,16 +76,115 @@ public class PostgresPolicyMonitorStoreTest extends PolicyMonitorStoreTestBase {
     }
 
     @Override
-    protected void leaseEntity(String negotiationId, String owner, Duration duration) {
-        getLeaseUtil().leaseEntity(negotiationId, owner, duration);
+    protected void leaseEntity(String entityId, String owner, Duration duration) {
+        var sql = "UPDATE %s SET %s = ?, %s = ?, %s = ? WHERE %s = ?".formatted(statements.getPolicyMonitorTable(),
+                statements.getLeasedByColumn(), statements.getLeasedAtColumn(), statements.getLeaseDurationColumn(), statements.getIdColumn());
+        extension.getTransactionContext().execute(() -> {
+            try (var connection = extension.getConnection()) {
+                queryExecutor.execute(connection, sql, owner, clock.millis(), duration.toMillis(), entityId);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
-    protected boolean isLeasedBy(String negotiationId, String owner) {
-        return getLeaseUtil().isLeased(negotiationId, owner);
+    protected boolean isLeasedBy(String entityId, String owner) {
+        return owner.equals(leasedBy(entityId));
     }
 
-    protected LeaseUtil getLeaseUtil() {
-        return leaseUtil;
+    private @Nullable String leasedBy(String entityId) {
+        var sql = "SELECT %s FROM %s WHERE %s = ?".formatted(statements.getLeasedByColumn(), statements.getPolicyMonitorTable(), statements.getIdColumn());
+        return extension.getTransactionContext().execute(() -> {
+            try (var connection = extension.getConnection()) {
+                return queryExecutor.single(connection, false, rs -> Optional.ofNullable(rs.getString(1)), sql, entityId).orElse(null);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    private SqlPolicyMonitorStore createStore(String leaseHolder) {
+        return new SqlPolicyMonitorStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(),
+                statements, new JacksonTypeManager()::getMapper, queryExecutor, leaseHolder, clock);
+    }
+
+    private PolicyMonitorEntry createEntry() {
+        return PolicyMonitorEntry.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .contractId(UUID.randomUUID().toString())
+                .state(STARTED.code())
+                .build();
+    }
+
+    @Nested
+    class RowLease {
+
+        @Test
+        void nextNotLeased_shouldNotReturnSameEntriesToConcurrentRuntimes() {
+            var all = range(0, 50).mapToObj(i -> createEntry()).peek(store::save).map(PolicyMonitorEntry::getId).toList();
+            var otherStore = createStore("other-connector");
+
+            var first = CompletableFuture.supplyAsync(() -> store.nextNotLeased(50, hasState(STARTED.code())));
+            var second = CompletableFuture.supplyAsync(() -> otherStore.nextNotLeased(50, hasState(STARTED.code())));
+
+            var firstIds = first.join().stream().map(PolicyMonitorEntry::getId).toList();
+            var secondIds = second.join().stream().map(PolicyMonitorEntry::getId).toList();
+            assertThat(firstIds).doesNotContainAnyElementsOf(secondIds);
+            assertThat(firstIds.size() + secondIds.size()).isEqualTo(all.size());
+            assertThat(firstIds).allMatch(id -> isLeasedBy(id, CONNECTOR_NAME));
+            assertThat(secondIds).allMatch(id -> isLeasedBy(id, "other-connector"));
+        }
+
+        @Test
+        void save_shouldBreakLease() {
+            var entry = createEntry();
+            store.save(entry);
+            var leased = store.nextNotLeased(1, hasState(STARTED.code()));
+            assertThat(leased).hasSize(1);
+
+            store.save(leased.get(0));
+
+            assertThat(leasedBy(entry.getId())).isNull();
+        }
+
+        @Test
+        void breakLease_shouldSucceed_whenLeasedByCurrentRuntime() {
+            var entry = createEntry();
+            store.save(entry);
+            leaseEntity(entry.getId(), CONNECTOR_NAME);
+
+            var result = store.breakLease(entry);
+
+            assertThat(result).isSucceeded();
+            assertThat(leasedBy(entry.getId())).isNull();
+        }
+
+        @Test
+        void breakLease_shouldFail_whenLeasedByOtherRuntime() {
+            var entry = createEntry();
+            store.save(entry);
+            leaseEntity(entry.getId(), "other-connector");
+
+            var result = store.breakLease(entry);
+
+            assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
+            assertThat(isLeasedBy(entry.getId(), "other-connector")).isTrue();
+        }
+
+        @Test
+        void schema_shouldAddLeaseColumnsToExistingTable() {
+            extension.runQuery("DROP TABLE " + statements.getPolicyMonitorTable());
+            extension.runQuery("CREATE TABLE edc_policy_monitor (entry_id VARCHAR NOT NULL PRIMARY KEY, state INTEGER NOT NULL, " +
+                    "created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL, state_count INTEGER DEFAULT 0 NOT NULL, state_time_stamp BIGINT, " +
+                    "trace_context JSON, error_detail VARCHAR, properties JSON, contract_id VARCHAR)");
+
+            extension.runQuery(TestUtils.getResourceFileContentAsString("policy-monitor-schema.sql"));
+
+            var entry = createEntry();
+            store.save(entry);
+            assertThat(store.nextNotLeased(1, hasState(STARTED.code()))).hasSize(1);
+            assertThat(isLeasedBy(entry.getId(), CONNECTOR_NAME)).isTrue();
+        }
     }
 }
