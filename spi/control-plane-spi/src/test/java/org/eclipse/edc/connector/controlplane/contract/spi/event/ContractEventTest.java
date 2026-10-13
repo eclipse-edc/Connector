@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.contract.spi.event;
 
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractagreement.ContractAgreementRetired;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractagreement.ContractAgreementUnretired;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionCreated;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionDeleted;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationAccepted;
@@ -76,6 +78,8 @@ class ContractEventTest {
             var eventBuilders = Stream.of(
                     ContractDefinitionCreated.Builder.newInstance().contractDefinitionId("id").build(),
                     ContractDefinitionDeleted.Builder.newInstance().contractDefinitionId("id").build(),
+                    ContractAgreementRetired.Builder.newInstance().contractAgreementId("id").participantContextId("participantContextId").reason("a reason").build(),
+                    ContractAgreementUnretired.Builder.newInstance().contractAgreementId("id").participantContextId("participantContextId").build(),
                     baseBuilder(ContractNegotiationAccepted.Builder.newInstance()).build(),
                     baseBuilder(ContractNegotiationInitiated.Builder.newInstance()).build(),
                     baseBuilder(ContractNegotiationOffered.Builder.newInstance()).build(),

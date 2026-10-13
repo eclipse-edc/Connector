@@ -14,11 +14,14 @@
 
 package org.eclipse.edc.connector.controlplane.services.contractagreement;
 
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractagreement.ContractAgreementRetired;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractagreement.ContractAgreementUnretired;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
+import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -34,12 +37,14 @@ public class ContractAgreementServiceImpl implements ContractAgreementService {
     private final TransactionContext transactionContext;
     private final QueryValidator queryValidator;
     private final Clock clock;
+    private final EventRouter eventRouter;
 
-    public ContractAgreementServiceImpl(ContractNegotiationStore store, TransactionContext transactionContext, QueryValidator queryValidator, Clock clock) {
+    public ContractAgreementServiceImpl(ContractNegotiationStore store, TransactionContext transactionContext, QueryValidator queryValidator, Clock clock, EventRouter eventRouter) {
         this.store = store;
         this.transactionContext = transactionContext;
         this.queryValidator = queryValidator;
         this.clock = clock;
+        this.eventRouter = eventRouter;
     }
 
     @Override
@@ -78,7 +83,12 @@ public class ContractAgreementServiceImpl implements ContractAgreementService {
                     .retirementReason(reason)
                     .retirementDate(clock.instant().getEpochSecond())
                     .build();
-            return store.retireAgreement(retired).flatMap(ServiceResult::from);
+            return store.retireAgreement(retired).flatMap(ServiceResult::from)
+                    .onSuccess(v -> eventRouter.publish(ContractAgreementRetired.Builder.newInstance()
+                            .contractAgreementId(retired.getId())
+                            .participantContextId(retired.getParticipantContextId())
+                            .reason(reason)
+                            .build()));
         });
     }
 
@@ -97,7 +107,11 @@ public class ContractAgreementServiceImpl implements ContractAgreementService {
                     .retirementReason(null)
                     .retirementDate(0)
                     .build();
-            return store.retireAgreement(unretired).flatMap(ServiceResult::from);
+            return store.retireAgreement(unretired).flatMap(ServiceResult::from)
+                    .onSuccess(v -> eventRouter.publish(ContractAgreementUnretired.Builder.newInstance()
+                            .contractAgreementId(unretired.getId())
+                            .participantContextId(unretired.getParticipantContextId())
+                            .build()));
         });
     }
 
