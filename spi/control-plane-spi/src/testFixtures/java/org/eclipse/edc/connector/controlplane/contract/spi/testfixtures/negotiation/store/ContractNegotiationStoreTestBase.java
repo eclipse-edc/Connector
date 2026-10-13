@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.controlplane.CallbackAddress;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
@@ -122,6 +123,7 @@ public abstract class ContractNegotiationStoreTestBase {
         void findById_notExist() {
             assertThat(getContractNegotiationStore().findById("not-exist")).isNull();
         }
+
     }
 
     @Nested
@@ -761,6 +763,37 @@ public abstract class ContractNegotiationStoreTestBase {
             var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
             assertThatThrownBy(() -> getContractNegotiationStore().queryNegotiations(query)).isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void shouldFilterByContractOfferNestedProperties() {
+            var matching = createNegotiationBuilder("matching")
+                    .contractOffer(createContractOffer("offer-B", TestFunctions.createPolicyBuilder()
+                            .assigner("expected-assigner")
+                            .build()))
+                    .build();
+            var nonMatching = createNegotiationBuilder("non-matching")
+                    .contractOffer(createContractOffer("offer-C", TestFunctions.createPolicyBuilder()
+                            .assigner("another-assigner")
+                            .build()))
+                    .build();
+            getContractNegotiationStore().save(matching);
+            getContractNegotiationStore().save(nonMatching);
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("contractOffers.policy.assigner", "=", "expected-assigner")))
+                    .build();
+
+            assertThat(getContractNegotiationStore().queryNegotiations(query))
+                    .extracting(ContractNegotiation::getId).containsExactly("matching");
+        }
+
+        private ContractOffer createContractOffer(String id, Policy policy) {
+            return ContractOffer.Builder.newInstance()
+                    .id(id)
+                    .assetId(UUID.randomUUID().toString())
+                    .policy(policy)
+                    .build();
         }
     }
 

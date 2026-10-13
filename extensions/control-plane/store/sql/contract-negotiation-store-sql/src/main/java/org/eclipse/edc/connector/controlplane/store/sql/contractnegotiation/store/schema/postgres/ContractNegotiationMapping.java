@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.edc.sql.lease.StatefulEntityMapping;
+import org.eclipse.edc.sql.translation.JsonArrayFieldTranslator;
 import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 
 /**
@@ -25,29 +26,20 @@ import org.eclipse.edc.sql.translation.JsonFieldTranslator;
  * onto the corresponding SQL schema (= column names)
  */
 public class ContractNegotiationMapping extends StatefulEntityMapping {
-    public static final String FIELD_PARTICIPANT_CONTEXT_ID = "participantContextId";
-    private static final String FIELD_CORRELATION_ID = "correlationId";
-    private static final String FIELD_COUNTER_PARTY_ID = "counterPartyId";
-    private static final String FIELD_COUNTERPARTY_ADDRESS = "counterPartyAddress";
-    private static final String FIELD_PROTOCOL = "protocol";
-    private static final String FIELD_TYPE = "type";
-    private static final String FIELD_CONTRACT_AGREEMENT = "contractAgreement";
-    private static final String FIELD_TRACECONTEXT = "traceContext";
-    private static final String FIELD_PENDING = "pending";
-    private static final String FIELD_CLAIMS = "claims";
 
     public ContractNegotiationMapping(ContractNegotiationStatements statements) {
         super(statements, state -> ContractNegotiationStates.valueOf(state).code());
-        add(FIELD_CORRELATION_ID, statements.getCorrelationIdColumn());
-        add(FIELD_COUNTER_PARTY_ID, statements.getCounterPartyIdColumn());
-        add(FIELD_COUNTERPARTY_ADDRESS, statements.getCounterPartyAddressColumn());
-        add(FIELD_PROTOCOL, statements.getProtocolColumn());
-        add(FIELD_TYPE, statements.getTypeColumn());
-        add(FIELD_PENDING, statements.getPendingColumn());
-        add(FIELD_CONTRACT_AGREEMENT, new ContractAgreementMapping(statements));
-        add(FIELD_TRACECONTEXT, statements.getTraceContextColumn());
-        add(FIELD_PARTICIPANT_CONTEXT_ID, statements.getParticipantContextIdColumn());
-        add(FIELD_CLAIMS, new JsonFieldTranslator(statements.getNegotiationClaimsColumn()));
+        add("correlationId", statements.getCorrelationIdColumn());
+        add("counterPartyId", statements.getCounterPartyIdColumn());
+        add("counterPartyAddress", statements.getCounterPartyAddressColumn());
+        add("protocol", statements.getProtocolColumn());
+        add("type", statements.getTypeColumn());
+        add("pending", statements.getPendingColumn());
+        add("contractAgreement", new ContractAgreementMapping(statements));
+        add("contractOffers", new JsonArrayFieldTranslator(statements.getContractOffersColumn()));
+        add("traceContext", statements.getTraceContextColumn());
+        add("participantContextId", statements.getParticipantContextIdColumn());
+        add("claims", new JsonFieldTranslator(statements.getNegotiationClaimsColumn()));
     }
 
 
