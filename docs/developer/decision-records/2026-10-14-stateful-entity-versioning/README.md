@@ -80,6 +80,14 @@ WHERE edc_transfer_process.version = :version AND <lease owned or free>
 `findByIdAndLease` acquires the lease before reading the entity, so that the entity it returns cannot be outdated by a
 save committed in between.
 
+### Deletion
+
+The version is not checked on deletion. `StateEntityStore` does not define a delete operation: deletion is part of the
+specific stores (`TransferProcessStore.delete`, `ContractNegotiationStore.deleteById`), it takes only an id, and it is
+already guarded by the lease. A store implementation can add its own checks when it needs them.
+
+### In-memory stores
+
 The in-memory stores implement the same check, so that the shared store tests cover the conflict for both. Their
 queries return copies of the stored entities, like `findById` already does.
 
