@@ -41,7 +41,10 @@ import java.util.Objects;
  * </pre>
  * <p>
  * Please do NOT keep references to the {@link SqlLeaseContext}, as this would keep the underlying connection open!
+ *
+ * @deprecated the lease is now stored on the entity row (see {@code org.eclipse.edc.sql.lease.StatefulEntityStatements}), this will be removed in a future release.
  */
+@Deprecated(since = "1.0.0")
 public class SqlLeaseContextBuilderImpl implements SqlLeaseContextBuilder {
     private final TransactionContext trxContext;
     private final LeaseStatements statements;

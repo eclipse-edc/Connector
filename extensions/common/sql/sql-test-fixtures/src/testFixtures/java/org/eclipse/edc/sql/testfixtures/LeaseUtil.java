@@ -29,7 +29,10 @@ import java.util.function.Supplier;
 /**
  * Helper class to easily acquire and verify leases.
  * Wraps the {@link SqlLeaseContextBuilderImpl} for even easier handling in tests.
+ *
+ * @deprecated the lease is now stored on the entity row (see {@code org.eclipse.edc.sql.lease.StatefulEntityStatements}), this will be removed in a future release.
  */
+@Deprecated(since = "1.0.0")
 public class LeaseUtil {
 
     private final SqlLeaseContextBuilderImpl leaseContextBuilder;

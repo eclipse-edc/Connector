@@ -131,7 +131,20 @@ public class SqlQueryStatement {
     }
 
     public SqlQueryStatement forUpdate(boolean skipLocked) {
-        this.forUpdate = skipLocked ? " FOR UPDATE SKIP LOCKED" : " FOR UPDATE";
+        return forUpdate(skipLocked, new String[0]);
+    }
+
+    /**
+     * Locks the selected rows with {@code FOR UPDATE}, restricted to the given tables when the query joins other tables
+     * (e.g. Postgres does not allow locking the nullable side of an outer join).
+     *
+     * @param skipLocked whether rows already locked by other transactions should be skipped.
+     * @param ofTables   the tables whose rows should be locked, all the tables if empty.
+     * @return self.
+     */
+    public SqlQueryStatement forUpdate(boolean skipLocked, String... ofTables) {
+        var of = ofTables.length == 0 ? "" : " OF " + String.join(", ", ofTables);
+        this.forUpdate = " FOR UPDATE" + of + (skipLocked ? " SKIP LOCKED" : "");
         return this;
     }
 

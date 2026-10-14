@@ -23,21 +23,27 @@ import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 import java.time.Clock;
 
-import static java.lang.String.format;
-
 /**
  * Sql generic variants and implementations of the statements required for the TransferProcessStore
  */
 public class BaseSqlDialectStatements implements TransferProcessStoreStatements {
 
     protected final SqlOperatorTranslator operatorTranslator;
-    protected final LeaseStatements leaseStatements;
     protected final Clock clock;
 
-    protected BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator, LeaseStatements leaseStatements, Clock clock) {
+    protected BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator, Clock clock) {
         this.operatorTranslator = operatorTranslator;
-        this.leaseStatements = leaseStatements;
         this.clock = clock;
+    }
+
+    /**
+     * Constructor kept for backward compatibility, the lease is now stored on the transfer process row.
+     *
+     * @deprecated use {@link #BaseSqlDialectStatements(SqlOperatorTranslator, Clock)}.
+     */
+    @Deprecated(since = "1.0.0")
+    protected BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator, LeaseStatements leaseStatements, Clock clock) {
+        this(operatorTranslator, clock);
     }
 
     @Override
@@ -68,7 +74,10 @@ public class BaseSqlDialectStatements implements TransferProcessStoreStatements 
                 .column(getDataAddressAliasColumn())
                 .jsonColumn(getClaimsColumn())
                 .column(getDataAddressOwnerColumn())
-                .upsertInto(getTransferProcessTableName(), getIdColumn());
+                .column(getLeasedByColumn())
+                .column(getLeasedAtColumn())
+                .column(getLeaseDurationColumn())
+                .upsertInto(getTransferProcessTableName(), getIdColumn(), getLeaseOwnedOrFreeFilter(getTransferProcessTableName()));
     }
 
     @Override
@@ -88,13 +97,8 @@ public class BaseSqlDialectStatements implements TransferProcessStoreStatements 
 
     @Override
     public SqlQueryStatement createNextNotLeaseQuery(QuerySpec querySpec) {
-        var queryTemplate = "%s LEFT JOIN %s l ON %s.%s = l.%s".formatted(getSelectTemplate(), leaseStatements.getLeaseTableName(), getTransferProcessTableName(), getIdColumn(), leaseStatements.getResourceIdColumn());
-        return new SqlQueryStatement(queryTemplate, querySpec, new TransferProcessMapping(this), operatorTranslator)
-                .addWhereClause(getNotLeasedFilter(), clock.millis(), getTransferProcessTableName());
-    }
-
-    private String getNotLeasedFilter() {
-        return format("(l.%s IS NULL OR (? > (%s + %s) AND ? = l.%s))",
-                leaseStatements.getResourceIdColumn(), leaseStatements.getLeasedAtColumn(), leaseStatements.getLeaseDurationColumn(), leaseStatements.getResourceKindColumn());
+        return createQuery(querySpec)
+                .addWhereClause(getNotLeasedFilter(getTransferProcessTableName()), clock.millis())
+                .forUpdate(true);
     }
 }

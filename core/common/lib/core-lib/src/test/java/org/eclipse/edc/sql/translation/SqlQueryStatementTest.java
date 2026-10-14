@@ -136,6 +136,17 @@ class SqlQueryStatementTest {
         assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? ORDER BY edc_description ASC LIMIT ? OFFSET ? FOR UPDATE SKIP LOCKED;");
     }
 
+    @Test
+    void forUpdate_ofTables_skipLocked() {
+        var criterion = new Criterion("field1", "=", "testid1");
+        var builder = queryBuilder(criterion).sortField("description");
+        when(criterionToWhereClauseConverter.convert(any())).thenReturn(new WhereClause("edc_field_1 = ?", "testid1"));
+        var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping(), criterionToWhereClauseConverter)
+                .forUpdate(true, "edc_table_1", "edc_table_2");
+
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? ORDER BY edc_description ASC LIMIT ? OFFSET ? FOR UPDATE OF edc_table_1, edc_table_2 SKIP LOCKED;");
+    }
+
     private QuerySpec.Builder queryBuilder(Criterion... criterion) {
         return QuerySpec.Builder.newInstance().filter(List.of(criterion));
     }

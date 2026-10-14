@@ -21,7 +21,10 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 /**
  * Encapsulates statements and table/column names to manipulate lease entities.
+ *
+ * @deprecated the lease is now stored on the entity row (see {@code org.eclipse.edc.sql.lease.StatefulEntityStatements}), this will be removed in a future release.
  */
+@Deprecated(since = "1.0.0")
 public interface LeaseStatements extends SqlStatements {
 
     default String getDeleteLeaseTemplate() {

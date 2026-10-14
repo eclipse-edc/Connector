@@ -20,7 +20,10 @@ import java.time.Clock;
 
 /**
  * SQL-based implementation of a {@linkplain Lease}. Adds the {@code leaseId} property for use with RDBMS (PK, index,...)
+ *
+ * @deprecated the lease is now stored on the entity row (see {@code org.eclipse.edc.sql.lease.StatefulEntityStatements}), this will be removed in a future release.
  */
+@Deprecated(since = "1.0.0")
 public class SqlLease extends Lease {
     private final String resourceKind;
     private final String resourceId;

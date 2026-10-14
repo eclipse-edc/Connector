@@ -27,8 +27,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
-import org.eclipse.edc.sql.lease.spi.LeaseStatements;
-import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilderProvider;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -62,17 +60,10 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
     @Inject
     private SqlSchemaBootstrapper sqlSchemaBootstrapper;
 
-    @Inject
-    private SqlLeaseContextBuilderProvider leaseContextBuilderProvider;
-    @Inject
-    private LeaseStatements leaseStatements;
-
     @Override
     public void initialize(ServiceExtensionContext context) {
-
-        var leaseContextBuilder = leaseContextBuilderProvider.createContextBuilder(getStatementImpl().getContractNegotiationTable());
         var sqlStore = new SqlContractNegotiationStore(dataSourceRegistry, dataSourceName, trxContext,
-                typeManager::getMapper, getStatementImpl(), leaseContextBuilder, queryExecutor);
+                typeManager::getMapper, getStatementImpl(), queryExecutor, context.getRuntimeId(), clock);
         context.registerService(ContractNegotiationStore.class, sqlStore);
 
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "contract-negotiation-schema.sql");
@@ -82,6 +73,6 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
      * returns an externally-provided sql statement dialect, or postgres as a default
      */
     private ContractNegotiationStatements getStatementImpl() {
-        return statements != null ? statements : new PostgresDialectStatements(leaseStatements, clock);
+        return statements != null ? statements : new PostgresDialectStatements(clock);
     }
 }

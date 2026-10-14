@@ -16,7 +16,10 @@ package org.eclipse.edc.sql.lease.spi;
 
 /**
  * Provides a builder for creating {@link org.eclipse.edc.spi.persistence.LeaseContext} instances for a specific resource kind.
+ *
+ * @deprecated the lease is now stored on the entity row (see {@code org.eclipse.edc.sql.lease.StatefulEntityStatements}), this will be removed in a future release.
  */
+@Deprecated(since = "1.0.0")
 public interface SqlLeaseContextBuilderProvider {
     
     /**

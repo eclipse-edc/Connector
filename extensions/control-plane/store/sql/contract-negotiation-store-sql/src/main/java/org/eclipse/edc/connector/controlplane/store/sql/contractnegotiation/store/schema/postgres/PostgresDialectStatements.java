@@ -33,8 +33,18 @@ import java.time.Clock;
 public class PostgresDialectStatements extends BaseSqlDialectStatements {
 
 
+    public PostgresDialectStatements(Clock clock) {
+        super(new PostgresqlOperatorTranslator(), clock);
+    }
+
+    /**
+     * Constructor kept for backward compatibility, the lease is now stored on the contract negotiation row.
+     *
+     * @deprecated use {@link #PostgresDialectStatements(Clock)}.
+     */
+    @Deprecated(since = "1.0.0")
     public PostgresDialectStatements(LeaseStatements leaseStatements, Clock clock) {
-        super(new PostgresqlOperatorTranslator(), leaseStatements, clock);
+        this(clock);
     }
 
     /**

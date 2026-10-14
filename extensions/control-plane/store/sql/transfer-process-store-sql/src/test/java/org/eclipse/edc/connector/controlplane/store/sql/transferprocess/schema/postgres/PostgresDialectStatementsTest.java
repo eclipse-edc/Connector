@@ -17,8 +17,6 @@ package org.eclipse.edc.connector.controlplane.store.sql.transferprocess.schema.
 import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
-import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -28,14 +26,25 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 class PostgresDialectStatementsTest {
 
-    private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
-    private final PostgresDialectStatements statements = new PostgresDialectStatements(leaseStatements, Clock.systemUTC());
+    private final PostgresDialectStatements statements = new PostgresDialectStatements(Clock.systemUTC());
 
     @Test
     void createQuery() {
         var q = query(criterion("id", "=", "foobar"));
 
         assertThat(statements.createQuery(q).getQueryAsString()).doesNotContain("json_array_elements");
+    }
+
+    @Test
+    void createNextNotLeaseQuery_shouldFilterByRowLeaseAndSkipLockedRows() {
+        var q = query(criterion("state", "=", 100));
+
+        var query = statements.createNextNotLeaseQuery(q).getQueryAsString();
+
+        assertThat(query)
+                .contains("(edc_transfer_process.leased_at IS NULL OR (edc_transfer_process.leased_at + edc_transfer_process.lease_duration) < ?)")
+                .endsWith("FOR UPDATE SKIP LOCKED;")
+                .doesNotContain("edc_lease");
     }
 
     @Test

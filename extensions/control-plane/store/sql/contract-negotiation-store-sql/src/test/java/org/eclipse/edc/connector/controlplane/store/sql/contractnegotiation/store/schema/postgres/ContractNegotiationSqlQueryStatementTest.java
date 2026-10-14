@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.sto
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
 import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 import org.junit.jupiter.api.Test;
@@ -30,7 +29,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ContractNegotiationSqlQueryStatementTest {
 
     private static final String SELECT_STATEMENT = "SELECT * FROM test-table";
-    private final ContractNegotiationStatements postresStatements = new PostgresDialectStatements(new BaseSqlLeaseStatements(), Clock.systemUTC());
+    private final ContractNegotiationStatements postresStatements = new PostgresDialectStatements(Clock.systemUTC());
+
+    @Test
+    void nextNotLeaseQuery_shouldFilterByRowLeaseAndLockOnlyNegotiations() {
+        var query = postresStatements.createNegotiationNextNotLeaseQuery(QuerySpec.none()).getQueryAsString();
+
+        assertThat(query)
+                .contains("(edc_contract_negotiation.leased_at IS NULL OR (edc_contract_negotiation.leased_at + edc_contract_negotiation.lease_duration) < ?)")
+                .endsWith("FOR UPDATE OF edc_contract_negotiation SKIP LOCKED;")
+                .doesNotContain("edc_lease");
+    }
 
     @Test
     void singleExpression_equalsOperator() {

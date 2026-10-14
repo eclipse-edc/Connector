@@ -22,38 +22,40 @@ import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
-import org.eclipse.edc.sql.lease.SqlLeaseContextBuilderImpl;
-import org.eclipse.edc.sql.lease.spi.LeaseStatements;
-import org.eclipse.edc.sql.testfixtures.LeaseUtil;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
+import org.eclipse.edc.sql.testfixtures.RowLeaseUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.time.Clock;
 import java.time.Duration;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.testfixtures.store.TestFunctions.createTransferProcess;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
+import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
 
-    private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
-    private final PostgresDialectStatements statements = new PostgresDialectStatements(leaseStatements, Clock.systemUTC());
-    private LeaseUtil leaseUtil;
+    private final PostgresDialectStatements statements = new PostgresDialectStatements(Clock.systemUTC());
+    private RowLeaseUtil leaseUtil;
     private SqlTransferProcessStore store;
+    private PostgresqlStoreSetupExtension extension;
 
     @BeforeEach
     void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) {
+        this.extension = extension;
         var typeManager = new JacksonTypeManager();
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
-        leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements.getTransferProcessTableName(), leaseStatements, clock);
-        var leaseContextBuilder = SqlLeaseContextBuilderImpl.with(extension.getTransactionContext(), CONNECTOR_NAME, statements.getTransferProcessTableName(), leaseStatements, clock, queryExecutor);
+        leaseUtil = new RowLeaseUtil(extension.getTransactionContext(), extension::getConnection, statements, statements.getTransferProcessTableName(), clock);
 
         store = new SqlTransferProcessStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), typeManager::getMapper, statements, leaseContextBuilder,
-                queryExecutor);
+                extension.getTransactionContext(), typeManager::getMapper, statements, queryExecutor, CONNECTOR_NAME, clock);
 
         var schema = TestUtils.getResourceFileContentAsString("transfer-process-schema.sql");
         extension.runQuery(schema);
@@ -62,7 +64,6 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     @AfterEach
     void tearDown(PostgresqlStoreSetupExtension extension) {
         extension.runQuery("DROP TABLE " + statements.getTransferProcessTableName() + " CASCADE");
-        extension.runQuery("DROP TABLE " + leaseStatements.getLeaseTableName() + " CASCADE");
     }
 
     @Override
@@ -78,6 +79,20 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     @Override
     protected boolean isLeasedBy(String negotiationId, String owner) {
         return leaseUtil.isLeased(negotiationId, owner);
+    }
+
+    @Test
+    void schema_shouldAddLeaseColumnsToExistingTable() {
+        var table = statements.getTransferProcessTableName();
+        extension.runQuery("ALTER TABLE %s DROP COLUMN %s, DROP COLUMN %s, DROP COLUMN %s".formatted(table,
+                statements.getLeasedByColumn(), statements.getLeasedAtColumn(), statements.getLeaseDurationColumn()));
+
+        extension.runQuery(TestUtils.getResourceFileContentAsString("transfer-process-schema.sql"));
+
+        var transferProcess = createTransferProcess("id1", INITIAL);
+        store.save(transferProcess);
+        assertThat(store.nextNotLeased(1, hasState(INITIAL.code()))).hasSize(1);
+        assertThat(isLeasedBy(transferProcess.getId(), CONNECTOR_NAME)).isTrue();
     }
 
 }
