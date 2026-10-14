@@ -22,6 +22,7 @@ import java.util.List;
 
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.DUPLICATE_KEYS;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.GENERAL_ERROR;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
@@ -63,6 +64,13 @@ public class StoreResult<T> extends AbstractResult<T, StoreFailure, StoreResult<
 
     public static <T> StoreResult<T> alreadyLeased(String message) {
         return new StoreResult<>(null, new StoreFailure(List.of(message), ALREADY_LEASED));
+    }
+
+    /**
+     * The entity was changed by another writer since it was read: its stored version differs from the one being saved.
+     */
+    public static <T> StoreResult<T> conflict(String message) {
+        return new StoreResult<>(null, new StoreFailure(List.of(message), CONFLICT));
     }
 
     public StoreFailure.Reason reason() {

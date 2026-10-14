@@ -94,7 +94,8 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
                 .column(getLeasedByColumn())
                 .column(getLeasedAtColumn())
                 .column(getLeaseDurationColumn())
-                .upsertInto(getContractNegotiationTable(), getIdColumn(), getLeaseOwnedOrFreeFilter(getContractNegotiationTable()));
+                .column(getVersionColumn())
+                .upsertInto(getContractNegotiationTable(), getIdColumn(), getVersionAndLeaseFilter(getContractNegotiationTable()));
     }
 
     @Override

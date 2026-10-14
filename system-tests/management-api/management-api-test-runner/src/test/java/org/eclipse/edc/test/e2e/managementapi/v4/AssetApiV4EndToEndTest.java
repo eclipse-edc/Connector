@@ -56,6 +56,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.saveOrReplace;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -435,7 +436,7 @@ public class AssetApiV4EndToEndTest {
                                                                      ContractNegotiationStore negotiationStore) {
             var asset = createAsset().build();
             assetIndex.create(asset);
-            negotiationStore.save(createNegotiation(PROVIDER, PARTICIPANT_CONTEXT_ID, asset.getId()));
+            saveOrReplace(negotiationStore, createNegotiation(PROVIDER, PARTICIPANT_CONTEXT_ID, asset.getId()));
 
             context.baseRequest()
                     .delete("/v4/assets/" + asset.getId())
@@ -453,7 +454,7 @@ public class AssetApiV4EndToEndTest {
             var asset = createAsset().build();
             assetIndex.create(asset);
             // the local asset happens to have the same id as a remote one this participant consumes
-            negotiationStore.save(createNegotiation(CONSUMER, PARTICIPANT_CONTEXT_ID, asset.getId()));
+            saveOrReplace(negotiationStore, createNegotiation(CONSUMER, PARTICIPANT_CONTEXT_ID, asset.getId()));
 
             context.baseRequest()
                     .delete("/v4/assets/" + asset.getId())
@@ -470,7 +471,7 @@ public class AssetApiV4EndToEndTest {
                                                                                 ContractNegotiationStore negotiationStore) {
             var asset = createAsset().build();
             assetIndex.create(asset);
-            negotiationStore.save(createNegotiation(PROVIDER, "another-participant-context", asset.getId()));
+            saveOrReplace(negotiationStore, createNegotiation(PROVIDER, "another-participant-context", asset.getId()));
 
             context.baseRequest()
                     .delete("/v4/assets/" + asset.getId())

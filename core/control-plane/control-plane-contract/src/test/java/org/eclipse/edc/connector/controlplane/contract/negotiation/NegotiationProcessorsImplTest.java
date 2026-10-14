@@ -67,6 +67,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -128,6 +129,21 @@ class NegotiationProcessorsImplTest {
             assertThat(message.getProcessId()).isEqualTo("correlationId");
             verify(store).save(argThat(n -> n.getState() == REQUESTED.code() && "providerPid".equals(n.getCorrelationId())));
             verify(listener).requested(negotiation);
+        }
+
+        @Test
+        void shouldNotFireEventAndReturnConflict_whenSaveConflicts() {
+            var negotiation = consumerNegotiationBuilder().state(REQUESTING.code()).correlationId("correlationId").contractOffer(contractOffer()).build();
+            var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+            when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://callback.url");
+            when(store.findById(negotiation.getId())).thenReturn(negotiation);
+            when(store.save(any())).thenReturn(StoreResult.conflict("changed concurrently"));
+
+            var result = processors.processRequesting(negotiation).join();
+
+            assertThat(result.conflict()).isTrue();
+            verify(listener, never()).requested(any());
         }
 
         @Test

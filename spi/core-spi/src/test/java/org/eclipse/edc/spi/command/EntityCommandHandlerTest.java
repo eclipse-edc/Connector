@@ -31,6 +31,7 @@ import static org.eclipse.edc.spi.command.CommandFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.command.CommandFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -44,6 +45,7 @@ public class EntityCommandHandlerTest {
         var entity = TestEntity.Builder.newInstance().clock(incrementingClock()).build();
         var startingUpdatedAt = entity.getUpdatedAt();
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(entity));
+        when(store.save(any())).thenReturn(StoreResult.success());
 
         var result = handler.handle(new TestCommand("id", true));
 
@@ -82,7 +84,20 @@ public class EntityCommandHandlerTest {
         var result = handler.handle(new TestCommand("id", false));
 
         assertThat(result).isFailed().extracting(CommandFailure::getReason).isEqualTo(CONFLICT);
-        verify(store).save(entity);
+        verify(store).breakLease(entity);
+        verify(store, never()).save(any());
+        assertThat(entity.getErrorDetail()).isNull();
+    }
+
+    @Test
+    void shouldFailAndNotExecutePostActions_whenSaveFails() {
+        var entity = TestEntity.Builder.newInstance().clock(incrementingClock()).build();
+        when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(entity));
+        when(store.save(any())).thenReturn(StoreResult.conflict("entity changed concurrently"));
+
+        var result = handler.handle(new TestCommand("id", true));
+
+        assertThat(result).isFailed().extracting(CommandFailure::getReason).isEqualTo(CONFLICT);
         assertThat(entity.getErrorDetail()).isNull();
     }
 

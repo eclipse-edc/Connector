@@ -62,6 +62,7 @@ import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.f
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 public abstract class ContractNegotiationStoreTestBase {
@@ -329,6 +330,7 @@ public abstract class ContractNegotiationStoreTestBase {
                     .counterPartyId("consumerId")
                     .protocol("protocol")
                     .participantContextId("participantContextId")
+                    .version(negotiation.getVersion())
                     .build();
 
             getContractNegotiationStore().save(newNegotiation);
@@ -404,6 +406,7 @@ public abstract class ContractNegotiationStoreTestBase {
             // now add the agreement
             var agreement = createAgreement(ContractOfferId.create("definition", "asset"));
             var updatedNegotiation = createNegotiation(negotiationId, agreement);
+            updatedNegotiation.setVersion(negotiation.getVersion());
 
             getContractNegotiationStore().save(updatedNegotiation); //should perform an update + insert
 
@@ -426,7 +429,7 @@ public abstract class ContractNegotiationStoreTestBase {
             assertThat(Objects.requireNonNull(getContractNegotiationStore().findById(negotiationId)).getCallbackAddresses()).hasSize(1);
 
             // remove callbacks
-            var updatedNegotiation = createNegotiationBuilder(negotiationId).callbackAddresses(List.of()).build();
+            var updatedNegotiation = createNegotiationBuilder(negotiationId).callbackAddresses(List.of()).version(negotiation.getVersion()).build();
 
             getContractNegotiationStore().save(updatedNegotiation); //should perform an update + insert
 
@@ -442,6 +445,7 @@ public abstract class ContractNegotiationStoreTestBase {
             // now add the agreement
             var agreement = createAgreement(ContractOfferId.create("definition", "asset"));
             var updatedNegotiation = createNegotiation(negotiationId, agreement);
+            updatedNegotiation.setVersion(negotiation.getVersion());
 
             getContractNegotiationStore().save(updatedNegotiation);
             assertThat(getContractNegotiationStore().queryAgreements(QuerySpec.none()))
@@ -472,6 +476,87 @@ public abstract class ContractNegotiationStoreTestBase {
             var updatedNegotiation = getContractNegotiationStore().findById(negotiationId);
             assertThat(updatedNegotiation).isNotNull();
             assertThat(updatedNegotiation.getContractAgreement()).isNotNull();
+        }
+    }
+
+    @Nested
+    class Version {
+
+        @Test
+        void save_shouldIncrementVersion() {
+            var negotiation = createNegotiation("id1");
+            assertThat(negotiation.getVersion()).isZero();
+
+            getContractNegotiationStore().save(negotiation);
+            assertThat(negotiation.getVersion()).isEqualTo(1);
+            assertThat(getContractNegotiationStore().findById("id1")).isNotNull().extracting(ContractNegotiation::getVersion).isEqualTo(1L);
+
+            negotiation.transitionTerminating();
+            assertThat(getContractNegotiationStore().save(negotiation)).isSucceeded();
+            assertThat(negotiation.getVersion()).isEqualTo(2);
+            assertThat(getContractNegotiationStore().findById("id1")).isNotNull().extracting(ContractNegotiation::getVersion).isEqualTo(2L);
+        }
+
+        @Test
+        void save_shouldFailWithConflict_whenEntityIsStale() {
+            getContractNegotiationStore().save(createNegotiation("id1"));
+            var first = getContractNegotiationStore().findById("id1");
+            var stale = getContractNegotiationStore().findById("id1");
+
+            first.transitionTerminating();
+            assertThat(getContractNegotiationStore().save(first)).isSucceeded();
+
+            stale.setPending(true);
+            var result = getContractNegotiationStore().save(stale);
+
+            assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(CONFLICT);
+            assertThat(getContractNegotiationStore().findById("id1")).isNotNull().satisfies(stored -> {
+                assertThat(stored.getState()).isEqualTo(ContractNegotiationStates.TERMINATING.code());
+                assertThat(stored.isPending()).isFalse();
+            });
+        }
+
+        @Test
+        void save_shouldFailWithConflict_whenStaleEntityHasAgreement() {
+            getContractNegotiationStore().save(createNegotiation("id1"));
+            var first = getContractNegotiationStore().findById("id1");
+            var stale = getContractNegotiationStore().findById("id1");
+
+            first.transitionTerminating();
+            assertThat(getContractNegotiationStore().save(first)).isSucceeded();
+
+            var agreement = createAgreement(ContractOfferId.create("definition", "asset"));
+            stale.setContractAgreement(agreement);
+            var result = getContractNegotiationStore().save(stale);
+
+            assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(CONFLICT);
+            assertThat(getContractNegotiationStore().findContractAgreement(agreement.getId())).isNull();
+        }
+
+        @Test
+        void save_shouldFailWithConflict_whenIdAlreadyExists() {
+            getContractNegotiationStore().save(createNegotiation("id1"));
+
+            var result = getContractNegotiationStore().save(createNegotiationBuilder("id1").state(ContractNegotiationStates.TERMINATING.code()).build());
+
+            assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(CONFLICT);
+            assertThat(getContractNegotiationStore().findById("id1")).isNotNull()
+                    .extracting(ContractNegotiation::getState).isEqualTo(ContractNegotiationStates.REQUESTED.code());
+        }
+
+        @Test
+        void findByIdAndLease_shouldReturnLatestVersion() {
+            var negotiation = createNegotiation("id1");
+            getContractNegotiationStore().save(negotiation);
+            negotiation.transitionTerminating();
+            getContractNegotiationStore().save(negotiation);
+
+            var result = getContractNegotiationStore().findByIdAndLease("id1");
+
+            assertThat(result).isSucceeded().satisfies(leased -> {
+                assertThat(leased.getVersion()).isEqualTo(2);
+                assertThat(leased.getState()).isEqualTo(ContractNegotiationStates.TERMINATING.code());
+            });
         }
     }
 

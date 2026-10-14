@@ -54,6 +54,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.saveOrReplace;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -67,8 +68,8 @@ public class ContractNegotiationApiV4EndToEndTest {
         void getAll(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
             var id1 = UUID.randomUUID().toString();
             var id2 = UUID.randomUUID().toString();
-            store.save(createContractNegotiationBuilder(id1).counterPartyAddress(context.providerDsp2025url()).build());
-            store.save(createContractNegotiationBuilder(id2).counterPartyAddress(context.providerDsp2025url()).build());
+            saveOrReplace(store, createContractNegotiationBuilder(id1).counterPartyAddress(context.providerDsp2025url()).build());
+            saveOrReplace(store, createContractNegotiationBuilder(id2).counterPartyAddress(context.providerDsp2025url()).build());
 
             var jsonPath = context.baseRequest()
                     .contentType(JSON)
@@ -114,7 +115,7 @@ public class ContractNegotiationApiV4EndToEndTest {
 
         @Test
         void getById(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
 
             context.baseRequest()
                     .contentType(JSON)
@@ -131,7 +132,7 @@ public class ContractNegotiationApiV4EndToEndTest {
         @Test
         void getState(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
             var state = ContractNegotiationStates.FINALIZED.code(); // all other states could be modified by the state machine
-            store.save(createContractNegotiationBuilder("cn1").state(state).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").state(state).build());
 
             context.baseRequest()
                     .contentType(JSON)
@@ -145,7 +146,7 @@ public class ContractNegotiationApiV4EndToEndTest {
         @Test
         void getAgreementForNegotiation(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
             var agreement = createContractAgreement("cn1");
-            store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
 
             context.baseRequest()
                     .contentType(JSON)
@@ -189,7 +190,7 @@ public class ContractNegotiationApiV4EndToEndTest {
 
         @Test
         void terminate(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").build());
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "TerminateNegotiation")
@@ -207,7 +208,7 @@ public class ContractNegotiationApiV4EndToEndTest {
 
         @Test
         void deleteNegotiation_shouldSucceed(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1")
+            saveOrReplace(store, createContractNegotiationBuilder("cn1")
                     .state(TERMINATED.code()).build());
 
             context.baseRequest()
@@ -221,7 +222,7 @@ public class ContractNegotiationApiV4EndToEndTest {
 
         @Test
         void deleteNegotiation_shouldFailDueToWrongState(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1")
+            saveOrReplace(store, createContractNegotiationBuilder("cn1")
                     .state(AGREED.code()).build());
 
             context.baseRequest()

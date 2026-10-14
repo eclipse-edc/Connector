@@ -30,6 +30,6 @@ public class StoreFailure extends Failure {
     }
 
     public enum Reason {
-        NOT_FOUND, ALREADY_EXISTS, DUPLICATE_KEYS, ALREADY_LEASED, GENERAL_ERROR
+        NOT_FOUND, ALREADY_EXISTS, DUPLICATE_KEYS, ALREADY_LEASED, CONFLICT, GENERAL_ERROR
     }
 }

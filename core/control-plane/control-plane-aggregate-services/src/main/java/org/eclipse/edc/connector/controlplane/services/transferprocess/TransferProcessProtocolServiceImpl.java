@@ -242,10 +242,9 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         if (transferProcess.canBeCompleted()) {
             transferProcess.protocolMessageReceived(message.getId());
             transferProcess.transitionCompletingRequested();
-            update(transferProcess);
             // this is not completed yet, just requested - the actual completion will happen later
-            observable.invokeForEach(l -> l.completingRequested(transferProcess));
-            return ServiceResult.success(transferProcess);
+            return ServiceResult.from(update(transferProcess).onSuccess(i -> observable.invokeForEach(l -> l.completingRequested(transferProcess))))
+                    .map(i -> transferProcess);
         } else {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be completed"));
         }
@@ -257,10 +256,8 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             var reason = message.getReason().stream().map(Object::toString).collect(joining(", "));
             transferProcess.transitionSuspendingRequested(reason);
             transferProcess.protocolMessageReceived(message.getId());
-            update(transferProcess);
-            observable.invokeForEach(l -> l.suspendingRequested(transferProcess));
-
-            return ServiceResult.success(transferProcess);
+            return ServiceResult.from(update(transferProcess).onSuccess(i -> observable.invokeForEach(l -> l.suspendingRequested(transferProcess))))
+                    .map(i -> transferProcess);
         } else {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be suspended"));
         }
@@ -271,9 +268,8 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         if (transferProcess.canBeTerminated()) {
             transferProcess.transitionTerminatingRequested(message.getReason());
             transferProcess.protocolMessageReceived(message.getId());
-            update(transferProcess);
-            observable.invokeForEach(l -> l.terminatingRequested(transferProcess));
-            return ServiceResult.success(transferProcess);
+            return ServiceResult.from(update(transferProcess).onSuccess(i -> observable.invokeForEach(l -> l.terminatingRequested(transferProcess))))
+                    .map(i -> transferProcess);
         } else {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be terminated"));
         }

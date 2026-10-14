@@ -41,13 +41,14 @@ class TransferProcessTest {
     void verifyDeserialization() throws IOException {
         var mapper = new ObjectMapper();
 
-        var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+        var process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).version(3).build();
         var writer = new StringWriter();
         mapper.writeValue(writer, process);
 
         var deserialized = mapper.readValue(writer.toString(), TransferProcess.class);
 
         assertEquals(process, deserialized);
+        assertEquals(3, deserialized.getVersion());
     }
 
     @Test
@@ -64,9 +65,12 @@ class TransferProcessTest {
                 .privateProperties(Map.of("k", "v"))
                 .dataPlaneId("dataPlaneId")
                 .transferType("transferType")
+                .version(5)
                 .build();
 
         var copy = process.copy();
+
+        assertEquals(5, copy.getVersion());
 
         assertEquals(process.getState(), copy.getState());
         assertEquals(process.getType(), copy.getType());

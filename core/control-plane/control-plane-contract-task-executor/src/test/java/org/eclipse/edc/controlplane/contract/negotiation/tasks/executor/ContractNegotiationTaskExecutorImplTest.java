@@ -278,6 +278,26 @@ class ContractNegotiationTaskExecutorImplTest {
     }
 
     @Test
+    void handleSendAgreement_shouldSucceedWithoutFollowUp_whenSaveConflicts() {
+        var negotiation = createContractNegotiation("negotiation-123", AGREEING, PROVIDER);
+
+        var task = SendAgreement.Builder.newInstance()
+                .processId("negotiation-123")
+                .processState(AGREEING.code())
+                .processType(PROVIDER.name())
+                .build();
+
+        when(negotiationStore.findById("negotiation-123")).thenReturn(negotiation);
+        // another runtime has changed the negotiation in the meantime
+        when(negotiationStore.save(any())).thenReturn(StoreResult.conflict("changed concurrently"));
+
+        var result = executor.handle(task);
+
+        assertThat(result.succeeded()).isTrue();
+        verify(taskService, never()).create(any());
+    }
+
+    @Test
     void handleSendAgreement_shouldNotStoreTerminationTask_whenProcessorFailsWithNonFatalError() {
         var negotiation = createContractNegotiation("negotiation-123", AGREEING, PROVIDER);
 

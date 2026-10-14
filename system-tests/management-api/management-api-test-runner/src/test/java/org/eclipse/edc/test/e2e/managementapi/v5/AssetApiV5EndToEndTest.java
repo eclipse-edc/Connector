@@ -65,6 +65,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBU
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.saveOrReplace;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.createParticipant;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.participantContext;
 import static org.hamcrest.Matchers.containsString;
@@ -928,7 +929,7 @@ public class AssetApiV5EndToEndTest {
                                                                       ContractNegotiationStore negotiationStore) {
             var asset = createAsset().build();
             assetIndex.create(asset);
-            negotiationStore.save(createNegotiation(PROVIDER, PARTICIPANT_CONTEXT_ID, asset.getId()));
+            saveOrReplace(negotiationStore, createNegotiation(PROVIDER, PARTICIPANT_CONTEXT_ID, asset.getId()));
 
             context.baseRequest(participantTokenJwt)
                     .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + asset.getId())
@@ -946,7 +947,7 @@ public class AssetApiV5EndToEndTest {
             var asset = createAsset().build();
             assetIndex.create(asset);
             // the local asset happens to have the same id as a remote one this participant consumes
-            negotiationStore.save(createNegotiation(CONSUMER, PARTICIPANT_CONTEXT_ID, asset.getId()));
+            saveOrReplace(negotiationStore, createNegotiation(CONSUMER, PARTICIPANT_CONTEXT_ID, asset.getId()));
 
             context.baseRequest(participantTokenJwt)
                     .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + asset.getId())
@@ -966,7 +967,7 @@ public class AssetApiV5EndToEndTest {
             createParticipant(participantContextService, otherParticipantId);
             var asset = createAsset().build();
             assetIndex.create(asset);
-            negotiationStore.save(createNegotiation(PROVIDER, otherParticipantId, asset.getId()));
+            saveOrReplace(negotiationStore, createNegotiation(PROVIDER, otherParticipantId, asset.getId()));
 
             context.baseRequest(participantTokenJwt)
                     .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + asset.getId())

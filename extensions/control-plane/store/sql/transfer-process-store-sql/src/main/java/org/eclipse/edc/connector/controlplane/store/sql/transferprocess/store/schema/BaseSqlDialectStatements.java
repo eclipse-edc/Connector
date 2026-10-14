@@ -77,7 +77,8 @@ public class BaseSqlDialectStatements implements TransferProcessStoreStatements 
                 .column(getLeasedByColumn())
                 .column(getLeasedAtColumn())
                 .column(getLeaseDurationColumn())
-                .upsertInto(getTransferProcessTableName(), getIdColumn(), getLeaseOwnedOrFreeFilter(getTransferProcessTableName()));
+                .column(getVersionColumn())
+                .upsertInto(getTransferProcessTableName(), getIdColumn(), getVersionAndLeaseFilter(getTransferProcessTableName()));
     }
 
     @Override

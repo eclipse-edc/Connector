@@ -131,7 +131,13 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
                 return StatusResult.success();
             }
 
-            return handler.function.apply(transferProcess);
+            var result = handler.function.apply(transferProcess);
+            if (result.conflict()) {
+                // another writer has already moved the transfer process on, and the new state has its own task: drop this one
+                monitor.debug("Skipping transfer process with id '%s', it was changed concurrently: %s".formatted(transferProcess.getId(), result.getFailureDetail()));
+                return StatusResult.success();
+            }
+            return result;
         });
 
     }

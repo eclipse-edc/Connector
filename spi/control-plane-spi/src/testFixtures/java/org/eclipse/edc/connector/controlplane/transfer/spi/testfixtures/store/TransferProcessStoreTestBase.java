@@ -51,6 +51,7 @@ import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.f
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 import static org.hamcrest.Matchers.hasSize;
 
@@ -108,14 +109,65 @@ public abstract class TransferProcessStoreTestBase {
         }
 
         @Test
-        void withSameIdExists_shouldReplace() {
+        void withSameIdExists_shouldFailWithConflict() {
             var t = createTransferProcess("id1", INITIAL);
             getTransferProcessStore().save(t);
 
             var t2 = createTransferProcess("id1", REQUESTING);
-            getTransferProcessStore().save(t2);
+            var result = getTransferProcessStore().save(t2);
 
-            assertThat(getTransferProcessStore().findAll(QuerySpec.none())).hasSize(1).containsExactly(t2);
+            assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(CONFLICT);
+            assertThat(getTransferProcessStore().findById("id1")).isNotNull().extracting(TransferProcess::getState).isEqualTo(INITIAL.code());
+        }
+    }
+
+    @Nested
+    class Version {
+
+        @Test
+        void save_shouldIncrementVersion() {
+            var transferProcess = createTransferProcess("id1", INITIAL);
+            assertThat(transferProcess.getVersion()).isZero();
+
+            getTransferProcessStore().save(transferProcess);
+            assertThat(transferProcess.getVersion()).isEqualTo(1);
+            assertThat(getTransferProcessStore().findById("id1")).isNotNull().extracting(TransferProcess::getVersion).isEqualTo(1L);
+
+            transferProcess.transitionRequesting();
+            assertThat(getTransferProcessStore().save(transferProcess)).isSucceeded();
+            assertThat(transferProcess.getVersion()).isEqualTo(2);
+            assertThat(getTransferProcessStore().findById("id1")).isNotNull().extracting(TransferProcess::getVersion).isEqualTo(2L);
+        }
+
+        @Test
+        void save_shouldFailWithConflict_whenEntityIsStale() {
+            getTransferProcessStore().save(createTransferProcess("id1", INITIAL));
+            var first = getTransferProcessStore().findById("id1");
+            var stale = getTransferProcessStore().findById("id1");
+
+            first.transitionRequesting();
+            assertThat(getTransferProcessStore().save(first)).isSucceeded();
+
+            stale.transitionTerminating();
+            var result = getTransferProcessStore().save(stale);
+
+            assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(CONFLICT);
+            assertThat(getTransferProcessStore().findById("id1")).isNotNull().extracting(TransferProcess::getState).isEqualTo(REQUESTING.code());
+        }
+
+        @Test
+        void findByIdAndLease_shouldReturnLatestVersion() {
+            var transferProcess = createTransferProcess("id1", INITIAL);
+            getTransferProcessStore().save(transferProcess);
+            transferProcess.transitionRequesting();
+            getTransferProcessStore().save(transferProcess);
+
+            var result = getTransferProcessStore().findByIdAndLease("id1");
+
+            assertThat(result).isSucceeded().satisfies(leased -> {
+                assertThat(leased.getVersion()).isEqualTo(2);
+                assertThat(leased.getState()).isEqualTo(REQUESTING.code());
+            });
         }
     }
 

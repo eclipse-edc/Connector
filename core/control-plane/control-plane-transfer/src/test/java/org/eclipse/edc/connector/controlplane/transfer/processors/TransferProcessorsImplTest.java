@@ -372,6 +372,20 @@ class TransferProcessorsImplTest {
         }
 
         @Test
+        void shouldNotFireEventAndReturnConflict_whenSaveConflicts() {
+            var process = processBuilder(STARTING).type(PROVIDER).correlationId("correlationId").build();
+            when(messageDispatcher.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("not found"));
+            when(store.findById(process.getId())).thenReturn(process);
+            when(store.save(any())).thenReturn(StoreResult.conflict("changed concurrently"));
+
+            var result = processors.processStarting(process).join();
+
+            assertThat(result.conflict()).isTrue();
+            verify(listener, never()).started(any(), any());
+        }
+
+        @Test
         void shouldIncludeDataAddress_whenPresent() {
             var dataAddress = DataAddress.Builder.newInstance().type("type").build();
             var process = processBuilder(STARTING).type(PROVIDER).build();

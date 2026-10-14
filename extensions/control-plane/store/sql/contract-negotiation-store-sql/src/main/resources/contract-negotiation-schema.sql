@@ -49,13 +49,16 @@ CREATE TABLE IF NOT EXISTS edc_contract_negotiation
     negotiation_claims   JSON,
     leased_by            VARCHAR,
     leased_at            BIGINT,
-    lease_duration       INTEGER
+    lease_duration       INTEGER,
+    version              BIGINT  DEFAULT 0 NOT NULL
 );
 
 -- Add lease columns to tables created before the lease was moved from edc_lease to the contract negotiation row
 ALTER TABLE edc_contract_negotiation ADD COLUMN IF NOT EXISTS leased_by VARCHAR;
 ALTER TABLE edc_contract_negotiation ADD COLUMN IF NOT EXISTS leased_at BIGINT;
 ALTER TABLE edc_contract_negotiation ADD COLUMN IF NOT EXISTS lease_duration INTEGER;
+-- Add the version column to tables created before optimistic locking was introduced
+ALTER TABLE edc_contract_negotiation ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 0 NOT NULL;
 
 COMMENT ON COLUMN edc_contract_negotiation.agreement_id IS 'ContractAgreement serialized as JSON';
 COMMENT ON COLUMN edc_contract_negotiation.contract_offers IS 'List<ContractOffer> serialized as JSON';
@@ -63,6 +66,7 @@ COMMENT ON COLUMN edc_contract_negotiation.trace_context IS 'Map<String,String> 
 COMMENT ON COLUMN edc_contract_negotiation.negotiation_claims IS 'Claims of the counter-party (Map<String,Object>) serialized as JSON';
 COMMENT ON COLUMN edc_contract_negotiation.leased_at IS 'posix timestamp of lease';
 COMMENT ON COLUMN edc_contract_negotiation.lease_duration IS 'duration of lease in milliseconds';
+COMMENT ON COLUMN edc_contract_negotiation.version IS 'version of the entity, incremented on every save, used for optimistic locking';
 
 CREATE INDEX IF NOT EXISTS contract_negotiation_correlationid_index
     ON edc_contract_negotiation (correlation_id);

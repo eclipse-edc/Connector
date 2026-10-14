@@ -114,5 +114,6 @@ class NotifyStartedCommandHandlerTest {
 
         assertThat(result).isFalse();
         verify(dataAddressStore).store(dataAddress, entity);
+        assertThat(entity.getState()).isEqualTo(STARTUP_REQUESTED.code());
     }
 }

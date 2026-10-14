@@ -49,7 +49,7 @@ public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStor
     }
 
     public InMemoryContractNegotiationStore(String leaseHolder, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
-        super(ContractNegotiation.class, leaseHolder, clock, criterionOperatorRegistry, state -> ContractNegotiationStates.valueOf(state).code());
+        super(ContractNegotiation.class, leaseHolder, clock, criterionOperatorRegistry, state -> ContractNegotiationStates.valueOf(state).code(), true);
         agreementQueryResolver = new ReflectionBasedQueryResolver<>(ContractAgreement.class, criterionOperatorRegistry);
         lock = new ReentrantReadWriteLock(true);
     }
@@ -92,7 +92,7 @@ public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStor
     public StoreResult<Void> retireAgreement(ContractAgreement agreement) {
         lock.writeLock().lock();
         try {
-            return findAll()
+            return storedEntities()
                     .filter(negotiation -> negotiation.getContractAgreement() != null)
                     .filter(negotiation -> Objects.equals(agreement.getId(), negotiation.getContractAgreement().getId()))
                     .findFirst()

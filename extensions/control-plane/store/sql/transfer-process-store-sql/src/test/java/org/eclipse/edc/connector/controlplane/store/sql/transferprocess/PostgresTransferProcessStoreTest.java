@@ -82,10 +82,10 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     }
 
     @Test
-    void schema_shouldAddLeaseColumnsToExistingTable() {
+    void schema_shouldAddLeaseAndVersionColumnsToExistingTable() {
         var table = statements.getTransferProcessTableName();
-        extension.runQuery("ALTER TABLE %s DROP COLUMN %s, DROP COLUMN %s, DROP COLUMN %s".formatted(table,
-                statements.getLeasedByColumn(), statements.getLeasedAtColumn(), statements.getLeaseDurationColumn()));
+        extension.runQuery("ALTER TABLE %s DROP COLUMN %s, DROP COLUMN %s, DROP COLUMN %s, DROP COLUMN %s".formatted(table,
+                statements.getLeasedByColumn(), statements.getLeasedAtColumn(), statements.getLeaseDurationColumn(), statements.getVersionColumn()));
 
         extension.runQuery(TestUtils.getResourceFileContentAsString("transfer-process-schema.sql"));
 

@@ -35,6 +35,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Clock;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -49,8 +50,10 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.testfixtures.store.TestFunctions.createTransferProcess;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.CONFLICT;
 
 /**
  * Simulates multiple runtime replicas running the transfer process state machine against the same database.
@@ -212,9 +215,39 @@ class SqlTransferProcessStoreConcurrencyTest {
         }
     }
 
+    @Test
+    void save_shouldFailWithConflict_whenLeaseExpiredAndAnotherReplicaSaved() {
+        // replica-2 runs two minutes ahead, so it sees the 60 seconds lease of replica-1 as expired
+        var first = createStore("replica-1");
+        var second = createStore("replica-2", Clock.offset(clock, Duration.ofMinutes(2)));
+        var entity = createTransferProcess(UUID.randomUUID().toString(), INITIAL);
+        first.save(entity);
+
+        var leasedByFirst = first.nextNotLeased(1, hasState(INITIAL.code()));
+        assertThat(leasedByFirst).hasSize(1);
+        var leasedBySecond = second.nextNotLeased(1, hasState(INITIAL.code()));
+        assertThat(leasedBySecond).hasSize(1);
+
+        var takenOver = leasedBySecond.get(0);
+        takenOver.transitionTerminating();
+        assertThat(second.save(takenOver).succeeded()).isTrue();
+
+        var late = leasedByFirst.get(0);
+        late.transitionRequesting();
+        var result = first.save(late);
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.reason()).isEqualTo(CONFLICT);
+        assertThat(first.findById(entity.getId()).getState()).isEqualTo(TERMINATING.code());
+    }
+
     private SqlTransferProcessStore createStore(String leaseHolder) {
+        return createStore(leaseHolder, clock);
+    }
+
+    private SqlTransferProcessStore createStore(String leaseHolder, Clock storeClock) {
         return new SqlTransferProcessStore(dataSourceRegistry, extension.getDatasourceName(), transactionContext,
-                typeManager::getMapper, statements, queryExecutor, leaseHolder, clock);
+                typeManager::getMapper, new PostgresDialectStatements(storeClock), queryExecutor, leaseHolder, storeClock);
     }
 
     private Connection getConnection() {

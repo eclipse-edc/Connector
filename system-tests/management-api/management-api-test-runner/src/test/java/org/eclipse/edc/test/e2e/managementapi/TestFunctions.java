@@ -41,6 +41,8 @@ import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
+import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.persistence.StateEntityStore;
 
 import java.util.List;
 import java.util.Map;
@@ -71,6 +73,21 @@ public class TestFunctions {
     public static final String MANAGEMENT_API_CONTEXT = "management-api";
     private static final String DEFINITION_ID = "some-definition-id";
     private static final String POLICY_ID = "some-policy-id";
+
+    /**
+     * Saves the entity, replacing the one already stored with the same id, if any. Tests reuse entity ids, while a store
+     * rejects a new entity whose id already exists.
+     */
+    public static <E extends StatefulEntity<E>> void saveOrReplace(StateEntityStore<E> store, E entity) {
+        var existing = store.findById(entity.getId());
+        if (existing != null) {
+            entity.setVersion(existing.getVersion());
+        }
+        var result = store.save(entity);
+        if (result.failed()) {
+            throw new IllegalStateException("Cannot save entity %s: %s".formatted(entity.getId(), result.getFailureDetail()));
+        }
+    }
 
     public static JsonArrayBuilder createContextBuilder(String context) {
         return createArrayBuilder()

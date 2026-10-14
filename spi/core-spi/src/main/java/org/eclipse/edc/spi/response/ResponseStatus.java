@@ -28,5 +28,10 @@ public enum ResponseStatus {
     /**
      * The operation errored and should not be retried.
      */
-    FATAL_ERROR
+    FATAL_ERROR,
+
+    /**
+     * The entity was changed by another writer in the meantime, the result of the operation should be dropped.
+     */
+    CONFLICT
 }

@@ -32,6 +32,7 @@ import java.util.function.BiFunction;
 import static java.time.ZoneOffset.UTC;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.spi.response.ResponseStatus.CONFLICT;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.statemachine.retry.processor.Process.future;
 import static org.eclipse.edc.statemachine.retry.processor.Process.result;
@@ -57,7 +58,8 @@ class RetryProcessorTest {
     private final int retryLimit = 2;
     private final EntityRetryProcessConfiguration configuration = new EntityRetryProcessConfiguration(retryLimit, () -> fixedWaitStrategy);
 
-    private final BiConsumer<TestEntity, String> success = mock();
+    @SuppressWarnings("unchecked")
+    private final BiFunction<TestEntity, String, StatusResult<Void>> success = mock(BiFunction.class, i -> StatusResult.success());
     private final BiConsumer<TestEntity, Throwable> failure = mock();
     private final BiConsumer<TestEntity, Throwable> finalFailure = mock();
 
@@ -80,11 +82,30 @@ class RetryProcessorTest {
         assertThat(processed).succeedsWithin(1, TimeUnit.SECONDS).satisfies(status -> {
             assertThat(status.succeeded()).isTrue();
         });
-        verify(success).accept(entity, "1 second");
+        verify(success).apply(entity, "1 second");
         verifyNoInteractions(failure, finalFailure);
         var inOrder = inOrder(firstProcess, secondProcess);
         inOrder.verify(firstProcess).apply(any(), any());
         inOrder.verify(secondProcess).apply(any(), any());
+    }
+
+    @Test
+    void shouldReturnOnSuccessResult() {
+        var entity = TestEntity.Builder.newInstance().id(UUID.randomUUID().toString()).stateTimestamp(shouldDelayTime).stateCount(1).build();
+        BiFunction<TestEntity, Object, StatusResult<String>> process = mock();
+        when(process.apply(any(), any())).thenReturn(StatusResult.success("result"));
+
+        var processed = new RetryProcessor<>(entity, monitor, clock, configuration)
+                .doProcess(result("process", process))
+                .onSuccess((e, r) -> StatusResult.failure(CONFLICT, "entity changed concurrently"))
+                .onFailure(failure)
+                .onFinalFailure(finalFailure)
+                .execute();
+
+        assertThat(processed).succeedsWithin(1, TimeUnit.SECONDS).satisfies(status -> {
+            assertThat(status.conflict()).isTrue();
+        });
+        verifyNoInteractions(failure, finalFailure);
     }
 
     @Test

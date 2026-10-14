@@ -37,7 +37,7 @@ public class InMemoryTransferProcessStore extends InMemoryStatefulEntityStore<Tr
     }
 
     public InMemoryTransferProcessStore(String leaserId, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
-        super(TransferProcess.class, leaserId, clock, criterionOperatorRegistry, state -> TransferProcessStates.valueOf(state).code());
+        super(TransferProcess.class, leaserId, clock, criterionOperatorRegistry, state -> TransferProcessStates.valueOf(state).code(), true);
     }
 
     @Override

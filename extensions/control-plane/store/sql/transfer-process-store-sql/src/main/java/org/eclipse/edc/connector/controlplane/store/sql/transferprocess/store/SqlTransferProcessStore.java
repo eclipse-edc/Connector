@@ -25,6 +25,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.lease.StatefulEntityWriteCheck;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -61,6 +62,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     private final String leaseHolder;
     private final Clock clock;
     private final Duration leaseDuration;
+    private final StatefulEntityWriteCheck writeCheck;
 
     public SqlTransferProcessStore(DataSourceRegistry dataSourceRegistry, String datasourceName,
                                    TransactionContext transactionContext, Supplier<ObjectMapper> objectMapperSupplier,
@@ -78,6 +80,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
         this.leaseHolder = leaseHolder;
         this.clock = clock;
         this.leaseDuration = leaseDuration;
+        this.writeCheck = new StatefulEntityWriteCheck(queryExecutor, statements, statements.getTransferProcessTableName(), leaseHolder, clock);
     }
 
     @Override
@@ -115,15 +118,14 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     public StoreResult<TransferProcess> findByIdAndLease(String id) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var entity = findByIdInternal(connection, id);
-                if (entity == null) {
-                    return StoreResult.notFound(format("TransferProcess %s not found", id));
-                }
-
+                // the lease is acquired before reading, so that the returned entity cannot be outdated by a concurrent save
                 if (!acquireLease(connection, id)) {
+                    if (findByIdInternal(connection, id) == null) {
+                        return StoreResult.notFound(format("TransferProcess %s not found", id));
+                    }
                     return StoreResult.alreadyLeased(format("TransferProcess %s is currently leased!", id));
                 }
-                return StoreResult.success(entity);
+                return StoreResult.success(findByIdInternal(connection, id));
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -165,12 +167,16 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                         null,
                         null,
                         null,
+                        entity.getVersion() + 1,
+                        // an existing entity is updated only if its version is the expected one
+                        entity.getVersion(),
                         leaseHolder,
                         clock.millis());
 
                 if (updated == 0) {
-                    return StoreResult.alreadyLeased(format("TransferProcess %s is leased by another holder, cannot update it!", entity.getId()));
+                    return writeCheck.explainNotWritten(conn, entity.getId(), entity.getVersion());
                 }
+                entity.setVersion(entity.getVersion() + 1);
                 return StoreResult.success();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
@@ -300,6 +306,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .dataAddressAlias(resultSet.getString(statements.getDataAddressAliasColumn()))
                 .claims(fromJson(resultSet.getString(statements.getClaimsColumn()), getTypeRef()))
                 .dataAddressOwner(resultSet.getBoolean(statements.getDataAddressOwnerColumn()))
+                .version(resultSet.getLong(statements.getVersionColumn()))
                 .build();
     }
 

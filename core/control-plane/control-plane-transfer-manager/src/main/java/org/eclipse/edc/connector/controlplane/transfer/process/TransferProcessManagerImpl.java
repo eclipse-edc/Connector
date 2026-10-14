@@ -124,8 +124,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
     private CompletableFuture<StatusResult<Void>> setPending(TransferProcess transferProcess) {
         transferProcess.setPending(true);
-        update(transferProcess);
-        return CompletableFuture.completedFuture(StatusResult.success());
+        return CompletableFuture.completedFuture(StatusResult.from(update(transferProcess)));
     }
 
     public static class Builder

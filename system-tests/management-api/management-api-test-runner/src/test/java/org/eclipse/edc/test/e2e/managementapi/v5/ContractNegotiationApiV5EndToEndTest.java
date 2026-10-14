@@ -61,6 +61,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.saveOrReplace;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.PARTICIPANT_CONTEXT_ID;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.createParticipant;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.jsonLdContext;
@@ -212,7 +213,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
         @Test
         void getById(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
@@ -230,7 +231,7 @@ public class ContractNegotiationApiV5EndToEndTest {
         @Test
         void getById_tokenBearerDoesNotOwnResource(ManagementEndToEndV5TestContext context, OauthServer authServer,
                                                    ContractNegotiationStore store, ParticipantContextService srv) {
-            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
 
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(srv, otherParticipantId);
@@ -246,7 +247,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
         @Test
         void getById_tokenLacksRequiredScope(ManagementEndToEndV5TestContext context, OauthServer authServer, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
 
             var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:missing"));
 
@@ -260,7 +261,7 @@ public class ContractNegotiationApiV5EndToEndTest {
         @Test
         void getState(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
             var state = ContractNegotiationStates.FINALIZED.code(); // all other states could be modified by the state machine
-            store.save(createContractNegotiationBuilder("cn1").state(state).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").state(state).build());
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
@@ -275,7 +276,7 @@ public class ContractNegotiationApiV5EndToEndTest {
         void getState_tokenBearerDoesNotOwnResource(ManagementEndToEndV5TestContext context, OauthServer authServer,
                                                     ContractNegotiationStore store, ParticipantContextService srv) {
             var state = ContractNegotiationStates.FINALIZED.code();
-            store.save(createContractNegotiationBuilder("cn1").state(state).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").state(state).build());
 
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(srv, otherParticipantId);
@@ -293,7 +294,7 @@ public class ContractNegotiationApiV5EndToEndTest {
         @Test
         void getState_tokenLacksRequiredScope(ManagementEndToEndV5TestContext context, OauthServer authServer, ContractNegotiationStore store) {
             var state = ContractNegotiationStates.FINALIZED.code();
-            store.save(createContractNegotiationBuilder("cn1").state(state).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").state(state).build());
 
             var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:missing"));
 
@@ -308,7 +309,7 @@ public class ContractNegotiationApiV5EndToEndTest {
         @Test
         void getAgreement(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
             var agreement = createContractAgreement("cn1");
-            store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
@@ -328,7 +329,7 @@ public class ContractNegotiationApiV5EndToEndTest {
         void getAgreement_tokenBearerDoesNotOwnResource(ManagementEndToEndV5TestContext context, OauthServer authServer,
                                                         ContractNegotiationStore store, ParticipantContextService srv) {
             var agreement = createContractAgreement("cn1");
-            store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
 
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(srv, otherParticipantId);
@@ -347,7 +348,7 @@ public class ContractNegotiationApiV5EndToEndTest {
         void getAgreement_tokenLacksRequiredScope(ManagementEndToEndV5TestContext context, OauthServer authServer,
                                                   ContractNegotiationStore store) {
             var agreement = createContractAgreement("cn1");
-            store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
 
             var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:missing"));
 
@@ -363,8 +364,8 @@ public class ContractNegotiationApiV5EndToEndTest {
         void query(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
             var id1 = UUID.randomUUID().toString();
             var id2 = UUID.randomUUID().toString();
-            store.save(createContractNegotiationBuilder(id1).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
-            store.save(createContractNegotiationBuilder(id2).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
+            saveOrReplace(store, createContractNegotiationBuilder(id1).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
+            saveOrReplace(store, createContractNegotiationBuilder(id2).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
 
             var query = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -415,8 +416,8 @@ public class ContractNegotiationApiV5EndToEndTest {
 
             var id1 = UUID.randomUUID().toString();
             var id2 = UUID.randomUUID().toString();
-            store.save(createContractNegotiationBuilder(id1).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
-            store.save(createContractNegotiationBuilder(id2).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
+            saveOrReplace(store, createContractNegotiationBuilder(id1).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
+            saveOrReplace(store, createContractNegotiationBuilder(id2).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
 
             var query = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -457,8 +458,8 @@ public class ContractNegotiationApiV5EndToEndTest {
 
             var id1 = UUID.randomUUID().toString();
             var id2 = UUID.randomUUID().toString();
-            store.save(createContractNegotiationBuilder(id1).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
-            store.save(createContractNegotiationBuilder(id2).participantContextId(otherParticipantId).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
+            saveOrReplace(store, createContractNegotiationBuilder(id1).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
+            saveOrReplace(store, createContractNegotiationBuilder(id2).participantContextId(otherParticipantId).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
 
             var query = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -499,7 +500,7 @@ public class ContractNegotiationApiV5EndToEndTest {
             srv.createParticipantContext(participantContext(otherParticipantId))
                     .orElseThrow(f -> new AssertionError("ParticipantContext " + otherParticipantId + " not created."));
             var id = UUID.randomUUID().toString();
-            store.save(createContractNegotiationBuilder(id).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
+            saveOrReplace(store, createContractNegotiationBuilder(id).counterPartyAddress(context.providerProtocolUrl(COUNTER_PARTY_ID)).build());
 
             var query = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -535,7 +536,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
         @Test
         void terminate(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").build());
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "TerminateNegotiation")
@@ -555,7 +556,7 @@ public class ContractNegotiationApiV5EndToEndTest {
         void terminate_tokenBearerDoesNotOwnResource(ManagementEndToEndV5TestContext context, OauthServer authServer,
                                                      ContractNegotiationStore store,
                                                      ParticipantContextService srv) {
-            store.save(createContractNegotiationBuilder("cn1").build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").build());
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "TerminateNegotiation")
@@ -579,7 +580,7 @@ public class ContractNegotiationApiV5EndToEndTest {
         @Test
         void terminate_tokenLacksRequiredScope(ManagementEndToEndV5TestContext context, OauthServer authServer,
                                                ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").build());
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "TerminateNegotiation")
@@ -600,7 +601,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
         @Test
         void approve(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.PROVIDER).pending(true).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.PROVIDER).pending(true).build());
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
@@ -616,7 +617,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
         @Test
         void approve_shouldReturnConflict_whenNotPending(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.PROVIDER).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.PROVIDER).build());
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
@@ -628,7 +629,7 @@ public class ContractNegotiationApiV5EndToEndTest {
         @Test
         void approve_tokenBearerDoesNotOwnResource(ManagementEndToEndV5TestContext context, OauthServer authServer,
                                                    ContractNegotiationStore store, ParticipantContextService srv) {
-            store.save(createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.PROVIDER).pending(true).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.PROVIDER).pending(true).build());
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(srv, otherParticipantId);
 
@@ -643,7 +644,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
         @Test
         void reject(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.PROVIDER).pending(true).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.PROVIDER).pending(true).build());
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
@@ -660,7 +661,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
         @Test
         void reject_shouldReturnConflict_whenConsumer(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.CONSUMER).pending(true).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.CONSUMER).pending(true).build());
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
@@ -672,7 +673,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
         @Test
         void reject_tokenLacksRequiredScope(ManagementEndToEndV5TestContext context, OauthServer authServer, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.PROVIDER).pending(true).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").type(ContractNegotiation.Type.PROVIDER).pending(true).build());
 
             context.baseRequest(authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:missing")))
                     .contentType(JSON)
@@ -691,7 +692,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
         @Test
         void delete(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1")
+            saveOrReplace(store, createContractNegotiationBuilder("cn1")
                     .state(TERMINATED.code()).build());
 
             context.baseRequest(participantTokenJwt)
@@ -705,7 +706,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
         @Test
         void delete_shouldFailDueToWrongState(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1")
+            saveOrReplace(store, createContractNegotiationBuilder("cn1")
                     .state(AGREED.code()).build());
 
             context.baseRequest(participantTokenJwt)
@@ -721,7 +722,7 @@ public class ContractNegotiationApiV5EndToEndTest {
         void delete_tokenBearerDoesNotOwnResource(ManagementEndToEndV5TestContext context, OauthServer authServer,
                                                   ContractNegotiationStore store,
                                                   ParticipantContextService srv) {
-            store.save(createContractNegotiationBuilder("cn1").build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").build());
 
             var otherParticipantId = UUID.randomUUID().toString();
             createParticipant(srv, otherParticipantId);
@@ -738,7 +739,7 @@ public class ContractNegotiationApiV5EndToEndTest {
         @Test
         void delete_tokenLacksRequiredScope(ManagementEndToEndV5TestContext context, OauthServer authServer,
                                             ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").build());
 
             var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:missing"));
 
