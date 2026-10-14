@@ -34,7 +34,10 @@ import java.util.Objects;
  * SQL-based implementation of the LeaseContext.
  * Acquiring a lease is implemented by adding an entry into the "lease" table in the database
  * Breaking a lease is implemented by deleting the respective entry
+ *
+ * @deprecated the lease is now stored on the entity row (see {@code org.eclipse.edc.sql.lease.StatefulEntityStatements}), this will be removed in a future release.
  */
+@Deprecated(since = "1.0.0")
 public class SqlLeaseContext implements LeaseContext {
     private static final long DEFAULT_LEASE_DURATION = 60_000;
     private final TransactionContext trxContext;

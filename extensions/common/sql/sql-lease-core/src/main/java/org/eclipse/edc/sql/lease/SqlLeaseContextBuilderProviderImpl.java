@@ -22,6 +22,12 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
 
+/**
+ * Default {@link SqlLeaseContextBuilderProvider}, which stores leases in the {@code edc_lease} table.
+ *
+ * @deprecated the lease is now stored on the entity row (see {@code org.eclipse.edc.sql.lease.StatefulEntityStatements}), this will be removed in a future release.
+ */
+@Deprecated(since = "1.0.0")
 public record SqlLeaseContextBuilderProviderImpl(TransactionContext transactionContext, LeaseStatements leaseStatements,
                                                  String leaseHolder, Clock clock,
                                                  QueryExecutor queryExecutor) implements SqlLeaseContextBuilderProvider {

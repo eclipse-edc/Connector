@@ -21,7 +21,10 @@ import java.time.Duration;
 
 /**
  * Builder for creating a {@link LeaseContext} for SQL-based leases.
+ *
+ * @deprecated the lease is now stored on the entity row (see {@code org.eclipse.edc.sql.lease.StatefulEntityStatements}), this will be removed in a future release.
  */
+@Deprecated(since = "1.0.0")
 public interface SqlLeaseContextBuilder {
     /**
      * Sets the SQL connection to be used for lease operations.

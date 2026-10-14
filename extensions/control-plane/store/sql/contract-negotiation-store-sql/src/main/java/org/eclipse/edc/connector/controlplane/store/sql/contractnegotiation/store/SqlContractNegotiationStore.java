@@ -27,7 +27,6 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.ResultSetMapper;
-import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilder;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -39,6 +38,8 @@ import tools.jackson.databind.ObjectMapper;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Clock;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
@@ -49,19 +50,34 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * SQL-based implementation of the {@link ContractNegotiationStore}
+ * The lease is stored directly on the contract negotiation row, entities are fetched with {@code FOR UPDATE SKIP LOCKED}
+ * so that concurrent runtimes never lease the same contract negotiation.
  */
 public class SqlContractNegotiationStore extends AbstractSqlStore implements ContractNegotiationStore {
 
+    public static final Duration DEFAULT_LEASE_DURATION = Duration.ofSeconds(60);
+
     private final ContractNegotiationStatements statements;
-    private final SqlLeaseContextBuilder leaseContext;
+    private final String leaseHolder;
+    private final Clock clock;
+    private final Duration leaseDuration;
 
     public SqlContractNegotiationStore(DataSourceRegistry dataSourceRegistry, String dataSourceName,
                                        TransactionContext transactionContext, Supplier<ObjectMapper> objectMapperSupplier,
-                                       ContractNegotiationStatements statements, SqlLeaseContextBuilder leaseContext,
-                                       QueryExecutor queryExecutor) {
+                                       ContractNegotiationStatements statements, QueryExecutor queryExecutor,
+                                       String leaseHolder, Clock clock) {
+        this(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, statements, queryExecutor, leaseHolder, clock, DEFAULT_LEASE_DURATION);
+    }
+
+    public SqlContractNegotiationStore(DataSourceRegistry dataSourceRegistry, String dataSourceName,
+                                       TransactionContext transactionContext, Supplier<ObjectMapper> objectMapperSupplier,
+                                       ContractNegotiationStatements statements, QueryExecutor queryExecutor,
+                                       String leaseHolder, Clock clock, Duration leaseDuration) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapperSupplier, queryExecutor);
         this.statements = statements;
-        this.leaseContext = leaseContext;
+        this.leaseHolder = leaseHolder;
+        this.clock = clock;
+        this.leaseDuration = leaseDuration;
     }
 
     @Override
@@ -84,17 +100,16 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
 
             try (
                     var connection = getConnection();
-                    var stream = queryExecutor.query(getConnection(), true, contractNegotiationWithAgreementMapper(connection), statement.getQueryAsString(), statement.getParameters())
+                    var stream = queryExecutor.query(connection, false, contractNegotiationMapper(), statement.getQueryAsString(), statement.getParameters())
             ) {
-                return stream.filter(n -> lease(connection, n)).collect(toList());
+                // rows are locked until the end of the transaction, so the lease can be safely acquired on them
+                return stream.toList().stream()
+                        .filter(n -> acquireLease(connection, n.getId()))
+                        .collect(toList());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
         });
-    }
-
-    private boolean lease(Connection connection, ContractNegotiation entry) {
-        return leaseContext.withConnection(connection).acquireLease(entry.getId()).succeeded();
     }
 
     @Override
@@ -105,7 +120,10 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 if (entity == null) {
                     return StoreResult.notFound(format("ContractNegotiation %s not found", id));
                 }
-                return leaseContext.withConnection(connection).acquireLease(id).map(it -> entity);
+                if (!acquireLease(connection, id)) {
+                    return StoreResult.alreadyLeased(format("ContractNegotiation %s is currently leased!", id));
+                }
+                return StoreResult.success(entity);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -119,6 +137,12 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
 
                 var contractAgreement = negotiation.getContractAgreement();
                 if (contractAgreement != null) {
+                    // the agreement is written before the negotiation (FK), so the lease must be verified upfront
+                    // to avoid writing the agreement of a negotiation that cannot be updated
+                    if (isLeasedByOther(connection, negotiation.getId())) {
+                        return StoreResult.alreadyLeased(format("ContractNegotiation %s is leased by another holder, cannot update it!", negotiation.getId()));
+                    }
+
                     var sql = statements.getUpsertAgreementTemplate();
 
                     queryExecutor.execute(connection, sql,
@@ -139,7 +163,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
 
                 var stmt = statements.getUpsertNegotiationTemplate();
 
-                queryExecutor.execute(connection, stmt,
+                var updated = queryExecutor.execute(connection, stmt,
                         negotiation.getId(),
                         negotiation.getCorrelationId(),
                         negotiation.getCounterPartyId(),
@@ -159,9 +183,18 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                         negotiation.isPending(),
                         toJson(negotiation.getProtocolMessages()),
                         negotiation.getParticipantContextId(),
-                        toJson(negotiation.getClaims()));
+                        toJson(negotiation.getClaims()),
+                        // saving the entity breaks the lease, unless another holder owns it
+                        null,
+                        null,
+                        null,
+                        leaseHolder,
+                        clock.millis());
 
-                return leaseContext.withConnection(connection).breakLease(negotiation.getId());
+                if (updated == 0) {
+                    return StoreResult.alreadyLeased(format("ContractNegotiation %s is leased by another holder, cannot update it!", negotiation.getId()));
+                }
+                return StoreResult.success();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -173,7 +206,12 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     public StoreResult<Void> breakLease(ContractNegotiation entity) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                return leaseContext.withConnection(connection).breakLease(entity.getId());
+                var updated = queryExecutor.execute(connection, statements.getBreakLeaseTemplate(statements.getContractNegotiationTable()),
+                        entity.getId(), leaseHolder, clock.millis());
+                if (updated == 0 && findInternal(connection, entity.getId()) != null) {
+                    return StoreResult.alreadyLeased(format("ContractNegotiation %s is leased by another holder, cannot break the lease!", entity.getId()));
+                }
+                return StoreResult.success();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -202,17 +240,19 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
             //if exists, attempt delete
             try (var connection = getConnection()) {
 
-                // attempt to acquire lease - should fail if someone else holds the lease
-                var result = leaseContext.withConnection(connection).acquireLease(negotiationId);
-                if (result.failed()) {
-                    return result;
+                // attempt to acquire lease - should fail if the contract negotiation is currently leased
+                if (!acquireLease(connection, negotiationId)) {
+                    return StoreResult.alreadyLeased(format("ContractNegotiation %s is currently leased!", negotiationId));
                 }
 
                 var stmt = statements.getDeleteTemplate();
-                queryExecutor.execute(connection, stmt, negotiationId);
-
-                //necessary to delete the row in edc_lease
-                return leaseContext.withConnection(connection).breakLease(negotiationId);
+                var deleted = queryExecutor.execute(connection, stmt, negotiationId);
+                if (deleted == 0) {
+                    // negotiations with an agreement are not deleted, their lease must be released
+                    queryExecutor.execute(connection, statements.getBreakLeaseTemplate(statements.getContractNegotiationTable()),
+                            negotiationId, leaseHolder, clock.millis());
+                }
+                return StoreResult.success();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -261,6 +301,18 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
         });
     }
 
+    private boolean isLeasedByOther(Connection connection, String id) {
+        var sql = statements.getCountLeasedByOtherTemplate(statements.getContractNegotiationTable());
+        var count = queryExecutor.single(connection, false, rs -> rs.getLong(1), sql, id, leaseHolder, clock.millis());
+        return count != null && count > 0;
+    }
+
+    private boolean acquireLease(Connection connection, String id) {
+        var now = clock.millis();
+        var sql = statements.getAcquireLeaseTemplate(statements.getContractNegotiationTable());
+        return queryExecutor.execute(connection, sql, leaseHolder, now, leaseDuration.toMillis(), id, now) > 0;
+    }
+
     private Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec, Connection connection) {
         var statement = statements.createNegotiationsQuery(querySpec);
         return queryExecutor.query(connection, true, contractNegotiationMapper(), statement.getQueryAsString(), statement.getParameters());
@@ -295,17 +347,6 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
 
     private ResultSetMapper<ContractNegotiation> contractNegotiationMapper() {
         return resultSet -> mapContractNegotiation(resultSet, this::extractContractAgreement);
-    }
-
-    private ResultSetMapper<ContractNegotiation> contractNegotiationWithAgreementMapper(Connection connection) {
-        return resultSet -> mapContractNegotiation(resultSet, rs -> {
-            var agreementId = rs.getString(statements.getContractAgreementIdFkColumn());
-            if (agreementId == null) {
-                return null;
-            } else {
-                return findContractAgreementInternal(connection, agreementId);
-            }
-        });
     }
 
     private ContractNegotiation mapContractNegotiation(ResultSet resultSet, ResultSetMapper<ContractAgreement> agreementMapper) throws Exception {

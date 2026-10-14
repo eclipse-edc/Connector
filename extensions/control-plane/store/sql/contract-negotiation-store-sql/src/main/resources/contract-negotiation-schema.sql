@@ -1,18 +1,5 @@
 -- Statements are designed for and tested with Postgres only!
 
-CREATE TABLE IF NOT EXISTS edc_lease
-(
-    leased_by      VARCHAR               NOT NULL,
-    leased_at      BIGINT,
-    lease_duration INTEGER DEFAULT 60000 NOT NULL,
-    resource_id       VARCHAR NOT NULL,
-    resource_kind  VARCHAR NOT NULL,
-    PRIMARY KEY(resource_id, resource_kind)
-);
-
-COMMENT ON COLUMN edc_lease.leased_at IS 'posix timestamp of lease';
-COMMENT ON COLUMN edc_lease.lease_duration IS 'duration of lease in milliseconds';
-
 CREATE TABLE IF NOT EXISTS edc_contract_agreement
 (
     agr_id            VARCHAR NOT NULL
@@ -59,13 +46,23 @@ CREATE TABLE IF NOT EXISTS edc_contract_negotiation
     pending              BOOLEAN DEFAULT FALSE,
     protocol_messages    JSON,
     participant_context_id VARCHAR NOT NULL,
-    negotiation_claims   JSON
+    negotiation_claims   JSON,
+    leased_by            VARCHAR,
+    leased_at            BIGINT,
+    lease_duration       INTEGER
 );
+
+-- Add lease columns to tables created before the lease was moved from edc_lease to the contract negotiation row
+ALTER TABLE edc_contract_negotiation ADD COLUMN IF NOT EXISTS leased_by VARCHAR;
+ALTER TABLE edc_contract_negotiation ADD COLUMN IF NOT EXISTS leased_at BIGINT;
+ALTER TABLE edc_contract_negotiation ADD COLUMN IF NOT EXISTS lease_duration INTEGER;
 
 COMMENT ON COLUMN edc_contract_negotiation.agreement_id IS 'ContractAgreement serialized as JSON';
 COMMENT ON COLUMN edc_contract_negotiation.contract_offers IS 'List<ContractOffer> serialized as JSON';
 COMMENT ON COLUMN edc_contract_negotiation.trace_context IS 'Map<String,String> serialized as JSON';
 COMMENT ON COLUMN edc_contract_negotiation.negotiation_claims IS 'Claims of the counter-party (Map<String,Object>) serialized as JSON';
+COMMENT ON COLUMN edc_contract_negotiation.leased_at IS 'posix timestamp of lease';
+COMMENT ON COLUMN edc_contract_negotiation.lease_duration IS 'duration of lease in milliseconds';
 
 CREATE INDEX IF NOT EXISTS contract_negotiation_correlationid_index
     ON edc_contract_negotiation (correlation_id);

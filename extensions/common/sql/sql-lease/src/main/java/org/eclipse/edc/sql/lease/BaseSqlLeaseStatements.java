@@ -16,6 +16,12 @@ package org.eclipse.edc.sql.lease;
 
 import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 
+/**
+ * Default SQL statements for the {@code edc_lease} table.
+ *
+ * @deprecated the lease is now stored on the entity row (see {@code org.eclipse.edc.sql.lease.StatefulEntityStatements}), this will be removed in a future release.
+ */
+@Deprecated(since = "1.0.0")
 public class BaseSqlLeaseStatements implements LeaseStatements {
  
 }

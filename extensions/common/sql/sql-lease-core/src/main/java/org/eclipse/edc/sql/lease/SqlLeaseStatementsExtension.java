@@ -21,6 +21,12 @@ import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 
 import static org.eclipse.edc.sql.lease.SqlLeaseStatementsExtension.NAME;
 
+/**
+ * Provides the default {@link LeaseStatements}.
+ *
+ * @deprecated the lease is now stored on the entity row (see {@code org.eclipse.edc.sql.lease.StatefulEntityStatements}), this will be removed in a future release.
+ */
+@Deprecated(since = "1.0.0")
 @Extension(NAME)
 public class SqlLeaseStatementsExtension implements ServiceExtension {
 

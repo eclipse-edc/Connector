@@ -34,13 +34,21 @@ import static org.eclipse.edc.sql.statement.SqlExecuteStatement.isNull;
 public class BaseSqlDialectStatements implements ContractNegotiationStatements {
 
     protected final SqlOperatorTranslator operatorTranslator;
-    protected final LeaseStatements leaseStatements;
     protected final Clock clock;
 
-    public BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator, LeaseStatements leaseStatements, Clock clock) {
+    public BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator, Clock clock) {
         this.operatorTranslator = operatorTranslator;
-        this.leaseStatements = leaseStatements;
         this.clock = clock;
+    }
+
+    /**
+     * Constructor kept for backward compatibility, the lease is now stored on the contract negotiation row.
+     *
+     * @deprecated use {@link #BaseSqlDialectStatements(SqlOperatorTranslator, Clock)}.
+     */
+    @Deprecated(since = "1.0.0")
+    public BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator, LeaseStatements leaseStatements, Clock clock) {
+        this(operatorTranslator, clock);
     }
 
     @Override
@@ -83,7 +91,10 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
                 .jsonColumn(getProtocolMessagesColumn())
                 .column(getParticipantContextIdColumn())
                 .jsonColumn(getNegotiationClaimsColumn())
-                .upsertInto(getContractNegotiationTable(), getIdColumn());
+                .column(getLeasedByColumn())
+                .column(getLeasedAtColumn())
+                .column(getLeaseDurationColumn())
+                .upsertInto(getContractNegotiationTable(), getIdColumn(), getLeaseOwnedOrFreeFilter(getContractNegotiationTable()));
     }
 
     @Override
@@ -131,14 +142,10 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
 
     @Override
     public SqlQueryStatement createNegotiationNextNotLeaseQuery(QuerySpec querySpec) {
-        var queryTemplate = "%s LEFT JOIN %s l ON %s.%s = l.%s".formatted(getSelectNegotiationsTemplate(), leaseStatements.getLeaseTableName(), getContractNegotiationTable(), getIdColumn(), leaseStatements.getResourceIdColumn());
-        return new SqlQueryStatement(queryTemplate, querySpec, new ContractNegotiationMapping(this), operatorTranslator)
-                .addWhereClause(getNotLeasedFilter(), clock.millis(), getContractNegotiationTable());
-    }
-
-    protected String getNotLeasedFilter() {
-        return format("(l.%s IS NULL OR (? > (%s + %s) AND ? = l.%s))",
-                leaseStatements.getResourceIdColumn(), leaseStatements.getLeasedAtColumn(), leaseStatements.getLeaseDurationColumn(), leaseStatements.getResourceKindColumn());
+        // the agreement is outer joined, so only the negotiation rows can be locked
+        return createNegotiationsQuery(querySpec)
+                .addWhereClause(getNotLeasedFilter(getContractNegotiationTable()), clock.millis())
+                .forUpdate(true, getContractNegotiationTable());
     }
 
     @Override
