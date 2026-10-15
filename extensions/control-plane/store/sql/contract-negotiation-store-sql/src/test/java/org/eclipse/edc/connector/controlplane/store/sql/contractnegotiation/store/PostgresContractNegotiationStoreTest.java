@@ -129,10 +129,10 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
     }
 
     @Test
-    void schema_shouldAddLeaseColumnsToExistingTable() {
+    void schema_shouldAddLeaseAndVersionColumnsToExistingTable() {
         var table = statements.getContractNegotiationTable();
-        extension.runQuery("ALTER TABLE %s DROP COLUMN %s, DROP COLUMN %s, DROP COLUMN %s".formatted(table,
-                statements.getLeasedByColumn(), statements.getLeasedAtColumn(), statements.getLeaseDurationColumn()));
+        extension.runQuery("ALTER TABLE %s DROP COLUMN %s, DROP COLUMN %s, DROP COLUMN %s, DROP COLUMN %s".formatted(table,
+                statements.getLeasedByColumn(), statements.getLeasedAtColumn(), statements.getLeaseDurationColumn(), statements.getVersionColumn()));
 
         extension.runQuery(TestUtils.getResourceFileContentAsString("contract-negotiation-schema.sql"));
 

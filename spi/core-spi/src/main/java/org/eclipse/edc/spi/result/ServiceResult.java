@@ -74,7 +74,7 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure, ServiceR
 
         return switch (storeResult.reason()) {
             case NOT_FOUND -> notFound(storeResult.getFailureDetail());
-            case ALREADY_EXISTS, ALREADY_LEASED -> conflict(storeResult.getFailureDetail());
+            case ALREADY_EXISTS, ALREADY_LEASED, CONFLICT -> conflict(storeResult.getFailureDetail());
             default -> badRequest(storeResult.getFailureDetail());
         };
     }
@@ -98,7 +98,7 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure, ServiceR
 
         return switch (storeResult.reason()) {
             case NOT_FOUND -> notFound(storeResult.getFailureDetail());
-            case ALREADY_EXISTS -> conflict(storeResult.getFailureDetail());
+            case ALREADY_EXISTS, ALREADY_LEASED, CONFLICT -> conflict(storeResult.getFailureDetail());
             default -> badRequest(storeResult.getFailureDetail());
         };
     }

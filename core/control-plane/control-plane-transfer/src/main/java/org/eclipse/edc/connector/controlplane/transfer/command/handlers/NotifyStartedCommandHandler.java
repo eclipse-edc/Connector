@@ -47,13 +47,12 @@ public class NotifyStartedCommandHandler extends EntityCommandHandler<NotifyStar
             return false;
         }
 
-        entity.transitionStarting();
-
-        if (command.getDataAddress() != null) {
-            var dataAddressStorage = dataAddressStore.store(command.getDataAddress(), entity);
-            return !dataAddressStorage.failed();
+        // the data address is stored first, so that the entity is not transitioned when storing it fails
+        if (command.getDataAddress() != null && dataAddressStore.store(command.getDataAddress(), entity).failed()) {
+            return false;
         }
 
+        entity.transitionStarting();
         return true;
     }
 

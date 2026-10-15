@@ -89,7 +89,10 @@ public abstract class AbstractStateEntityManager<E extends StatefulEntity<E>, S 
                     monitor.debug(() -> "[%s] %s %s is now in state %s%s"
                             .formatted(this.getClass().getSimpleName(), entity.getClass().getSimpleName(),
                                     entity.getId(), entity.stateAsString(), error));
-                });
+                })
+                .onFailure(f -> monitor.warning("[%s] %s %s could not be saved in state %s: %s"
+                        .formatted(this.getClass().getSimpleName(), entity.getClass().getSimpleName(),
+                                entity.getId(), entity.stateAsString(), f.getFailureDetail())));
     }
 
     protected void breakLease(E entity) {

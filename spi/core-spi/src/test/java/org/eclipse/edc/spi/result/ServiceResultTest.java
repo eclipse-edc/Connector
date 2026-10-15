@@ -37,6 +37,19 @@ class ServiceResultTest {
     }
 
     @Test
+    void verifyFromStorageResult_conflicts() {
+        assertThat(ServiceResult.from(StoreResult.conflict("test-message")).reason()).isEqualTo(CONFLICT);
+        assertThat(ServiceResult.from(StoreResult.alreadyLeased("test-message")).reason()).isEqualTo(CONFLICT);
+    }
+
+    @Test
+    void fromFailure_conflicts() {
+        assertThat(ServiceResult.fromFailure(StoreResult.conflict("test-message")).reason()).isEqualTo(CONFLICT);
+        assertThat(ServiceResult.fromFailure(StoreResult.alreadyLeased("test-message")).reason()).isEqualTo(CONFLICT);
+        assertThat(ServiceResult.fromFailure(StoreResult.alreadyExists("test-message")).reason()).isEqualTo(CONFLICT);
+    }
+
+    @Test
     void fromFailure_withSuccessResult() {
         assertThatThrownBy(() -> ServiceResult.fromFailure(StoreResult.success())).isInstanceOf(IllegalArgumentException.class);
     }

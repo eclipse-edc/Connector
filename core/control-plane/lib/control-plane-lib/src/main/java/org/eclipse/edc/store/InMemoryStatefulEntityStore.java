@@ -55,12 +55,23 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
     private final String lockId;
     private final Clock clock;
     private final Map<String, Lease> leases = new HashMap<>();
+    private final boolean checkVersion;
 
     public InMemoryStatefulEntityStore(Class<T> clazz, String lockId, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry, StateResolver stateResolver) {
+        this(clazz, lockId, clock, criterionOperatorRegistry, stateResolver, false);
+    }
+
+    /**
+     * Creates the store.
+     *
+     * @param checkVersion whether {@link #save(StatefulEntity)} rejects an entity whose version differs from the stored one.
+     */
+    public InMemoryStatefulEntityStore(Class<T> clazz, String lockId, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry, StateResolver stateResolver, boolean checkVersion) {
         this.queryResolver = new ReflectionBasedQueryResolver<>(clazz, new StatefulEntityCriteriaToPredicate<>(criterionOperatorRegistry, stateResolver));
         this.lockId = lockId;
         this.clock = clock;
         this.criterionOperatorRegistry = criterionOperatorRegistry;
+        this.checkVersion = checkVersion;
     }
 
     @Override
@@ -103,12 +114,23 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
 
     @Override
     public StoreResult<Void> save(T entity) {
-        return acquireLease(entity.getId()).compose(it -> {
-            entitiesById.put(entity.getId(), entity.copy());
-            freeLease(entity.getId());
+        return lockManager.writeLock(() -> {
+            var id = entity.getId();
+            if (isLeased(id) && !isLeasedBy(id, lockId)) {
+                return StoreResult.alreadyLeased("Entity %s is leased by another holder, cannot update it!".formatted(id));
+            }
+            var stored = entitiesById.get(id);
+            if (checkVersion && stored != null && stored.getVersion() != entity.getVersion()) {
+                return StoreResult.conflict("Entity %s has been modified: stored version is %d, saved version is %d"
+                        .formatted(id, stored.getVersion(), entity.getVersion()));
+            }
+            var copy = entity.copy();
+            copy.setVersion(entity.getVersion() + 1);
+            entitiesById.put(id, copy);
+            entity.setVersion(entity.getVersion() + 1);
+            freeLease(id);
             return StoreResult.success();
         });
-
     }
 
     @Override
@@ -130,6 +152,16 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
     }
 
     public Stream<T> findAll() {
+        return storedEntities().map(StatefulEntity::copy);
+    }
+
+    /**
+     * Returns the stored entities themselves, not copies: changes made to them are stored without a version check.
+     * Intended for store implementations that update parts of an entity that are not versioned.
+     *
+     * @return the stored entities.
+     */
+    protected Stream<T> storedEntities() {
         return entitiesById.values().stream();
     }
 

@@ -51,6 +51,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.saveOrReplace;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -74,8 +75,8 @@ public class ContractAgreementApiV4EndToEndTest {
         @Test
         @Order(1)
         void getAll(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
-            store.save(createContractNegotiationBuilder("cn2").contractAgreement(createContractAgreement("cn2")).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("cn1")).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn2").contractAgreement(createContractAgreement("cn2")).build());
 
             var jsonPath = context.baseRequest()
                     .contentType(JSON)
@@ -106,7 +107,7 @@ public class ContractAgreementApiV4EndToEndTest {
                     .participantContextId("participantContextId")
                     .claims(Map.of("http://example.com/key", "value"))
                     .build();
-            store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
 
             context.baseRequest()
                     .contentType(JSON)
@@ -129,7 +130,7 @@ public class ContractAgreementApiV4EndToEndTest {
         @Test
         @Order(2)
         void getNegotiationByAgreementId(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("negotiation-id")
+            saveOrReplace(store, createContractNegotiationBuilder("negotiation-id")
                     .contractAgreement(createContractAgreement("agreement-id"))
                     .build());
 
@@ -147,7 +148,7 @@ public class ContractAgreementApiV4EndToEndTest {
 
         @Test
         void retire(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
 
             context.baseRequest()
                     .contentType(JSON)
@@ -169,7 +170,7 @@ public class ContractAgreementApiV4EndToEndTest {
 
         @Test
         void retire_shouldReturnConflict_whenAlreadyRetired(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
 
             context.baseRequest()
                     .contentType(JSON)
@@ -198,7 +199,7 @@ public class ContractAgreementApiV4EndToEndTest {
 
         @Test
         void unretire(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
 
             context.baseRequest()
                     .contentType(JSON)
@@ -225,7 +226,7 @@ public class ContractAgreementApiV4EndToEndTest {
 
         @Test
         void unretire_shouldReturnConflict_whenNotRetired(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
-            store.save(createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
+            saveOrReplace(store, createContractNegotiationBuilder("cn1").contractAgreement(createContractAgreement("agreement-id")).build());
 
             context.baseRequest()
                     .contentType(JSON)

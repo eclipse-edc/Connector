@@ -37,6 +37,7 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Entity
     protected String errorDetail;
     protected boolean pending = false;
     protected long updatedAt;
+    protected long version;
 
     protected StatefulEntity() {
     }
@@ -98,6 +99,26 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Entity
         setUpdatedAt(clock.millis());
     }
 
+    /**
+     * The version of the entity, used for optimistic locking: it is incremented by the store on every successful save,
+     * and a save is rejected when the stored version differs from the one of the entity. {@code 0} means that the
+     * entity was never stored.
+     *
+     * @return the version.
+     */
+    public long getVersion() {
+        return version;
+    }
+
+    /**
+     * Sets the version of the entity. Must only be called by stores after a successful save.
+     *
+     * @param version the version.
+     */
+    public void setVersion(long version) {
+        this.version = version;
+    }
+
 
     public abstract T copy();
 
@@ -127,6 +148,7 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Entity
                 .errorDetail(errorDetail)
                 .clock(clock)
                 .pending(pending)
+                .version(version)
                 .build();
     }
 
@@ -175,6 +197,11 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Entity
 
         public B updatedAt(long time) {
             entity.updatedAt = time;
+            return self();
+        }
+
+        public B version(long version) {
+            entity.version = version;
             return self();
         }
 

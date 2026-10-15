@@ -112,5 +112,6 @@ class NotifyPreparedCommandHandlerTest {
 
         assertThat(result).isFalse();
         verify(dataAddressStore).store(dataAddress, entity);
+        assertThat(entity.getState()).isEqualTo(PREPARATION_REQUESTED.code());
     }
 }

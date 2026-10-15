@@ -321,6 +321,32 @@ class TransferProcessTaskExecutorImplTest {
     }
 
     @Test
+    void handle_shouldSucceedWithoutFollowUp_whenSaveConflicts() {
+        var task = SignalDataflowStarted.Builder.newInstance()
+                .processId("transfer-123")
+                .processState(REQUESTED.code())
+                .processType(CONSUMER.name())
+                .build();
+
+        var process = TransferProcess.Builder.newInstance()
+                .id("transfer-123")
+                .type(CONSUMER)
+                .state(REQUESTED.code())
+                .contractId("contractId")
+                .build();
+        when(transferStore.findById("transfer-123")).thenReturn(process);
+        when(dataFlowController.started(any())).thenReturn(StatusResult.success());
+        // another runtime has changed the transfer process in the meantime
+        when(transferStore.save(any())).thenReturn(StoreResult.conflict("changed concurrently"));
+
+        var result = executor.handle(task);
+
+        assertThat(result.succeeded()).isTrue();
+        verify(taskService, never()).create(any());
+        verify(observable, never()).invokeForEach(any());
+    }
+
+    @Test
     void handle_shouldTransitionWhenHandlerSucceeds() {
         var transferProcess = createTransferProcess("transfer-123", INITIAL);
         var dataPlaneId = UUID.randomUUID().toString();

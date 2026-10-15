@@ -82,14 +82,21 @@ public interface StateEntityStore<T> {
     StoreResult<T> findByIdAndLease(String id);
 
     /**
-     * Persists the entity. This follows UPSERT semantics, so if the object didn't exit before, it's created.
+     * Persists the entity and releases its lease. An entity with version {@code 0} was never stored and is created.
+     * An existing entity is updated only if its version equals the stored one, and only if it is not leased by another
+     * holder. On success, the store increments the version of the stored entity and of the passed instance, so that the
+     * same instance can be saved again.
      *
      * @param entity the entity.
+     * @return success if the entity was saved, {@code ALREADY_LEASED} if another holder holds an unexpired lease on it,
+     *         {@code CONFLICT} if it was changed by another writer since it was read (or if a new entity has the id of an
+     *         existing one).
      */
     StoreResult<Void> save(T entity);
 
     /**
-     * Break the lease eventually existent on the entity
+     * Break the lease eventually existent on the entity, without saving it. Used when an entity that was leased is
+     * not modified.
      *
      * @param entity the entity
      * @return success if lease broken successfully, failure otherwise

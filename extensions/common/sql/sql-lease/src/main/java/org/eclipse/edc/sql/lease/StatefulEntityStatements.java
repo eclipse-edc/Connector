@@ -46,6 +46,10 @@ public interface StatefulEntityStatements {
         return "updated_at";
     }
 
+    default String getVersionColumn() {
+        return "version";
+    }
+
     default String getLeasedByColumn() {
         return "leased_by";
     }
@@ -78,6 +82,28 @@ public interface StatefulEntityStatements {
     default String getLeaseOwnedOrFreeFilter(String table) {
         return "(%1$s.%2$s IS NULL OR %1$s.%2$s = ? OR (%1$s.%3$s + %1$s.%4$s) < ?)"
                 .formatted(table, getLeasedByColumn(), getLeasedAtColumn(), getLeaseDurationColumn());
+    }
+
+    /**
+     * Filter matching the entities whose version is the expected one and that are not leased, are leased by the given
+     * holder or whose lease is expired. Parameters: version, leased by, now.
+     *
+     * @param table the entity table.
+     * @return the filter.
+     */
+    default String getVersionAndLeaseFilter(String table) {
+        return "%s.%s = ? AND %s".formatted(table, getVersionColumn(), getLeaseOwnedOrFreeFilter(table));
+    }
+
+    /**
+     * Template that reads the version and the lease of the entity with the given id. Parameters: entity id.
+     *
+     * @param table the entity table.
+     * @return the template.
+     */
+    default String getFindVersionAndLeaseTemplate(String table) {
+        return "SELECT %s, %s, %s, %s FROM %s WHERE %s = ?".formatted(getVersionColumn(), getLeasedByColumn(),
+                getLeasedAtColumn(), getLeaseDurationColumn(), table, getIdColumn());
     }
 
     /**

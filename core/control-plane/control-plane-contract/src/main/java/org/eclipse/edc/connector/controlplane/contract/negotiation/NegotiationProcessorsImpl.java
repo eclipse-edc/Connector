@@ -34,7 +34,6 @@ import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
 import org.eclipse.edc.statemachine.retry.processor.RetryProcessor;
@@ -76,8 +75,7 @@ public class NegotiationProcessorsImpl implements NegotiationProcessors {
     @WithSpan
     @Override
     public CompletableFuture<StatusResult<Void>> processInitial(ContractNegotiation negotiation) {
-        transitionToRequesting(negotiation);
-        return CompletableFuture.completedFuture(StatusResult.success());
+        return CompletableFuture.completedFuture(transitionToRequesting(negotiation));
     }
 
     @WithSpan
@@ -119,8 +117,7 @@ public class NegotiationProcessorsImpl implements NegotiationProcessors {
     @WithSpan
     @Override
     public CompletableFuture<StatusResult<Void>> processAgreed(ContractNegotiation negotiation) {
-        transitionToVerifying(negotiation);
-        return CompletableFuture.completedFuture(StatusResult.success());
+        return CompletableFuture.completedFuture(transitionToVerifying(negotiation));
     }
 
     @WithSpan
@@ -160,24 +157,20 @@ public class NegotiationProcessorsImpl implements NegotiationProcessors {
     @WithSpan
     @Override
     public CompletableFuture<StatusResult<Void>> processRequested(ContractNegotiation negotiation) {
-        transitionToAgreeing(negotiation);
-        return CompletableFuture.completedFuture(StatusResult.success());
+        return CompletableFuture.completedFuture(transitionToAgreeing(negotiation));
     }
 
     @WithSpan
     @Override
     public CompletableFuture<StatusResult<Void>> processHeld(ContractNegotiation negotiation) {
         negotiation.setPending(true);
-        update(negotiation);
-        observable.invokeForEach(l -> l.held(negotiation));
-        return CompletableFuture.completedFuture(StatusResult.success());
+        return CompletableFuture.completedFuture(update(negotiation).onSuccess(v -> observable.invokeForEach(l -> l.held(negotiation))));
     }
 
     @WithSpan
     @Override
     public CompletableFuture<StatusResult<Void>> processAccepted(ContractNegotiation negotiation) {
-        transitionToAgreeing(negotiation);
-        return CompletableFuture.completedFuture(StatusResult.success());
+        return CompletableFuture.completedFuture(transitionToAgreeing(negotiation));
     }
 
     @WithSpan
@@ -225,8 +218,7 @@ public class NegotiationProcessorsImpl implements NegotiationProcessors {
     @WithSpan
     @Override
     public CompletableFuture<StatusResult<Void>> processVerified(ContractNegotiation negotiation) {
-        transitionToFinalizing(negotiation);
-        return CompletableFuture.completedFuture(StatusResult.success());
+        return CompletableFuture.completedFuture(transitionToFinalizing(negotiation));
     }
 
     @WithSpan
@@ -283,104 +275,102 @@ public class NegotiationProcessorsImpl implements NegotiationProcessors {
                 .doProcess(futureResult(name, (n, v) -> messageDispatcher.dispatch(negotiation.getParticipantContextId(), responseType, message)));
     }
 
-    private void transitionToRequesting(ContractNegotiation negotiation) {
+    private StatusResult<Void> transitionToRequesting(ContractNegotiation negotiation) {
         negotiation.transitionRequesting();
-        update(negotiation);
+        return update(negotiation);
     }
 
-    private void transitionToRequested(ContractNegotiation negotiation, ContractNegotiationAck ack) {
+    private StatusResult<Void> transitionToRequested(ContractNegotiation negotiation, ContractNegotiationAck ack) {
         negotiation.transitionRequested();
         negotiation.setCorrelationId(ack.getProviderPid());
-        update(negotiation);
-        observable.invokeForEach(l -> l.requested(negotiation));
+        return update(negotiation).onSuccess(v -> observable.invokeForEach(l -> l.requested(negotiation)));
     }
 
-    private void transitionToAccepting(ContractNegotiation negotiation) {
+    private StatusResult<Void> transitionToAccepting(ContractNegotiation negotiation) {
         negotiation.transitionAccepting();
-        update(negotiation);
+        return update(negotiation);
     }
 
-    private void transitionToAccepted(ContractNegotiation negotiation) {
+    private StatusResult<Void> transitionToAccepted(ContractNegotiation negotiation) {
         negotiation.transitionAccepted();
-        update(negotiation);
-        observable.invokeForEach(l -> l.accepted(negotiation));
+        return update(negotiation).onSuccess(v -> observable.invokeForEach(l -> l.accepted(negotiation)));
     }
 
-    private void transitionToOffering(ContractNegotiation negotiation) {
+    private StatusResult<Void> transitionToOffering(ContractNegotiation negotiation) {
         negotiation.transitionOffering();
-        update(negotiation);
+        return update(negotiation);
     }
 
-    private void transitionToOffered(ContractNegotiation negotiation, ContractNegotiationAck ack) {
+    private StatusResult<Void> transitionToOffered(ContractNegotiation negotiation, ContractNegotiationAck ack) {
         negotiation.transitionOffered();
         negotiation.setCorrelationId(ack.getConsumerPid());
-        update(negotiation);
-        observable.invokeForEach(l -> l.offered(negotiation));
+        return update(negotiation).onSuccess(v -> observable.invokeForEach(l -> l.offered(negotiation)));
     }
 
-    private void transitionToAgreeing(ContractNegotiation negotiation) {
+    private StatusResult<Void> transitionToAgreeing(ContractNegotiation negotiation) {
         negotiation.transitionAgreeing();
-        update(negotiation);
+        return update(negotiation);
     }
 
-    private void transitionToAgreed(ContractNegotiation negotiation, ContractAgreement agreement) {
+    private StatusResult<Void> transitionToAgreed(ContractNegotiation negotiation, ContractAgreement agreement) {
         negotiation.setContractAgreement(agreement);
         negotiation.transitionAgreed();
-        update(negotiation);
-        observable.invokeForEach(l -> l.agreed(negotiation));
+        return update(negotiation).onSuccess(v -> observable.invokeForEach(l -> l.agreed(negotiation)));
     }
 
-    private void transitionToVerifying(ContractNegotiation negotiation) {
+    private StatusResult<Void> transitionToVerifying(ContractNegotiation negotiation) {
         negotiation.transitionVerifying();
-        update(negotiation);
+        return update(negotiation);
     }
 
-    private void transitionToVerified(ContractNegotiation negotiation) {
+    private StatusResult<Void> transitionToVerified(ContractNegotiation negotiation) {
         negotiation.transitionVerified();
-        update(negotiation);
-        observable.invokeForEach(l -> l.verified(negotiation));
+        return update(negotiation).onSuccess(v -> observable.invokeForEach(l -> l.verified(negotiation)));
     }
 
-    private void transitionToFinalizing(ContractNegotiation negotiation) {
+    private StatusResult<Void> transitionToFinalizing(ContractNegotiation negotiation) {
         negotiation.transitionFinalizing();
-        update(negotiation);
+        return update(negotiation);
     }
 
-    private void transitionToFinalized(ContractNegotiation negotiation) {
+    private StatusResult<Void> transitionToFinalized(ContractNegotiation negotiation) {
         negotiation.transitionFinalized();
-        update(negotiation);
-        observable.invokeForEach(l -> l.finalized(negotiation));
+        return update(negotiation).onSuccess(v -> observable.invokeForEach(l -> l.finalized(negotiation)));
     }
 
-    private void transitionToTerminating(ContractNegotiation negotiation, String message) {
+    private StatusResult<Void> transitionToTerminating(ContractNegotiation negotiation, String message) {
         negotiation.transitionTerminating(message);
-        update(negotiation);
+        return update(negotiation);
     }
 
-    private void transitionToTerminating(ContractNegotiation negotiation) {
+    private StatusResult<Void> transitionToTerminating(ContractNegotiation negotiation) {
         negotiation.transitionTerminating();
-        update(negotiation);
+        return update(negotiation);
     }
 
-    private void transitionToTerminated(ContractNegotiation negotiation, String message) {
+    private StatusResult<Void> transitionToTerminated(ContractNegotiation negotiation, String message) {
         negotiation.setErrorDetail(message);
-        transitionToTerminated(negotiation);
+        return transitionToTerminated(negotiation);
     }
 
-    private void transitionToTerminated(ContractNegotiation negotiation) {
+    private StatusResult<Void> transitionToTerminated(ContractNegotiation negotiation) {
         negotiation.transitionTerminated();
-        update(negotiation);
-        observable.invokeForEach(l -> l.terminated(negotiation));
+        return update(negotiation).onSuccess(v -> observable.invokeForEach(l -> l.terminated(negotiation)));
     }
 
-    protected StoreResult<Void> update(ContractNegotiation entity) {
-        return store.save(entity)
+    /**
+     * Saves the negotiation. Callers must act on the new state (events, follow-up actions) only if the save succeeded.
+     */
+    protected StatusResult<Void> update(ContractNegotiation entity) {
+        return StatusResult.from(store.save(entity))
                 .onSuccess(ignored -> {
                     var error = entity.getErrorDetail() == null ? "" : ". errorDetail: " + entity.getErrorDetail();
 
                     monitor.debug(() -> "[%s] %s %s is now in state %s%s"
                             .formatted(this.getClass().getSimpleName(), entity.getClass().getSimpleName(),
                                     entity.getId(), entity.stateAsString(), error));
-                });
+                })
+                .onFailure(f -> monitor.warning("%s %s could not be saved in state %s, the result is dropped: %s"
+                        .formatted(entity.getClass().getSimpleName(), entity.getId(), entity.stateAsString(), f.getFailureDetail())));
     }
 }

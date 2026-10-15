@@ -23,6 +23,7 @@ import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import java.time.Clock;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -50,7 +51,7 @@ public class RetryProcessor<E extends StatefulEntity<E>, C> {
     private final EntityRetryProcessConfiguration configuration;
     private final Function<Void, CompletableFuture<ProcessContext<E, C>>> processChain;
 
-    private BiConsumer<E, C> onSuccess;
+    private BiFunction<E, C, StatusResult<Void>> onSuccess;
     private BiConsumer<E, Throwable> onFailure;
     private BiConsumer<E, Throwable> onFinalFailure;
 
@@ -70,7 +71,15 @@ public class RetryProcessor<E extends StatefulEntity<E>, C> {
         return new RetryProcessor<>(entity, monitor, clock, configuration, c -> processChain.apply(c).thenCompose(process::execute));
     }
 
-    public RetryProcessor<E, C> onSuccess(BiConsumer<E, C> onSuccess) {
+    /**
+     * Handler called when all the processes succeeded. Its result is the result of {@link #execute()}, e.g. a
+     * {@link org.eclipse.edc.spi.response.ResponseStatus#CONFLICT} failure when the entity could not be saved because
+     * it was changed by another writer.
+     *
+     * @param onSuccess the handler.
+     * @return the processor.
+     */
+    public RetryProcessor<E, C> onSuccess(BiFunction<E, C, StatusResult<Void>> onSuccess) {
         this.onSuccess = onSuccess;
         return this;
     }
@@ -95,8 +104,7 @@ public class RetryProcessor<E extends StatefulEntity<E>, C> {
         return processChain.apply(null)
                 .handle((content, throwable) -> {
                     if (throwable == null) {
-                        onSuccess.accept(content.entity(), content.content());
-                        return StatusResult.success();
+                        return onSuccess.apply(content.entity(), content.content());
                     } else {
                         var cause = throwable.getCause();
                         if (cause instanceof UnrecoverableEntityStateException unrecoverable) {

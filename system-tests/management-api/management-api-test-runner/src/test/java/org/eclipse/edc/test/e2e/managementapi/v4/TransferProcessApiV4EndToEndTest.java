@@ -64,6 +64,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.saveOrReplace;
 import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.contains;
@@ -78,8 +79,8 @@ public class TransferProcessApiV4EndToEndTest {
         void getAll(ManagementEndToEndTestContext context, TransferProcessStore store) {
             var id1 = UUID.randomUUID().toString();
             var id2 = UUID.randomUUID().toString();
-            store.save(createTransferProcess(id1));
-            store.save(createTransferProcess(id2));
+            saveOrReplace(store, createTransferProcess(id1));
+            saveOrReplace(store, createTransferProcess(id2));
 
             context.baseRequest()
                     .contentType(JSON)
@@ -97,8 +98,8 @@ public class TransferProcessApiV4EndToEndTest {
 
         @Test
         void getById(ManagementEndToEndTestContext context, TransferProcessStore store) {
-            store.save(createTransferProcess("tp1"));
-            store.save(createTransferProcess("tp2"));
+            saveOrReplace(store, createTransferProcess("tp1"));
+            saveOrReplace(store, createTransferProcess("tp2"));
 
             context.baseRequest()
                     .get("/v4/transferprocesses/tp2")
@@ -113,7 +114,7 @@ public class TransferProcessApiV4EndToEndTest {
 
         @Test
         void getState(ManagementEndToEndTestContext context, TransferProcessStore store) {
-            store.save(createTransferProcessBuilder("tp2").state(COMPLETED.code()).build());
+            saveOrReplace(store, createTransferProcessBuilder("tp2").state(COMPLETED.code()).build());
 
             context.baseRequest()
                     .get("/v4/transferprocesses/tp2/state")
@@ -137,7 +138,7 @@ public class TransferProcessApiV4EndToEndTest {
                     .participantContextId("anonymous")
                     .contractAgreement(createContractAgreement(contractId, assetId).participantContextId("anonymous").build())
                     .build();
-            contractNegotiationStore.save(contractNegotiation);
+            saveOrReplace(contractNegotiationStore, contractNegotiation);
 
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
@@ -180,7 +181,7 @@ public class TransferProcessApiV4EndToEndTest {
         @Test
         void terminate(ManagementEndToEndTestContext context, TransferProcessStore store) {
             var id = UUID.randomUUID().toString();
-            store.save(createTransferProcessBuilder(id).state(REQUESTED.code()).build());
+            saveOrReplace(store, createTransferProcessBuilder(id).state(REQUESTED.code()).build());
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "TerminateTransfer")
@@ -203,7 +204,7 @@ public class TransferProcessApiV4EndToEndTest {
             var tp = createTransferProcessBuilder("test-tp")
                     .state(actualState.code())
                     .build();
-            store.save(tp);
+            saveOrReplace(store, tp);
 
             JsonValue stateValue;
             try {
@@ -244,8 +245,8 @@ public class TransferProcessApiV4EndToEndTest {
             var tp2 = createTransferProcessBuilder("test-tp2")
                     .clock(Clock.fixed(Instant.now().plus(1, ChronoUnit.HOURS), ZoneId.systemDefault()))
                     .build();
-            store.save(tp1);
-            store.save(tp2);
+            saveOrReplace(store, tp1);
+            saveOrReplace(store, tp2);
 
 
             var content = """

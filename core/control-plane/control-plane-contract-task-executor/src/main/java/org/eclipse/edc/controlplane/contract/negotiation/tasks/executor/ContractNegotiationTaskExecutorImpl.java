@@ -127,11 +127,19 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
                 return StatusResult.success();
             }
 
+            StatusResult<Void> result;
             if (pendingGuard.test(negotiation)) {
                 monitor.debug("Holding '%s' for contract negotiation with id '%s' due matched guard".formatted(expectedState, negotiationId));
-                return invokeProcessor(negotiation, negotiationProcessors::processHeld);
+                result = invokeProcessor(negotiation, negotiationProcessors::processHeld);
+            } else {
+                result = handler.function.apply(negotiation);
             }
-            return handler.function.apply(negotiation);
+            if (result.conflict()) {
+                // another writer has already moved the contract negotiation on, and the new state has its own task: drop this one
+                monitor.debug("Skipping contract negotiation with id '%s', it was changed concurrently: %s".formatted(negotiation.getId(), result.getFailureDetail()));
+                return StatusResult.success();
+            }
+            return result;
         });
 
     }

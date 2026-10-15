@@ -37,7 +37,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
 
 import java.util.Optional;
@@ -111,11 +110,11 @@ public class TransferProcessorsImpl implements TransferProcessors {
                     process.setDataPlaneId(response.getDataPlaneId());
                     if (response.isAsync()) {
                         process.transitionPreparationRequested();
-                        observable.invokeForEach(l -> l.preparationRequested(process));
+                        return update(process).onSuccess(v -> observable.invokeForEach(l -> l.preparationRequested(process)));
                     } else {
                         process.transitionRequesting();
+                        return update(process);
                     }
-                    update(process);
                 })
                 .onFailure((t, throwable) -> transitionToInitial(t))
                 .onFinalFailure(this::transitionToTerminated)
@@ -221,8 +220,7 @@ public class TransferProcessorsImpl implements TransferProcessors {
                 }))
                 .onSuccess((t, ignored) -> {
                     t.transitionStarted();
-                    update(t);
-                    observable.invokeForEach(l -> l.started(t, TransferProcessStartedData.Builder.newInstance().build()));
+                    return update(t).onSuccess(v -> observable.invokeForEach(l -> l.started(t, TransferProcessStartedData.Builder.newInstance().build())));
                 })
                 .onFailure((t, throwable) -> transitionToStarting(t))
                 .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
@@ -260,11 +258,10 @@ public class TransferProcessorsImpl implements TransferProcessors {
                 )
                 .onSuccess((t, content) -> {
                     if (t.getState() == RESUMING.code()) {
-                        transitionToStarted(t);
+                        return transitionToStarted(t);
                     } else {
                         t.transitionResumed();
-                        update(t);
-                        observable.invokeForEach(l -> l.resumed(t));
+                        return update(t).onSuccess(v -> observable.invokeForEach(l -> l.resumed(t)));
                     }
                 })
                 .onFailure((t, throwable) -> {
@@ -335,8 +332,7 @@ public class TransferProcessorsImpl implements TransferProcessors {
     @Override
     public CompletableFuture<StatusResult<Void>> processTerminating(TransferProcess process) {
         if (process.getType() == CONSUMER && process.getState() < REQUESTED.code()) {
-            transitionToTerminated(process);
-            return CompletableFuture.completedFuture(StatusResult.success());
+            return CompletableFuture.completedFuture(transitionToTerminated(process));
         }
 
         return entityRetryProcessFactory.retryProcessor(process)
@@ -390,110 +386,114 @@ public class TransferProcessorsImpl implements TransferProcessors {
         return messageDispatcher.dispatch(process.getParticipantContextId(), responseType, message);
     }
 
-    private void transitionToInitial(TransferProcess process) {
+    private StatusResult<Void> transitionToInitial(TransferProcess process) {
         process.transitionInitial();
-        update(process);
+        return update(process);
     }
 
-    private void transitionToRequesting(TransferProcess process) {
+    private StatusResult<Void> transitionToRequesting(TransferProcess process) {
         process.transitionRequesting();
-        update(process);
+        return update(process);
     }
 
-    private void transitionToRequested(TransferProcess transferProcess, TransferProcessAck ack) {
+    private StatusResult<Void> transitionToRequested(TransferProcess transferProcess, TransferProcessAck ack) {
         transferProcess.transitionRequested();
         transferProcess.setCorrelationId(ack.getProviderPid());
-        update(transferProcess);
-        observable.invokeForEach(l -> l.requested(transferProcess));
+        return update(transferProcess).onSuccess(v -> observable.invokeForEach(l -> l.requested(transferProcess)));
     }
 
-    private void transitionToStarting(TransferProcess transferProcess) {
+    private StatusResult<Void> transitionToStarting(TransferProcess transferProcess) {
         transferProcess.transitionStarting();
-        update(transferProcess);
+        return update(transferProcess);
     }
 
-    private void transitionToStarted(TransferProcess transferProcess) {
+    private StatusResult<Void> transitionToStarted(TransferProcess transferProcess) {
         transferProcess.transitionStarted();
-        update(transferProcess);
-        var transferStartedData = TransferProcessStartedData.Builder.newInstance()
-                .dataAddress(dataAddressStore.resolve(transferProcess).orElse(f -> null))
-                .build();
-        observable.invokeForEach(l -> l.started(transferProcess, transferStartedData));
+        return update(transferProcess).onSuccess(v -> {
+            var transferStartedData = TransferProcessStartedData.Builder.newInstance()
+                    .dataAddress(dataAddressStore.resolve(transferProcess).orElse(f -> null))
+                    .build();
+            observable.invokeForEach(l -> l.started(transferProcess, transferStartedData));
+        });
     }
 
-    private void transitionToStartupRequested(TransferProcess transferProcess) {
+    private StatusResult<Void> transitionToStartupRequested(TransferProcess transferProcess) {
         transferProcess.transitionStartupRequested();
-        update(transferProcess);
+        return update(transferProcess);
     }
 
-    private void transitionToCompleting(TransferProcess process) {
+    private StatusResult<Void> transitionToCompleting(TransferProcess process) {
         process.transitionCompleting();
-        update(process);
+        return update(process);
     }
 
-    private void transitionToCompleted(TransferProcess transferProcess) {
+    private StatusResult<Void> transitionToCompleted(TransferProcess transferProcess) {
         transferProcess.transitionCompleted();
-        update(transferProcess).compose(i -> dataAddressStore.remove(transferProcess))
-                .onSuccess(i -> observable.invokeForEach(l -> l.completed(transferProcess)));
+        return update(transferProcess).onSuccess(v -> dataAddressStore.remove(transferProcess)
+                .onSuccess(i -> observable.invokeForEach(l -> l.completed(transferProcess))));
     }
 
-    private void transitionToSuspending(TransferProcess process, Throwable error) {
+    private StatusResult<Void> transitionToSuspending(TransferProcess process, Throwable error) {
         var message = "Cannot suspend: " + error.getMessage();
         monitor.warning(message, error);
         process.transitionSuspending(message);
-        update(process);
+        return update(process);
     }
 
-    private void transitionToSuspendingRequested(TransferProcess process, Throwable error) {
+    private StatusResult<Void> transitionToSuspendingRequested(TransferProcess process, Throwable error) {
         var message = "Cannot request suspension: " + error.getMessage();
         monitor.warning(message, error);
         process.transitionSuspendingRequested(message);
-        update(process);
+        return update(process);
     }
 
-    private void transitionToSuspended(TransferProcess process) {
+    private StatusResult<Void> transitionToSuspended(TransferProcess process) {
         process.transitionSuspended();
-        update(process);
-        observable.invokeForEach(l -> l.suspended(process));
+        return update(process).onSuccess(v -> observable.invokeForEach(l -> l.suspended(process)));
     }
 
-    private void transitionToTerminating(TransferProcess process, String message, Throwable... errors) {
+    private StatusResult<Void> transitionToTerminating(TransferProcess process, String message, Throwable... errors) {
         monitor.warning(message, errors);
         process.transitionTerminating(message);
-        update(process);
+        return update(process);
     }
 
-    private void transitionToTerminatingRequested(TransferProcess process, String message, Throwable... errors) {
+    private StatusResult<Void> transitionToTerminatingRequested(TransferProcess process, String message, Throwable... errors) {
         monitor.warning(message, errors);
         process.transitionTerminatingRequested(message);
-        update(process);
+        return update(process);
     }
 
-    private void transitionToTerminated(TransferProcess process, Throwable throwable) {
-        transitionToTerminated(process, throwable.getMessage());
+    private StatusResult<Void> transitionToTerminated(TransferProcess process, Throwable throwable) {
+        return transitionToTerminated(process, throwable.getMessage());
     }
 
-    private void transitionToTerminated(TransferProcess process, String message) {
+    private StatusResult<Void> transitionToTerminated(TransferProcess process, String message) {
         process.setErrorDetail(message);
         monitor.warning(message);
-        transitionToTerminated(process);
+        return transitionToTerminated(process);
     }
 
-    private void transitionToTerminated(TransferProcess process) {
+    private StatusResult<Void> transitionToTerminated(TransferProcess process) {
         process.transitionTerminated();
-        update(process).compose(i -> dataAddressStore.remove(process))
-                .onSuccess(i -> observable.invokeForEach(l -> l.terminated(process)));
+        return update(process).onSuccess(v -> dataAddressStore.remove(process)
+                .onSuccess(i -> observable.invokeForEach(l -> l.terminated(process))));
     }
 
-    private StoreResult<Void> update(TransferProcess entity) {
-        return store.save(entity)
+    /**
+     * Saves the transfer process. Callers must act on the new state (events, follow-up actions) only if the save succeeded.
+     */
+    private StatusResult<Void> update(TransferProcess entity) {
+        return StatusResult.from(store.save(entity))
                 .onSuccess(ignored -> {
                     var error = entity.getErrorDetail() == null ? "" : ". errorDetail: " + entity.getErrorDetail();
 
                     monitor.debug(() -> "%s %s is now in state %s%s"
                             .formatted(entity.getClass().getSimpleName(),
                                     entity.getId(), entity.stateAsString(), error));
-                });
+                })
+                .onFailure(f -> monitor.warning("%s %s could not be saved in state %s, the result is dropped: %s"
+                        .formatted(entity.getClass().getSimpleName(), entity.getId(), entity.stateAsString(), f.getFailureDetail())));
     }
 
 

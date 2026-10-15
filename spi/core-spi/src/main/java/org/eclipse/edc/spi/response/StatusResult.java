@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.eclipse.edc.spi.response.ResponseStatus.CONFLICT;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
@@ -60,6 +61,15 @@ public class StatusResult<T> extends AbstractResult<T, ResponseFailure, StatusRe
         return failed() && getFailure().status() == FATAL_ERROR;
     }
 
+    /**
+     * Whether the operation failed because the entity was changed by another writer in the meantime.
+     *
+     * @return true if the result is a {@link ResponseStatus#CONFLICT} failure.
+     */
+    public boolean conflict() {
+        return failed() && getFailure().status() == CONFLICT;
+    }
+
     @NotNull
     @SuppressWarnings("unchecked")
     @Override
@@ -91,6 +101,8 @@ public class StatusResult<T> extends AbstractResult<T, ResponseFailure, StatusRe
 
         if (storeResult.reason() == StoreFailure.Reason.ALREADY_LEASED) {
             return StatusResult.failure(ERROR_RETRY, storeResult.getFailureDetail());
+        } else if (storeResult.reason() == StoreFailure.Reason.CONFLICT) {
+            return StatusResult.failure(CONFLICT, storeResult.getFailureDetail());
         } else {
             return StatusResult.failure(FATAL_ERROR, storeResult.getFailureDetail());
         }

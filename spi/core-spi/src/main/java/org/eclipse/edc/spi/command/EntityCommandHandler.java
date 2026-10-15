@@ -47,11 +47,17 @@ public abstract class EntityCommandHandler<C extends EntityCommand, E extends St
 
         if (modify(entity, command)) {
             entity.setModified();
-            store.save(entity);
+            var saveResult = store.save(entity);
+            if (saveResult.failed()) {
+                return CommandResult.conflict(format("Could not execute %s on %s with ID [%s]: %s",
+                        command.getClass().getSimpleName(), entity.getClass().getSimpleName(), entityId,
+                        saveResult.getFailureDetail()));
+            }
             postActions(entity, command);
             return CommandResult.success();
         } else {
-            store.save(entity);
+            // the entity was not modified, so it is not saved: only the lease is released
+            store.breakLease(entity);
             return CommandResult.conflict(format("Could not execute %s on %s with ID [%s] because it's %s",
                     command.getClass().getSimpleName(), entity.getClass().getSimpleName(), entityId,
                     entity.stateAsString()));
@@ -70,7 +76,7 @@ public abstract class EntityCommandHandler<C extends EntityCommand, E extends St
     protected abstract boolean modify(E entity, C command);
 
     /**
-     * Actions needed to be executed after persistance, only if the command modifies the entity.
+     * Actions needed to be executed after persistence, only if the command modifies the entity and it was saved.
      *
      * @param entity the entity.
      * @param command the command.

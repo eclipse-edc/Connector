@@ -42,17 +42,16 @@ public class NotifyPreparedCommandHandler extends EntityCommandHandler<NotifyPre
 
     @Override
     protected boolean modify(TransferProcess entity, NotifyPreparedCommand command) {
+        // the data address is stored first, so that the entity is not transitioned when storing it fails
+        if (command.getDataAddress() != null && dataAddressStore.store(command.getDataAddress(), entity).failed()) {
+            return false;
+        }
+
         if (entity.getType() == TransferProcess.Type.CONSUMER) {
             entity.transitionRequesting();
         } else {
             entity.transitionStarting();
         }
-
-        if (command.getDataAddress() != null) {
-            var dataAddressStorage = dataAddressStore.store(command.getDataAddress(), entity);
-            return dataAddressStorage.succeeded();
-        }
-
         return true;
     }
 
