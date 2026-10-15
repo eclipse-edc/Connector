@@ -107,6 +107,17 @@ public interface StatefulEntityStatements {
     }
 
     /**
+     * Template that reads the version and the lease of the entity with the given id and locks its row until the end of
+     * the transaction. Parameters: entity id.
+     *
+     * @param table the entity table.
+     * @return the template.
+     */
+    default String getFindVersionAndLeaseForUpdateTemplate(String table) {
+        return getFindVersionAndLeaseTemplate(table) + " FOR UPDATE";
+    }
+
+    /**
      * Template that counts the entities with the given id that are leased by another holder and whose lease is not
      * expired. Parameters: entity id, leased by, now.
      *
