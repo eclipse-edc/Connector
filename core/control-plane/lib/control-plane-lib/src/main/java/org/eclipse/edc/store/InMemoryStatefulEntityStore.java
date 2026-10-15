@@ -47,7 +47,7 @@ import static java.util.stream.Collectors.toList;
  * purposes only.
  */
 public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements StateEntityStore<T> {
-    private static final Duration DEFAULT_LEASE_TIME = Duration.ofSeconds(60);
+    public static final Duration DEFAULT_LEASE_DURATION = Duration.ofSeconds(60);
     protected final CriterionOperatorRegistry criterionOperatorRegistry;
     private final Map<String, T> entitiesById = new ConcurrentHashMap<>();
     private final QueryResolver<T> queryResolver;
@@ -56,6 +56,7 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
     private final Clock clock;
     private final Map<String, Lease> leases = new HashMap<>();
     private final boolean checkVersion;
+    private final Duration leaseDuration;
 
     public InMemoryStatefulEntityStore(Class<T> clazz, String lockId, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry, StateResolver stateResolver) {
         this(clazz, lockId, clock, criterionOperatorRegistry, stateResolver, false);
@@ -67,11 +68,23 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
      * @param checkVersion whether {@link #save(StatefulEntity)} rejects an entity whose version differs from the stored one.
      */
     public InMemoryStatefulEntityStore(Class<T> clazz, String lockId, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry, StateResolver stateResolver, boolean checkVersion) {
+        this(clazz, lockId, clock, criterionOperatorRegistry, stateResolver, checkVersion, DEFAULT_LEASE_DURATION);
+    }
+
+    /**
+     * Creates the store.
+     *
+     * @param checkVersion  whether {@link #save(StatefulEntity)} rejects an entity whose version differs from the stored one.
+     * @param leaseDuration how long an entity stays leased by {@link #nextNotLeased(int, Criterion...)} and {@link #findByIdAndLease(String)}.
+     */
+    public InMemoryStatefulEntityStore(Class<T> clazz, String lockId, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry, StateResolver stateResolver,
+                                       boolean checkVersion, Duration leaseDuration) {
         this.queryResolver = new ReflectionBasedQueryResolver<>(clazz, new StatefulEntityCriteriaToPredicate<>(criterionOperatorRegistry, stateResolver));
         this.lockId = lockId;
         this.clock = clock;
         this.criterionOperatorRegistry = criterionOperatorRegistry;
         this.checkVersion = checkVersion;
+        this.leaseDuration = leaseDuration;
     }
 
     @Override
@@ -183,7 +196,7 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
     }
 
     private StoreResult<Void> acquireLease(String id) {
-        return acquireLease(id, lockId, DEFAULT_LEASE_TIME);
+        return acquireLease(id, lockId, leaseDuration);
     }
 
     private boolean isLeased(String id) {

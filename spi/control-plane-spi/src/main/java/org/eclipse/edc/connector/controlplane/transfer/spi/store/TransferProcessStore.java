@@ -30,6 +30,17 @@ import java.util.stream.Stream;
 public interface TransferProcessStore extends StateEntityStore<TransferProcess> {
 
     /**
+     * Setting that defines how long a runtime keeps the lease on a transfer process while processing it, in ISO-8601
+     * duration format.
+     */
+    String LEASE_DURATION_SETTING = "edc.transfer.state-machine.lease-duration";
+
+    /**
+     * Default value of {@link #LEASE_DURATION_SETTING}.
+     */
+    String LEASE_DURATION_DEFAULT_VALUE = "PT60S";
+
+    /**
      * Returns the transfer process for the correlation id or null if not found.
      */
     @Nullable

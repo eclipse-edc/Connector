@@ -14,16 +14,22 @@
 
 package org.eclipse.edc.connector.controlplane.store.sql.transferprocess;
 
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.SqlTransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.time.Duration;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,5 +55,25 @@ public class SqlTransferProcessStoreExtensionTest {
         var service = context.getService(TransferProcessStore.class);
         assertThat(service).isInstanceOf(SqlTransferProcessStore.class);
 
+    }
+
+    @Test
+    void shouldUseConfiguredLeaseDuration(TestExtensionContext context, ObjectFactory factory) {
+        context.setConfig(ConfigFactory.fromMap(Map.of(TransferProcessStore.LEASE_DURATION_SETTING, "PT5M")));
+        var extension = factory.constructInstance(SqlTransferProcessStoreExtension.class);
+
+        extension.initialize(context);
+
+        assertThat(context.getService(TransferProcessStore.class)).extracting("leaseDuration").isEqualTo(Duration.ofMinutes(5));
+    }
+
+    @Test
+    void shouldUseDefaultLeaseDuration_whenNotConfigured(TestExtensionContext context, ObjectFactory factory) {
+        context.setConfig(ConfigFactory.fromMap(Map.of()));
+        var extension = factory.constructInstance(SqlTransferProcessStoreExtension.class);
+
+        extension.initialize(context);
+
+        assertThat(context.getService(TransferProcessStore.class)).extracting("leaseDuration").isEqualTo(Duration.ofSeconds(60));
     }
 }

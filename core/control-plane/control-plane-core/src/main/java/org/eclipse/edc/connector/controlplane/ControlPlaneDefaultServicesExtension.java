@@ -42,12 +42,14 @@ import org.eclipse.edc.protocol.spi.store.DataspaceProfileStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.time.Clock;
+import java.time.Duration;
 
 /**
  * Provides default service implementations for fallback
@@ -60,6 +62,16 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
     private InMemoryContractDefinitionStore contractDefinitionStore;
     @Inject
     private Clock clock;
+    @Setting(description = "How long a runtime keeps the lease on a transfer process while processing it, in ISO-8601 duration format. " +
+            "It must be longer than the slowest processing step, e.g. a protocol message dispatch including HTTP timeouts and retries, " +
+            "otherwise the transfer process can be processed again, by another runtime or by the same one",
+            key = TransferProcessStore.LEASE_DURATION_SETTING, defaultValue = TransferProcessStore.LEASE_DURATION_DEFAULT_VALUE)
+    private Duration transferProcessLeaseDuration;
+    @Setting(description = "How long a runtime keeps the lease on a contract negotiation while processing it, in ISO-8601 duration format. " +
+            "It must be longer than the slowest processing step, e.g. a protocol message dispatch including HTTP timeouts and retries, " +
+            "otherwise the contract negotiation can be processed again, by another runtime or by the same one",
+            key = ContractNegotiationStore.LEASE_DURATION_SETTING, defaultValue = ContractNegotiationStore.LEASE_DURATION_DEFAULT_VALUE)
+    private Duration contractNegotiationLeaseDuration;
     @Inject
     private CriterionOperatorRegistry criterionOperatorRegistry;
     @Inject
@@ -92,12 +104,12 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public ContractNegotiationStore defaultContractNegotiationStore() {
-        return new InMemoryContractNegotiationStore(clock, criterionOperatorRegistry);
+        return new InMemoryContractNegotiationStore(clock, criterionOperatorRegistry, contractNegotiationLeaseDuration);
     }
 
     @Provider(isDefault = true)
     public TransferProcessStore defaultTransferProcessStore() {
-        return new InMemoryTransferProcessStore(clock, criterionOperatorRegistry);
+        return new InMemoryTransferProcessStore(clock, criterionOperatorRegistry, transferProcessLeaseDuration);
     }
 
     @Provider(isDefault = true)

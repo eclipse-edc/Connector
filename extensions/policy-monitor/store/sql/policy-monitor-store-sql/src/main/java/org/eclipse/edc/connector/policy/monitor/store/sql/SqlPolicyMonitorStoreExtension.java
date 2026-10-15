@@ -29,11 +29,18 @@ import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
+import java.time.Duration;
 
 public class SqlPolicyMonitorStoreExtension implements ServiceExtension {
 
     @Setting(description = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE, key = "edc.sql.store.policy-monitor.datasource")
     private String dataSourceName;
+
+    @Setting(description = "How long a runtime keeps the lease on a policy monitor entry while processing it, in ISO-8601 duration format. " +
+            "It must be longer than the slowest processing step, e.g. a protocol message dispatch including HTTP timeouts and retries, " +
+            "otherwise the policy monitor entry can be processed again, by another runtime or by the same one",
+            key = PolicyMonitorStore.LEASE_DURATION_SETTING, defaultValue = PolicyMonitorStore.LEASE_DURATION_DEFAULT_VALUE)
+    private Duration leaseDuration;
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -62,7 +69,7 @@ public class SqlPolicyMonitorStoreExtension implements ServiceExtension {
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "policy-monitor-schema.sql");
 
         return new SqlPolicyMonitorStore(dataSourceRegistry, dataSourceName, transactionContext,
-                getStatementImpl(), typeManager::getMapper, queryExecutor, context.getRuntimeId(), clock);
+                getStatementImpl(), typeManager::getMapper, queryExecutor, context.getRuntimeId(), clock, leaseDuration);
 
     }
 

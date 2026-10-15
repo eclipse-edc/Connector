@@ -37,6 +37,17 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 public interface ContractNegotiationStore extends StateEntityStore<ContractNegotiation> {
 
     /**
+     * Setting that defines how long a runtime keeps the lease on a contract negotiation while processing it, in ISO-8601
+     * duration format.
+     */
+    String LEASE_DURATION_SETTING = "edc.negotiation.state-machine.lease-duration";
+
+    /**
+     * Default value of {@link #LEASE_DURATION_SETTING}.
+     */
+    String LEASE_DURATION_DEFAULT_VALUE = "PT60S";
+
+    /**
      * Returns the contract agreement for the contract id or null.
      */
     @Nullable

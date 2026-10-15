@@ -17,4 +17,15 @@ package org.eclipse.edc.connector.policy.monitor.spi;
 import org.eclipse.edc.spi.persistence.StateEntityStore;
 
 public interface PolicyMonitorStore extends StateEntityStore<PolicyMonitorEntry> {
+
+    /**
+     * Setting that defines how long a runtime keeps the lease on a policy monitor entry while processing it, in ISO-8601
+     * duration format.
+     */
+    String LEASE_DURATION_SETTING = "edc.policy.monitor.lease-duration";
+
+    /**
+     * Default value of {@link #LEASE_DURATION_SETTING}.
+     */
+    String LEASE_DURATION_DEFAULT_VALUE = "PT60S";
 }
