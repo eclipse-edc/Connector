@@ -23,13 +23,18 @@ import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.stor
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.time.Duration;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -89,4 +94,25 @@ class SqlContractNegotiationStoreExtensionTest {
                 .isInstanceOf(EdcInjectionException.class);
     }
 
+    @Test
+    void shouldUseConfiguredLeaseDuration(TestExtensionContext context, ObjectFactory factory) {
+        context.registerService(TypeManager.class, new JacksonTypeManager());
+        context.setConfig(ConfigFactory.fromMap(Map.of(ContractNegotiationStore.LEASE_DURATION_SETTING, "PT5M")));
+        var extension = factory.constructInstance(SqlContractNegotiationStoreExtension.class);
+
+        extension.initialize(context);
+
+        assertThat(context.getService(ContractNegotiationStore.class)).extracting("leaseDuration").isEqualTo(Duration.ofMinutes(5));
+    }
+
+    @Test
+    void shouldUseDefaultLeaseDuration_whenNotConfigured(TestExtensionContext context, ObjectFactory factory) {
+        context.registerService(TypeManager.class, new JacksonTypeManager());
+        context.setConfig(ConfigFactory.fromMap(Map.of()));
+        var extension = factory.constructInstance(SqlContractNegotiationStoreExtension.class);
+
+        extension.initialize(context);
+
+        assertThat(context.getService(ContractNegotiationStore.class)).extracting("leaseDuration").isEqualTo(Duration.ofSeconds(60));
+    }
 }

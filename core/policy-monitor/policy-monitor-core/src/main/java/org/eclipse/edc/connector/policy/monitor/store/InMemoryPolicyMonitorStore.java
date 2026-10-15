@@ -21,6 +21,7 @@ import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.store.InMemoryStatefulEntityStore;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.util.UUID;
 
 /**
@@ -33,6 +34,14 @@ public class InMemoryPolicyMonitorStore extends InMemoryStatefulEntityStore<Poli
     }
 
     public InMemoryPolicyMonitorStore(String owner, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
-        super(PolicyMonitorEntry.class, owner, clock, criterionOperatorRegistry, state -> PolicyMonitorEntryStates.valueOf(state).code());
+        this(owner, clock, criterionOperatorRegistry, DEFAULT_LEASE_DURATION);
+    }
+
+    public InMemoryPolicyMonitorStore(Clock clock, CriterionOperatorRegistry criterionOperatorRegistry, Duration leaseDuration) {
+        this(UUID.randomUUID().toString(), clock, criterionOperatorRegistry, leaseDuration);
+    }
+
+    public InMemoryPolicyMonitorStore(String owner, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry, Duration leaseDuration) {
+        super(PolicyMonitorEntry.class, owner, clock, criterionOperatorRegistry, state -> PolicyMonitorEntryStates.valueOf(state).code(), false, leaseDuration);
     }
 }

@@ -31,6 +31,7 @@ import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
+import java.time.Duration;
 
 @Provides(TransferProcessStore.class)
 @Extension(value = "SQL transfer process store")
@@ -38,6 +39,12 @@ public class SqlTransferProcessStoreExtension implements ServiceExtension {
 
     @Setting(description = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE, key = "edc.sql.store.transferprocess.datasource")
     private String dataSourceName;
+
+    @Setting(description = "How long a runtime keeps the lease on a transfer process while processing it, in ISO-8601 duration format. " +
+            "It must be longer than the slowest processing step, e.g. a protocol message dispatch including HTTP timeouts and retries, " +
+            "otherwise the transfer process can be processed again, by another runtime or by the same one",
+            key = TransferProcessStore.LEASE_DURATION_SETTING, defaultValue = TransferProcessStore.LEASE_DURATION_DEFAULT_VALUE)
+    private Duration leaseDuration;
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -61,7 +68,7 @@ public class SqlTransferProcessStoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var store = new SqlTransferProcessStore(dataSourceRegistry, dataSourceName, trxContext,
-                typeManager::getMapper, getStatementImpl(), queryExecutor, context.getRuntimeId(), clock);
+                typeManager::getMapper, getStatementImpl(), queryExecutor, context.getRuntimeId(), clock, leaseDuration);
         context.registerService(TransferProcessStore.class, store);
 
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "transfer-process-schema.sql");

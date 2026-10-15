@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -49,7 +50,15 @@ public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStor
     }
 
     public InMemoryContractNegotiationStore(String leaseHolder, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
-        super(ContractNegotiation.class, leaseHolder, clock, criterionOperatorRegistry, state -> ContractNegotiationStates.valueOf(state).code(), true);
+        this(leaseHolder, clock, criterionOperatorRegistry, DEFAULT_LEASE_DURATION);
+    }
+
+    public InMemoryContractNegotiationStore(Clock clock, CriterionOperatorRegistry criterionOperatorRegistry, Duration leaseDuration) {
+        this(UUID.randomUUID().toString(), clock, criterionOperatorRegistry, leaseDuration);
+    }
+
+    public InMemoryContractNegotiationStore(String leaseHolder, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry, Duration leaseDuration) {
+        super(ContractNegotiation.class, leaseHolder, clock, criterionOperatorRegistry, state -> ContractNegotiationStates.valueOf(state).code(), true, leaseDuration);
         agreementQueryResolver = new ReflectionBasedQueryResolver<>(ContractAgreement.class, criterionOperatorRegistry);
         lock = new ReentrantReadWriteLock(true);
     }

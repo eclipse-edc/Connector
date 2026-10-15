@@ -31,6 +31,7 @@ import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
+import java.time.Duration;
 
 @Provides({ContractNegotiationStore.class})
 @Extension(value = "SQL contract negotiation store")
@@ -38,6 +39,12 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
 
     @Setting(description = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE, key = "edc.sql.store.contractnegotiation.datasource")
     private String dataSourceName;
+
+    @Setting(description = "How long a runtime keeps the lease on a contract negotiation while processing it, in ISO-8601 duration format. " +
+            "It must be longer than the slowest processing step, e.g. a protocol message dispatch including HTTP timeouts and retries, " +
+            "otherwise the contract negotiation can be processed again, by another runtime or by the same one",
+            key = ContractNegotiationStore.LEASE_DURATION_SETTING, defaultValue = ContractNegotiationStore.LEASE_DURATION_DEFAULT_VALUE)
+    private Duration leaseDuration;
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
@@ -63,7 +70,7 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var sqlStore = new SqlContractNegotiationStore(dataSourceRegistry, dataSourceName, trxContext,
-                typeManager::getMapper, getStatementImpl(), queryExecutor, context.getRuntimeId(), clock);
+                typeManager::getMapper, getStatementImpl(), queryExecutor, context.getRuntimeId(), clock, leaseDuration);
         context.registerService(ContractNegotiationStore.class, sqlStore);
 
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "contract-negotiation-schema.sql");

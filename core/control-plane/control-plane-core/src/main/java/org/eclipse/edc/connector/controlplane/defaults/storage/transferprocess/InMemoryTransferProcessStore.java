@@ -23,6 +23,7 @@ import org.eclipse.edc.store.InMemoryStatefulEntityStore;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.util.UUID;
 
 import static org.eclipse.edc.spi.query.Criterion.criterion;
@@ -37,7 +38,15 @@ public class InMemoryTransferProcessStore extends InMemoryStatefulEntityStore<Tr
     }
 
     public InMemoryTransferProcessStore(String leaserId, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
-        super(TransferProcess.class, leaserId, clock, criterionOperatorRegistry, state -> TransferProcessStates.valueOf(state).code(), true);
+        this(leaserId, clock, criterionOperatorRegistry, DEFAULT_LEASE_DURATION);
+    }
+
+    public InMemoryTransferProcessStore(Clock clock, CriterionOperatorRegistry criterionOperatorRegistry, Duration leaseDuration) {
+        this(UUID.randomUUID().toString(), clock, criterionOperatorRegistry, leaseDuration);
+    }
+
+    public InMemoryTransferProcessStore(String leaserId, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry, Duration leaseDuration) {
+        super(TransferProcess.class, leaserId, clock, criterionOperatorRegistry, state -> TransferProcessStates.valueOf(state).code(), true, leaseDuration);
     }
 
     @Override
