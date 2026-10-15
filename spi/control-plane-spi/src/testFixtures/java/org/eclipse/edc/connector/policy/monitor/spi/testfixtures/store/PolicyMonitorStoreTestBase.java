@@ -95,6 +95,20 @@ public abstract class PolicyMonitorStoreTestBase {
             assertThat(result).isNotNull();
             assertThat(result.getState()).isEqualTo(COMPLETED.code());
         }
+
+        @Test
+        void shouldFailWithAlreadyLeased_whenLeasedByOtherHolder() {
+            var entry = createPolicyMonitorEntry(UUID.randomUUID().toString(), STARTED);
+            getStore().save(entry);
+            leaseEntity(entry.getId(), "other");
+
+            entry.transitionToCompleted();
+            var result = getStore().save(entry);
+
+            assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
+            assertThat(isLeasedBy(entry.getId(), "other")).isTrue();
+            assertThat(getStore().findById(entry.getId())).isNotNull().extracting(StatefulEntity::getState).isEqualTo(STARTED.code());
+        }
     }
 
     @Nested

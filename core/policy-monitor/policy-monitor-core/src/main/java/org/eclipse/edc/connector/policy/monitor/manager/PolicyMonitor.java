@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -109,15 +110,22 @@ public class PolicyMonitor {
 
             entry.setModified();
             entry.updateStateTimestamp();
-            store.save(entry);
+            store.save(entry).onFailure(failure -> logSaveFailure(entry, failure));
         });
     }
 
     private void update(PolicyMonitorEntry entry) {
-        store.save(entry).onSuccess(it -> {
-            var error = entry.getErrorDetail() == null ? "" : ". errorDetail: " + entry.getErrorDetail();
-            monitor.debug(() -> "PolicyMonitorEntry %s is now in state %s%s"
-                    .formatted(entry.getId(), entry.stateAsString(), error));
-        });
+        store.save(entry)
+                .onSuccess(it -> {
+                    var error = entry.getErrorDetail() == null ? "" : ". errorDetail: " + entry.getErrorDetail();
+                    monitor.debug(() -> "PolicyMonitorEntry %s is now in state %s%s"
+                            .formatted(entry.getId(), entry.stateAsString(), error));
+                })
+                .onFailure(failure -> logSaveFailure(entry, failure));
+    }
+
+    private void logSaveFailure(PolicyMonitorEntry entry, StoreFailure failure) {
+        monitor.warning("Cannot save PolicyMonitorEntry %s in state %s: %s"
+                .formatted(entry.getId(), entry.stateAsString(), failure.getFailureDetail()));
     }
 }
