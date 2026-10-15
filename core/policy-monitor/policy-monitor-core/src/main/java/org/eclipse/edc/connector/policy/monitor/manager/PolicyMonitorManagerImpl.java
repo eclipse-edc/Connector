@@ -24,8 +24,10 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -60,12 +62,6 @@ public class PolicyMonitorManagerImpl implements PolicyMonitorManager {
         this.monitor = monitor.withPrefix(getClass().getSimpleName());
         this.store = store;
         this.clock = clock;
-        scheduler = executorInstrumentation.instrument(
-                Executors.newSingleThreadScheduledExecutor(r -> {
-                    var thread = Executors.defaultThreadFactory().newThread(r);
-                    thread.setName("policy-monitor-watchdog");
-                    return thread;
-                }), "policy-monitor");
     }
 
     @Override
@@ -77,7 +73,7 @@ public class PolicyMonitorManagerImpl implements PolicyMonitorManager {
                     return thread;
                 }), "policy-monitor");
 
-        scheduler.schedule(this::checkPolicies, 0, TimeUnit.SECONDS);
+        scheduler.schedule(this::checkPolicies, 0, TimeUnit.MILLISECONDS);
     }
 
     @Override
@@ -97,17 +93,52 @@ public class PolicyMonitorManagerImpl implements PolicyMonitorManager {
     }
 
     private void checkPolicies() {
+        try {
+            var count = evaluateEntries();
+            monitor.debug("watchdog completed: %d entries evaluated. Next execution in %s".formatted(count, configuration.period()));
+        } catch (Exception e) {
+            monitor.severe("watchdog failed, next execution in %s".formatted(configuration.period()), e);
+        } finally {
+            scheduleNextCheck();
+        }
+    }
+
+    private int evaluateEntries() {
         var count = 0;
+        var failed = new ArrayList<PolicyMonitorEntry>();
         List<PolicyMonitorEntry> entries;
         do {
             entries = store.nextNotLeased(configuration.batchSize(), hasState(STARTED.code()), notYetProcessed());
-            entries.forEach(policyMonitor::monitor);
+            for (var entry : entries) {
+                try {
+                    policyMonitor.monitor(entry);
+                } catch (Exception e) {
+                    monitor.severe("Cannot evaluate PolicyMonitorEntry %s".formatted(entry.getId()), e);
+                    failed.add(entry);
+                }
+            }
             count += entries.size();
         } while (entries.size() >= configuration.batchSize());
 
-        var period = configuration.period();
-        scheduler.schedule(this::checkPolicies, period.getSeconds(), TimeUnit.SECONDS);
-        monitor.debug("watchdog completed: %d entries evaluated. Next execution in %s".formatted(count, period));
+        // the failed entries stay leased until the end of the execution, so that they are not fetched again by it
+        failed.forEach(this::breakLease);
+        return count;
+    }
+
+    private void breakLease(PolicyMonitorEntry entry) {
+        try {
+            store.breakLease(entry).onFailure(f -> monitor.warning("Cannot break lease of PolicyMonitorEntry %s: %s".formatted(entry.getId(), f.getFailureDetail())));
+        } catch (Exception e) {
+            monitor.warning("Cannot break lease of PolicyMonitorEntry %s".formatted(entry.getId()), e);
+        }
+    }
+
+    private void scheduleNextCheck() {
+        try {
+            scheduler.schedule(this::checkPolicies, configuration.period().toMillis(), TimeUnit.MILLISECONDS);
+        } catch (RejectedExecutionException e) {
+            // the manager has been stopped
+        }
     }
 
     private @NotNull Criterion notYetProcessed() {

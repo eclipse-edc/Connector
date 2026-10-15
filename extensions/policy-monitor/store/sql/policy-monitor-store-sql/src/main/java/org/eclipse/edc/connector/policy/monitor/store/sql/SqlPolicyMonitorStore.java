@@ -107,14 +107,14 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
     public StoreResult<PolicyMonitorEntry> findByIdAndLease(String id) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var entity = findByIdInternal(connection, id);
-                if (entity == null) {
-                    return StoreResult.notFound(format("PolicyMonitorEntry %s not found", id));
-                }
+                // the lease is acquired before reading the entry, so that the returned entry cannot be outdated by a save
+                // committed in between
                 if (!acquireLease(connection, id)) {
-                    return StoreResult.alreadyLeased(format("PolicyMonitorEntry %s is currently leased!", id));
+                    return findByIdInternal(connection, id) == null
+                            ? StoreResult.notFound(format("PolicyMonitorEntry %s not found", id))
+                            : StoreResult.alreadyLeased(format("PolicyMonitorEntry %s is currently leased!", id));
                 }
-                return StoreResult.success(entity);
+                return StoreResult.success(findByIdInternal(connection, id));
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -127,8 +127,8 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
             try (var connection = getConnection()) {
                 var sql = statements.getUpsertTemplate();
 
-                // saving the entry always breaks its lease
-                queryExecutor.execute(connection, sql,
+                // saving the entry breaks its lease, unless another holder owns it
+                var updated = queryExecutor.execute(connection, sql,
                         entity.getId(),
                         entity.getState(),
                         entity.getCreatedAt(),
@@ -140,9 +140,15 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
                         entity.getContractId(),
                         null,
                         null,
-                        null
+                        null,
+                        // an existing entry is updated only if its lease is free, owned by this runtime or expired
+                        leaseHolderName,
+                        clock.millis()
                 );
 
+                if (updated == 0) {
+                    return StoreResult.alreadyLeased(format("PolicyMonitorEntry %s is leased by another holder, cannot update it!", entity.getId()));
+                }
                 return StoreResult.success();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);

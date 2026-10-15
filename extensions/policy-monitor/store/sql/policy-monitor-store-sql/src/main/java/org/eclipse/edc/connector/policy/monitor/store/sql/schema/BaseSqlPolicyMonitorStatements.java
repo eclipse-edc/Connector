@@ -43,7 +43,7 @@ public class BaseSqlPolicyMonitorStatements implements PolicyMonitorStatements {
                 .column(getLeasedByColumn())
                 .column(getLeasedAtColumn())
                 .column(getLeaseDurationColumn())
-                .upsertInto(getPolicyMonitorTable(), getIdColumn());
+                .upsertInto(getPolicyMonitorTable(), getIdColumn(), getLeaseOwnedOrFreeFilter(getPolicyMonitorTable()));
     }
 
     @Override
