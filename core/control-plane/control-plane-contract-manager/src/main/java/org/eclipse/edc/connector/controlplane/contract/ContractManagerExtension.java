@@ -31,8 +31,10 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.statemachine.StateMachineConfiguration;
+import org.eclipse.edc.statemachine.StateMachineLivenessProvider;
 
 import java.time.Clock;
 
@@ -61,6 +63,8 @@ public class ContractManagerExtension implements ServiceExtension {
     private ExecutorInstrumentation executorInstrumentation;
     @Inject
     private NegotiationProcessors negotiationProcessors;
+    @Inject
+    private HealthCheckService healthCheckService;
 
     private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
     private ProviderContractNegotiationManagerImpl providerNegotiationManager;
@@ -106,6 +110,8 @@ public class ContractManagerExtension implements ServiceExtension {
 
         context.registerService(ConsumerContractNegotiationManager.class, consumerNegotiationManager);
         context.registerService(ProviderContractNegotiationManager.class, providerNegotiationManager);
+        healthCheckService.addLivenessProvider(new StateMachineLivenessProvider("Consumer Contract Negotiation State Machine", consumerNegotiationManager));
+        healthCheckService.addLivenessProvider(new StateMachineLivenessProvider("Provider Contract Negotiation State Machine", providerNegotiationManager));
     }
 
     @Override

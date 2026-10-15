@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -79,7 +80,7 @@ public class StateMachineManager {
             if (!executor.awaitTermination(shutdownTimeout, SECONDS)) {
                 executor.shutdownNow();
                 if (!executor.awaitTermination(shutdownTimeout, SECONDS)) {
-                    monitor.severe("StateMachineManager [%s] await termination timeout");
+                    monitor.severe(format("StateMachineManager [%s] await termination timeout", name));
                 }
             }
         } catch (InterruptedException e) {
@@ -100,6 +101,10 @@ public class StateMachineManager {
     }
 
     private void logic() {
+        if (!isActive()) {
+            // an iteration scheduled before the manager was stopped
+            return;
+        }
         try {
             performLogic();
         } catch (Throwable e) {
@@ -125,7 +130,14 @@ public class StateMachineManager {
         var delay = processed == 0 ? waitStrategy.waitForMillis() : 0;
 
         if (isActive()) {
-            scheduleNextIterationIn(delay);
+            try {
+                scheduleNextIterationIn(delay);
+            } catch (RejectedExecutionException e) {
+                if (isActive()) {
+                    throw e;
+                }
+                // the manager has been stopped in the meantime
+            }
         }
 
     }

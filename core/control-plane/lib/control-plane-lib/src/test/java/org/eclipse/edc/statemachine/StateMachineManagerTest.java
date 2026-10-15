@@ -21,15 +21,18 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -170,6 +173,41 @@ class StateMachineManagerTest {
         await().untilAsserted(() -> verify(slowProcessor).process()); // wait processor to be called
         stateMachine.stop(); // stop right away
 
+        verify(monitor, never()).severe(anyString(), any());
+    }
+
+    @Test
+    void shouldNotRunScheduledIteration_whenStopped() {
+        var processor = mock(Processor.class);
+        when(processor.process()).thenReturn(0L);
+        when(waitStrategy.waitForMillis()).thenReturn(500L);
+        var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
+                .processor(processor)
+                .build();
+
+        stateMachine.start();
+        // first iteration done, next one scheduled in 500ms
+        await().pollDelay(100, MILLISECONDS).untilAsserted(() -> verify(waitStrategy).waitForMillis());
+
+        stateMachine.stop();
+
+        verify(processor, times(1)).process();
+    }
+
+    @Test
+    void shouldNotLogError_whenStoppedWhileBusy() {
+        var processor = mock(Processor.class);
+        when(processor.process()).thenReturn(1L);
+        var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
+                .processor(processor)
+                .build();
+
+        stateMachine.start();
+        await().untilAsserted(() -> verify(processor, atLeast(10)).process());
+
+        stateMachine.stop();
+
+        assertThat(stateMachine.isActive()).isFalse();
         verify(monitor, never()).severe(anyString(), any());
     }
 }
