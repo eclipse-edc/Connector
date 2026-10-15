@@ -40,7 +40,9 @@ import static java.util.function.Predicate.isEqual;
  * <p>
  * Additional features:
  * - An {@link Guard} can be registered, if its predicate is verified, the guard processor is executed instead of the standard one.
- * - A onNotProcessed listener can be registered, that will be called on every entity that has not been processed.
+ * - A onNotProcessed listener can be registered, that will be called on every entity that has not been processed, either
+ *   because its retry is delayed or because its processing failed unexpectedly (an exception thrown by the process or
+ *   an exceptionally completed future). It is meant to release the entity, e.g. by breaking its lease.
  *
  * @param <E> the entity that is processed
  */
@@ -81,9 +83,32 @@ public class ProcessorImpl<E extends StatefulEntity<E>> implements Processor {
             }
         }
 
-        var actualProcess = guard.predicate().test(entity) ? guard.process() : process;
-        actualProcess.apply(entity);
-        return true;
+        try {
+            var actualProcess = guard.predicate().test(entity) ? guard.process() : process;
+            actualProcess.apply(entity).whenComplete((result, throwable) -> {
+                if (throwable != null) {
+                    onUnexpectedFailure(entity, throwable);
+                }
+            });
+            return true;
+        } catch (Exception e) {
+            // a failure must not abort the processing of the other entities of the batch
+            onUnexpectedFailure(entity, e);
+            return false;
+        }
+    }
+
+    /**
+     * Releases an entity whose processing failed unexpectedly, so that it does not stay leased until the lease expires.
+     */
+    private void onUnexpectedFailure(E entity, Throwable throwable) {
+        monitor.severe(String.format("Entity %s %s: unexpected error while processing it, its lease will be released",
+                entity.getId(), entity.getClass().getSimpleName()), throwable);
+        try {
+            onNotProcessed.accept(entity);
+        } catch (Exception e) {
+            monitor.severe(String.format("Entity %s %s: cannot release its lease", entity.getId(), entity.getClass().getSimpleName()), e);
+        }
     }
 
     private boolean isRetry(E entity) {
@@ -129,7 +154,8 @@ public class ProcessorImpl<E extends StatefulEntity<E>> implements Processor {
         }
 
         /**
-         * Defines a listener that will invoke for every entity that won't be processed.
+         * Defines a listener that will invoke for every entity that won't be processed: its retry is delayed, or its
+         * processing failed unexpectedly.
          *
          * @param onNotProcessed the listener.
          * @return the builder.

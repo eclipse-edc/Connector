@@ -31,9 +31,12 @@ import java.util.function.Function;
 
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -142,6 +145,89 @@ class ProcessorImplTest {
         processor.process();
 
         verifyNoInteractions(onNotProcessed);
+    }
+
+    @Test
+    void shouldCallOnNotProcessed_whenProcessCompletesExceptionally() {
+        var entity = TestEntity.Builder.newInstance().id("id").build();
+        Consumer<TestEntity> onNotProcessed = mock();
+        var processor = ProcessorImpl.Builder.newInstance(() -> List.of(entity), configuration, clock, monitor)
+                .process(e -> CompletableFuture.failedFuture(new IllegalStateException("Cannot transition")))
+                .onNotProcessed(onNotProcessed)
+                .build();
+
+        processor.process();
+
+        verify(onNotProcessed).accept(entity);
+    }
+
+    @Test
+    void shouldProcessOtherEntitiesAndCallOnNotProcessed_whenProcessThrows() {
+        var failing = TestEntity.Builder.newInstance().id("failing").build();
+        var other = TestEntity.Builder.newInstance().id("other").build();
+        Consumer<TestEntity> onNotProcessed = mock();
+        Function<TestEntity, CompletableFuture<StatusResult<Void>>> process = mock();
+        when(process.apply(failing)).thenThrow(new NullPointerException("unexpected"));
+        when(process.apply(other)).thenReturn(CompletableFuture.completedFuture(StatusResult.success()));
+        var processor = ProcessorImpl.Builder.newInstance(() -> List.of(failing, other), configuration, clock, monitor)
+                .process(process)
+                .onNotProcessed(onNotProcessed)
+                .build();
+
+        var count = processor.process();
+
+        assertThat(count).isEqualTo(1);
+        verify(process).apply(other);
+        verify(onNotProcessed).accept(failing);
+        verify(onNotProcessed, never()).accept(other);
+    }
+
+    @Test
+    void shouldNotCallOnNotProcessed_whenProcessCompletesWithFailedResult() {
+        var entity = TestEntity.Builder.newInstance().id("id").build();
+        Consumer<TestEntity> onNotProcessed = mock();
+        var processor = ProcessorImpl.Builder.newInstance(() -> List.of(entity), configuration, clock, monitor)
+                .process(e -> CompletableFuture.completedFuture(StatusResult.failure(ERROR_RETRY, "error")))
+                .onNotProcessed(onNotProcessed)
+                .build();
+
+        var count = processor.process();
+
+        assertThat(count).isEqualTo(1);
+        verifyNoInteractions(onNotProcessed);
+    }
+
+    @Test
+    void shouldCallOnNotProcessed_whenGuardProcessThrows() {
+        var entity = TestEntity.Builder.newInstance().id("id").build();
+        Consumer<TestEntity> onNotProcessed = mock();
+        var processor = ProcessorImpl.Builder.newInstance(() -> List.of(entity), configuration, clock, monitor)
+                .guard(e -> true, e -> {
+                    throw new IllegalStateException("Cannot transition");
+                })
+                .process(e -> CompletableFuture.completedFuture(StatusResult.success()))
+                .onNotProcessed(onNotProcessed)
+                .build();
+
+        var count = processor.process();
+
+        assertThat(count).isEqualTo(0);
+        verify(onNotProcessed).accept(entity);
+    }
+
+    @Test
+    void shouldNotThrow_whenOnNotProcessedThrows() {
+        var entity = TestEntity.Builder.newInstance().id("id").build();
+        var processor = ProcessorImpl.Builder.newInstance(() -> List.of(entity), configuration, clock, monitor)
+                .process(e -> {
+                    throw new IllegalStateException("Cannot transition");
+                })
+                .onNotProcessed(e -> {
+                    throw new RuntimeException("database not available");
+                })
+                .build();
+
+        assertThatNoException().isThrownBy(processor::process);
     }
 
 }
