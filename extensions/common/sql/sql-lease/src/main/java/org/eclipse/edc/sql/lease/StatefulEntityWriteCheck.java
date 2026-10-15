@@ -52,12 +52,31 @@ public class StatefulEntityWriteCheck {
      *         holds an unexpired lease, {@code CONFLICT} if the stored version differs.
      */
     public StoreResult<Void> check(Connection connection, String id, long version) {
+        return check(connection, id, version, statements.getFindVersionAndLeaseTemplate(table));
+    }
+
+    /**
+     * Checks whether the entity can be written with the given version, like {@link #check(Connection, String, long)},
+     * and locks its row until the end of the transaction. To be used when other rows are written before the entity, so
+     * that the entity cannot be modified concurrently between the check and its write.
+     *
+     * @param connection the connection.
+     * @param id the entity id.
+     * @param version the version of the entity being written.
+     * @return success if the entity does not exist yet or if it can be updated, {@code ALREADY_LEASED} if another holder
+     *         holds an unexpired lease, {@code CONFLICT} if the stored version differs.
+     */
+    public StoreResult<Void> checkAndLock(Connection connection, String id, long version) {
+        return check(connection, id, version, statements.getFindVersionAndLeaseForUpdateTemplate(table));
+    }
+
+    private StoreResult<Void> check(Connection connection, String id, long version, String template) {
         var row = queryExecutor.single(connection, false, rs -> new Row(
                         rs.getLong(statements.getVersionColumn()),
                         rs.getString(statements.getLeasedByColumn()),
                         rs.getLong(statements.getLeasedAtColumn()),
                         rs.getLong(statements.getLeaseDurationColumn())),
-                statements.getFindVersionAndLeaseTemplate(table), id);
+                template, id);
 
         if (row == null) {
             return StoreResult.success();

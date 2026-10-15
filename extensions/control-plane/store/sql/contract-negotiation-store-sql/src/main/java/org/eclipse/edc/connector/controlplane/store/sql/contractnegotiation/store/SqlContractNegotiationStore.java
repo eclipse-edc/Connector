@@ -141,8 +141,10 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 var contractAgreement = negotiation.getContractAgreement();
                 if (contractAgreement != null) {
                     // the agreement is written before the negotiation (FK), so the lease and the version must be
-                    // verified upfront to avoid writing the agreement of a negotiation that cannot be updated
-                    var writable = writeCheck.check(connection, negotiation.getId(), negotiation.getVersion());
+                    // verified upfront to avoid writing the agreement of a negotiation that cannot be updated. The
+                    // negotiation row stays locked until the transaction ends, so that a concurrent writer cannot change
+                    // it between the check and the write below
+                    var writable = writeCheck.checkAndLock(connection, negotiation.getId(), negotiation.getVersion());
                     if (writable.failed()) {
                         return writable;
                     }

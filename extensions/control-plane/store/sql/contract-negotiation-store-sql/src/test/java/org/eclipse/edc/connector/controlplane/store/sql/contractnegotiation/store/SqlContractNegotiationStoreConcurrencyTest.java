@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store;
 
+import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.json.JacksonTypeManager;
@@ -22,6 +24,7 @@ import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.ResultSetMapper;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.eclipse.edc.sql.testfixtures.RowLeaseUtil;
 import org.eclipse.edc.transaction.local.LocalDataSourceRegistry;
@@ -41,12 +44,18 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.TestFunctions.createAgreement;
 import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiation;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
@@ -241,6 +250,67 @@ class SqlContractNegotiationStoreConcurrencyTest {
         assertThat(first.findById(entity.getId()).getState()).isEqualTo(TERMINATING.code());
     }
 
+    @Test
+    void save_shouldSerializeWithConcurrentWriter_whenWritingAgreement() throws Exception {
+        var seedStore = createStore("seed");
+        var entity = createNegotiation(UUID.randomUUID().toString());
+        seedStore.save(entity);
+        var negotiation = seedStore.findById(entity.getId());
+        var writerExecutor = Executors.newSingleThreadExecutor();
+        var concurrentWrite = new AtomicReference<Future<?>>();
+        // another replica updates the negotiation after the upfront write check, while the agreement is being written
+        var interceptingExecutor = new DelegatingQueryExecutor(queryExecutor) {
+            @Override
+            public int execute(Connection connection, String sql, Object... arguments) {
+                var result = super.execute(connection, sql, arguments);
+                if (sql.equals(statements.getUpsertAgreementTemplate())) {
+                    var write = writerExecutor.submit(() -> incrementVersionInAnotherTransaction(entity.getId()));
+                    concurrentWrite.set(write);
+                    try {
+                        // the write completes right away, unless the negotiation row is locked by this transaction
+                        write.get(1, TimeUnit.SECONDS);
+                    } catch (TimeoutException e) {
+                        // expected: the write waits for this transaction to complete
+                    } catch (InterruptedException | ExecutionException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                return result;
+            }
+        };
+        var store = new SqlContractNegotiationStore(dataSourceRegistry, extension.getDatasourceName(), transactionContext,
+                typeManager::getMapper, statements, interceptingExecutor, "replica-1", clock);
+
+        try {
+            var agreement = createAgreement(ContractOfferId.create("definition", "asset"));
+            negotiation.setContractAgreement(agreement);
+            var result = store.save(negotiation);
+            concurrentWrite.get().get(30, TimeUnit.SECONDS);
+
+            assertThat(result.succeeded()).isTrue();
+            assertThat(seedStore.findContractAgreement(agreement.getId())).isNotNull();
+            assertThat(seedStore.findById(entity.getId())).satisfies(stored -> {
+                assertThat(stored.getContractAgreement()).isNotNull().extracting(ContractAgreement::getId).isEqualTo(agreement.getId());
+                assertThat(stored.getVersion()).isEqualTo(negotiation.getVersion() + 1);
+            });
+        } finally {
+            writerExecutor.shutdownNow();
+        }
+    }
+
+    private void incrementVersionInAnotherTransaction(String id) {
+        var dataSource = extension.getDataSourceRegistry().resolve(extension.getDatasourceName());
+        try (var connection = dataSource.getConnection(); var statement = connection.prepareStatement(
+                "UPDATE %s SET %s = %s + 1 WHERE %s = ?".formatted(statements.getContractNegotiationTable(),
+                        statements.getVersionColumn(), statements.getVersionColumn(), statements.getIdColumn()))) {
+            connection.setAutoCommit(true);
+            statement.setString(1, id);
+            assertThat(statement.executeUpdate()).isEqualTo(1);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private SqlContractNegotiationStore createStore(String leaseHolder) {
         return createStore(leaseHolder, clock);
     }
@@ -266,6 +336,29 @@ class SqlContractNegotiationStoreConcurrencyTest {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException(e);
+        }
+    }
+
+    private static class DelegatingQueryExecutor implements QueryExecutor {
+        private final QueryExecutor delegate;
+
+        DelegatingQueryExecutor(QueryExecutor delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public int execute(Connection connection, String sql, Object... arguments) {
+            return delegate.execute(connection, sql, arguments);
+        }
+
+        @Override
+        public <T> Stream<T> query(Connection connection, boolean closeConnection, ResultSetMapper<T> resultSetMapper, String sql, Object... arguments) {
+            return delegate.query(connection, closeConnection, resultSetMapper, sql, arguments);
+        }
+
+        @Override
+        public <T> T single(Connection connection, boolean closeConnection, ResultSetMapper<T> resultSetMapper, String sql, Object... arguments) {
+            return delegate.single(connection, closeConnection, resultSetMapper, sql, arguments);
         }
     }
 }
