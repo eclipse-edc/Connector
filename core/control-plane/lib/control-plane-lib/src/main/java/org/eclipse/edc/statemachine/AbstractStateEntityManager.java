@@ -66,6 +66,17 @@ public abstract class AbstractStateEntityManager<E extends StatefulEntity<E>, S 
     }
 
     /**
+     * Tells if the state machine is running. It is considered running until it has been started, so that a manager
+     * that is not started yet is not reported as failed; it is not running once stopped, or once it has exited because
+     * of an unrecoverable error.
+     *
+     * @return true if the state machine is running or not started yet, false otherwise.
+     */
+    public boolean isActive() {
+        return stateMachineManager == null || stateMachineManager.isActive();
+    }
+
+    /**
      * configures the State Machine Manager builder
      *
      * @param builder the builder.

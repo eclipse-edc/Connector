@@ -27,8 +27,10 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.statemachine.StateMachineConfiguration;
+import org.eclipse.edc.statemachine.StateMachineLivenessProvider;
 
 import java.time.Clock;
 
@@ -56,6 +58,8 @@ public class TransferManagerExtension implements ServiceExtension {
     private ExecutorInstrumentation executorInstrumentation;
     @Inject
     private TransferProcessors transferProcessors;
+    @Inject
+    private HealthCheckService healthCheckService;
 
     private TransferProcessManagerImpl processManager;
 
@@ -86,6 +90,7 @@ public class TransferManagerExtension implements ServiceExtension {
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);
+        healthCheckService.addLivenessProvider(new StateMachineLivenessProvider("Transfer Process State Machine", processManager));
     }
 
     @Override

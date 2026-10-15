@@ -93,6 +93,28 @@ class TransferProcessManagerImplTest {
         });
     }
 
+    @Test
+    void isActive_shouldReflectTheStateMachineLoop() {
+        when(transferProcessStore.nextNotLeased(anyInt(), any(Criterion[].class))).thenThrow(new Error("unrecoverable"));
+
+        assertThat(manager.isActive()).isTrue();
+
+        manager.start();
+
+        await().untilAsserted(() -> assertThat(manager.isActive()).isFalse());
+    }
+
+    @Test
+    void isActive_shouldBeFalse_whenStopped() {
+        when(transferProcessStore.nextNotLeased(anyInt(), any(Criterion[].class))).thenReturn(emptyList());
+        manager.start();
+        assertThat(manager.isActive()).isTrue();
+
+        manager.stop();
+
+        assertThat(manager.isActive()).isFalse();
+    }
+
     private Criterion[] providerStateIs(int state) {
         return aryEq(new Criterion[]{hasState(state), isNotPending(), criterion("type", "=", PROVIDER.name())});
     }
