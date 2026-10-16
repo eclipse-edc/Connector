@@ -24,9 +24,15 @@ import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -452,6 +458,57 @@ class TitaniumJsonLdTest {
 
         server.verify(1, getRequestedFor(anyUrl()));
 
+    }
+
+    @Test
+    void documentResolution_shouldFail_whenContextIsNotRegisteredFile() {
+        var contextUrl = TestUtils.getFileFromResourceName("test-context.jsonld").toURI().toString();
+        var jsonObject = createObjectBuilder()
+                .add(JsonLdKeywords.CONTEXT, contextUrl)
+                .add("test:key", "value")
+                .build();
+
+        var expanded = defaultService().expand(jsonObject);
+
+        assertThat(expanded).isFailed();
+    }
+
+    @Test
+    void documentResolution_shouldNotCallHttpEndpoint_whenContextIsNotRegisteredJar() {
+        server.stubFor(get(anyUrl()).willReturn(ok(TestUtils.getResourceFileContentAsString("test-context.jsonld"))));
+        var contextUrl = "jar:http://localhost:%d/context.jar!/context.jsonld".formatted(server.getPort());
+        var jsonObject = createObjectBuilder()
+                .add(JsonLdKeywords.CONTEXT, contextUrl)
+                .add("test:key", "value")
+                .build();
+        // a jar URL must not be resolved, even though it wraps an http URL, and http resolution is enabled
+        var service = httpEnabledService();
+
+        var expanded = service.expand(jsonObject);
+
+        assertThat(expanded).isFailed();
+        server.verify(0, getRequestedFor(anyUrl()));
+    }
+
+    @Test
+    void documentResolution_shouldUseCachedDocument_whenRegisteredFromJar(@TempDir Path tempDir) throws IOException {
+        var contextUrl = "http://test.org/context";
+        var jar = tempDir.resolve("test-context.jar");
+        try (var out = new JarOutputStream(Files.newOutputStream(jar))) {
+            out.putNextEntry(new JarEntry("test-context.jsonld"));
+            out.write(TestUtils.getResourceFileContentAsString("test-context.jsonld").getBytes());
+            out.closeEntry();
+        }
+        var service = defaultService();
+        service.registerCachedDocument(contextUrl, URI.create("jar:" + jar.toUri() + "!/test-context.jsonld"));
+        var jsonObject = createObjectBuilder()
+                .add(JsonLdKeywords.CONTEXT, contextUrl)
+                .add("test:key", "value")
+                .build();
+
+        var expanded = service.expand(jsonObject);
+
+        assertThat(expanded).isSucceeded().satisfies(json -> Assertions.assertThat(json.getJsonArray("http://test.org/context/key")).hasSize(1));
     }
 
     private JsonLd httpEnabledService() {

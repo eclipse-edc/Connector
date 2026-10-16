@@ -233,19 +233,30 @@ public class TitaniumJsonLd implements JsonLd {
                 .collect(Collectors.toSet());
     }
 
+    /**
+     * Resolves the contexts referenced by JSON-LD documents from the cached documents, and only loads uncached ones
+     * via http(s), if enabled. The file and jar loaders are only used to load the documents that are registered, since
+     * the referenced contexts may come from untrusted input.
+     */
     private static class CachedDocumentLoader implements DocumentLoader {
 
         private final Map<String, URI> uriCache = new ConcurrentHashMap<>();
         private final Map<URI, Document> documentCache = new ConcurrentHashMap<>();
-        private final DocumentLoader loader;
+        private final DocumentLoader registrationLoader;
+        private final DocumentLoader resolutionLoader;
         private final Monitor monitor;
 
         CachedDocumentLoader(JsonLdConfiguration configuration, Monitor monitor) {
-            loader = new SchemeRouter()
-                    .set("http", configuration.isHttpEnabled() ? HttpLoader.defaultInstance() : null)
-                    .set("https", configuration.isHttpsEnabled() ? HttpLoader.defaultInstance() : null)
+            var httpLoader = configuration.isHttpEnabled() ? HttpLoader.defaultInstance() : null;
+            var httpsLoader = configuration.isHttpsEnabled() ? HttpLoader.defaultInstance() : null;
+            registrationLoader = new SchemeRouter()
+                    .set("http", httpLoader)
+                    .set("https", httpsLoader)
                     .set("file", new FileLoader())
                     .set("jar", new JarLoader());
+            resolutionLoader = new SchemeRouter()
+                    .set("http", httpLoader)
+                    .set("https", httpsLoader);
             this.monitor = monitor;
         }
 
@@ -259,14 +270,14 @@ public class TitaniumJsonLd implements JsonLd {
             if (document != null) {
                 return document;
             } else {
-                return loader.loadDocument(uri, options);
+                return resolutionLoader.loadDocument(uri, options);
             }
         }
 
         public void register(String contextUrl, URI uri) {
             uriCache.put(contextUrl, uri);
             try {
-                documentCache.put(uri, loader.loadDocument(uri, new DocumentLoaderOptions()));
+                documentCache.put(uri, registrationLoader.loadDocument(uri, new DocumentLoaderOptions()));
             } catch (JsonLdError e) {
                 monitor.warning("Error caching context URL '%s' for URI '%s'. Subsequent attempts to expand this context URL may fail.".formatted(contextUrl, uri));
             }
