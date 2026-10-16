@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store;
 
+import org.awaitility.Awaitility;
 import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
@@ -1147,6 +1148,54 @@ public abstract class ContractNegotiationStoreTestBase {
                 // noop
             }
             t.updateStateTimestamp();
+        }
+    }
+
+    @Nested
+    class BreakLease {
+        @Test
+        void shouldBreakOwnLease() {
+            var negotiation = createNegotiation("id1");
+            getContractNegotiationStore().save(negotiation);
+            leaseEntity("id1", CONNECTOR_NAME);
+
+            var result = getContractNegotiationStore().breakLease(negotiation);
+
+            assertThat(result).isSucceeded();
+            assertThat(isLeasedBy("id1", CONNECTOR_NAME)).isFalse();
+        }
+
+        @Test
+        void shouldSucceed_whenNotLeased() {
+            var negotiation = createNegotiation("id1");
+            getContractNegotiationStore().save(negotiation);
+
+            var result = getContractNegotiationStore().breakLease(negotiation);
+
+            assertThat(result).isSucceeded();
+        }
+
+        @Test
+        void shouldBreakExpiredLeaseOfOtherHolder() {
+            var negotiation = createNegotiation("id1");
+            getContractNegotiationStore().save(negotiation);
+            leaseEntity("id1", "other", Duration.ofMillis(10));
+
+            Awaitility.await().atMost(Duration.ofSeconds(1))
+                    .untilAsserted(() -> assertThat(getContractNegotiationStore().breakLease(negotiation)).isSucceeded());
+            assertThat(getContractNegotiationStore().nextNotLeased(10, hasState(REQUESTED.code()))).hasSize(1);
+        }
+
+        @Test
+        void shouldFail_whenLeasedByOtherHolder() {
+            var negotiation = createNegotiation("id1");
+            getContractNegotiationStore().save(negotiation);
+            leaseEntity("id1", "other");
+
+            var result = getContractNegotiationStore().breakLease(negotiation);
+
+            assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
+            assertThat(isLeasedBy("id1", "other")).isTrue();
         }
     }
 

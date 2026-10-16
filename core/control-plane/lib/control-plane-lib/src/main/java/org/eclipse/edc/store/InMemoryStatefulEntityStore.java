@@ -30,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,7 +53,7 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
     private final LockManager lockManager = new LockManager(new ReentrantReadWriteLock());
     private final String lockId;
     private final Clock clock;
-    private final Map<String, Lease> leases = new HashMap<>();
+    private final Map<String, Lease> leases = new ConcurrentHashMap<>();
     private final boolean checkVersion;
     private final Duration leaseDuration;
 
@@ -148,16 +147,25 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
 
     @Override
     public StoreResult<Void> breakLease(T entity) {
-        freeLease(entity.getId());
-        return StoreResult.success();
+        return lockManager.writeLock(() -> {
+            var id = entity.getId();
+            if (isLeased(id) && !isLeasedBy(id, lockId)) {
+                return StoreResult.alreadyLeased("Entity %s is leased by another holder, cannot break the lease!".formatted(id));
+            }
+            freeLease(id);
+            return StoreResult.success();
+        });
     }
 
     public StoreResult<Void> delete(String id) {
-        if (isLeased(id)) {
-            return StoreResult.alreadyLeased("Entity is leased and cannot be deleted!");
-        }
-        entitiesById.remove(id);
-        return StoreResult.success();
+        return lockManager.writeLock(() -> {
+            if (isLeased(id)) {
+                return StoreResult.alreadyLeased("Entity is leased and cannot be deleted!");
+            }
+            entitiesById.remove(id);
+            leases.remove(id);
+            return StoreResult.<Void>success();
+        });
     }
 
     public Stream<T> findAll(QuerySpec querySpec) {
@@ -179,16 +187,19 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
     }
 
     public StoreResult<Void> acquireLease(String id, String lockId, Duration leaseTime) {
-        if (!isLeased(id) || isLeasedBy(id, lockId)) {
-            leases.put(id, new Lease(lockId, clock.millis(), leaseTime.toMillis()));
-            return StoreResult.success();
-        } else {
-            return StoreResult.alreadyLeased("Cannot acquire lease, is already leased by someone else!");
-        }
+        return lockManager.writeLock(() -> {
+            if (!isLeased(id) || isLeasedBy(id, lockId)) {
+                leases.put(id, new Lease(lockId, clock.millis(), leaseTime.toMillis()));
+                return StoreResult.<Void>success();
+            } else {
+                return StoreResult.alreadyLeased("Cannot acquire lease, is already leased by someone else!");
+            }
+        });
     }
 
     public boolean isLeasedBy(String id, String lockId) {
-        return isLeased(id) && leases.get(id).getLeasedBy().equals(lockId);
+        var lease = leases.get(id);
+        return lease != null && !lease.isExpired(clock.millis()) && lease.getLeasedBy().equals(lockId);
     }
 
     private void freeLease(String id) {
@@ -200,7 +211,8 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
     }
 
     private boolean isLeased(String id) {
-        return leases.containsKey(id) && !leases.get(id).isExpired(clock.millis());
+        var lease = leases.get(id);
+        return lease != null && !lease.isExpired(clock.millis());
     }
 
 }
