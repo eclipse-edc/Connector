@@ -714,6 +714,54 @@ public abstract class TransferProcessStoreTestBase {
     }
 
     @Nested
+    class BreakLease {
+        @Test
+        void shouldBreakOwnLease() {
+            var transferProcess = createTransferProcess("id1", INITIAL);
+            getTransferProcessStore().save(transferProcess);
+            leaseEntity("id1", CONNECTOR_NAME);
+
+            var result = getTransferProcessStore().breakLease(transferProcess);
+
+            assertThat(result).isSucceeded();
+            assertThat(isLeasedBy("id1", CONNECTOR_NAME)).isFalse();
+        }
+
+        @Test
+        void shouldSucceed_whenNotLeased() {
+            var transferProcess = createTransferProcess("id1", INITIAL);
+            getTransferProcessStore().save(transferProcess);
+
+            var result = getTransferProcessStore().breakLease(transferProcess);
+
+            assertThat(result).isSucceeded();
+        }
+
+        @Test
+        void shouldBreakExpiredLeaseOfOtherHolder() {
+            var transferProcess = createTransferProcess("id1", INITIAL);
+            getTransferProcessStore().save(transferProcess);
+            leaseEntity("id1", "other", Duration.ofMillis(10));
+
+            Awaitility.await().atMost(getTestTimeout())
+                    .untilAsserted(() -> assertThat(getTransferProcessStore().breakLease(transferProcess)).isSucceeded());
+            assertThat(getTransferProcessStore().nextNotLeased(10, hasState(INITIAL.code()))).hasSize(1);
+        }
+
+        @Test
+        void shouldFail_whenLeasedByOtherHolder() {
+            var transferProcess = createTransferProcess("id1", INITIAL);
+            getTransferProcessStore().save(transferProcess);
+            leaseEntity("id1", "other");
+
+            var result = getTransferProcessStore().breakLease(transferProcess);
+
+            assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
+            assertThat(isLeasedBy("id1", "other")).isTrue();
+        }
+    }
+
+    @Nested
     class FindByIdAndLease {
         @Test
         void shouldReturnTheEntityAndLeaseIt() {
