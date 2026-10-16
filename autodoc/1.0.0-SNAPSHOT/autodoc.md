@@ -37,6 +37,7 @@ _None_
 - `org.eclipse.edc.controlplane.tasks.TaskService` (required)
 - `java.time.Clock` (required)
 - `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `org.eclipse.edc.spi.system.health.HealthCheckService` (required)
 - `io.nats.client.Options` (optional)
 
 Module `transfer-tasks-subscriber-nats`
@@ -78,5 +79,6 @@ _None_
 - `org.eclipse.edc.controlplane.tasks.TaskService` (required)
 - `java.time.Clock` (required)
 - `org.eclipse.edc.transaction.spi.TransactionContext` (required)
+- `org.eclipse.edc.spi.system.health.HealthCheckService` (required)
 - `io.nats.client.Options` (optional)
 
