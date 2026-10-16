@@ -20,7 +20,7 @@ import org.eclipse.edc.connector.policy.monitor.spi.testfixtures.store.PolicyMon
 import org.eclipse.edc.connector.policy.monitor.store.sql.schema.PolicyMonitorStatements;
 import org.eclipse.edc.connector.policy.monitor.store.sql.schema.PostgresPolicyMonitorStatements;
 import org.eclipse.edc.json.JacksonTypeManager;
-import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.sql.QueryExecutor;
@@ -37,7 +37,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -47,7 +47,7 @@ import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
 
 
-@ComponentTest
+@PostgresqlIntegrationTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 public class PostgresPolicyMonitorStoreTest extends PolicyMonitorStoreTestBase {
 
@@ -120,18 +120,21 @@ public class PostgresPolicyMonitorStoreTest extends PolicyMonitorStoreTestBase {
     @Nested
     class RowLease {
 
+        /**
+         * Concurrent runtimes are covered by {@link SqlPolicyMonitorStoreConcurrencyTest}, which runs them in real
+         * transactions: here every statement is committed on its own, so the outcome would depend on thread scheduling.
+         */
         @Test
-        void nextNotLeased_shouldNotReturnSameEntriesToConcurrentRuntimes() {
+        void nextNotLeased_shouldNotReturnEntriesLeasedByAnotherRuntime() {
             var all = range(0, 50).mapToObj(i -> createEntry()).peek(store::save).map(PolicyMonitorEntry::getId).toList();
             var otherStore = createStore("other-connector");
 
-            var first = CompletableFuture.supplyAsync(() -> store.nextNotLeased(50, hasState(STARTED.code())));
-            var second = CompletableFuture.supplyAsync(() -> otherStore.nextNotLeased(50, hasState(STARTED.code())));
+            var firstIds = store.nextNotLeased(30, hasState(STARTED.code())).stream().map(PolicyMonitorEntry::getId).toList();
+            var secondIds = otherStore.nextNotLeased(30, hasState(STARTED.code())).stream().map(PolicyMonitorEntry::getId).toList();
 
-            var firstIds = first.join().stream().map(PolicyMonitorEntry::getId).toList();
-            var secondIds = second.join().stream().map(PolicyMonitorEntry::getId).toList();
-            assertThat(firstIds).doesNotContainAnyElementsOf(secondIds);
-            assertThat(firstIds.size() + secondIds.size()).isEqualTo(all.size());
+            assertThat(firstIds).hasSize(30);
+            assertThat(secondIds).hasSize(20).noneMatch(firstIds::contains);
+            assertThat(all).containsExactlyInAnyOrderElementsOf(Stream.concat(firstIds.stream(), secondIds.stream()).toList());
             assertThat(firstIds).allMatch(id -> isLeasedBy(id, CONNECTOR_NAME));
             assertThat(secondIds).allMatch(id -> isLeasedBy(id, "other-connector"));
         }
