@@ -25,6 +25,8 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.health.HealthCheckResult;
+import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -52,6 +54,9 @@ public class NatsContractNegotiationSubscriberExtension implements ServiceExtens
 
     @Inject
     private TransactionContext transactionContext;
+
+    @Inject
+    private HealthCheckService healthCheckService;
 
     @Inject
     private Clock clock;
@@ -86,6 +91,10 @@ public class NatsContractNegotiationSubscriberExtension implements ServiceExtens
                 .maxRetries(subscriberConfig.maxRetries)
                 .clock(clock)
                 .build();
+        healthCheckService.addLivenessProvider(() -> HealthCheckResult.Builder.newInstance()
+                .component("NATS contract negotiation task subscriber")
+                .success(subscriber.isHealthy(), "subscriber is not consuming messages")
+                .build());
     }
 
     @Override

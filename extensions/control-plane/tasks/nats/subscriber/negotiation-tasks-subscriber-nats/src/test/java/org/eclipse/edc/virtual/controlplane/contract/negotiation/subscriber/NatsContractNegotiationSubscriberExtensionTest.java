@@ -18,14 +18,19 @@ import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.spi.system.health.HealthCheckService;
+import org.eclipse.edc.spi.system.health.LivenessProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
@@ -68,6 +73,23 @@ class NatsContractNegotiationSubscriberExtensionTest {
 
         assertThat(subscriber.isAutoCreateStream()).isEqualTo(expectedStream);
         assertThat(subscriber.isAutoCreateConsumer()).isEqualTo(expectedConsumer);
+    }
+
+
+    @Test
+    void initialize_shouldRegisterLivenessProvider(ServiceExtensionContext context, ObjectFactory objectFactory) {
+        var healthCheckService = mock(HealthCheckService.class);
+        context.registerService(HealthCheckService.class, healthCheckService);
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of()));
+        var extension = objectFactory.constructInstance(NatsContractNegotiationSubscriberExtension.class);
+
+        extension.initialize(context);
+
+        var captor = ArgumentCaptor.forClass(LivenessProvider.class);
+        verify(healthCheckService).addLivenessProvider(captor.capture());
+        var result = captor.getValue().get();
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getComponent()).isEqualTo("NATS contract negotiation task subscriber");
     }
 
     private NatsContractNegotiationTaskSubscriber subscriberFor(Map<String, String> settings, ServiceExtensionContext context,
