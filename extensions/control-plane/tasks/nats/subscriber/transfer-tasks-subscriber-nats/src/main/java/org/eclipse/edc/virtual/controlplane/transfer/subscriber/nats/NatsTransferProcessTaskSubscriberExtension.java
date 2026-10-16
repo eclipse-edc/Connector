@@ -25,6 +25,8 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.health.HealthCheckResult;
+import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -56,6 +58,9 @@ public class NatsTransferProcessTaskSubscriberExtension implements ServiceExtens
     @Inject
     private TransactionContext transactionContext;
 
+    @Inject
+    private HealthCheckService healthCheckService;
+
     // authentication options can be contributed from the outside (e.g. the NKey auth extension).
     // Note that the 'server' will be overwritten!
     @Inject(required = false)
@@ -85,6 +90,10 @@ public class NatsTransferProcessTaskSubscriberExtension implements ServiceExtens
                 .maxRetries(subscriberConfig.maxRetries)
                 .clock(clock)
                 .build();
+        healthCheckService.addLivenessProvider(() -> HealthCheckResult.Builder.newInstance()
+                .component("NATS transfer process task subscriber")
+                .success(subscriber.isHealthy(), "subscriber is not consuming messages")
+                .build());
     }
 
     @Override

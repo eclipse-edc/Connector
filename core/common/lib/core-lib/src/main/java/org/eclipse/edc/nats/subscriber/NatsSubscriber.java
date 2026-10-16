@@ -25,6 +25,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,6 +37,8 @@ import static org.eclipse.edc.nats.NatsFunctions.createStream;
 public abstract class NatsSubscriber {
 
     private final AtomicBoolean active = new AtomicBoolean(false);
+    private final AtomicBoolean started = new AtomicBoolean(false);
+    private final AtomicBoolean running = new AtomicBoolean(false);
     protected String url;
     protected String stream;
     protected String name;
@@ -46,6 +49,7 @@ public abstract class NatsSubscriber {
     protected boolean autoCreateConsumer = false;
     protected Integer batchSize = 100;
     protected Integer maxWait = 100;
+    protected long errorBackoffMillis = 1000;
     // externally contributed connect options (e.g. NKey authentication); the server URL is overwritten
     protected Options authenticationOptions;
     private Connection connection;
@@ -88,15 +92,25 @@ public abstract class NatsSubscriber {
                     .build();
 
             var sub = js.subscribe(subject, pullOptions);
-            active.set(true);
-
-            executorService.submit(() -> {
-                run(sub);
-            });
+            startConsuming(sub);
         } catch (Exception e) {
             throw new RuntimeException("Failed to start NATS subscriber", e);
         }
 
+    }
+
+    /**
+     * Starts consuming the messages of the given subscription on the subscriber thread.
+     *
+     * @param sub the subscription.
+     */
+    void startConsuming(JetStreamSubscription sub) {
+        active.set(true);
+        started.set(true);
+        running.set(true);
+        executorService.submit(() -> {
+            run(sub);
+        });
     }
 
     private Connection getOrCreateConnection() {
@@ -111,30 +125,79 @@ public abstract class NatsSubscriber {
         return connection;
     }
 
+    /**
+     * Tells if the subscriber is consuming messages. A subscriber that has not been started yet is considered healthy.
+     * Once started, it is healthy while its consumer loop runs and its connection is not closed for good, i.e. it has
+     * not given up reconnecting.
+     *
+     * @return true if the subscriber is healthy, false otherwise.
+     */
+    public boolean isHealthy() {
+        if (!started.get()) {
+            return true;
+        }
+        return running.get() && (connection == null || connection.getStatus() != Connection.Status.CLOSED);
+    }
+
     protected abstract StatusResult<Void> handleMessage(Message message);
 
     private void run(JetStreamSubscription sub) {
-        while (active.get()) {
-            var messages = sub.fetch(batchSize, maxWait);
-            for (var message : messages) {
+        try {
+            while (active.get()) {
                 try {
-                    var result = handleMessage(message);
-                    if (result.failed()) {
-                        if (result.fatalError()) {
-                            monitor.severe("Failed to handle Nats message, received a fatal error: " + result.getFailureMessages());
-                            message.term();
-                        } else {
-                            monitor.warning("Failed to handle Nats message: " + result.getFailureMessages());
-                            message.nak();
-                        }
-                        continue;
-                    }
-                    message.ack();
+                    consume(sub.fetch(batchSize, maxWait));
                 } catch (Exception e) {
-                    monitor.severe("Failed to process transfer message: " + e.getMessage(), e);
-                    message.nak();
+                    if (!active.get()) {
+                        return;
+                    }
+                    monitor.severe("NATS subscriber %s: failed to consume messages, retrying in %d ms".formatted(name, errorBackoffMillis), e);
+                    pause();
                 }
             }
+        } catch (Throwable e) {
+            monitor.severe("NATS subscriber %s: unrecoverable error, the subscriber stopped consuming messages".formatted(name), e);
+        } finally {
+            running.set(false);
+        }
+    }
+
+    private void consume(List<Message> messages) {
+        for (var message : messages) {
+            try {
+                var result = handleMessage(message);
+                if (result.failed()) {
+                    if (result.fatalError()) {
+                        monitor.severe("Failed to handle Nats message, received a fatal error: " + result.getFailureMessages());
+                        message.term();
+                    } else {
+                        monitor.warning("Failed to handle Nats message: " + result.getFailureMessages());
+                        message.nak();
+                    }
+                    continue;
+                }
+                message.ack();
+            } catch (Exception e) {
+                monitor.severe("Failed to process transfer message: " + e.getMessage(), e);
+                nakQuietly(message);
+            }
+        }
+    }
+
+    private void nakQuietly(Message message) {
+        try {
+            message.nak();
+        } catch (Exception e) {
+            // the message is redelivered once its ack wait expires
+            monitor.warning("NATS subscriber %s: cannot nak the message: %s".formatted(name, e.getMessage()));
+        }
+    }
+
+    private void pause() {
+        try {
+            Thread.sleep(errorBackoffMillis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            active.set(false);
         }
     }
 
@@ -208,6 +271,11 @@ public abstract class NatsSubscriber {
 
         public B maxWait(int maxWait) {
             subscriber.maxWait = maxWait;
+            return self();
+        }
+
+        public B errorBackoffMillis(long errorBackoffMillis) {
+            subscriber.errorBackoffMillis = errorBackoffMillis;
             return self();
         }
 
