@@ -31,6 +31,9 @@ dependencies {
     testImplementation(testFixtures(project(":spi:control-plane-spi")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
+    testImplementation(project(":core:control-plane:lib:control-plane-lib"))
+    testImplementation(project(":core:control-plane:control-plane-transfer"))
+    testImplementation(project(":core:control-plane:control-plane-transfer-manager"))
 
 }
 
