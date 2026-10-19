@@ -20,6 +20,7 @@ import org.eclipse.edc.api.auth.spi.ManagementApiScopes;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import static org.eclipse.edc.api.authentication.filter.Constants.REQUEST_PROPERTY_CLAIMS;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -152,5 +154,23 @@ class ServicePrincipalAuthenticationFilterTest {
         filter.filter(request);
 
         verify(request).abortWith(argThat(response -> response.getStatus() == 401));
+    }
+
+    @Test
+    void filter_participantDeactivated() {
+        when(participantContextService.getParticipantContext(anyString())).thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance()
+                .identity("test-context-id")
+                .id("test-context-id")
+                .state(ParticipantContextState.DEACTIVATED)
+                .build()));
+        var request = mock(ContainerRequestContext.class);
+        when(request.getProperty(REQUEST_PROPERTY_CLAIMS)).thenReturn(ClaimToken.Builder.newInstance()
+                .claim(SCOPE, "management-api:read")
+                .claim(SUBJECT, "test-context-id")
+                .build());
+        filter.filter(request);
+
+        verify(request).abortWith(argThat(response -> response.getStatus() == 401));
+        verify(request, never()).setSecurityContext(any());
     }
 }
