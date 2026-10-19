@@ -28,10 +28,14 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.eclipse.edc.nats.NatsFunctions.createConsumer;
 import static org.eclipse.edc.nats.NatsFunctions.createStream;
 
@@ -42,6 +46,11 @@ public abstract class NatsSubscriber {
      */
     public static final int MAX_RETRY_DELAY_EXPONENT = 20;
 
+    /**
+     * Interval of the in-progress heartbeat when the consumer's ack wait cannot be read: a third of the server default.
+     */
+    public static final Duration DEFAULT_IN_PROGRESS_INTERVAL = Duration.ofSeconds(10);
+
     private final AtomicBoolean active = new AtomicBoolean(false);
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final AtomicBoolean running = new AtomicBoolean(false);
@@ -50,6 +59,11 @@ public abstract class NatsSubscriber {
     protected String name;
     protected String subject;
     protected ExecutorService executorService;
+    protected ScheduledExecutorService heartbeatExecutorService;
+    // explicitly configured interval of the in-progress heartbeat, otherwise derived from the consumer's ack wait
+    protected Duration inProgressInterval;
+    // the messages fetched and not yet acknowledged: their ack wait is kept alive while they are held
+    private final Set<Message> heldMessages = ConcurrentHashMap.newKeySet();
     protected Monitor monitor;
     protected boolean autoCreateStream = false;
     protected boolean autoCreateConsumer = false;
@@ -100,6 +114,9 @@ public abstract class NatsSubscriber {
                     .build();
 
             var sub = js.subscribe(subject, pullOptions);
+            if (inProgressInterval == null) {
+                inProgressInterval = inProgressIntervalFor(sub);
+            }
             startConsuming(sub);
         } catch (Exception e) {
             throw new RuntimeException("Failed to start NATS subscriber", e);
@@ -116,6 +133,8 @@ public abstract class NatsSubscriber {
         active.set(true);
         started.set(true);
         running.set(true);
+        var interval = inProgressInterval != null ? inProgressInterval : DEFAULT_IN_PROGRESS_INTERVAL;
+        heartbeatExecutorService.scheduleAtFixedRate(this::markHeldMessagesInProgress, interval.toMillis(), interval.toMillis(), MILLISECONDS);
         executorService.submit(() -> {
             run(sub);
         });
@@ -166,10 +185,13 @@ public abstract class NatsSubscriber {
             monitor.severe("NATS subscriber %s: unrecoverable error, the subscriber stopped consuming messages".formatted(name), e);
         } finally {
             running.set(false);
+            // the messages still held are not renewed anymore, so that they are delivered to another subscriber
+            heldMessages.clear();
         }
     }
 
     private void consume(List<Message> messages) {
+        heldMessages.addAll(messages);
         for (var message : messages) {
             try {
                 var result = handleMessage(message);
@@ -188,8 +210,39 @@ public abstract class NatsSubscriber {
             } catch (Exception e) {
                 monitor.severe("Failed to process transfer message: " + e.getMessage(), e);
                 nakQuietly(message);
+            } finally {
+                heldMessages.remove(message);
             }
         }
+    }
+
+    /**
+     * Resets the ack wait of the messages that are held, i.e. fetched and not acknowledged yet, so that they are not
+     * delivered to another subscriber of the consumer while this one processes them.
+     */
+    private void markHeldMessagesInProgress() {
+        for (var message : heldMessages) {
+            try {
+                message.inProgress();
+            } catch (Exception e) {
+                monitor.warning("NATS subscriber %s: cannot mark the message as in progress: %s".formatted(name, e.getMessage()));
+            }
+        }
+    }
+
+    /**
+     * A third of the consumer's ack wait, so that a held message is marked in progress before its ack wait expires.
+     */
+    private Duration inProgressIntervalFor(JetStreamSubscription sub) {
+        try {
+            var ackWait = sub.getConsumerInfo().getConsumerConfiguration().getAckWait();
+            if (ackWait != null && !ackWait.isZero()) {
+                return ackWait.dividedBy(3);
+            }
+        } catch (Exception e) {
+            monitor.warning("NATS subscriber %s: cannot read the consumer ack wait, the default in-progress interval is used: %s".formatted(name, e.getMessage()));
+        }
+        return DEFAULT_IN_PROGRESS_INTERVAL;
     }
 
     private void nakQuietly(Message message) {
@@ -239,6 +292,7 @@ public abstract class NatsSubscriber {
     public void stop() {
         active.set(false);
         executorService.shutdown();
+        heartbeatExecutorService.shutdownNow();
         try {
             if (connection != null) {
                 connection.close();
@@ -319,6 +373,11 @@ public abstract class NatsSubscriber {
             return self();
         }
 
+        public B inProgressInterval(Duration inProgressInterval) {
+            subscriber.inProgressInterval = inProgressInterval;
+            return self();
+        }
+
         public B retryLimit(int retryLimit) {
             subscriber.retryLimit = retryLimit;
             return self();
@@ -339,6 +398,12 @@ public abstract class NatsSubscriber {
             Objects.requireNonNull(subscriber.monitor, "monitor");
 
             var name = "NatsSubscriber-" + subscriber.name;
+            subscriber.heartbeatExecutorService = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(r -> {
+                var thread = Executors.defaultThreadFactory().newThread(r);
+                thread.setName(name + "-heartbeat");
+                thread.setDaemon(true);
+                return thread;
+            }), name + "-heartbeat");
             subscriber.executorService = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(r -> {
                 var thread = Executors.defaultThreadFactory().newThread(r);
                 thread.setName(name);

@@ -34,8 +34,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -175,6 +177,70 @@ class NatsSubscriberTest {
     }
 
     @Test
+    void shouldMarkHeldMessagesInProgress_whileProcessing() {
+        var slow = messageDeliveredTimes(1);
+        var waiting = messageDeliveredTimes(1);
+        when(subscription.fetch(anyInt(), anyLong()))
+                .thenReturn(List.of(slow, waiting))
+                .thenReturn(List.of());
+        subscriber = subscriber(m -> {
+            if (m == slow) {
+                sleep(300);
+            }
+            return StatusResult.success();
+        });
+
+        subscriber.startConsuming(subscription);
+
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> verify(waiting).ack());
+        // the message being processed and the one waiting in the batch are both kept alive
+        verify(slow, atLeast(2)).inProgress();
+        verify(waiting, atLeast(2)).inProgress();
+    }
+
+    @Test
+    void shouldNotMarkInProgress_whenMessageIsAcknowledged() {
+        var message = messageDeliveredTimes(1);
+        when(subscription.fetch(anyInt(), anyLong()))
+                .thenReturn(List.of(message))
+                .thenReturn(List.of());
+        subscriber = subscriber(m -> StatusResult.success());
+
+        subscriber.startConsuming(subscription);
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> verify(message).ack());
+        var invocations = mockingDetails(message).getInvocations().size();
+
+        await().pollDelay(Duration.ofMillis(300)).untilAsserted(() ->
+                assertThat(mockingDetails(message).getInvocations()).hasSize(invocations));
+    }
+
+    @Test
+    void shouldKeepProcessing_whenMarkInProgressFails() {
+        var message = messageDeliveredTimes(1);
+        doThrow(new IllegalStateException("connection lost")).when(message).inProgress();
+        when(subscription.fetch(anyInt(), anyLong()))
+                .thenReturn(List.of(message))
+                .thenReturn(List.of());
+        subscriber = subscriber(m -> {
+            sleep(200);
+            return StatusResult.success();
+        });
+
+        subscriber.startConsuming(subscription);
+
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> verify(message).ack());
+        verify(message, atLeast(1)).inProgress();
+    }
+
+    private static void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    @Test
     void shouldBeHealthy_whenNotStarted() {
         subscriber = subscriber(m -> StatusResult.success());
 
@@ -191,6 +257,7 @@ class NatsSubscriberTest {
                 .monitor(monitor)
                 .errorBackoffMillis(10)
                 .retryBaseDelayMillis(RETRY_BASE_DELAY)
+                .inProgressInterval(Duration.ofMillis(50))
                 .build();
     }
 
