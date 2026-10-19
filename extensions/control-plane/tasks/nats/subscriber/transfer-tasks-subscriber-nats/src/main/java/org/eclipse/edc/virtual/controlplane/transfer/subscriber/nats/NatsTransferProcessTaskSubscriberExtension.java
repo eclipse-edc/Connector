@@ -88,6 +88,8 @@ public class NatsTransferProcessTaskSubscriberExtension implements ServiceExtens
                 .taskService(taskService)
                 .transactionContext(transactionContext)
                 .maxRetries(subscriberConfig.maxRetries)
+                .retryBaseDelayMillis(subscriberConfig.retryBaseDelay)
+                .retryLimit(subscriberConfig.retryLimit)
                 .clock(clock)
                 .build();
         healthCheckService.addLivenessProvider(() -> HealthCheckResult.Builder.newInstance()
@@ -143,7 +145,17 @@ public class NatsTransferProcessTaskSubscriberExtension implements ServiceExtens
                             "(e.g. published before its transaction committed), after which the message is dropped. It does not cap " +
                             "processor/business retries, which are bounded by edc.transfer.send.retry.limit.",
                     defaultValue = "3")
-            Integer maxRetries
+            Integer maxRetries,
+            @Setting(key = "edc.transfer.send.retry.base-delay.ms",
+                    description = "The base delay (ms) before a transfer process task that failed with a retryable error is delivered again; it doubles at every delivery." +
+                            " Shared with the polling state machine.",
+                    defaultValue = "1000")
+            Long retryBaseDelay,
+            @Setting(key = "edc.transfer.send.retry.limit",
+                    description = "The number of deliveries after which a transfer process task whose handling keeps throwing an exception is given up." +
+                            " Shared with the polling state machine.",
+                    defaultValue = "7")
+            Integer retryLimit
 
     ) {
     }

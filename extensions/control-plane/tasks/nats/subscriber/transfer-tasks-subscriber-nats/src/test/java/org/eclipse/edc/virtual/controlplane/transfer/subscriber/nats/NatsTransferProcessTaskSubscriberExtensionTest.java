@@ -92,6 +92,24 @@ class NatsTransferProcessTaskSubscriberExtensionTest {
         assertThat(result.getComponent()).isEqualTo("NATS transfer process task subscriber");
     }
 
+    @Test
+    void initialize_shouldUseSharedRetrySettings(ServiceExtensionContext context, ObjectFactory objectFactory) {
+        var subscriber = subscriberFor(Map.of(
+                "edc.transfer.send.retry.base-delay.ms", "250",
+                "edc.transfer.send.retry.limit", "4"), context, objectFactory);
+
+        assertThat(subscriber).extracting("retryBaseDelayMillis").isEqualTo(250L);
+        assertThat(subscriber).extracting("retryLimit").isEqualTo(4);
+    }
+
+    @Test
+    void initialize_shouldUseDefaultRetrySettings_whenNotConfigured(ServiceExtensionContext context, ObjectFactory objectFactory) {
+        var subscriber = subscriberFor(Map.of(), context, objectFactory);
+
+        assertThat(subscriber).extracting("retryBaseDelayMillis").isEqualTo(1000L);
+        assertThat(subscriber).extracting("retryLimit").isEqualTo(7);
+    }
+
     private NatsTransferProcessTaskSubscriber subscriberFor(Map<String, String> settings, ServiceExtensionContext context,
                                                             ObjectFactory objectFactory) {
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(settings));

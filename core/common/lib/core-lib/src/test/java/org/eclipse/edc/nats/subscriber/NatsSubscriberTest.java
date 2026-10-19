@@ -16,6 +16,7 @@ package org.eclipse.edc.nats.subscriber;
 
 import io.nats.client.JetStreamSubscription;
 import io.nats.client.Message;
+import io.nats.client.impl.NatsJetStreamMetaData;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -40,6 +41,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class NatsSubscriberTest {
+
+    private static final long RETRY_BASE_DELAY = 100;
 
     private final Monitor monitor = mock();
     private final JetStreamSubscription subscription = mock();
@@ -74,8 +77,8 @@ class NatsSubscriberTest {
 
     @Test
     void shouldKeepConsuming_whenNakFails() {
-        var failing = mock(Message.class);
-        doThrow(new IllegalStateException("connection lost")).when(failing).nak();
+        var failing = messageDeliveredTimes(1);
+        doThrow(new IllegalStateException("connection lost")).when(failing).nakWithDelay(any(Duration.class));
         var next = mock(Message.class);
         when(subscription.fetch(anyInt(), anyLong()))
                 .thenReturn(List.of(failing))
@@ -118,6 +121,60 @@ class NatsSubscriberTest {
     }
 
     @Test
+    void shouldNakWithExponentialDelay_whenResultIsRetryable() {
+        var first = messageDeliveredTimes(1);
+        var third = messageDeliveredTimes(3);
+        when(subscription.fetch(anyInt(), anyLong()))
+                .thenReturn(List.of(first, third))
+                .thenReturn(List.of());
+        subscriber = subscriber(m -> StatusResult.failure(ResponseStatus.ERROR_RETRY, "retry"));
+
+        subscriber.startConsuming(subscription);
+
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            verify(first).nakWithDelay(Duration.ofMillis(RETRY_BASE_DELAY * 2));
+            verify(third).nakWithDelay(Duration.ofMillis(RETRY_BASE_DELAY * 8));
+        });
+        verify(first, never()).nak();
+    }
+
+    @Test
+    void shouldCapRetryDelay_whenDeliveredManyTimes() {
+        var message = messageDeliveredTimes(1000);
+        when(subscription.fetch(anyInt(), anyLong()))
+                .thenReturn(List.of(message))
+                .thenReturn(List.of());
+        subscriber = subscriber(m -> StatusResult.failure(ResponseStatus.ERROR_RETRY, "retry"));
+
+        subscriber.startConsuming(subscription);
+
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() ->
+                verify(message).nakWithDelay(Duration.ofMillis(RETRY_BASE_DELAY * (1L << NatsSubscriber.MAX_RETRY_DELAY_EXPONENT))));
+    }
+
+    @Test
+    void shouldTerm_whenResultIsFatal() {
+        var message = messageDeliveredTimes(1);
+        when(subscription.fetch(anyInt(), anyLong()))
+                .thenReturn(List.of(message))
+                .thenReturn(List.of());
+        subscriber = subscriber(m -> StatusResult.failure(ResponseStatus.FATAL_ERROR, "fatal"));
+
+        subscriber.startConsuming(subscription);
+
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> verify(message).term());
+        verify(message, never()).nakWithDelay(any(Duration.class));
+    }
+
+    private Message messageDeliveredTimes(long deliveredCount) {
+        var metaData = mock(NatsJetStreamMetaData.class);
+        when(metaData.deliveredCount()).thenReturn(deliveredCount);
+        var message = mock(Message.class);
+        when(message.metaData()).thenReturn(metaData);
+        return message;
+    }
+
+    @Test
     void shouldBeHealthy_whenNotStarted() {
         subscriber = subscriber(m -> StatusResult.success());
 
@@ -133,6 +190,7 @@ class NatsSubscriberTest {
                 .subject("test.>")
                 .monitor(monitor)
                 .errorBackoffMillis(10)
+                .retryBaseDelayMillis(RETRY_BASE_DELAY)
                 .build();
     }
 
