@@ -91,6 +91,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class TransferProcessTaskExecutorImplTest {
@@ -231,7 +232,7 @@ class TransferProcessTaskExecutorImplTest {
     }
 
     @Test
-    void handle_shouldSkipWhenPendingGuardMatches() {
+    void handle_shouldSetPending_whenPendingGuardMatches() {
         var transferProcess = createTransferProcess("transfer-123", INITIAL);
 
         var task = PrepareTransfer.Builder.newInstance()
@@ -246,6 +247,31 @@ class TransferProcessTaskExecutorImplTest {
         var result = executor.handle(task);
 
         assertThat(result.succeeded()).isTrue();
+        verify(transferProcess).setPending(true);
+        verify(transferStore).save(transferProcess);
+        verifyNoInteractions(dataFlowController);
+        verify(taskService, never()).create(any());
+    }
+
+    @Test
+    void handle_shouldSucceed_whenSettingPendingConflicts() {
+        var transferProcess = createTransferProcess("transfer-123", INITIAL);
+
+        var task = PrepareTransfer.Builder.newInstance()
+                .processId("transfer-123")
+                .processState(INITIAL.code())
+                .processType(TransferProcess.Type.CONSUMER.name())
+                .build();
+
+        when(transferStore.findById("transfer-123")).thenReturn(transferProcess);
+        when(pendingGuard.test(transferProcess)).thenReturn(true);
+        // another runtime has changed the transfer process in the meantime
+        when(transferStore.save(any())).thenReturn(StoreResult.conflict("changed concurrently"));
+
+        var result = executor.handle(task);
+
+        assertThat(result.succeeded()).isTrue();
+        verifyNoInteractions(dataFlowController);
     }
 
     @Test

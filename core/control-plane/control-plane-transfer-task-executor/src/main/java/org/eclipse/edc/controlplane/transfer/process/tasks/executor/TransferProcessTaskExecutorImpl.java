@@ -126,12 +126,13 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
                 return StatusResult.success();
             }
 
+            StatusResult<Void> result;
             if (pendingGuard.test(transferProcess)) {
-                monitor.debug("Skipping '%s' for transfer process with id '%s' due matched guard".formatted(expectedState, transferId));
-                return StatusResult.success();
+                monitor.debug("Holding '%s' for transfer process with id '%s' due matched guard".formatted(expectedState, transferId));
+                result = hold(transferProcess);
+            } else {
+                result = handler.function.apply(transferProcess);
             }
-
-            var result = handler.function.apply(transferProcess);
             if (result.conflict()) {
                 // another writer has already moved the transfer process on, and the new state has its own task: drop this one
                 monitor.debug("Skipping transfer process with id '%s', it was changed concurrently: %s".formatted(transferProcess.getId(), result.getFailureDetail()));
@@ -140,6 +141,15 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
             return result;
         });
 
+    }
+
+    /**
+     * Marks the transfer process held by the pending guard as pending, as the polling state machine does: it is not
+     * processed until the guard owner releases it.
+     */
+    private StatusResult<Void> hold(TransferProcess process) {
+        process.setPending(true);
+        return StatusResult.from(store.save(process));
     }
 
     private StatusResult<Void> handlePrepareTransfer(TransferProcess process) {
