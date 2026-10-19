@@ -31,6 +31,7 @@ import org.eclipse.edc.controlplane.transfer.spi.tasks.SuspendDataFlow;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.TerminateDataFlow;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.eclipse.edc.nats.testfixtures.NatsEndToEndExtension;
+import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.junit.jupiter.api.AfterEach;
@@ -115,6 +116,8 @@ class NatsTransferProcessSubscriberTest {
                 .transactionContext(new NoopTransactionContext())
                 .clock(Clock.systemUTC())
                 .maxRetries(2)
+                .retryBaseDelayMillis(10)
+                .retryLimit(3)
                 .build();
     }
 
@@ -181,6 +184,36 @@ class NatsTransferProcessSubscriberTest {
         // maxRetries == 2: delivered twice (nak, then dropped); the executor is never invoked while the task is missing
         await().atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
             verify(taskService, times(2)).findById(any());
+            verify(taskManager, never()).handle(any());
+        });
+    }
+
+    @Test
+    void handleTask_isRetriedWithDelay_thenTerminatedAfterRetryLimit_whenHandlingThrows() throws JacksonException {
+        var payload = baseBuilder(PrepareTransfer.Builder.newInstance(), UUID.randomUUID().toString(), INITIAL, CONSUMER).build();
+        var task = Task.Builder.newInstance().at(System.currentTimeMillis())
+                .payload(payload)
+                .build();
+
+        // a temporary failure, e.g. the database is not reachable: retried, bounded by the retry limit (3)
+        when(taskService.findById(any())).thenThrow(new EdcPersistenceException("database not available"));
+        subscriber.start();
+
+        NATS_EXTENSION.publish("transfers.provider." + payload.name(), MAPPER.writeValueAsBytes(task));
+
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> verify(taskService, times(3)).findById(any()));
+        await().pollDelay(Duration.ofMillis(500)).untilAsserted(() -> verify(taskService, times(3)).findById(any()));
+        verify(taskManager, never()).handle(any());
+    }
+
+    @Test
+    void handleMessage_isTerminatedWithoutRetry_whenMessageIsMalformed() {
+        subscriber.start();
+
+        NATS_EXTENSION.publish("transfers.provider.malformed", "not a task".getBytes());
+
+        await().pollDelay(Duration.ofMillis(500)).untilAsserted(() -> {
+            verify(taskService, never()).findById(any());
             verify(taskManager, never()).handle(any());
         });
     }

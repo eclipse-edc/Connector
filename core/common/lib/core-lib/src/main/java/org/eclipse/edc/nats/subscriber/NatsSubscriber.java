@@ -25,6 +25,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
@@ -35,6 +36,11 @@ import static org.eclipse.edc.nats.NatsFunctions.createConsumer;
 import static org.eclipse.edc.nats.NatsFunctions.createStream;
 
 public abstract class NatsSubscriber {
+
+    /**
+     * Upper bound of the exponent of the retry delay, to avoid overflows on very high delivery counts.
+     */
+    public static final int MAX_RETRY_DELAY_EXPONENT = 20;
 
     private final AtomicBoolean active = new AtomicBoolean(false);
     private final AtomicBoolean started = new AtomicBoolean(false);
@@ -50,6 +56,8 @@ public abstract class NatsSubscriber {
     protected Integer batchSize = 100;
     protected Integer maxWait = 100;
     protected long errorBackoffMillis = 1000;
+    protected long retryBaseDelayMillis = 1000;
+    protected int retryLimit = 7;
     // externally contributed connect options (e.g. NKey authentication); the server URL is overwritten
     protected Options authenticationOptions;
     private Connection connection;
@@ -170,8 +178,9 @@ public abstract class NatsSubscriber {
                         monitor.severe("Failed to handle Nats message, received a fatal error: " + result.getFailureMessages());
                         message.term();
                     } else {
-                        monitor.warning("Failed to handle Nats message: " + result.getFailureMessages());
-                        message.nak();
+                        var delay = retryDelay(message);
+                        monitor.warning("Failed to handle Nats message, retrying in %s: %s".formatted(delay, result.getFailureMessages()));
+                        message.nakWithDelay(delay);
                     }
                     continue;
                 }
@@ -185,10 +194,36 @@ public abstract class NatsSubscriber {
 
     private void nakQuietly(Message message) {
         try {
-            message.nak();
+            message.nakWithDelay(retryDelay(message));
         } catch (Exception e) {
             // the message is redelivered once its ack wait expires
             monitor.warning("NATS subscriber %s: cannot nak the message: %s".formatted(name, e.getMessage()));
+        }
+    }
+
+    /**
+     * The delay before the message is delivered again: the retry base delay doubled for every delivery, as the state
+     * machine does for the retries of an entity.
+     *
+     * @param message the message.
+     * @return the delay.
+     */
+    protected Duration retryDelay(Message message) {
+        var exponent = (int) Math.min(deliveredCount(message), MAX_RETRY_DELAY_EXPONENT);
+        return Duration.ofMillis(retryBaseDelayMillis * (1L << exponent));
+    }
+
+    /**
+     * The number of times the message has been delivered, 1 if it cannot be determined.
+     *
+     * @param message the message.
+     * @return the delivered count.
+     */
+    protected long deliveredCount(Message message) {
+        try {
+            return Math.max(1, message.metaData().deliveredCount());
+        } catch (Exception e) {
+            return 1;
         }
     }
 
@@ -276,6 +311,16 @@ public abstract class NatsSubscriber {
 
         public B errorBackoffMillis(long errorBackoffMillis) {
             subscriber.errorBackoffMillis = errorBackoffMillis;
+            return self();
+        }
+
+        public B retryBaseDelayMillis(long retryBaseDelayMillis) {
+            subscriber.retryBaseDelayMillis = retryBaseDelayMillis;
+            return self();
+        }
+
+        public B retryLimit(int retryLimit) {
+            subscriber.retryLimit = retryLimit;
             return self();
         }
 

@@ -47,15 +47,28 @@ public abstract class AbstractTaskSubscriber<P extends ProcessTaskPayload> exten
 
     @Override
     protected StatusResult<Void> handleMessage(Message message) {
+        Task task;
         try {
-            var task = mapperSupplier.get().readValue(message.getData(), Task.class);
-            if (target.isAssignableFrom(task.getPayload().getClass())) {
-                return transactionContext.execute(() -> handleTask(message, task));
-            } else {
-                return StatusResult.failure(ResponseStatus.FATAL_ERROR, "Invalid task payload type");
-            }
+            task = mapperSupplier.get().readValue(message.getData(), Task.class);
         } catch (Exception e) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, e.getMessage());
+            // a message that cannot be read will never be: it is not retried
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, "Invalid task message: " + e.getMessage());
+        }
+        if (task.getPayload() == null || !target.isAssignableFrom(task.getPayload().getClass())) {
+            return StatusResult.failure(ResponseStatus.FATAL_ERROR, "Invalid task payload type");
+        }
+
+        try {
+            return transactionContext.execute(() -> handleTask(message, task));
+        } catch (Exception e) {
+            // e.g. the database is not reachable: the task is retried with a delay, up to the retry limit
+            var deliveredCount = deliveredCount(message);
+            if (deliveredCount >= retryLimit) {
+                monitor.severe("Task %s failed after %d deliveries, giving up".formatted(task.getId(), deliveredCount), e);
+                return StatusResult.failure(ResponseStatus.FATAL_ERROR, e.getMessage());
+            }
+            monitor.warning("Task %s failed, it will be retried: %s".formatted(task.getId(), e.getMessage()));
+            return StatusResult.failure(ResponseStatus.ERROR_RETRY, e.getMessage());
         }
     }
 
