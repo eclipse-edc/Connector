@@ -1,0 +1,131 @@
+/*
+ *  Copyright (c) 2026 Metaform Systems, Inc.
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Metaform Systems, Inc. - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.tck.dps;
+
+import org.eclipse.dataspacetck.dps.system.DpsSystemLauncher;
+import org.eclipse.dataspacetck.runtime.TckRuntime;
+import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.junit.utils.Endpoints;
+import org.eclipse.edc.nats.testfixtures.NatsEndToEndExtension;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
+import org.eclipse.edc.tck.TckTest;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.Properties;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
+
+/**
+ * Runs the DPS TCK against the virtual deployment: task-based state machine on NATS, SQL stores on Postgres.
+ */
+@TckTest
+public class VirtualDpsTckTest {
+
+    private static final String RUNTIME_NAME = "virtualcut";
+    private static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
+    private static final int TCK_PORT = getFreePort();
+    private static final URI TCK_WEBHOOK_URL = URI.create("http://localhost:" + getFreePort() + "/tck");
+    private static final URI PROTOCOL_URL = URI.create("http://localhost:" + getFreePort() + "/protocol");
+    private static final URI SIGNALING_URL = URI.create("http://localhost:%d/api/signaling".formatted(getFreePort()));
+
+    @Order(0)
+    @RegisterExtension
+    static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
+
+    @Order(0)
+    @RegisterExtension
+    static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension();
+
+    @Order(0)
+    @RegisterExtension
+    static final NatsEndToEndExtension NATS_EXTENSION = new NatsEndToEndExtension();
+
+    @Order(1)
+    @RegisterExtension
+    static final BeforeAllCallback SETUP = context -> POSTGRESQL_EXTENSION.createDatabase(RUNTIME_NAME);
+
+    @RegisterExtension
+    static final RuntimeExtension RUNTIME = ComponentRuntimeExtension.Builder.newInstance()
+            .name(RUNTIME_NAME)
+            .modules(":system-tests:tck:dps-tck-virtual-connector-under-test")
+            .endpoints(Endpoints.Builder.newInstance()
+                    .endpoint("default", () -> URI.create("http://localhost:%d/api".formatted(getFreePort())))
+                    .endpoint("management", () -> URI.create("http://localhost:%d/api/management".formatted(getFreePort())))
+                    .endpoint("protocol", () -> PROTOCOL_URL)
+                    .endpoint("signaling", () -> SIGNALING_URL)
+                    .endpoint("tck", () -> TCK_WEBHOOK_URL)
+                    .build())
+            .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
+                    "edc.participant.id", PARTICIPANT_CONTEXT_ID,
+                    "edc.participant.context.id", PARTICIPANT_CONTEXT_ID,
+                    "edc.component.id", "DPS-tck-test-virtual",
+                    "edc.dsp.callback.address", PROTOCOL_URL + "/%s",
+                    "edc.dataspace.enable.profiles.all", "true",
+                    "edc.tck.dataplane.url", "http://localhost:" + TCK_PORT
+            )))
+            .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(RUNTIME_NAME))
+            .configurationProvider(NATS_EXTENSION::configFor)
+            .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
+            .build();
+
+    @Timeout(300)
+    @Test
+    void assertDpsCompliance() throws IOException {
+
+        var properties = loadPropertiesFrom("dps.tck.properties");
+
+        properties.put("dataspacetck.debug", "true");
+        properties.put("dataspacetck.callback.address", "http://localhost:" + TCK_PORT);
+        properties.put("dataspacetck.port", String.valueOf(TCK_PORT));
+        properties.put("dataspacetck.dps.controlplane.webhook.url", TCK_WEBHOOK_URL.toString());
+        properties.put("dataspacetck.dps.controlplane.protocol.url", PROTOCOL_URL + "/" + PARTICIPANT_CONTEXT_ID + "/http-dsp-profile-2025-1");
+        properties.put("dataspacetck.dps.controlplane.signaling.url", SIGNALING_URL.toString());
+
+        var result = TckRuntime.Builder.newInstance()
+                .properties(properties)
+                .launcher(DpsSystemLauncher.class)
+                .addPackage("org.eclipse.dataspacetck.dps.verification.controlplane")
+                .build()
+                .execute();
+
+        assertThat(result.getFailures()).isEmpty();
+    }
+
+    private Map<String, String> loadPropertiesFrom(String resource) throws IOException {
+        var properties = new Properties();
+        try (var reader = new FileReader(Path.of(TestUtils.getResource(resource)).toString())) {
+            properties.load(reader);
+        }
+
+        return properties.entrySet().stream()
+                .collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue().toString()));
+    }
+
+}

@@ -28,7 +28,10 @@ dependencies {
     testImplementation(libs.dps.tck)
 
     testImplementation(project(":core:common:junit"))
-    testRuntimeOnly(project(":system-tests:tck:dps-tck-connector-under-test"))
+    testImplementation(testFixtures(project(":core:common:lib:core-lib")))
+    // the connectors under test are loaded by the runtime extensions (modules), so that their extensions are not shared
+    testCompileOnly(project(":system-tests:tck:dps-tck-connector-under-test"))
+    testCompileOnly(project(":system-tests:tck:dps-tck-virtual-connector-under-test"))
 }
 
 edcBuild {
