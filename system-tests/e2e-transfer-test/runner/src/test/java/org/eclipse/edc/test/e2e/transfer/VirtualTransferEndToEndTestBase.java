@@ -39,7 +39,10 @@ import java.util.Set;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PREPARATION_REQUESTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER_DP;
@@ -72,7 +75,7 @@ public abstract class VirtualTransferEndToEndTestBase {
         var consumerDp = new DataPlaneRegistrationDto(
                 consumerDataPlane.dataPlaneId(),
                 consumerDataPlane.getDataFlowsEndpoint(),
-                Set.of("NonFinite-PULL"),
+                Set.of("NonFinite-PULL", "AsyncPrepare-PUSH", "AsyncStart-PULL"),
                 Set.of(),
                 toAuthorizationProfile(consumerControlPlaneOauth2Profile).properties()
         );
@@ -81,7 +84,7 @@ public abstract class VirtualTransferEndToEndTestBase {
         var providerDp = new DataPlaneRegistrationDto(
                 providerDataPlane.dataPlaneId(),
                 providerDataPlane.getDataFlowsEndpoint(),
-                Set.of("NonFinite-PULL"),
+                Set.of("NonFinite-PULL", "AsyncPrepare-PUSH", "AsyncStart-PULL"),
                 Set.of(),
                 toAuthorizationProfile(providerControlPlaneOauth2Profile).properties()
         );
@@ -250,6 +253,43 @@ public abstract class VirtualTransferEndToEndTestBase {
         connectorClient.waitTransferInState(participants.consumer().contextId(), transferProcessId, COMPLETED);
         connectorClient.waitTransferInState(participants.provider().contextId(), consumerTransfer.getCorrelationId(), COMPLETED);
 
+    }
+
+    @Test
+    void asyncPreparation(ManagementApiClientV5 connectorClient, Participants participants,
+                          @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
+        var providerAddress = participants.provider().getProtocolEndpoint();
+        var assetId = setup(connectorClient, participants.provider());
+
+        var transferProcessId = connectorClient.initTransfer(participants.consumer().contextId(), participants.consumer().profile(),
+                participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "AsyncPrepare-PUSH");
+
+        connectorClient.waitTransferInState(participants.consumer().contextId(), transferProcessId, PREPARATION_REQUESTED);
+        consumerDataPlane.awaitFlowToBe(transferProcessId, "PREPARING");
+
+        consumerDataPlane.completePreparation(transferProcessId);
+
+        connectorClient.waitTransferInState(participants.consumer().contextId(), transferProcessId, COMPLETED);
+    }
+
+    @Test
+    void asyncStartup(ManagementApiClientV5 connectorClient, Participants participants,
+                      @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane) {
+        var providerAddress = participants.provider().getProtocolEndpoint();
+        var assetId = setup(connectorClient, participants.provider());
+
+        var transferProcessId = connectorClient.initTransfer(participants.consumer().contextId(), participants.consumer().profile(),
+                participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "AsyncStart-PULL");
+
+        connectorClient.waitTransferInState(participants.consumer().contextId(), transferProcessId, REQUESTED);
+        var providerTransferProcessId = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId).getCorrelationId();
+        connectorClient.waitTransferInState(participants.provider().contextId(), providerTransferProcessId, STARTUP_REQUESTED);
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTING");
+
+        providerDataPlane.completeStartup(providerTransferProcessId);
+
+        connectorClient.waitTransferInState(participants.consumer().contextId(), transferProcessId, COMPLETED);
+        connectorClient.waitTransferInState(participants.provider().contextId(), providerTransferProcessId, COMPLETED);
     }
 
     protected String setup(ManagementApiClientV5 connectorClient, Participants.Participant provider) {
