@@ -24,6 +24,7 @@ import org.eclipse.edc.api.auth.spi.ManagementApiScopes;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.ScopeMatcher;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 
@@ -109,7 +110,7 @@ public class ServicePrincipalAuthenticationFilter implements ContainerRequestFil
     /**
      * Validates if a subject is authorized for a given scope. This is the case if the scope is an "admin" scope, in
      * which case the subject claim is ignored, or if the scope is not admin, and the subject claim references an existing
-     * participant context
+     * participant context that is not deactivated
      *
      * @param scope   The scope for which authorization is being requested.
      * @param subject The subject claim for which authorization is being verified.
@@ -123,7 +124,9 @@ public class ServicePrincipalAuthenticationFilter implements ContainerRequestFil
         if (subject == null) {
             return Result.failure("No 'sub' claim present");
         }
-        if (participantContextService.getParticipantContext(subject).failed()) {
+        var participantContext = participantContextService.getParticipantContext(subject);
+        // a deactivated participant context must not access the API, and is answered like one that does not exist
+        if (participantContext.failed() || participantContext.getContent().getStateAsEnum() == ParticipantContextState.DEACTIVATED) {
             return Result.failure("No participant for 'sub = %s' found".formatted(subject));
         }
         return Result.success();
