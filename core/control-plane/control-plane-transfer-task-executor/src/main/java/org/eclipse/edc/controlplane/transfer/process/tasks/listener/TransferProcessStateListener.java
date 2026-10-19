@@ -15,6 +15,7 @@
 package org.eclipse.edc.controlplane.transfer.process.tasks.listener;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
+import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
 import org.eclipse.edc.controlplane.tasks.Task;
@@ -23,6 +24,7 @@ import org.eclipse.edc.controlplane.tasks.TaskService;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.CompleteDataFlow;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.PrepareTransfer;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.ResumeDataFlow;
+import org.eclipse.edc.controlplane.transfer.spi.tasks.SendTransferRequest;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.SendTransferStart;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.SignalDataflowStarted;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.SuspendDataFlow;
@@ -30,6 +32,11 @@ import org.eclipse.edc.controlplane.transfer.spi.tasks.TerminateDataFlow;
 import org.eclipse.edc.spi.EdcException;
 
 import java.time.Clock;
+
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 
 public class TransferProcessStateListener implements TransferProcessListener {
 
@@ -46,6 +53,30 @@ public class TransferProcessStateListener implements TransferProcessListener {
         var task = baseBuilder(PrepareTransfer.Builder.newInstance(), process)
                 .build();
         storeTask(task);
+    }
+
+    /**
+     * The data plane completed asynchronously the preparation of the transfer: the transfer process continues with the
+     * transfer request (consumer) or with the transfer start (provider).
+     */
+    @Override
+    public void prepared(TransferProcess process) {
+        if (process.getType() == CONSUMER && process.getState() == REQUESTING.code()) {
+            storeTask(baseBuilder(SendTransferRequest.Builder.newInstance(), process).build());
+        } else if (process.getType() == PROVIDER && process.getState() == STARTING.code()) {
+            storeTask(baseBuilder(SendTransferStart.Builder.newInstance(), process).build());
+        }
+    }
+
+    /**
+     * Handles only the asynchronous startup of the data flow on the provider side, that leaves the transfer process
+     * in STARTING: the transfer start is then sent to the consumer. The other started transitions need no task.
+     */
+    @Override
+    public void started(TransferProcess process, TransferProcessStartedData additionalData) {
+        if (process.getType() == PROVIDER && process.getState() == STARTING.code()) {
+            storeTask(baseBuilder(SendTransferStart.Builder.newInstance(), process).build());
+        }
     }
 
     @Override

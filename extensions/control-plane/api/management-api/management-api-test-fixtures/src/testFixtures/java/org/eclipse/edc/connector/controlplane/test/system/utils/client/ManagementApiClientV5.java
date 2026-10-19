@@ -227,6 +227,23 @@ public class ManagementApiClientV5 {
         }
     }
 
+    /**
+     * Negotiates a contract and initiates the transfer process, without waiting for it to start.
+     *
+     * @return the transfer process id.
+     */
+    public String initTransfer(String participantContext, String profile, String providerContextId, String providerAddress, String providerId, String assetId, String transferType) {
+        try {
+            var dataset = fetchDataset(participantContext, profile, assetId, providerAddress, providerId);
+            var offer = dataset.offers().stream().findFirst().orElseThrow();
+
+            var agreementId = startContractNegotiation(participantContext, profile, providerContextId, assetId, offer, providerAddress, providerId);
+            return transfers.initTransfer(participantContext, new TransferRequestDto(profile, providerAddress, transferType, agreementId));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public String setupResources(String participantContext, AssetDto asset, PolicyDefinitionDto accessPolicy, PolicyDefinitionDto contractPolicy) {
         return setupResources(participantContext, asset, accessPolicy, contractPolicy, Map.of());
     }
