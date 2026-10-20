@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.http;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.controlplane.iam.AudienceResolver;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.protocol.dsp.http.message.DspRequestHandlerImpl;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.result.Result;
@@ -40,12 +41,14 @@ class DspHttpCoreExtensionTest {
     public static final String SCOPE_CLAIM = "scope";
     private final IdentityService identityService = mock();
     private final AudienceResolver audienceResolver = mock();
+    private final RequestScopeExtractorRegistry requestScopeExtractorRegistry = mock();
     private DspHttpCoreExtension extension;
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(IdentityService.class, identityService);
         context.registerService(AudienceResolver.class, audienceResolver);
+        context.registerService(RequestScopeExtractorRegistry.class, requestScopeExtractorRegistry);
     }
 
     @Test

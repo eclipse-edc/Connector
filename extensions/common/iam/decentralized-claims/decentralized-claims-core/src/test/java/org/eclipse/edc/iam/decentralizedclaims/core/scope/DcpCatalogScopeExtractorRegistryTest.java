@@ -17,7 +17,6 @@ package org.eclipse.edc.iam.decentralizedclaims.core.scope;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
 import org.eclipse.edc.protocol.spi.RequestContext;
-import org.eclipse.edc.spi.iam.RequestScope;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -74,6 +73,6 @@ class DcpCatalogScopeExtractorRegistryTest {
                 .direction(RequestContext.Direction.Ingress)
                 .participantContextId("participantContextId")
                 .build();
-        return new RequestCatalogPolicyContext(requestContext, RequestScope.Builder.newInstance());
+        return new RequestCatalogPolicyContext(requestContext);
     }
 }

@@ -21,6 +21,7 @@ import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
@@ -29,12 +30,14 @@ import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.jspecify.annotations.NonNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Set;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -55,9 +58,15 @@ class ProtocolTokenValidatorImplTest {
     private final ParticipantAgentService agentService = mock();
     private final IdentityService identityService = mock();
     private final PolicyEngine policyEngine = mock();
+    private final RequestScopeExtractorRegistry requestScopeExtractorRegistry = mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
     private final ProtocolTokenValidatorImpl validator = new ProtocolTokenValidatorImpl(identityService,
-            policyEngine, mock(), agentService, dataspaceProfileContextRegistry);
+            policyEngine, requestScopeExtractorRegistry, mock(), agentService, dataspaceProfileContextRegistry);
+
+    @BeforeEach
+    void setUp() {
+        when(requestScopeExtractorRegistry.extractScopes(any(), any())).thenReturn(Result.success(Set.of()));
+    }
 
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
             .id("participantContextId")
@@ -153,8 +162,8 @@ class ProtocolTokenValidatorImplTest {
 
     private static class TestRequestPolicyContext extends RequestPolicyContext {
 
-        TestRequestPolicyContext(RequestContext requestContext, RequestScope.Builder requestScopeBuilder) {
-            super(requestContext, requestScopeBuilder);
+        TestRequestPolicyContext(RequestContext requestContext) {
+            super(requestContext);
         }
 
         @Override

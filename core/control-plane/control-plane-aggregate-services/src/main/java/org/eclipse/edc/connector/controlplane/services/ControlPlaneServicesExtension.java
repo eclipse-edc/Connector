@@ -78,6 +78,7 @@ import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
@@ -153,6 +154,8 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     private IdentityService identityService;
     @Inject
     private PolicyEngine policyEngine;
+    @Inject
+    private RequestScopeExtractorRegistry requestScopeExtractorRegistry;
     @Inject(required = false)
     private ProtocolTokenValidator protocolTokenValidator;
     @Inject
@@ -267,7 +270,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public ProtocolTokenValidator protocolTokenValidator() {
         if (protocolTokenValidator == null) {
-            protocolTokenValidator = new ProtocolTokenValidatorImpl(identityService, policyEngine, monitor, participantAgentService, dataspaceProfileContextRegistry);
+            protocolTokenValidator = new ProtocolTokenValidatorImpl(identityService, policyEngine, requestScopeExtractorRegistry, monitor, participantAgentService, dataspaceProfileContextRegistry);
         }
         return protocolTokenValidator;
     }

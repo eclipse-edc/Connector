@@ -25,12 +25,12 @@ import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.controlplane.iam.AudienceResolver;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.token.spi.TokenDecorator;
@@ -38,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -61,6 +62,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements ProtocolRemoteMessage
     private final EdcHttpClient httpClient;
     private final IdentityService identityService;
     private final PolicyEngine policyEngine;
+    private final RequestScopeExtractorRegistry requestScopeExtractorRegistry;
     private final TokenDecorator tokenDecorator;
     private final AudienceResolver audienceResolver;
 
@@ -68,10 +70,12 @@ public class DspHttpRemoteMessageDispatcherImpl implements ProtocolRemoteMessage
                                               IdentityService identityService,
                                               TokenDecorator decorator,
                                               PolicyEngine policyEngine,
+                                              RequestScopeExtractorRegistry requestScopeExtractorRegistry,
                                               AudienceResolver audienceResolver) {
         this.httpClient = httpClient;
         this.identityService = identityService;
         this.policyEngine = policyEngine;
+        this.requestScopeExtractorRegistry = requestScopeExtractorRegistry;
         this.tokenDecorator = decorator;
         this.audienceResolver = audienceResolver;
     }
@@ -89,25 +93,29 @@ public class DspHttpRemoteMessageDispatcherImpl implements ProtocolRemoteMessage
 
         var policyScope = policyScopes.get(message.getClass());
         if (policyScope != null) {
-            var requestScopeBuilder = RequestScope.Builder.newInstance();
             var requestContext = RequestContext.Builder.newInstance()
                     .message(message)
                     .direction(RequestContext.Direction.Egress)
                     .participantContextId(participantContextId)
                     .build();
 
-            var context = policyScope.contextProvider.instantiate(requestContext, requestScopeBuilder);
-            var policyProvider = (Function<M, Policy>) policyScope.policyProvider;
-            policyEngine.evaluate(policyProvider.apply(message), context);
+            var context = policyScope.contextProvider.instantiate(requestContext);
+            var policy = ((Function<M, Policy>) policyScope.policyProvider).apply(message);
+            policyEngine.evaluate(policy, context);
+
+            var extractedScopes = requestScopeExtractorRegistry.extractScopes(policy, context);
+            if (extractedScopes.failed()) {
+                return failedFuture(new EdcException(format("Unable to extract scopes: %s", extractedScopes.getFailureDetail())));
+            }
+
+            var scopes = new LinkedHashSet<>(extractedScopes.getContent());
 
             // catalog request messages can carry additional, user-supplied scopes
             if (message instanceof CatalogRequestMessage catalogRequestMessage) {
-                catalogRequestMessage.getAdditionalScopes().forEach(requestScopeBuilder::scope);
+                scopes.addAll(catalogRequestMessage.getAdditionalScopes());
             }
 
-            var scopes = requestScopeBuilder.build().getScopes();
-
-            // Only add the scope claim if there are scopes returned from the policy engine evaluation
+            // Only add the scope claim if there are scopes to add
             if (!scopes.isEmpty()) {
                 tokenParametersBuilder.claims(SCOPE_CLAIM, String.join(" ", scopes));
             }

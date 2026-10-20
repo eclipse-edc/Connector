@@ -16,7 +16,6 @@ package org.eclipse.edc.policy.context.request.spi;
 
 import org.eclipse.edc.policy.engine.spi.PolicyContextImpl;
 import org.eclipse.edc.protocol.spi.RequestContext;
-import org.eclipse.edc.spi.iam.RequestScope;
 
 /**
  * Policy Context for "request.*" scope
@@ -24,23 +23,17 @@ import org.eclipse.edc.spi.iam.RequestScope;
 public abstract class RequestPolicyContext extends PolicyContextImpl {
 
     private final RequestContext requestContext;
-    private final RequestScope.Builder requestScopeBuilder;
 
-    protected RequestPolicyContext(RequestContext requestContext, RequestScope.Builder requestScopeBuilder) {
+    protected RequestPolicyContext(RequestContext requestContext) {
         this.requestContext = requestContext;
-        this.requestScopeBuilder = requestScopeBuilder;
     }
 
     public RequestContext requestContext() {
         return requestContext;
     }
 
-    public RequestScope.Builder requestScopeBuilder() {
-        return requestScopeBuilder;
-    }
-
     @FunctionalInterface
     public interface Provider {
-        RequestPolicyContext instantiate(RequestContext requestContext, RequestScope.Builder requestScopeBuilder);
+        RequestPolicyContext instantiate(RequestContext requestContext);
     }
 }

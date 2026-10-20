@@ -21,12 +21,12 @@ import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -40,25 +40,27 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
 
     private final IdentityService identityService;
     private final PolicyEngine policyEngine;
+    private final RequestScopeExtractorRegistry requestScopeExtractorRegistry;
     private final ParticipantAgentService agentService;
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
 
     private final Monitor monitor;
 
-    public ProtocolTokenValidatorImpl(IdentityService identityService, PolicyEngine policyEngine, Monitor monitor,
+    public ProtocolTokenValidatorImpl(IdentityService identityService, PolicyEngine policyEngine,
+                                      RequestScopeExtractorRegistry requestScopeExtractorRegistry, Monitor monitor,
                                       ParticipantAgentService agentService, DataspaceProfileContextRegistry dataspaceProfileContextRegistry) {
         this.identityService = identityService;
         this.monitor = monitor;
         this.policyEngine = policyEngine;
+        this.requestScopeExtractorRegistry = requestScopeExtractorRegistry;
         this.agentService = agentService;
         this.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
     }
 
     @Override
     public ServiceResult<ParticipantAgent> verify(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, ProtocolRemoteMessage message) {
-        var requestScopeBuilder = RequestScope.Builder.newInstance();
         var requestContext = RequestContext.Builder.newInstance().message(message).direction(RequestContext.Direction.Ingress).participantContextId(participantContext.getId()).build();
-        var policyContext = policyContextProvider.instantiate(requestContext, requestScopeBuilder);
+        var policyContext = policyContextProvider.instantiate(requestContext);
         policyEngine.evaluate(policy, policyContext);
 
         var profileContext = dataspaceProfileContextRegistry.getProfile(message.getProtocol());
@@ -67,8 +69,14 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
             return ServiceResult.unauthorized("Unauthorized");
         }
 
+        var scopes = requestScopeExtractorRegistry.extractScopes(policy, policyContext);
+        if (scopes.failed()) {
+            monitor.debug(() -> "Failed to extract scopes: %s".formatted(scopes.getFailureDetail()));
+            return ServiceResult.unauthorized("Unauthorized");
+        }
+
         var verificationContext = VerificationContext.Builder.newInstance()
-                .scopes(policyContext.requestScopeBuilder().build().getScopes())
+                .scopes(scopes.getContent())
                 .dataspaceProfileContext(profileContext)
                 .build();
 
