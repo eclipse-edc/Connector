@@ -32,6 +32,7 @@ import org.eclipse.edc.controlplane.transfer.spi.tasks.SignalDataflowStarted;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.SuspendDataFlow;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.TerminateDataFlow;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -86,7 +87,8 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
         var task = Task.Builder.newInstance().at(clock.millis())
                 .payload(payload)
                 .build();
-        taskService.create(task);
+        taskService.create(task)
+                .orElseThrow(f -> new EdcException("Failed to create task: " + f.getFailureDetail()));
     }
 
     private StatusResult<Void> handleTask(TransferProcessTaskPayload task) {

@@ -43,8 +43,10 @@ import org.eclipse.edc.controlplane.tasks.TaskService;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
@@ -64,6 +66,7 @@ import java.util.stream.Stream;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTING;
@@ -81,6 +84,7 @@ import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -106,6 +110,7 @@ class ContractNegotiationTaskExecutorImplTest {
     void setUp() {
 
         when(negotiationStore.save(any())).thenReturn(StoreResult.success());
+        when(taskService.create(any())).thenAnswer(i -> ServiceResult.success(i.getArgument(0)));
         when(pendingGuard.test(any())).thenReturn(false);
         when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> protocolWebhookUrl);
         var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
@@ -237,7 +242,7 @@ class ContractNegotiationTaskExecutorImplTest {
     }
 
     @Test
-    void handle_shouldSkipWhenNegotiationTypeDoesNotMatch() {
+    void handle_shouldFail_whenNegotiationTypeDoesNotMatch() {
         var negotiation = createContractNegotiation("negotiation-123", INITIAL, PROVIDER);
 
         var task = RequestNegotiation.Builder.newInstance()
@@ -250,7 +255,23 @@ class ContractNegotiationTaskExecutorImplTest {
 
         var result = executor.handle(task);
 
-        assertThat(result.succeeded()).isTrue();
+        assertThat(result.fatalError()).isTrue();
+        verify(monitor).severe(contains("Expected type"));
+    }
+
+    @Test
+    void handle_shouldThrow_whenFollowUpTaskCannotBeCreated() {
+        var negotiation = createContractNegotiation("negotiation-123", INITIAL, CONSUMER);
+        var task = RequestNegotiation.Builder.newInstance()
+                .processId("negotiation-123")
+                .processState(INITIAL.code())
+                .processType(CONSUMER.name())
+                .build();
+        when(negotiationStore.findById("negotiation-123")).thenReturn(negotiation);
+        when(taskService.create(any())).thenReturn(ServiceResult.unexpected("task store not available"));
+
+        assertThatThrownBy(() -> executor.handle(task)).isInstanceOf(EdcException.class)
+                .hasMessageContaining("task store not available");
     }
 
     @ParameterizedTest
