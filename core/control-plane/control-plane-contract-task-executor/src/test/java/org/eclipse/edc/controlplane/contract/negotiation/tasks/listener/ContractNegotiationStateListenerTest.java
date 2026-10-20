@@ -21,12 +21,16 @@ import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendTerminate
 import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
 import org.eclipse.edc.controlplane.tasks.Task;
 import org.eclipse.edc.controlplane.tasks.TaskService;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.result.ServiceResult;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
@@ -35,11 +39,17 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class ContractNegotiationStateListenerTest {
 
     private final TaskService taskService = mock();
     private final ContractNegotiationStateListener listener = new ContractNegotiationStateListener(taskService, Clock.systemUTC());
+
+    @BeforeEach
+    void setUp() {
+        when(taskService.create(any())).thenAnswer(i -> ServiceResult.success(i.getArgument(0)));
+    }
 
     @Test
     void approved_shouldStoreSendAgreementTask_whenProvider() {
@@ -52,6 +62,14 @@ class ContractNegotiationStateListenerTest {
         assertThat(payload.getProcessId()).isEqualTo(negotiation.getId());
         assertThat(payload.getProcessState()).isEqualTo(AGREEING.code());
         assertThat(payload.getProcessType()).isEqualTo(PROVIDER.name());
+    }
+
+    @Test
+    void approved_shouldThrow_whenTaskCannotBeCreated() {
+        when(taskService.create(any())).thenReturn(ServiceResult.unexpected("task store not available"));
+
+        assertThatThrownBy(() -> listener.approved(negotiation(PROVIDER, AGREEING))).isInstanceOf(EdcException.class)
+                .hasMessageContaining("task store not available");
     }
 
     @Test

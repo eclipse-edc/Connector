@@ -35,6 +35,7 @@ import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.VerifyNegotia
 import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
 import org.eclipse.edc.controlplane.tasks.Task;
 import org.eclipse.edc.controlplane.tasks.TaskService;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -88,7 +89,8 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
         var task = Task.Builder.newInstance().at(clock.millis())
                 .payload(payload)
                 .build();
-        taskService.create(task);
+        taskService.create(task)
+                .orElseThrow(f -> new EdcException("Failed to create task: " + f.getFailureDetail()));
     }
 
     private StatusResult<Void> handleTask(ContractNegotiationTaskPayload task) {
@@ -118,8 +120,9 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
             }
 
             if (handler.type != null && handler.type != negotiation.getType()) {
-                monitor.debug("Skipping '%s' for contract negotiation with id '%s' due to type mismatch: expected '%s', got '%s'".formatted(expectedState, negotiationId, handler.type, negotiation.getType()));
-                return StatusResult.success();
+                var msg = "Expected type '%s' for state '%s', but got '%s' for contract negotiation %s".formatted(handler.type, expectedState, negotiation.getType(), negotiationId);
+                monitor.severe(msg);
+                return StatusResult.failure(FATAL_ERROR, msg);
             }
 
             if (negotiation.isPending()) {
@@ -218,6 +221,7 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
         try {
             return processor.apply(negotiation).get();
         } catch (Exception e) {
+            monitor.severe("Failed to invoke processor: %s".formatted(e.getMessage()), e);
             return StatusResult.failure(FATAL_ERROR, "Failed to invoke processor: %s".formatted(e.getMessage()));
         }
     }

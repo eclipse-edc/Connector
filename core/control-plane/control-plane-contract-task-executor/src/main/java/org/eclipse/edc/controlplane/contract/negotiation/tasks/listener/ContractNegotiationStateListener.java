@@ -26,6 +26,7 @@ import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
 import org.eclipse.edc.controlplane.tasks.Task;
 import org.eclipse.edc.controlplane.tasks.TaskPayload;
 import org.eclipse.edc.controlplane.tasks.TaskService;
+import org.eclipse.edc.spi.EdcException;
 
 import java.time.Clock;
 
@@ -110,7 +111,8 @@ public class ContractNegotiationStateListener implements ContractNegotiationList
                 .at(clock.millis())
                 .payload(payload)
                 .build();
-        taskService.create(task);
+        taskService.create(task)
+                .orElseThrow(f -> new EdcException("Failed to create task: " + f.getFailureDetail()));
     }
 
 }

@@ -44,8 +44,10 @@ import org.eclipse.edc.controlplane.transfer.spi.tasks.TerminateDataFlow;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
@@ -67,6 +69,7 @@ import java.util.stream.Stream;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
@@ -122,6 +125,7 @@ class TransferProcessTaskExecutorImplTest {
 
         when(pendingGuard.test(any())).thenReturn(false);
         when(transferStore.save(any())).thenReturn(StoreResult.success());
+        when(taskService.create(any())).thenAnswer(i -> ServiceResult.success(i.getArgument(0)));
         when(policyArchive.getAgreementIdForContract(any())).thenReturn("agreementId");
 
         executor = TransferProcessTaskExecutorImpl.Builder.newInstance()
@@ -319,6 +323,28 @@ class TransferProcessTaskExecutorImplTest {
         assertThat(captor.getValue().getPayload())
                 .isInstanceOfSatisfying(TerminateDataFlow.class,
                         p -> assertThat(p.getProcessId()).isEqualTo(payload.getProcessId()));
+    }
+
+    @Test
+    void handle_shouldThrow_whenFollowUpTaskCannotBeCreated() {
+        when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
+        when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
+        when(taskService.create(any())).thenReturn(ServiceResult.unexpected("task store not available"));
+        var process = TransferProcess.Builder.newInstance()
+                .id("transfer-123")
+                .type(CONSUMER)
+                .state(INITIAL.code())
+                .contractId("contractId")
+                .build();
+        when(transferStore.findById("transfer-123")).thenReturn(process);
+        var task = PrepareTransfer.Builder.newInstance()
+                .processId("transfer-123")
+                .processState(INITIAL.code())
+                .processType(CONSUMER.name())
+                .build();
+
+        assertThatThrownBy(() -> executor.handle(task)).isInstanceOf(EdcException.class)
+                .hasMessageContaining("task store not available");
     }
 
     @Test
