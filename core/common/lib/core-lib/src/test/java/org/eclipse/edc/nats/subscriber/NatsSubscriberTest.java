@@ -24,13 +24,20 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -51,6 +58,8 @@ class NatsSubscriberTest {
     private final Monitor monitor = mock();
     private final JetStreamSubscription subscription = mock();
     private final List<Message> handled = new CopyOnWriteArrayList<>();
+    // the number of messages asked by every fetch, when the fetch is stubbed with fetchFrom
+    private final List<Integer> fetchSizes = new CopyOnWriteArrayList<>();
     private TestSubscriber subscriber;
 
     @AfterEach
@@ -296,6 +305,168 @@ class NatsSubscriberTest {
     }
 
     @Test
+    void shouldHandleMessagesConcurrently_whenSeveralWorkers() throws InterruptedException {
+        var messages = messages(3);
+        fetchFrom(messages);
+        var started = new CountDownLatch(3);
+        var proceed = new CountDownLatch(1);
+        subscriber = subscriber(m -> {
+            started.countDown();
+            awaitLatch(proceed);
+            return StatusResult.success();
+        }, 3, 0, 100);
+
+        subscriber.startConsuming(subscription);
+
+        assertThat(started.await(5, TimeUnit.SECONDS)).isTrue();
+        proceed.countDown();
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> messages.forEach(m -> verify(m).ack()));
+    }
+
+    @Test
+    void shouldProcessSequentially_whenOneWorker() {
+        var messages = messages(5);
+        fetchFrom(messages);
+        var inFlight = new AtomicInteger();
+        var maxInFlight = new AtomicInteger();
+        subscriber = subscriber(m -> {
+            maxInFlight.accumulateAndGet(inFlight.incrementAndGet(), Math::max);
+            sleep(20);
+            inFlight.decrementAndGet();
+            return StatusResult.success();
+        });
+
+        subscriber.startConsuming(subscription);
+
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> messages.forEach(m -> verify(m).ack()));
+        assertThat(maxInFlight).hasValue(1);
+    }
+
+    @Test
+    void shouldNotHoldMoreMessagesThanCapacity() {
+        var messages = messages(10);
+        fetchFrom(messages);
+        var proceed = new CountDownLatch(1);
+        subscriber = subscriber(m -> {
+            awaitLatch(proceed);
+            return StatusResult.success();
+        }, 2, 2, 100);
+
+        subscriber.startConsuming(subscription);
+
+        // 2 messages are processed and 2 are waiting for a worker: nothing more is fetched
+        await().pollDelay(Duration.ofMillis(300)).untilAsserted(() ->
+                assertThat(fetchSizes.stream().mapToInt(Integer::intValue).sum()).isEqualTo(4));
+        proceed.countDown();
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> messages.forEach(m -> verify(m).ack()));
+    }
+
+    @Test
+    void shouldNotFetch_untilEnoughSlotsAreFree() {
+        var messages = messages(10);
+        fetchFrom(messages);
+        var completions = new Semaphore(0);
+        subscriber = subscriber(m -> {
+            acquire(completions);
+            return StatusResult.success();
+        }, 1, 3, 100);
+
+        subscriber.startConsuming(subscription);
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertThat(fetchSizes).containsExactly(4));
+
+        // a capacity of 4 is refilled only once 2 slots are free
+        completions.release();
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> verify(messages.get(0)).ack());
+        await().pollDelay(Duration.ofMillis(300)).untilAsserted(() -> assertThat(fetchSizes).containsExactly(4));
+
+        completions.release();
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> assertThat(fetchSizes).containsExactly(4, 2));
+        completions.release(10);
+    }
+
+    @Test
+    void shouldFetchAtMostBatchSize() {
+        var messages = messages(10);
+        fetchFrom(messages);
+        subscriber = subscriber(m -> StatusResult.success(), 1, 10, 3);
+
+        subscriber.startConsuming(subscription);
+
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> messages.forEach(m -> verify(m).ack()));
+        assertThat(fetchSizes).allSatisfy(size -> assertThat(size).isLessThanOrEqualTo(3));
+    }
+
+    @Test
+    void shouldCompleteInFlightMessagesAndReleaseQueuedOnes_whenStopped() throws InterruptedException {
+        var messages = messages(3);
+        fetchFrom(messages);
+        var processing = new CountDownLatch(2);
+        subscriber = subscriber(m -> {
+            processing.countDown();
+            sleep(300);
+            return StatusResult.success();
+        }, 2, 1, 100);
+        subscriber.startConsuming(subscription);
+        assertThat(processing.await(5, TimeUnit.SECONDS)).isTrue();
+
+        subscriber.stop();
+
+        verify(messages.get(0)).ack();
+        verify(messages.get(1)).ack();
+        verify(messages.get(2)).nak();
+        verify(messages.get(2), never()).ack();
+        assertThat(handled).containsExactlyInAnyOrder(messages.get(0), messages.get(1));
+    }
+
+    @Test
+    void shouldRejectInvalidWorkerSettings() {
+        assertThatThrownBy(() -> builder(m -> StatusResult.success()).workers(0).build())
+                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> builder(m -> StatusResult.success()).prefetch(-1).build())
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    private List<Message> messages(int count) {
+        return IntStream.range(0, count).mapToObj(i -> messageDeliveredTimes(1)).toList();
+    }
+
+    /**
+     * Stubs the fetch so that it returns at most the number of messages asked, as the server does, and records it.
+     */
+    private void fetchFrom(List<Message> messages) {
+        Queue<Message> queue = new ConcurrentLinkedQueue<>(messages);
+        when(subscription.fetch(anyInt(), anyLong())).thenAnswer(i -> {
+            int size = i.getArgument(0);
+            var batch = new ArrayList<Message>();
+            while (batch.size() < size && !queue.isEmpty()) {
+                batch.add(queue.poll());
+            }
+            if (batch.isEmpty()) {
+                Thread.sleep(10);
+            } else {
+                fetchSizes.add(size);
+            }
+            return batch;
+        });
+    }
+
+    private static void awaitLatch(CountDownLatch latch) {
+        try {
+            latch.await(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private static void acquire(Semaphore semaphore) {
+        try {
+            semaphore.tryAcquire(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    @Test
     void shouldBeHealthy_whenNotStarted() {
         subscriber = subscriber(m -> StatusResult.success());
 
@@ -304,6 +475,18 @@ class NatsSubscriberTest {
     }
 
     private TestSubscriber subscriber(Function<Message, StatusResult<Void>> handler) {
+        return builder(handler).build();
+    }
+
+    private TestSubscriber subscriber(Function<Message, StatusResult<Void>> handler, int workers, int prefetch, int batchSize) {
+        return builder(handler)
+                .workers(workers)
+                .prefetch(prefetch)
+                .batchSize(batchSize)
+                .build();
+    }
+
+    private TestSubscriber.Builder builder(Function<Message, StatusResult<Void>> handler) {
         return TestSubscriber.Builder.newInstance(handler, handled)
                 .url("nats://localhost:4222")
                 .stream("stream")
@@ -312,8 +495,7 @@ class NatsSubscriberTest {
                 .monitor(monitor)
                 .errorBackoffMillis(10)
                 .retryBaseDelayMillis(RETRY_BASE_DELAY)
-                .inProgressInterval(Duration.ofMillis(50))
-                .build();
+                .inProgressInterval(Duration.ofMillis(50));
     }
 
     private static class TestSubscriber extends NatsSubscriber {
