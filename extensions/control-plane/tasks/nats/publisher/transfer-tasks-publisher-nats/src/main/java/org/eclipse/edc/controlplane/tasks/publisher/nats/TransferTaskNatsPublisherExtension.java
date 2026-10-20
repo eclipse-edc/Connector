@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.controlplane.tasks.publisher.nats;
 
+import io.nats.client.Connection;
 import io.nats.client.Nats;
 import io.nats.client.Options;
 import org.eclipse.edc.controlplane.tasks.TaskObservable;
@@ -52,6 +53,8 @@ public class TransferTaskNatsPublisherExtension implements ServiceExtension {
     @Inject(required = false)
     private Options authenticationOptions;
 
+    private Connection connection;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         try {
@@ -61,10 +64,21 @@ public class TransferTaskNatsPublisherExtension implements ServiceExtension {
         }
     }
 
+    @Override
+    public void shutdown() {
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
     private void registerPublisher(String natsUrl, String subjectPrefix) {
         try {
             var builder = authenticationOptions != null ? new Options.Builder(authenticationOptions) : new Options.Builder();
-            var connection = Nats.connect(builder.server(natsUrl).build());
+            connection = Nats.connect(builder.server(natsUrl).build());
             var js = connection.jetStream();
             var publisher = new NatsTaskPublisher(subjectPrefix, TransferProcessTaskPayload.class, js, monitor, () -> typeManager.getMapper());
 

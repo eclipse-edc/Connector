@@ -51,6 +51,11 @@ public abstract class NatsSubscriber {
      */
     public static final Duration DEFAULT_IN_PROGRESS_INTERVAL = Duration.ofSeconds(10);
 
+    /**
+     * How long {@link #stop()} waits for the message being processed to complete.
+     */
+    public static final Duration DEFAULT_SHUTDOWN_TIMEOUT = Duration.ofSeconds(10);
+
     private final AtomicBoolean active = new AtomicBoolean(false);
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final AtomicBoolean running = new AtomicBoolean(false);
@@ -70,6 +75,7 @@ public abstract class NatsSubscriber {
     protected Integer batchSize = 100;
     protected Integer maxWait = 100;
     protected long errorBackoffMillis = 1000;
+    protected Duration shutdownTimeout = DEFAULT_SHUTDOWN_TIMEOUT;
     protected long retryBaseDelayMillis = 1000;
     protected int retryLimit = 7;
     // externally contributed connect options (e.g. NKey authentication); the server URL is overwritten
@@ -185,14 +191,19 @@ public abstract class NatsSubscriber {
             monitor.severe("NATS subscriber %s: unrecoverable error, the subscriber stopped consuming messages".formatted(name), e);
         } finally {
             running.set(false);
-            // the messages still held are not renewed anymore, so that they are delivered to another subscriber
-            heldMessages.clear();
+            // the messages still held are released, so that they are delivered to another subscriber
+            releaseHeldMessages();
         }
     }
 
     private void consume(List<Message> messages) {
         heldMessages.addAll(messages);
         for (var message : messages) {
+            if (!active.get()) {
+                // the subscriber is stopping: the messages not processed yet are released to the other subscribers
+                release(message);
+                continue;
+            }
             try {
                 var result = handleMessage(message);
                 if (result.failed()) {
@@ -245,6 +256,26 @@ public abstract class NatsSubscriber {
         return DEFAULT_IN_PROGRESS_INTERVAL;
     }
 
+    /**
+     * Gives a message back to the consumer without delay, so that it is delivered to another subscriber.
+     */
+    private void release(Message message) {
+        try {
+            message.nak();
+        } catch (Exception e) {
+            // the message is redelivered once its ack wait expires
+            monitor.warning("NATS subscriber %s: cannot release the message: %s".formatted(name, e.getMessage()));
+        } finally {
+            heldMessages.remove(message);
+        }
+    }
+
+    private void releaseHeldMessages() {
+        for (var message : heldMessages) {
+            release(message);
+        }
+    }
+
     private void nakQuietly(Message message) {
         try {
             message.nakWithDelay(retryDelay(message));
@@ -289,16 +320,30 @@ public abstract class NatsSubscriber {
         }
     }
 
+    /**
+     * Stops consuming messages: the message being processed is completed, waiting up to the shutdown timeout, and the
+     * other messages held are released to the other subscribers before the connection is closed.
+     */
     public void stop() {
         active.set(false);
         executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(shutdownTimeout.toMillis(), MILLISECONDS)) {
+                monitor.warning("NATS subscriber %s: the message being processed did not complete within %s".formatted(name, shutdownTimeout));
+                executorService.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            executorService.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
         heartbeatExecutorService.shutdownNow();
+        releaseHeldMessages();
         try {
             if (connection != null) {
                 connection.close();
             }
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -370,6 +415,11 @@ public abstract class NatsSubscriber {
 
         public B retryBaseDelayMillis(long retryBaseDelayMillis) {
             subscriber.retryBaseDelayMillis = retryBaseDelayMillis;
+            return self();
+        }
+
+        public B shutdownTimeout(Duration shutdownTimeout) {
+            subscriber.shutdownTimeout = shutdownTimeout;
             return self();
         }
 

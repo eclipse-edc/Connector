@@ -26,6 +26,8 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -238,6 +240,59 @@ class NatsSubscriberTest {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    @Test
+    void shouldFinishCurrentMessageAndReleaseTheOthers_whenStopped() throws InterruptedException {
+        var current = messageDeliveredTimes(1);
+        var waiting = messageDeliveredTimes(1);
+        when(subscription.fetch(anyInt(), anyLong()))
+                .thenReturn(List.of(current, waiting))
+                .thenReturn(List.of());
+        var processing = new CountDownLatch(1);
+        subscriber = subscriber(m -> {
+            processing.countDown();
+            sleep(300);
+            return StatusResult.success();
+        });
+        subscriber.startConsuming(subscription);
+        assertThat(processing.await(5, TimeUnit.SECONDS)).isTrue();
+
+        subscriber.stop();
+
+        verify(current).ack();
+        verify(waiting).nak();
+        verify(waiting, never()).ack();
+        assertThat(handled).containsExactly(current);
+    }
+
+    @Test
+    void shouldNotWaitLongerThanShutdownTimeout_whenStopped() throws InterruptedException {
+        var message = messageDeliveredTimes(1);
+        when(subscription.fetch(anyInt(), anyLong()))
+                .thenReturn(List.of(message))
+                .thenReturn(List.of());
+        var processing = new CountDownLatch(1);
+        Function<Message, StatusResult<Void>> slowHandler = m -> {
+            processing.countDown();
+            sleep(5_000);
+            return StatusResult.success();
+        };
+        subscriber = TestSubscriber.Builder.newInstance(slowHandler, handled)
+                .url("nats://localhost:4222")
+                .stream("stream")
+                .name("test")
+                .subject("test.>")
+                .monitor(monitor)
+                .shutdownTimeout(Duration.ofMillis(200))
+                .build();
+        subscriber.startConsuming(subscription);
+        assertThat(processing.await(5, TimeUnit.SECONDS)).isTrue();
+
+        var start = System.currentTimeMillis();
+        subscriber.stop();
+
+        assertThat(System.currentTimeMillis() - start).isLessThan(3_000);
     }
 
     @Test
