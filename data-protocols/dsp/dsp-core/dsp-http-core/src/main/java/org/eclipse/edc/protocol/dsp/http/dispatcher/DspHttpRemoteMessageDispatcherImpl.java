@@ -26,7 +26,6 @@ import org.eclipse.edc.controlplane.iam.AudienceResolver;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
-import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.spi.EdcException;
@@ -61,7 +60,6 @@ public class DspHttpRemoteMessageDispatcherImpl implements ProtocolRemoteMessage
     private final Map<Class<? extends ProtocolRemoteMessage>, PolicyScope<? extends ProtocolRemoteMessage>> policyScopes = new HashMap<>();
     private final EdcHttpClient httpClient;
     private final IdentityService identityService;
-    private final PolicyEngine policyEngine;
     private final RequestScopeExtractorRegistry requestScopeExtractorRegistry;
     private final TokenDecorator tokenDecorator;
     private final AudienceResolver audienceResolver;
@@ -69,12 +67,10 @@ public class DspHttpRemoteMessageDispatcherImpl implements ProtocolRemoteMessage
     public DspHttpRemoteMessageDispatcherImpl(EdcHttpClient httpClient,
                                               IdentityService identityService,
                                               TokenDecorator decorator,
-                                              PolicyEngine policyEngine,
                                               RequestScopeExtractorRegistry requestScopeExtractorRegistry,
                                               AudienceResolver audienceResolver) {
         this.httpClient = httpClient;
         this.identityService = identityService;
-        this.policyEngine = policyEngine;
         this.requestScopeExtractorRegistry = requestScopeExtractorRegistry;
         this.tokenDecorator = decorator;
         this.audienceResolver = audienceResolver;
@@ -101,7 +97,6 @@ public class DspHttpRemoteMessageDispatcherImpl implements ProtocolRemoteMessage
 
             var context = policyScope.contextProvider.instantiate(requestContext);
             var policy = ((Function<M, Policy>) policyScope.policyProvider).apply(message);
-            policyEngine.evaluate(policy, context);
 
             var extractedScopes = requestScopeExtractorRegistry.extractScopes(policy, context);
             if (extractedScopes.failed()) {

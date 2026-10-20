@@ -15,7 +15,6 @@
 package org.eclipse.edc.iam.decentralizedclaims.core;
 
 import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
-import org.eclipse.edc.iam.decentralizedclaims.core.scope.DcpCatalogScopeExtractorRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.core.scope.DcpScopeExtractorRegistry;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
@@ -53,11 +52,6 @@ class DcpDefaultServicesExtensionTest {
         Monitor mockedMonitor = mock();
         context.registerService(Monitor.class, mockedMonitor);
         assertThat(ext.scopeExtractorRegistry()).isInstanceOf(DcpScopeExtractorRegistry.class);
-    }
-
-    @Test
-    void verify_defaultCatalogScopeExtractorRegistry(DcpDefaultServicesExtension ext) {
-        assertThat(ext.catalogScopeExtractorRegistry()).isInstanceOf(DcpCatalogScopeExtractorRegistry.class);
     }
 
     @Test

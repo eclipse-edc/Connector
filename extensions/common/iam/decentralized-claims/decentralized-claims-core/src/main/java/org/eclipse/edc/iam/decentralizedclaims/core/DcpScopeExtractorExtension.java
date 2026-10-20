@@ -14,9 +14,7 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.core;
 
-import org.eclipse.edc.iam.decentralizedclaims.core.scope.CatalogRequestScopeExtractor;
 import org.eclipse.edc.iam.decentralizedclaims.core.scope.DcpRequestScopeExtractor;
-import org.eclipse.edc.iam.decentralizedclaims.spi.scope.CatalogScopeExtractorRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScopeRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
@@ -25,7 +23,6 @@ import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
@@ -40,16 +37,10 @@ public class DcpScopeExtractorExtension implements ServiceExtension {
     private ScopeExtractorRegistry scopeExtractorRegistry;
 
     @Inject
-    private CatalogScopeExtractorRegistry catalogScopeExtractorRegistry;
-
-    @Inject
     private RequestScopeExtractorRegistry requestScopeExtractorRegistry;
 
     @Inject
     private DcpScopeRegistry dcpScopeRegistry;
-
-    @Inject
-    private Monitor monitor;
 
     @Override
     public String name() {
@@ -58,10 +49,8 @@ public class DcpScopeExtractorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        // Policy-constraint and default scopes (DcpRequestScopeExtractor) are extracted for all three request
-        // contexts; catalog requests additionally get request-level scopes (CatalogRequestScopeExtractor).
+        // Policy-constraint and default scopes (DcpRequestScopeExtractor) are extracted for all three request contexts.
         requestScopeExtractorRegistry.registerExtractor(RequestCatalogPolicyContext.class, new DcpRequestScopeExtractor<>(scopeExtractorRegistry, dcpScopeRegistry));
-        requestScopeExtractorRegistry.registerExtractor(RequestCatalogPolicyContext.class, new CatalogRequestScopeExtractor(catalogScopeExtractorRegistry, monitor));
         requestScopeExtractorRegistry.registerExtractor(RequestContractNegotiationPolicyContext.class, new DcpRequestScopeExtractor<>(scopeExtractorRegistry, dcpScopeRegistry));
         requestScopeExtractorRegistry.registerExtractor(RequestTransferProcessPolicyContext.class, new DcpRequestScopeExtractor<>(scopeExtractorRegistry, dcpScopeRegistry));
     }

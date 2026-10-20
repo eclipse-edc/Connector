@@ -17,12 +17,27 @@ package org.eclipse.edc.iam.decentralizedclaims.core.scope;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractor;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
+import org.eclipse.edc.policy.model.AndConstraint;
+import org.eclipse.edc.policy.model.AtomicConstraint;
+import org.eclipse.edc.policy.model.Constraint;
+import org.eclipse.edc.policy.model.Duty;
+import org.eclipse.edc.policy.model.Expression;
+import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.MultiplicityConstraint;
+import org.eclipse.edc.policy.model.OrConstraint;
+import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.policy.model.Prohibition;
+import org.eclipse.edc.policy.model.Rule;
+import org.eclipse.edc.policy.model.XoneConstraint;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DcpScopeExtractorRegistry implements ScopeExtractorRegistry {
 
@@ -35,12 +50,101 @@ public class DcpScopeExtractorRegistry implements ScopeExtractorRegistry {
 
     @Override
     public Result<Set<String>> extractScopes(Policy policy, RequestPolicyContext policyContext) {
-        var visitor = new DcpScopeExtractorVisitor(extractors, policyContext);
-        var policies = policy.accept(visitor);
+        var scopes = policy.accept(new Visitor(extractors, policyContext));
         if (policyContext.hasProblems()) {
             return Result.failure(policyContext.getProblems());
         }
-        return Result.success(policies);
+        return Result.success(scopes);
+    }
+
+    /**
+     * Walks the policy tree and invokes the registered {@link ScopeExtractor}s on each atomic constraint, collecting
+     * the union of the extracted scopes. Instantiated per extraction, since it is bound to a single request context.
+     */
+    private static class Visitor implements Policy.Visitor<Set<String>>, Rule.Visitor<Set<String>>, Constraint.Visitor<Set<String>>, Expression.Visitor<Object> {
+
+        private final List<ScopeExtractor> extractors;
+        private final RequestPolicyContext policyContext;
+
+        Visitor(List<ScopeExtractor> extractors, RequestPolicyContext policyContext) {
+            this.extractors = extractors;
+            this.policyContext = policyContext;
+        }
+
+        @Override
+        public Set<String> visitAndConstraint(AndConstraint andConstraint) {
+            return visitMultiplicityConstraint(andConstraint);
+        }
+
+        @Override
+        public Set<String> visitOrConstraint(OrConstraint orConstraint) {
+            return visitMultiplicityConstraint(orConstraint);
+        }
+
+        @Override
+        public Set<String> visitXoneConstraint(XoneConstraint constraint) {
+            return visitMultiplicityConstraint(constraint);
+        }
+
+        @Override
+        public Set<String> visitAtomicConstraint(AtomicConstraint constraint) {
+            var rightValue = constraint.getRightExpression().accept(this);
+            var leftRawValue = constraint.getLeftExpression().accept(this);
+
+            return extractors.stream()
+                    .map(extractor -> extractor.extractScopes(leftRawValue, constraint.getOperator(), rightValue, policyContext))
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toSet());
+        }
+
+        @Override
+        public Object visitLiteralExpression(LiteralExpression expression) {
+            return expression.getValue();
+        }
+
+        @Override
+        public Set<String> visitPolicy(Policy policy) {
+            var scopes = new HashSet<String>();
+            policy.getPermissions().forEach(permission -> scopes.addAll(permission.accept(this)));
+            policy.getProhibitions().forEach(prohibition -> scopes.addAll(prohibition.accept(this)));
+            policy.getObligations().forEach(duty -> scopes.addAll(duty.accept(this)));
+            return scopes;
+        }
+
+        @Override
+        public Set<String> visitPermission(Permission policy) {
+            var scopes = policy.getDuties().stream()
+                    .map(duty -> duty.accept(this))
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toSet());
+
+            scopes.addAll(visitRule(policy));
+            return scopes;
+        }
+
+        @Override
+        public Set<String> visitProhibition(Prohibition policy) {
+            return visitRule(policy);
+        }
+
+        @Override
+        public Set<String> visitDuty(Duty policy) {
+            return visitRule(policy);
+        }
+
+        private Set<String> visitRule(Rule rule) {
+            return rule.getConstraints().stream()
+                    .map(constraint -> constraint.accept(this))
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toSet());
+        }
+
+        private Set<String> visitMultiplicityConstraint(MultiplicityConstraint multiplicityConstraint) {
+            return multiplicityConstraint.getConstraints().stream()
+                    .map(constraint -> constraint.accept(this))
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toSet());
+        }
     }
 
 }
