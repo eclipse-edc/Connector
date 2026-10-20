@@ -85,6 +85,8 @@ public class NatsContractNegotiationSubscriberExtension implements ServiceExtens
                 .autoCreateConsumer(subscriberConfig.autoCreate() || subscriberConfig.autoCreateConsumer())
                 .executorInstrumentation(executorInstrumentation)
                 .batchSize(subscriberConfig.batchSize)
+                .workers(subscriberConfig.workers)
+                .prefetch(subscriberConfig.prefetch)
                 .maxWait(subscriberConfig.maxWait)
                 .taskService(taskService)
                 .transactionContext(transactionContext)
@@ -136,8 +138,12 @@ public class NatsContractNegotiationSubscriberExtension implements ServiceExtens
             String stream,
             @Setting(key = "edc.nats.cn.subscriber.subject", description = "The subject of the consumer for contract negotiation events", defaultValue = "negotiations.>")
             String subject,
-            @Setting(key = "edc.nats.cn.subscriber.batch-size", description = "The size of the batch when fetching messages", defaultValue = "100")
+            @Setting(key = "edc.nats.cn.subscriber.batch-size", description = "The maximum number of messages per fetch", defaultValue = "100")
             Integer batchSize,
+            @Setting(key = "edc.nats.cn.subscriber.workers", description = "The number of messages handled concurrently", defaultValue = "1")
+            Integer workers,
+            @Setting(key = "edc.nats.cn.subscriber.prefetch", description = "The number of messages fetched ahead of the workers", defaultValue = "10")
+            Integer prefetch,
             @Setting(key = "edc.nats.cn.subscriber.max-wait", description = "The max waiting time for messages (ms)", defaultValue = "100")
             Integer maxWait,
             @Setting(key = "edc.nats.cn.subscriber.max-retries",

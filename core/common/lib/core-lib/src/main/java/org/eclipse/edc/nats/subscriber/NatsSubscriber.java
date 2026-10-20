@@ -32,10 +32,14 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.eclipse.edc.nats.NatsFunctions.createConsumer;
 import static org.eclipse.edc.nats.NatsFunctions.createStream;
 
@@ -52,7 +56,7 @@ public abstract class NatsSubscriber {
     public static final Duration DEFAULT_IN_PROGRESS_INTERVAL = Duration.ofSeconds(10);
 
     /**
-     * How long {@link #stop()} waits for the message being processed to complete.
+     * How long {@link #stop()} waits for the messages being processed to complete.
      */
     public static final Duration DEFAULT_SHUTDOWN_TIMEOUT = Duration.ofSeconds(10);
 
@@ -64,15 +68,21 @@ public abstract class NatsSubscriber {
     protected String name;
     protected String subject;
     protected ExecutorService executorService;
+    // the workers that handle the fetched messages
+    protected ExecutorService workerExecutorService;
     protected ScheduledExecutorService heartbeatExecutorService;
     // explicitly configured interval of the in-progress heartbeat, otherwise derived from the consumer's ack wait
     protected Duration inProgressInterval;
     // the messages fetched and not yet acknowledged: their ack wait is kept alive while they are held
     private final Set<Message> heldMessages = ConcurrentHashMap.newKeySet();
+    // one permit per message that can be held: workers + prefetch
+    private Semaphore slots;
     protected Monitor monitor;
     protected boolean autoCreateStream = false;
     protected boolean autoCreateConsumer = false;
     protected Integer batchSize = 100;
+    protected int workers = 1;
+    protected int prefetch = 10;
     protected Integer maxWait = 100;
     protected long errorBackoffMillis = 1000;
     protected Duration shutdownTimeout = DEFAULT_SHUTDOWN_TIMEOUT;
@@ -136,6 +146,7 @@ public abstract class NatsSubscriber {
      * @param sub the subscription.
      */
     void startConsuming(JetStreamSubscription sub) {
+        slots = new Semaphore(workers + prefetch);
         active.set(true);
         started.set(true);
         running.set(true);
@@ -175,55 +186,83 @@ public abstract class NatsSubscriber {
     protected abstract StatusResult<Void> handleMessage(Message message);
 
     private void run(JetStreamSubscription sub) {
+        var capacity = workers + prefetch;
+        // a new batch is fetched only once enough slots are free, so that fetches stay batched
+        var threshold = Math.min(batchSize, (capacity + 1) / 2);
         try {
             while (active.get()) {
+                if (!slots.tryAcquire(threshold, maxWait, MILLISECONDS)) {
+                    continue;
+                }
+                var permits = threshold + slots.drainPermits();
+                var size = Math.min(batchSize, permits);
+                slots.release(permits - size);
+                List<Message> messages;
                 try {
-                    consume(sub.fetch(batchSize, maxWait));
+                    messages = sub.fetch(size, maxWait);
                 } catch (Exception e) {
+                    slots.release(size);
                     if (!active.get()) {
                         return;
                     }
                     monitor.severe("NATS subscriber %s: failed to consume messages, retrying in %d ms".formatted(name, errorBackoffMillis), e);
                     pause();
+                    continue;
                 }
+                slots.release(Math.max(0, size - messages.size()));
+                heldMessages.addAll(messages);
+                messages.forEach(this::submit);
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         } catch (Throwable e) {
             monitor.severe("NATS subscriber %s: unrecoverable error, the subscriber stopped consuming messages".formatted(name), e);
+            // the messages waiting for a worker are released
+            active.set(false);
         } finally {
             running.set(false);
-            // the messages still held are released, so that they are delivered to another subscriber
-            releaseHeldMessages();
         }
     }
 
-    private void consume(List<Message> messages) {
-        heldMessages.addAll(messages);
-        for (var message : messages) {
+    private void submit(Message message) {
+        try {
+            workerExecutorService.execute(() -> process(message));
+        } catch (RejectedExecutionException e) {
+            // the subscriber is stopping
+            release(message);
+            slots.release();
+        }
+    }
+
+    private void process(Message message) {
+        try {
             if (!active.get()) {
                 // the subscriber is stopping: the messages not processed yet are released to the other subscribers
                 release(message);
-                continue;
+                return;
             }
-            try {
-                var result = handleMessage(message);
-                if (result.failed()) {
-                    if (result.fatalError()) {
-                        monitor.severe("Failed to handle Nats message, received a fatal error: " + result.getFailureMessages());
-                        message.term();
-                    } else {
-                        var delay = retryDelay(message);
-                        monitor.warning("Failed to handle Nats message, retrying in %s: %s".formatted(delay, result.getFailureMessages()));
-                        message.nakWithDelay(delay);
-                    }
-                    continue;
+            var result = handleMessage(message);
+            if (result.failed()) {
+                if (result.fatalError()) {
+                    monitor.severe("Failed to handle Nats message, received a fatal error: " + result.getFailureMessages());
+                    message.term();
+                } else {
+                    var delay = retryDelay(message);
+                    monitor.warning("Failed to handle Nats message, retrying in %s: %s".formatted(delay, result.getFailureMessages()));
+                    message.nakWithDelay(delay);
                 }
-                message.ack();
-            } catch (Exception e) {
-                monitor.severe("Failed to process transfer message: " + e.getMessage(), e);
-                nakQuietly(message);
-            } finally {
-                heldMessages.remove(message);
+                return;
             }
+            message.ack();
+        } catch (Exception e) {
+            monitor.severe("Failed to process transfer message: " + e.getMessage(), e);
+            nakQuietly(message);
+        } catch (Error e) {
+            monitor.severe("NATS subscriber %s: unrecoverable error, the subscriber stopped consuming messages".formatted(name), e);
+            active.set(false);
+        } finally {
+            heldMessages.remove(message);
+            slots.release();
         }
     }
 
@@ -260,13 +299,15 @@ public abstract class NatsSubscriber {
      * Gives a message back to the consumer without delay, so that it is delivered to another subscriber.
      */
     private void release(Message message) {
+        // a message is released only once, whether by its worker or by stop()
+        if (!heldMessages.remove(message)) {
+            return;
+        }
         try {
             message.nak();
         } catch (Exception e) {
             // the message is redelivered once its ack wait expires
             monitor.warning("NATS subscriber %s: cannot release the message: %s".formatted(name, e.getMessage()));
-        } finally {
-            heldMessages.remove(message);
         }
     }
 
@@ -321,20 +362,25 @@ public abstract class NatsSubscriber {
     }
 
     /**
-     * Stops consuming messages: the message being processed is completed, waiting up to the shutdown timeout, and the
-     * other messages held are released to the other subscribers before the connection is closed.
+     * Stops consuming messages: the messages being processed are completed, waiting up to the shutdown timeout, and
+     * the other messages held are released to the other subscribers before the connection is closed.
      */
     public void stop() {
         active.set(false);
         executorService.shutdown();
+        workerExecutorService.shutdown();
+        var deadline = System.nanoTime() + shutdownTimeout.toNanos();
         try {
-            if (!executorService.awaitTermination(shutdownTimeout.toMillis(), MILLISECONDS)) {
-                monitor.warning("NATS subscriber %s: the message being processed did not complete within %s".formatted(name, shutdownTimeout));
-                executorService.shutdownNow();
+            var terminated = executorService.awaitTermination(remaining(deadline), NANOSECONDS) &&
+                    workerExecutorService.awaitTermination(remaining(deadline), NANOSECONDS);
+            if (!terminated) {
+                monitor.warning("NATS subscriber %s: the messages being processed did not complete within %s".formatted(name, shutdownTimeout));
             }
         } catch (InterruptedException e) {
-            executorService.shutdownNow();
             Thread.currentThread().interrupt();
+        } finally {
+            executorService.shutdownNow();
+            workerExecutorService.shutdownNow();
         }
         heartbeatExecutorService.shutdownNow();
         releaseHeldMessages();
@@ -345,6 +391,10 @@ public abstract class NatsSubscriber {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    private static long remaining(long deadline) {
+        return Math.max(0, deadline - System.nanoTime());
     }
 
     public abstract static class Builder<T extends NatsSubscriber, B extends Builder<T, B>> {
@@ -408,6 +458,16 @@ public abstract class NatsSubscriber {
             return self();
         }
 
+        public B workers(int workers) {
+            subscriber.workers = workers;
+            return self();
+        }
+
+        public B prefetch(int prefetch) {
+            subscriber.prefetch = prefetch;
+            return self();
+        }
+
         public B errorBackoffMillis(long errorBackoffMillis) {
             subscriber.errorBackoffMillis = errorBackoffMillis;
             return self();
@@ -446,6 +506,12 @@ public abstract class NatsSubscriber {
             Objects.requireNonNull(subscriber.subject, "subject");
             Objects.requireNonNull(executorInstrumentation, "executorInstrumentation");
             Objects.requireNonNull(subscriber.monitor, "monitor");
+            if (subscriber.workers < 1) {
+                throw new IllegalArgumentException("workers must be at least 1");
+            }
+            if (subscriber.prefetch < 0) {
+                throw new IllegalArgumentException("prefetch must not be negative");
+            }
 
             var name = "NatsSubscriber-" + subscriber.name;
             subscriber.heartbeatExecutorService = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(r -> {
@@ -459,6 +525,12 @@ public abstract class NatsSubscriber {
                 thread.setName(name);
                 return thread;
             }), name);
+            var workerCount = new AtomicInteger();
+            subscriber.workerExecutorService = executorInstrumentation.instrument(Executors.newFixedThreadPool(subscriber.workers, r -> {
+                var thread = Executors.defaultThreadFactory().newThread(r);
+                thread.setName(name + "-worker-" + workerCount.incrementAndGet());
+                return thread;
+            }), name + "-worker");
 
             return subscriber;
         }
