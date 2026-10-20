@@ -28,8 +28,6 @@ import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
-import org.eclipse.edc.policy.engine.spi.PolicyContext;
-import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.spi.EdcException;
@@ -42,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.AdditionalMatchers;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Duration;
@@ -56,7 +53,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
-import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -74,7 +70,6 @@ class DspHttpRemoteMessageDispatcherImplTest {
     private static final String AUDIENCE_VALUE = "audValue";
     private final EdcHttpClient httpClient = mock();
     private final IdentityService identityService = mock();
-    private final PolicyEngine policyEngine = mock();
     private final RequestScopeExtractorRegistry requestScopeExtractorRegistry = mock();
     private final TokenDecorator tokenDecorator = mock();
     private final RequestFactory<TestMessage, Request> requestFactory = mock();
@@ -87,7 +82,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
             .build();
 
     private final ProtocolRemoteMessageDispatcher dispatcher =
-            new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator, policyEngine, requestScopeExtractorRegistry, audienceResolver);
+            new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator, requestScopeExtractorRegistry, audienceResolver);
 
     private static okhttp3.Response dummyResponse(int code) {
         return dummyResponseBuilder(code)
@@ -180,7 +175,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
     }
 
     @Test
-    void dispatch_PolicyEvaluatedScope() {
+    void dispatch_shouldSetExtractedScopeClaim() {
         var authToken = "token";
         Map<String, Object> additional = Map.of("foo", "bar");
         var policy = Policy.Builder.newInstance().build();
@@ -206,11 +201,11 @@ class DspHttpRemoteMessageDispatcherImplTest {
         verify(identityService).obtainClientCredentials(any(), captor.capture());
         verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), isA(List.class));
         verify(requestFactory).createRequest(message);
-        verify(policyEngine).evaluate(any(), AdditionalMatchers.and(isA(RequestPolicyContext.class), argThat(ctx -> {
+        verify(requestScopeExtractorRegistry).extractScopes(eq(policy), argThat(ctx -> {
             var requestContext = ctx.requestContext();
             return requestContext.getMessage().getClass().equals(TestMessage.class) && requestContext.getDirection().equals(RequestContext.Direction.Egress) &&
                     participantContext.getId().equals(requestContext.getParticipantContextId());
-        })));
+        }));
         assertThat(captor.getValue()).satisfies(tr -> {
             assertThat(tr.getStringClaim(SCOPE_CLAIM)).isEqualTo("policy-test-scope");
             assertThat(tr.getStringClaim(AUDIENCE_CLAIM)).isEqualTo(AUDIENCE_VALUE);
@@ -253,7 +248,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
     }
 
     @Test
-    void dispatch_shouldNotEvaluatePolicy_whenItIsNotRegistered() {
+    void dispatch_shouldNotExtractScopes_whenPolicyScopeIsNotRegistered() {
         when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(dummyResponse(200)));
@@ -264,7 +259,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         var result = dispatcher.dispatch(participantContext.getId(), String.class, new TestMessage());
 
         assertThat(result).succeedsWithin(timeout);
-        verifyNoInteractions(policyEngine);
+        verifyNoInteractions(requestScopeExtractorRegistry);
     }
 
     @Test
@@ -295,11 +290,11 @@ class DspHttpRemoteMessageDispatcherImplTest {
         verify(identityService).obtainClientCredentials(any(), captor.capture());
         verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), isA(List.class));
         verify(rqFactory).createRequest(message);
-        verify(policyEngine).evaluate(any(), and(isA(RequestPolicyContext.class), argThat(ctx -> {
+        verify(requestScopeExtractorRegistry).extractScopes(eq(policy), argThat(ctx -> {
             var requestContext = ctx.requestContext();
             return requestContext.getMessage().getClass().equals(CatalogRequestMessage.class) && requestContext.getDirection().equals(RequestContext.Direction.Egress) &&
                     participantContext.getId().equals(requestContext.getParticipantContextId());
-        })));
+        }));
         assertThat(captor.getValue()).satisfies(tr -> {
             assertThat(tr.getStringClaim(SCOPE_CLAIM)).isEqualTo("policy-test-scope scope1 scope2");
             assertThat(tr.getStringClaim(AUDIENCE_CLAIM)).isEqualTo(AUDIENCE_VALUE);
@@ -308,7 +303,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
     }
 
     @Test
-    void dispatch_shouldEvaluatePolicy() {
+    void dispatch_shouldExtractScopes() {
         var policy = Policy.Builder.newInstance().build();
         when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
@@ -326,7 +321,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         var captor = ArgumentCaptor.forClass(TokenParameters.class);
         verify(identityService).obtainClientCredentials(any(), captor.capture());
         assertThat(result).succeedsWithin(timeout);
-        verify(policyEngine).evaluate(eq(policy), and(isA(PolicyContext.class), isA(RequestPolicyContext.class)));
+        verify(requestScopeExtractorRegistry).extractScopes(eq(policy), isA(RequestPolicyContext.class));
         assertThat(captor.getValue()).satisfies(tr -> {
             assertThat(tr.getStringClaim(SCOPE_CLAIM)).isEqualTo("test-scope");
         });

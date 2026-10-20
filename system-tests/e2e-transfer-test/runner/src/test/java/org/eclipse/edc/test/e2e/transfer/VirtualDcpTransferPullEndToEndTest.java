@@ -34,17 +34,18 @@ import org.eclipse.edc.iam.decentralizedclaims.spi.credentialservice.CredentialS
 import org.eclipse.edc.iam.decentralizedclaims.spi.credentialservice.CredentialServiceEndToEndExtension;
 import org.eclipse.edc.iam.decentralizedclaims.spi.issuerservice.IssuerService;
 import org.eclipse.edc.iam.decentralizedclaims.spi.issuerservice.IssuerServiceEndToEndExtension;
-import org.eclipse.edc.iam.decentralizedclaims.spi.scope.CatalogScopeExtractor;
-import org.eclipse.edc.iam.decentralizedclaims.spi.scope.CatalogScopeExtractorRegistry;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.annotations.Runtime;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.nats.testfixtures.NatsEndToEndExtension;
+import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.signaling.auth.Oauth2Extension;
 import org.eclipse.edc.signaling.client.DataPlaneSignalingTestClient;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -69,6 +70,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
@@ -85,11 +87,12 @@ class VirtualDcpTransferPullEndToEndTest {
     private static final String CONSUMER_VAULT_KEY = "consumer-" + UUID.randomUUID();
     private static final String CATALOG_ACCESS_CREDENTIAL = "CatalogAccessCredential";
     private static final String CATALOG_ACCESS_SCOPE = "org.eclipse.dspace.dcp.vc.type:%s:read".formatted(CATALOG_ACCESS_CREDENTIAL);
-    private static final CatalogScopeExtractor NO_SCOPES = context -> Set.of();
+    private static final Function<RequestCatalogPolicyContext, Set<String>> NO_SCOPES = context -> Set.of();
     /**
-     * Delegate of the {@link CatalogScopeExtractor} registered in the runtime, that can be changed by each test.
+     * Delegate of the catalog {@link RequestScopeExtractorRegistry} extractor registered in the runtime, that can be
+     * changed by each test.
      */
-    private static final AtomicReference<CatalogScopeExtractor> CATALOG_SCOPE_EXTRACTOR = new AtomicReference<>(NO_SCOPES);
+    private static final AtomicReference<Function<RequestCatalogPolicyContext, Set<String>>> CATALOG_SCOPE_EXTRACTOR = new AtomicReference<>(NO_SCOPES);
 
     private static Participants participants(ComponentRuntimeContext ctx, CredentialServiceEndToEndExtension ext) {
         var protocolEndpoint = ctx.getEndpoint("protocol");
@@ -126,7 +129,7 @@ class VirtualDcpTransferPullEndToEndTest {
                           CredentialService credentialService,
                           Participants participants,
                           @Runtime(Runtimes.ControlPlane.NAME) Vault vault,
-                          @Runtime(Runtimes.ControlPlane.NAME) CatalogScopeExtractorRegistry catalogScopeExtractorRegistry,
+                          @Runtime(Runtimes.ControlPlane.NAME) RequestScopeExtractorRegistry requestScopeExtractorRegistry,
                           VaultApi vaultApi) {
 
             vaultApi.enableTransitEngine();
@@ -150,7 +153,8 @@ class VirtualDcpTransferPullEndToEndTest {
             var consumerCatalogAccessCredential = issuer.issueCredential(participants.consumer().id(), CATALOG_ACCESS_CREDENTIAL, Map.of("status", "active"));
             credentialService.storeCredential(participants.consumer().contextId(), consumerCatalogAccessCredential);
 
-            catalogScopeExtractorRegistry.register(context -> CATALOG_SCOPE_EXTRACTOR.get().extractScopes(context));
+            requestScopeExtractorRegistry.registerExtractor(RequestCatalogPolicyContext.class,
+                    (policy, context) -> Result.success(CATALOG_SCOPE_EXTRACTOR.get().apply(context)));
         }
 
         @AfterEach
@@ -185,7 +189,7 @@ class VirtualDcpTransferPullEndToEndTest {
             var assetId = setupCatalogAccessAsset(connectorClient, participants);
             var providerScopes = scopesFor(participants.provider().contextId(), RequestContext.Direction.Ingress);
             var consumerScopes = scopesFor(participants.consumer().contextId(), RequestContext.Direction.Egress);
-            CATALOG_SCOPE_EXTRACTOR.set(context -> union(providerScopes.extractScopes(context), consumerScopes.extractScopes(context)));
+            CATALOG_SCOPE_EXTRACTOR.set(context -> union(providerScopes.apply(context), consumerScopes.apply(context)));
 
             var catalog = requestCatalog(connectorClient, participants, null);
 
@@ -198,7 +202,7 @@ class VirtualDcpTransferPullEndToEndTest {
             var assetId = setupCatalogAccessAsset(connectorClient, participants);
             var providerScopes = scopesFor(participants.provider().contextId(), RequestContext.Direction.Ingress);
             var consumerScopes = scopesFor(participants.consumer().contextId(), RequestContext.Direction.Egress);
-            CATALOG_SCOPE_EXTRACTOR.set(context -> union(providerScopes.extractScopes(context), consumerScopes.extractScopes(context)));
+            CATALOG_SCOPE_EXTRACTOR.set(context -> union(providerScopes.apply(context), consumerScopes.apply(context)));
 
             var datasetRequest = new DatasetRequestDto(assetId, participants.consumer().profile(),
                     participants.provider().getProtocolEndpoint(), participants.provider().id());
@@ -236,7 +240,7 @@ class VirtualDcpTransferPullEndToEndTest {
             return connectorClient.catalogs().requestCatalog(participants.consumer().contextId(), request);
         }
 
-        private CatalogScopeExtractor scopesFor(String participantContextId, RequestContext.Direction direction) {
+        private Function<RequestCatalogPolicyContext, Set<String>> scopesFor(String participantContextId, RequestContext.Direction direction) {
             return context -> {
                 var requestContext = context.requestContext();
                 if (participantContextId.equals(requestContext.getParticipantContextId()) && requestContext.getDirection() == direction) {

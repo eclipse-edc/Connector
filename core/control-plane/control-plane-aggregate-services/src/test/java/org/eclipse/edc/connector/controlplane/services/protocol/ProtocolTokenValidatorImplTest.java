@@ -22,7 +22,6 @@ import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
-import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
@@ -43,11 +42,9 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
-import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -57,11 +54,10 @@ class ProtocolTokenValidatorImplTest {
 
     private final ParticipantAgentService agentService = mock();
     private final IdentityService identityService = mock();
-    private final PolicyEngine policyEngine = mock();
     private final RequestScopeExtractorRegistry requestScopeExtractorRegistry = mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
     private final ProtocolTokenValidatorImpl validator = new ProtocolTokenValidatorImpl(identityService,
-            policyEngine, requestScopeExtractorRegistry, mock(), agentService, dataspaceProfileContextRegistry);
+            requestScopeExtractorRegistry, mock(), agentService, dataspaceProfileContextRegistry);
 
     @BeforeEach
     void setUp() {
@@ -90,11 +86,11 @@ class ProtocolTokenValidatorImplTest {
 
         assertThat(result).isSucceeded().isSameAs(participantAgent);
         verify(agentService).createFor(claimToken, participantId);
-        verify(policyEngine).evaluate(same(policy), and(isA(RequestPolicyContext.class), argThat(ctx -> {
+        verify(requestScopeExtractorRegistry).extractScopes(same(policy), argThat(ctx -> {
             var reqContext = ctx.requestContext();
             return reqContext.getMessage().getClass().equals(TestMessage.class) && reqContext.getDirection().equals(RequestContext.Direction.Ingress) &&
                     participantContext.getId().equals(reqContext.getParticipantContextId());
-        })));
+        }));
         verify(dataspaceProfileContextRegistry).getProfile(protocol);
         verify(identityService).verifyJwtToken(
                 eq(participantContext.getId()),

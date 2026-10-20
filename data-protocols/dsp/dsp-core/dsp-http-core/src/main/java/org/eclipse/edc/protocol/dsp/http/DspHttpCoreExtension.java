@@ -122,7 +122,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
             tokenDecorator = bldr -> bldr;
         }
 
-        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator, policyEngine, requestScopeExtractorRegistry, audienceResolver);
+        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator, requestScopeExtractorRegistry, audienceResolver);
         registerNegotiationPolicyScopes(dispatcher);
         registerTransferProcessPolicyScopes(dispatcher);
         registerCatalogPolicyScopes(dispatcher);
