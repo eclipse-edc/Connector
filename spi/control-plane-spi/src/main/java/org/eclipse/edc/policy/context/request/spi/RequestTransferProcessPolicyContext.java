@@ -16,7 +16,6 @@ package org.eclipse.edc.policy.context.request.spi;
 
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.protocol.spi.RequestContext;
-import org.eclipse.edc.spi.iam.RequestScope;
 
 public class RequestTransferProcessPolicyContext extends RequestPolicyContext {
 
@@ -26,8 +25,8 @@ public class RequestTransferProcessPolicyContext extends RequestPolicyContext {
     @PolicyScope
     public static final String TRANSFER_PROCESS_REQUEST_SCOPE = "request.transfer.process";
 
-    public RequestTransferProcessPolicyContext(RequestContext requestContext, RequestScope.Builder requestScopeBuilder) {
-        super(requestContext, requestScopeBuilder);
+    public RequestTransferProcessPolicyContext(RequestContext requestContext) {
+        super(requestContext);
     }
 
     @Override

@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.core;
 
-import org.eclipse.edc.iam.decentralizedclaims.core.scope.CatalogScopeExtractorFunction;
-import org.eclipse.edc.iam.decentralizedclaims.core.scope.DcpScopeExtractorFunction;
+import org.eclipse.edc.iam.decentralizedclaims.core.scope.CatalogRequestScopeExtractor;
+import org.eclipse.edc.iam.decentralizedclaims.core.scope.DcpRequestScopeExtractor;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
-import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,11 +34,11 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(DependencyInjectionExtension.class)
 class DcpScopeExtractorExtensionTest {
 
-    private final PolicyEngine policyEngine = mock();
+    private final RequestScopeExtractorRegistry requestScopeExtractorRegistry = mock();
 
     @BeforeEach
     void setup(ServiceExtensionContext context) {
-        context.registerService(PolicyEngine.class, policyEngine);
+        context.registerService(RequestScopeExtractorRegistry.class, requestScopeExtractorRegistry);
     }
 
     @Test
@@ -46,10 +46,10 @@ class DcpScopeExtractorExtensionTest {
 
         ext.initialize(context);
 
-        verify(policyEngine).registerPreValidator(eq(RequestCatalogPolicyContext.class), isA(DcpScopeExtractorFunction.class));
-        verify(policyEngine).registerPreValidator(eq(RequestCatalogPolicyContext.class), isA(CatalogScopeExtractorFunction.class));
-        verify(policyEngine).registerPreValidator(eq(RequestContractNegotiationPolicyContext.class), isA(DcpScopeExtractorFunction.class));
-        verify(policyEngine).registerPreValidator(eq(RequestTransferProcessPolicyContext.class), isA(DcpScopeExtractorFunction.class));
+        verify(requestScopeExtractorRegistry).registerExtractor(eq(RequestCatalogPolicyContext.class), isA(DcpRequestScopeExtractor.class));
+        verify(requestScopeExtractorRegistry).registerExtractor(eq(RequestCatalogPolicyContext.class), isA(CatalogRequestScopeExtractor.class));
+        verify(requestScopeExtractorRegistry).registerExtractor(eq(RequestContractNegotiationPolicyContext.class), isA(DcpRequestScopeExtractor.class));
+        verify(requestScopeExtractorRegistry).registerExtractor(eq(RequestTransferProcessPolicyContext.class), isA(DcpRequestScopeExtractor.class));
     }
 
 

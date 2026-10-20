@@ -16,7 +16,6 @@ package org.eclipse.edc.policy.context.request.spi;
 
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.protocol.spi.RequestContext;
-import org.eclipse.edc.spi.iam.RequestScope;
 
 public class RequestCatalogPolicyContext extends RequestPolicyContext {
     /**
@@ -25,8 +24,8 @@ public class RequestCatalogPolicyContext extends RequestPolicyContext {
     @PolicyScope
     public static final String CATALOGING_REQUEST_SCOPE = "request.catalog";
 
-    public RequestCatalogPolicyContext(RequestContext requestContext, RequestScope.Builder requestScopeBuilder) {
-        super(requestContext, requestScopeBuilder);
+    public RequestCatalogPolicyContext(RequestContext requestContext) {
+        super(requestContext);
     }
 
     @Override

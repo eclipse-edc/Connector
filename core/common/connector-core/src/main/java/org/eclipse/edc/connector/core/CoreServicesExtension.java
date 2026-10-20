@@ -17,6 +17,8 @@ package org.eclipse.edc.connector.core;
 
 import org.eclipse.edc.connector.core.agent.ParticipantAgentServiceImpl;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
+import org.eclipse.edc.policy.context.request.RequestScopeExtractorRegistryImpl;
+import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.policy.engine.PolicyEngineImpl;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
@@ -55,6 +57,11 @@ public class CoreServicesExtension implements ServiceExtension {
     @Provider
     public PolicyEngine policyEngine() {
         return new PolicyEngineImpl(ruleBindingRegistry);
+    }
+
+    @Provider(isDefault = true)
+    public RequestScopeExtractorRegistry requestScopeExtractorRegistry() {
+        return new RequestScopeExtractorRegistryImpl();
     }
 
 }

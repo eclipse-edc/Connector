@@ -35,6 +35,7 @@ import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
+import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.protocol.dsp.http.dispatcher.DspHttpRemoteMessageDispatcherImpl;
@@ -90,6 +91,8 @@ public class DspHttpCoreExtension implements ServiceExtension {
     @Inject
     private PolicyEngine policyEngine;
     @Inject
+    private RequestScopeExtractorRegistry requestScopeExtractorRegistry;
+    @Inject
     private AudienceResolver audienceResolver;
     @Inject
     private Monitor monitor;
@@ -119,7 +122,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
             tokenDecorator = bldr -> bldr;
         }
 
-        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator, policyEngine, audienceResolver);
+        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator, policyEngine, requestScopeExtractorRegistry, audienceResolver);
         registerNegotiationPolicyScopes(dispatcher);
         registerTransferProcessPolicyScopes(dispatcher);
         registerCatalogPolicyScopes(dispatcher);

@@ -16,7 +16,6 @@ package org.eclipse.edc.policy.context.request.spi;
 
 import org.eclipse.edc.policy.engine.spi.PolicyScope;
 import org.eclipse.edc.protocol.spi.RequestContext;
-import org.eclipse.edc.spi.iam.RequestScope;
 
 public class RequestContractNegotiationPolicyContext extends RequestPolicyContext {
     /**
@@ -25,8 +24,8 @@ public class RequestContractNegotiationPolicyContext extends RequestPolicyContex
     @PolicyScope
     public static final String CONTRACT_NEGOTIATION_REQUEST_SCOPE = "request.contract.negotiation";
 
-    public RequestContractNegotiationPolicyContext(RequestContext requestContext, RequestScope.Builder requestScopeBuilder) {
-        super(requestContext, requestScopeBuilder);
+    public RequestContractNegotiationPolicyContext(RequestContext requestContext) {
+        super(requestContext);
     }
 
     @Override
