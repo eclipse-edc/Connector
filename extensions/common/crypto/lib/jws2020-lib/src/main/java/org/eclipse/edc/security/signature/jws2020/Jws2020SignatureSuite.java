@@ -37,6 +37,7 @@ public final class Jws2020SignatureSuite implements SignatureSuite {
     public static final String CONTEXT = "https://w3id.org/security/suites/jws-2020/v1";
     public static final String JWS2020_ID = "JsonWebSignature2020";
     public static final Term PROOF_VALUE_TERM = Term.create("jws", SECURITY_VOCAB);
+    public static final Term EXPIRATION_TERM = Term.create("expiration", SECURITY_VOCAB);
     public static final String ID = SECURITY_VOCAB + JWS2020_ID;
     public final Jwk2020KeyAdapter methodAdapter;
 

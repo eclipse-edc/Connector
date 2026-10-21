@@ -42,6 +42,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.security.signature.jws2020.TestFunctions.createKeyPair;
@@ -81,18 +82,21 @@ class LdpVerifierTest {
             jsonLd.registerCachedDocument("https://w3id.org/security/suites/jws-2020/v1", Thread.currentThread().getContextClassLoader().getResource("jws2020.json").toURI());
             jsonLd.registerCachedDocument("https://www.w3.org/2018/credentials/v1", Thread.currentThread().getContextClassLoader().getResource("credentials.v1.json").toURI());
             jsonLd.registerCachedDocument("https://www.w3.org/2018/credentials/examples/v1", Thread.currentThread().getContextClassLoader().getResource("examples.v1.json").toURI());
-            ldpVerifier = LdpVerifier.Builder.newInstance()
+            ldpVerifier = verifierBuilder().build();
+            context = VerifierContext.Builder.newInstance().verifier(ldpVerifier).build();
+
+            when(suiteRegistry.getAllSuites()).thenReturn(List.of(jwsSignatureSuite));
+            when(typeManager.getMapper("test")).thenReturn(mapper);
+        }
+
+        private LdpVerifier.Builder verifierBuilder() {
+            return LdpVerifier.Builder.newInstance()
                     .signatureSuites(suiteRegistry)
                     .jsonLd(jsonLd)
                     .typeManager(typeManager)
                     .typeContext("test")
                     .methodResolvers(List.of(mockDidResolver))
-                    .loader(testDocLoader)
-                    .build();
-            context = VerifierContext.Builder.newInstance().verifier(ldpVerifier).build();
-
-            when(suiteRegistry.getAllSuites()).thenReturn(List.of(jwsSignatureSuite));
-            when(typeManager.getMapper("test")).thenReturn(mapper);
+                    .loader(testDocLoader);
         }
 
         private Jws2020ProofDraft generateEmbeddedProof(VerificationMethod verificationMethod) {
@@ -302,6 +306,76 @@ class LdpVerifierTest {
 
                 assertThat(ldpVerifier.verify(signedNameCredential, context)).isFailed()
                         .detail().contains("InvalidProofPurpose");
+            }
+        }
+
+        @Nested
+        class PresentationBinding {
+            private static final String AUDIENCE = "did:web:verifier";
+            private final VerifierContext audienceContext = VerifierContext.Builder.newInstance().audience(AUDIENCE).build();
+
+            @Test
+            void verify_matchingDomainAndNotExpired_success() throws JOSEException {
+                var rawVp = signedPresentation(proof -> proof.domain(AUDIENCE).challenge("test-challenge").expires(Instant.now().plusSeconds(60)));
+
+                assertThat(verifierBuilder().requireBinding(true).build().verify(rawVp, audienceContext)).isSucceeded();
+            }
+
+            @Test
+            void verify_domainMismatch_shouldFail() throws JOSEException {
+                var rawVp = signedPresentation(proof -> proof.domain("did:web:other"));
+
+                assertThat(ldpVerifier.verify(rawVp, audienceContext)).isFailed()
+                        .detail().contains("does not match the expected audience");
+            }
+
+            @Test
+            void verify_expired_shouldFail() throws JOSEException {
+                var rawVp = signedPresentation(proof -> proof.domain(AUDIENCE).expires(Instant.now().minusSeconds(60)));
+
+                assertThat(ldpVerifier.verify(rawVp, audienceContext)).isFailed()
+                        .detail().contains("Presentation proof has expired");
+            }
+
+            @Test
+            void verify_domainTampered_shouldFail() throws JOSEException {
+                var rawVp = signedPresentation(proof -> proof.domain("did:web:other"));
+
+                var tampered = rawVp.replace("did:web:other", AUDIENCE);
+
+                assertThat(ldpVerifier.verify(tampered, audienceContext)).isFailed();
+            }
+
+            @Test
+            void verify_noDomainAndExpires_notRequired_success() throws JOSEException {
+                var rawVp = signedPresentation(proof -> proof);
+
+                assertThat(ldpVerifier.verify(rawVp, audienceContext)).isSucceeded();
+            }
+
+            @Test
+            void verify_noDomain_required_shouldFail() throws JOSEException {
+                var rawVp = signedPresentation(proof -> proof.expires(Instant.now().plusSeconds(60)));
+
+                assertThat(verifierBuilder().requireBinding(true).build().verify(rawVp, audienceContext)).isFailed()
+                        .detail().contains("Presentation proof has no 'domain'");
+            }
+
+            @Test
+            void verify_noExpires_required_shouldFail() throws JOSEException {
+                var rawVp = signedPresentation(proof -> proof.domain(AUDIENCE));
+
+                assertThat(verifierBuilder().requireBinding(true).build().verify(rawVp, audienceContext)).isFailed()
+                        .detail().contains("Presentation proof has no 'expires'");
+            }
+
+            private String signedPresentation(UnaryOperator<Jws2020ProofDraft.Builder> proofOptions) throws JOSEException {
+                var vpKey = new ECKeyGenerator(Curve.P_384)
+                        .keyID("vp-sign-key")
+                        .generate();
+                var input = TestData.VP_CONTENT_TEMPLATE.formatted("");
+                var proof = proofOptions.apply(proofBuilder(createKeyPair(vpKey, VP_HOLDER))).build();
+                return LdpCreationUtils.signDocument(input, vpKey, proof, testDocLoader);
             }
         }
 

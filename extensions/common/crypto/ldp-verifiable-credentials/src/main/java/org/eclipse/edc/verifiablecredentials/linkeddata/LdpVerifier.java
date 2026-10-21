@@ -28,6 +28,7 @@ import com.apicatalog.ld.signature.VerificationMethod;
 import com.apicatalog.ld.signature.key.VerificationKey;
 import com.apicatalog.vc.Presentation;
 import com.apicatalog.vc.VcVocab;
+import com.apicatalog.vc.integrity.DataIntegrityVocab;
 import com.apicatalog.vc.method.resolver.HttpMethodResolver;
 import com.apicatalog.vc.method.resolver.MethodResolver;
 import com.apicatalog.vc.proof.EmbeddedProof;
@@ -45,6 +46,7 @@ import org.eclipse.edc.util.uri.UriUtils;
 import tools.jackson.core.JacksonException;
 
 import java.net.URI;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -52,6 +54,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+import static org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite.EXPIRATION_TERM;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
@@ -66,6 +69,8 @@ public class LdpVerifier implements CredentialVerifier {
     private Collection<MethodResolver> methodResolvers = new ArrayList<>(List.of(new HttpMethodResolver()));
     private DocumentLoader loader;
     private URI base;
+    private Clock clock = Clock.systemUTC();
+    private boolean requireBinding;
 
     private LdpVerifier() {
     }
@@ -168,7 +173,8 @@ public class LdpVerifier implements CredentialVerifier {
 
         } else if (isPresentation(expanded)) {
             // verify presentation proofs
-            var presentationValidation = verifyProofs(expanded, ldContext);
+            var presentationValidation = verifyProofs(expanded, ldContext)
+                    .compose(v -> verifyBinding(expanded, context.getAudience()));
             if (!presentationValidation.succeeded()) {
                 return presentationValidation.mapFailure();
             }
@@ -268,6 +274,39 @@ public class LdpVerifier implements CredentialVerifier {
         return success();
     }
 
+    /**
+     * Checks the {@code domain} and {@code expires} options of the presentation proofs. They are checked whenever they are present,
+     * and they must be present if {@link Builder#requireBinding(boolean)} is set.
+     */
+    private Result<Void> verifyBinding(JsonObject expanded, String audience) {
+        try {
+            for (var expandedProof : EmbeddedProof.assertProof(expanded)) {
+                var proof = LdNode.of(expandedProof.asJsonObject());
+
+                var domain = proof.scalar(DataIntegrityVocab.DOMAIN);
+                if (domain.exists()) {
+                    if (audience != null && !audience.equals(domain.string())) {
+                        return failure("Presentation proof domain '%s' does not match the expected audience '%s'.".formatted(domain.string(), audience));
+                    }
+                } else if (requireBinding) {
+                    return failure("Presentation proof has no 'domain'.");
+                }
+
+                var expires = proof.scalar(EXPIRATION_TERM);
+                if (expires.exists()) {
+                    if (clock.instant().isAfter(expires.xsdDateTime())) {
+                        return failure("Presentation proof has expired.");
+                    }
+                } else if (requireBinding) {
+                    return failure("Presentation proof has no 'expires'.");
+                }
+            }
+        } catch (DocumentError e) {
+            return failure("Invalid presentation proof: %s".formatted(e.getMessage()));
+        }
+        return success();
+    }
+
     private VerificationMethod getMethod(Proof proof, DocumentLoader loader) throws DocumentError {
         final VerificationMethod method = proof.method();
 
@@ -361,6 +400,19 @@ public class LdpVerifier implements CredentialVerifier {
 
         public Builder loader(DocumentLoader loader) {
             this.verifier.loader = loader;
+            return this;
+        }
+
+        public Builder clock(Clock clock) {
+            this.verifier.clock = clock;
+            return this;
+        }
+
+        /**
+         * If set, the proofs of a presentation must have a {@code domain} and an {@code expires} option. Otherwise, these are only checked when present.
+         */
+        public Builder requireBinding(boolean requireBinding) {
+            this.verifier.requireBinding = requireBinding;
             return this;
         }
 

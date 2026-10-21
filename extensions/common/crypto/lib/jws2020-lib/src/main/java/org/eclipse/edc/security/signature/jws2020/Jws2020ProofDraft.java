@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import static org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite.EXPIRATION_TERM;
 import static org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite.PROOF_VALUE_TERM;
 
 /**
@@ -40,6 +41,9 @@ public class Jws2020ProofDraft extends ProofDraft {
     private final Instant created;
     private final URI proofPurpose;
     private ObjectMapper mapper;
+    private String domain;
+    private String challenge;
+    private Instant expires;
 
     private Jws2020ProofDraft(CryptoSuite crypto, VerificationMethod method, Instant created, URI proofPurpose) {
         super(crypto, method);
@@ -65,6 +69,15 @@ public class Jws2020ProofDraft extends ProofDraft {
         builder.type(Jws2020SignatureSuite.ID);
         builder.set(DataIntegrityVocab.PURPOSE).id(proofPurpose);
         builder.set(DataIntegrityVocab.CREATED).xsdDateTime(created != null ? created : Instant.now());
+        if (domain != null) {
+            builder.set(DataIntegrityVocab.DOMAIN).string(domain);
+        }
+        if (challenge != null) {
+            builder.set(DataIntegrityVocab.CHALLENGE).string(challenge);
+        }
+        if (expires != null) {
+            builder.set(EXPIRATION_TERM).xsdDateTime(expires);
+        }
 
         return builder.build();
     }
@@ -75,6 +88,9 @@ public class Jws2020ProofDraft extends ProofDraft {
         private VerificationMethod method;
         private URI id;
         private ObjectMapper mapper;
+        private String domain;
+        private String challenge;
+        private Instant expires;
 
         private Builder() {
         }
@@ -113,11 +129,38 @@ public class Jws2020ProofDraft extends ProofDraft {
             return this;
         }
 
+        /**
+         * The intended verifier of the signed document, e.g. its DID. Verifiers should reject a proof whose domain is not theirs.
+         */
+        public Builder domain(String domain) {
+            this.domain = domain;
+            return this;
+        }
+
+        /**
+         * A value that is unique for each signed document, or that was supplied by the verifier.
+         */
+        public Builder challenge(String challenge) {
+            this.challenge = challenge;
+            return this;
+        }
+
+        /**
+         * The point in time after which verifiers should reject the proof.
+         */
+        public Builder expires(Instant expires) {
+            this.expires = expires;
+            return this;
+        }
+
         public Jws2020ProofDraft build() {
             Objects.requireNonNull(mapper, "mapper is required");
             var draft = new Jws2020ProofDraft(new Jws2020CryptoSuite(), method, created, proofPurpose);
             draft.id = this.id;
             draft.mapper = mapper;
+            draft.domain = domain;
+            draft.challenge = challenge;
+            draft.expires = expires;
             return draft;
         }
     }

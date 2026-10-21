@@ -26,15 +26,29 @@ import java.util.Map;
 
 public class AudienceValidationRule implements TokenValidationRule {
     private final String expectedAudience;
+    private final boolean allowNull;
 
     public AudienceValidationRule(String expectedAudience) {
+        this(expectedAudience, false);
+    }
+
+    /**
+     * Creates a rule that checks the {@code aud} claim against the expected audience.
+     *
+     * @param allowNull whether a token without an {@code aud} claim is accepted
+     */
+    public AudienceValidationRule(String expectedAudience, boolean allowNull) {
         this.expectedAudience = expectedAudience;
+        this.allowNull = allowNull;
     }
 
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
         var audiences = toVerify.getListClaim(JwtRegisteredClaimNames.AUDIENCE);
         if (audiences.isEmpty()) {
+            if (allowNull) {
+                return Result.success();
+            }
             return Result.failure("Required audience (aud) claim is missing in token");
         } else if (!audiences.contains(expectedAudience)) {
             return Result.failure("Token audience claim (aud -> %s) did not contain expected audience: %s".formatted(audiences.stream().map(Object::toString).toList(), expectedAudience));
