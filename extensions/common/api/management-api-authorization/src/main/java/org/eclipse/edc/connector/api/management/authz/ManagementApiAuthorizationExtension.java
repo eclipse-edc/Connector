@@ -42,7 +42,7 @@ public class ManagementApiAuthorizationExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var alias = ApiContext.MANAGEMENT;
-        webService.registerResource(alias, new ScopeBasedAccessFeature());
+        webService.registerResource(alias, new ScopeBasedAccessFeature(context.getMonitor()));
     }
 
     @Provider

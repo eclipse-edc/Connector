@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.participantcontext.connector;
 
+import org.eclipse.edc.api.auth.spi.AuthorizationService;
 import org.eclipse.edc.participantcontext.connector.config.store.SingleParticipantContextConfigStore;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
@@ -23,6 +24,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -43,6 +45,10 @@ public class ClassicParticipantContextDefaultServicesExtension implements Servic
 
     @Inject
     private Monitor monitor;
+
+    // provided by the multi-participant management API authorization, which this single participant mode is not compatible with
+    @Inject(required = false)
+    private AuthorizationService authorizationService;
 
     @Override
     public String name() {
@@ -71,6 +77,10 @@ public class ClassicParticipantContextDefaultServicesExtension implements Servic
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        if (authorizationService != null) {
+            throw new EdcException("The single participant mode cannot run together with the multi-participant management API " +
+                    "authorization: use either the single participant (classic) or the multi-participant (virtual) distribution");
+        }
         if (ANONYMOUS_PARTICIPANT.equals(participantContextId)) {
             monitor.warning("The runtime is configured as an anonymous participant. DO NOT DO THIS IN PRODUCTION.");
         }
