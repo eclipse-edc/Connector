@@ -32,6 +32,7 @@ import java.util.List;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContextState.DEACTIVATED;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_BINDING;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PATH;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PROTOCOL_VERSIONS;
@@ -55,7 +56,8 @@ public class DspVirtualMetadataApiController {
     @GET
     public Response getProtocolVersions(@PathParam("participantContextId") String participantContextId) {
         var participantContextResult = participantContextService.getParticipantContext(participantContextId);
-        if (participantContextResult.failed()) {
+        // a deactivated participant context is answered like one that does not exist
+        if (participantContextResult.failed() || participantContextResult.getContent().getStateAsEnum() == DEACTIVATED) {
             return notFound();
         }
 

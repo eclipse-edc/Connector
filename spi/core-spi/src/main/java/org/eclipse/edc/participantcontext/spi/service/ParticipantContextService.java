@@ -33,12 +33,30 @@ public interface ParticipantContextService {
 
 
     /**
-     * Updates an existing ParticipantContext.
+     * Updates an existing ParticipantContext. The state of the stored ParticipantContext is kept: it is changed with
+     * {@link #activateParticipantContext(String)} and {@link #deactivateParticipantContext(String)}.
      *
      * @param participantContext The ParticipantContext to update.
      * @return The updated ParticipantContext or a failure if not found.
      */
     ServiceResult<Void> updateParticipantContext(ParticipantContext participantContext);
+
+    /**
+     * Activates a ParticipantContext.
+     *
+     * @param participantContextId The ID of the ParticipantContext to activate.
+     * @return success, or a failure if not found.
+     */
+    ServiceResult<Void> activateParticipantContext(String participantContextId);
+
+    /**
+     * Deactivates a ParticipantContext. A deactivated ParticipantContext is answered like one that does not exist on
+     * the management API, for non-admin callers, and on the protocol API.
+     *
+     * @param participantContextId The ID of the ParticipantContext to deactivate.
+     * @return success, or a failure if not found.
+     */
+    ServiceResult<Void> deactivateParticipantContext(String participantContextId);
 
     /**
      * Finds a ParticipantContext by its ID.
