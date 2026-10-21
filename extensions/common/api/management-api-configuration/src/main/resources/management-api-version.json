@@ -2,13 +2,13 @@
   {
     "version": "4.3.0",
     "urlPath": "/v4",
-    "lastUpdated": "2026-10-12T00:00:00Z",
+    "lastUpdated": "2026-10-21T09:29:39Z",
     "maturity": "stable"
   },
   {
     "version": "5.2.0",
     "urlPath": "/v5",
-    "lastUpdated": "2026-10-12T09:29:39Z",
+    "lastUpdated": "2026-10-21T09:29:39Z",
     "maturity": "stable"
   }
 ]
