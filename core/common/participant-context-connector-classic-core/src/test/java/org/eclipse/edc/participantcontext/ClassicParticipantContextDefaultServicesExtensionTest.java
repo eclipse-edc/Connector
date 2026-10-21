@@ -14,11 +14,13 @@
 
 package org.eclipse.edc.participantcontext;
 
+import org.eclipse.edc.api.auth.spi.AuthorizationService;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.participantcontext.connector.ClassicParticipantContextDefaultServicesExtension;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +28,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(DependencyInjectionExtension.class)
 public class ClassicParticipantContextDefaultServicesExtensionTest {
@@ -53,5 +58,23 @@ public class ClassicParticipantContextDefaultServicesExtensionTest {
 
         var supplier = extension.participantContextSupplier();
         assertThat(supplier.get().getContent()).extracting(ParticipantContext::getId).isEqualTo("participantContextId");
+    }
+
+    @Test
+    void initialize_shouldFail_whenMultiParticipantAuthorizationIsPresent(TestExtensionContext context, ObjectFactory factory) {
+        context.registerService(AuthorizationService.class, mock());
+
+        var extension = factory.constructInstance(ClassicParticipantContextDefaultServicesExtension.class);
+
+        assertThatThrownBy(() -> extension.initialize(context)).isInstanceOf(EdcException.class);
+    }
+
+    @Test
+    void initialize_shouldSucceed_whenMultiParticipantAuthorizationIsAbsent(TestExtensionContext context, ObjectFactory factory) {
+        context.registerService(AuthorizationService.class, null);
+
+        var extension = factory.constructInstance(ClassicParticipantContextDefaultServicesExtension.class);
+
+        assertThatNoException().isThrownBy(() -> extension.initialize(context));
     }
 }
