@@ -54,7 +54,7 @@ public class ExpirationIssuedAtValidationRule implements TokenValidationRule {
 
         var issuedAt = toVerify.getInstantClaim(JwtRegisteredClaimNames.ISSUED_AT);
         if (issuedAt != null) {
-            if (issuedAt.isAfter(expires)) {
+            if (expires != null && issuedAt.isAfter(expires)) {
                 return Result.failure("Issued at (iat) claim is after expiration time (exp) claim in token");
             } else if (now.plusSeconds(issuedAtLeeway).isBefore(issuedAt)) {
                 return Result.failure("Current date/time before issued at (iat) claim in token");

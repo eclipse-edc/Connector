@@ -20,10 +20,15 @@ import org.eclipse.edc.iam.decentralizedclaims.spi.verification.CredentialVerifi
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.VerifierContext;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.rules.AudienceValidationRule;
+import org.eclipse.edc.token.spi.TokenValidationRule;
+import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
+import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ENVELOPED_CREDENTIAL_CONTENT_TYPE;
@@ -42,11 +47,21 @@ import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VP_CLAIM;
  */
 public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
     private final TokenValidationService tokenValidationService;
+    private final TokenValidationRulesRegistry tokenValidationRulesRegistry;
     private final PublicKeyResolver publicKeyResolver;
+    private final boolean requireAudience;
 
-    public Vcdm20JosePresentationVerifier(TokenValidationService tokenValidationService, PublicKeyResolver publicKeyResolver) {
+    /**
+     * Creates a verifier that checks the presentation JWTs with the rules registered for {@link Constants#JWT_VP_TOKEN_CONTEXT}.
+     *
+     * @param requireAudience whether the presentation JWTs must have an {@code aud} claim. Otherwise, it is only checked when present.
+     */
+    public Vcdm20JosePresentationVerifier(TokenValidationService tokenValidationService, TokenValidationRulesRegistry tokenValidationRulesRegistry,
+                                          PublicKeyResolver publicKeyResolver, boolean requireAudience) {
         this.tokenValidationService = tokenValidationService;
+        this.tokenValidationRulesRegistry = tokenValidationRulesRegistry;
         this.publicKeyResolver = publicKeyResolver;
+        this.requireAudience = requireAudience;
     }
 
     @Override
@@ -78,14 +93,15 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
                 return Result.failure("Not a valid VP token - missing the 'type' claim");
             }
 
-            // validate JWT signature
-            var verificationResult = tokenValidationService.validate(rawInput, publicKeyResolver);
+            // validate JWT signature and claims
+            var rules = vpValidationRules(verifierContext.getAudience());
+            var verificationResult = tokenValidationService.validate(rawInput, publicKeyResolver, rules);
             if (verificationResult.failed()) {
                 return verificationResult.mapEmpty();
             }
 
             return switch (type) {
-                case ENVELOPED_VERIFIABLE_PRESENTATION_TYPE -> verifyEnvelopedPresentation(jwtClaimsSet);
+                case ENVELOPED_VERIFIABLE_PRESENTATION_TYPE -> verifyEnvelopedPresentation(jwtClaimsSet, rules);
                 case VERIFIABLE_PRESENTATION_TYPE -> verifyVpToken(jwtClaimsSet);
                 default -> Result.failure("Not a valid VP token - unknown type '%s'".formatted(type));
             };
@@ -103,10 +119,11 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
      * a single Verifiable Presentation. Each of these JWTs represents a "Credential Envelope".
      *
      * @param claimsSet the parsed JWT claims representing the enveloped VP
+     * @param rules     the rules each presentation JWT is validated with
      * @return a successful result only if all presentations and all JWTs in them are valid (i.e. their signatures are correct).
      * @throws ParseException if parsing one of the JWTs fails
      */
-    private Result<Void> verifyEnvelopedPresentation(JWTClaimsSet claimsSet) throws ParseException {
+    private Result<Void> verifyEnvelopedPresentation(JWTClaimsSet claimsSet, List<TokenValidationRule> rules) throws ParseException {
         var vpEnvelopeString = claimsSet.getStringClaim(ID);
         if (vpEnvelopeString == null) {
             return Result.failure("No enveloped credential found in '%s' claim".formatted(ID));
@@ -120,7 +137,7 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
                 return Result.failure("Incorrect presentation envelope. Must start with '%s,' but it did not.".formatted(ENVELOPED_PRESENTATION_CONTENT_TYPE));
             }
             vpEnvelope = vpEnvelope.substring(ENVELOPED_PRESENTATION_CONTENT_TYPE.length() + 1);
-            results.add(tokenValidationService.validate(vpEnvelope, publicKeyResolver).mapEmpty());
+            results.add(tokenValidationService.validate(vpEnvelope, publicKeyResolver, rules).mapEmpty());
             results.add(verifyVpToken(SignedJWT.parse(vpEnvelope).getJWTClaimsSet()));
         }
         return results.stream().reduce(Result::merge).orElse(Result.success());
@@ -189,5 +206,13 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
         }
 
         return results.stream().reduce(Result::merge).orElse(Result.success());
+    }
+
+    private List<TokenValidationRule> vpValidationRules(@Nullable String audience) {
+        var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(Constants.JWT_VP_TOKEN_CONTEXT));
+        if (audience != null) {
+            rules.add(new AudienceValidationRule(audience, !requireAudience));
+        }
+        return rules;
     }
 }

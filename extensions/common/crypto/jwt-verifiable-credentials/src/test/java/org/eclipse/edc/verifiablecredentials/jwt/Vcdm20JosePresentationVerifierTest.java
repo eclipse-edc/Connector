@@ -20,22 +20,31 @@
 
 package org.eclipse.edc.verifiablecredentials.jwt;
 
+import org.eclipse.edc.iam.decentralizedclaims.spi.verification.VerifierContext;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
+import org.eclipse.edc.token.TokenValidationServiceImpl;
+import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
+import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.Base64;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -43,11 +52,14 @@ import static org.mockito.Mockito.when;
 class Vcdm20JosePresentationVerifierTest {
     private final TokenValidationService tokenValidationService = mock();
     private final PublicKeyResolver publicKeyResolver = mock();
-    private final Vcdm20JosePresentationVerifier verifier = new Vcdm20JosePresentationVerifier(tokenValidationService, publicKeyResolver);
+    private final Vcdm20JosePresentationVerifier verifier = new Vcdm20JosePresentationVerifier(tokenValidationService, new TokenValidationRulesRegistryImpl(), publicKeyResolver, false);
 
     @BeforeEach
     void setUp() {
         when(tokenValidationService.validate(anyString(), any())).thenReturn(Result.success(
+                ClaimToken.Builder.newInstance().build()
+        ));
+        when(tokenValidationService.validate(anyString(), any(), anyList())).thenReturn(Result.success(
                 ClaimToken.Builder.newInstance().build()
         ));
     }
@@ -101,7 +113,7 @@ class Vcdm20JosePresentationVerifierTest {
     @Test
     @DisplayName("verify should fail when token validation service fails")
     void verify_tokenValidationFailed_expectFailure() {
-        when(tokenValidationService.validate(anyString(), any())).thenReturn(Result.failure("test-failure"));
+        when(tokenValidationService.validate(anyString(), any(), anyList())).thenReturn(Result.failure("test-failure"));
         assertThat(verifier.verify(TestConstants.VP_ENVELOPED_JOSE_ENVELOPED_CREDENTIAL, mock())).isFailed()
                 .detail().contains("test-failure");
     }
@@ -111,7 +123,6 @@ class Vcdm20JosePresentationVerifierTest {
     @DisplayName("verify should fail when one of multiple VCs is invalid")
     void verify_multipleVc_oneInvalid(String vpToken) {
         when(tokenValidationService.validate(anyString(), any(PublicKeyResolver.class)))
-                .thenReturn(Result.success(ClaimToken.Builder.newInstance().build())) // VP token
                 .thenReturn(Result.success(ClaimToken.Builder.newInstance().build())) // first VC
                 .thenReturn(Result.failure("test-failure")); // second VC
 
@@ -184,6 +195,75 @@ class Vcdm20JosePresentationVerifierTest {
         var token = jwt("{\"type\":\"VerifiablePresentation\",\"verifiableCredential\":[{\"type\":\"EnvelopedVerifiableCredential\",\"id\":\"wrongprefix,x\"}]}");
         assertThat(verifier.verify(token, mock())).isFailed()
                 .detail().contains("Incorrect credential envelope");
+    }
+
+    @Nested
+    class AudienceAndExpiry {
+        private static final String AUDIENCE = "did:web:verifier";
+        private final TokenValidationRulesRegistry rulesRegistry = new TokenValidationRulesRegistryImpl();
+        private final VerifierContext context = VerifierContext.Builder.newInstance().audience(AUDIENCE).build();
+
+        @BeforeEach
+        void setUp() {
+            // the signature check is skipped for keys that resolve to null
+            when(publicKeyResolver.resolveKey(any())).thenReturn(Result.success(null));
+            rulesRegistry.addRule(Constants.JWT_VP_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(Clock.systemUTC(), 0, true));
+        }
+
+        @Test
+        void verify_matchingAudienceAndNotExpired() {
+            var token = vpToken(", \"aud\": \"%s\", \"exp\": %d".formatted(AUDIENCE, future()));
+
+            assertThat(verifier(false).verify(token, context)).isSucceeded();
+        }
+
+        @Test
+        void verify_wrongAudience_expectFailure() {
+            var token = vpToken(", \"aud\": \"did:web:other\"");
+
+            assertThat(verifier(false).verify(token, context)).isFailed()
+                    .detail().contains("did not contain expected audience");
+        }
+
+        @Test
+        void verify_expired_expectFailure() {
+            var token = vpToken(", \"aud\": \"%s\", \"exp\": %d".formatted(AUDIENCE, Instant.now().minusSeconds(60).getEpochSecond()));
+
+            assertThat(verifier(false).verify(token, context)).isFailed()
+                    .detail().contains("Token has expired");
+        }
+
+        @Test
+        void verify_noAudience_notRequired() {
+            assertThat(verifier(false).verify(vpToken(""), context)).isSucceeded();
+        }
+
+        @Test
+        void verify_noAudience_required_expectFailure() {
+            assertThat(verifier(true).verify(vpToken(""), context)).isFailed()
+                    .detail().contains("Required audience (aud) claim is missing");
+        }
+
+        @Test
+        void verify_envelopedPresentationWithWrongAudience_expectFailure() {
+            var envelope = jwt("{\"type\": \"EnvelopedVerifiablePresentation\", \"aud\": \"%s\", \"id\": \"data:application/vp+jwt,%s\"}"
+                    .formatted(AUDIENCE, vpToken(", \"aud\": \"did:web:other\"")));
+
+            assertThat(verifier(false).verify(envelope, context)).isFailed()
+                    .detail().contains("did not contain expected audience");
+        }
+
+        private Vcdm20JosePresentationVerifier verifier(boolean requireAudience) {
+            return new Vcdm20JosePresentationVerifier(new TokenValidationServiceImpl(), rulesRegistry, publicKeyResolver, requireAudience);
+        }
+
+        private String vpToken(String additionalClaims) {
+            return jwt("{\"type\": \"VerifiablePresentation\", \"verifiableCredential\": []%s}".formatted(additionalClaims));
+        }
+
+        private long future() {
+            return Instant.now().plusSeconds(60).getEpochSecond();
+        }
     }
 
     private static String jwt(String payloadJson) {

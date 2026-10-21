@@ -77,6 +77,7 @@ import static org.eclipse.edc.participantcontext.spi.config.validation.Participa
 import static org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigValidators.startsWith;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.JWT_VC_TOKEN_CONTEXT;
+import static org.eclipse.edc.verifiablecredentials.jwt.Constants.JWT_VP_TOKEN_CONTEXT;
 
 @Extension("DCP Core Extension")
 public class DcpCoreExtension implements ServiceExtension {
@@ -99,6 +100,14 @@ public class DcpCoreExtension implements ServiceExtension {
             description = "Activate or deactivate JTI validation",
             defaultValue = "true")
     private boolean activateJtiValidation;
+
+    @Setting(
+            key = "edc.iam.presentation.binding.required",
+            description = "Rejects Verifiable Presentations that are not bound to an audience and an expiry: JWT presentations " +
+                    "without 'exp' and VCDM 2.0 presentations without 'aud', Linked-Data presentations without a proof 'domain' and 'expires'. " +
+                    "If disabled, these are only checked when present.",
+            defaultValue = "false")
+    private boolean requirePresentationBinding;
 
     @Inject
     private SecureTokenService secureTokenService;
@@ -169,6 +178,10 @@ public class DcpCoreExtension implements ServiceExtension {
 
         // add all rules for validating VerifiableCredential JWTs
         rulesRegistry.addRule(JWT_VC_TOKEN_CONTEXT, new HasSubjectRule());
+
+        // add all rules for validating VerifiablePresentation JWTs
+        rulesRegistry.addRule(JWT_VP_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, 5, !requirePresentationBinding));
+        rulesRegistry.addRule(JWT_VP_TOKEN_CONTEXT, new NotBeforeValidationRule(clock, 5, true));
 
         if (activateJtiValidation) {
             rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new JtiValidationRule(jtiValidationStore, context.getMonitor()));
@@ -243,9 +256,11 @@ public class DcpCoreExtension implements ServiceExtension {
                     .typeManager(typeManager)
                     .typeContext(JSON_LD)
                     .methodResolver(new DidMethodResolver(didResolverRegistry))
+                    .clock(clock)
+                    .requireBinding(requirePresentationBinding)
                     .build();
 
-            var joseVerifier = new Vcdm20JosePresentationVerifier(tokenValidationService, didPublicKeyResolver);
+            var joseVerifier = new Vcdm20JosePresentationVerifier(tokenValidationService, rulesRegistry, didPublicKeyResolver, requirePresentationBinding);
 
             presentationVerifier = new MultiFormatPresentationVerifier(jwtVerifier, ldpVerifier, joseVerifier);
         }
