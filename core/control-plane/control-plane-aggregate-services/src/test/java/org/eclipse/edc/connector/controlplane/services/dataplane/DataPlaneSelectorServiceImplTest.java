@@ -16,11 +16,13 @@ package org.eclipse.edc.connector.controlplane.services.dataplane;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.DataPlaneSelectorService;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.AuthorizationProfile;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.strategy.SelectionStrategy;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.strategy.SelectionStrategyRegistry;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -29,6 +31,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -38,6 +41,7 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -49,7 +53,8 @@ public class DataPlaneSelectorServiceImplTest {
     private final DataPlaneInstanceStore store = mock();
     private final SelectionStrategyRegistry selectionStrategyRegistry = mock();
     private final String configuredSelectionStrategy = "strategy";
-    private final DataPlaneSelectorService service = new DataPlaneSelectorServiceImpl(store, selectionStrategyRegistry, new NoopTransactionContext(), configuredSelectionStrategy);
+    private final Monitor monitor = mock();
+    private final DataPlaneSelectorService service = new DataPlaneSelectorServiceImpl(store, selectionStrategyRegistry, new NoopTransactionContext(), configuredSelectionStrategy, monitor);
 
     private DataPlaneInstance.Builder createInstanceBuilder(String id) {
         return DataPlaneInstance.Builder.newInstance()
@@ -233,6 +238,28 @@ public class DataPlaneSelectorServiceImplTest {
             var result = service.register(instance);
 
             assertThat(result).isFailed();
+        }
+
+        @Test
+        void shouldWarn_whenNoAuthorizationProfile() {
+            when(store.save(any())).thenReturn(StoreResult.success());
+            var instance = DataPlaneInstance.Builder.newInstance().url("http://any").build();
+
+            service.register(instance);
+
+            verify(monitor).warning(anyString());
+        }
+
+        @Test
+        void shouldNotWarn_whenAuthorizationProfile() {
+            when(store.save(any())).thenReturn(StoreResult.success());
+            var instance = DataPlaneInstance.Builder.newInstance().url("http://any")
+                    .authorizationProfile(new AuthorizationProfile("type", Map.of()))
+                    .build();
+
+            service.register(instance);
+
+            verify(monitor, never()).warning(anyString());
         }
     }
 

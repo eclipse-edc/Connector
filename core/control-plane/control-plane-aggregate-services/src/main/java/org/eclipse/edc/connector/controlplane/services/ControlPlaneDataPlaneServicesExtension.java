@@ -23,6 +23,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 @Extension(ControlPlaneDataPlaneServicesExtension.NAME)
@@ -50,7 +51,7 @@ public class ControlPlaneDataPlaneServicesExtension implements ServiceExtension 
     }
 
     @Provider
-    public DataPlaneSelectorService dataPlaneSelectorService() {
-        return new DataPlaneSelectorServiceImpl(instanceStore, selectionStrategyRegistry, transactionContext, selectionStrategy);
+    public DataPlaneSelectorService dataPlaneSelectorService(ServiceExtensionContext context) {
+        return new DataPlaneSelectorServiceImpl(instanceStore, selectionStrategyRegistry, transactionContext, selectionStrategy, context.getMonitor());
     }
 }

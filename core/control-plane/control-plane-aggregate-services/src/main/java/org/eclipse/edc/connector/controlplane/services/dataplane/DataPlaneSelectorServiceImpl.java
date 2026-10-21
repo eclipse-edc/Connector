@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneIn
 import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.strategy.SelectionStrategyRegistry;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -34,13 +35,15 @@ public class DataPlaneSelectorServiceImpl implements DataPlaneSelectorService {
     private final SelectionStrategyRegistry selectionStrategyRegistry;
     private final TransactionContext transactionContext;
     private final String selectionStrategy;
+    private final Monitor monitor;
 
     public DataPlaneSelectorServiceImpl(DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry,
-                                        TransactionContext transactionContext, String selectionStrategy) {
+                                        TransactionContext transactionContext, String selectionStrategy, Monitor monitor) {
         this.store = store;
         this.selectionStrategyRegistry = selectionStrategyRegistry;
         this.transactionContext = transactionContext;
         this.selectionStrategy = selectionStrategy;
+        this.monitor = monitor;
     }
 
     @Override
@@ -94,6 +97,11 @@ public class DataPlaneSelectorServiceImpl implements DataPlaneSelectorService {
 
     @Override
     public ServiceResult<Void> register(DataPlaneInstance instance) {
+        if (instance.getAuthorizationProfile() == null) {
+            // the signaling API authenticates the calls of a data plane through its authorization profile
+            monitor.warning(("Data plane %s is registered without an authorization profile: its calls to the signaling API " +
+                    "are not authenticated, so the signaling API must only be reachable by trusted clients").formatted(instance.getId()));
+        }
         return transactionContext.execute(() -> {
             instance.transitionToRegistered();
             return store.save(instance).flatMap(ServiceResult::from);
