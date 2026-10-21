@@ -151,7 +151,7 @@ class TransferProcessProtocolServiceImplTest {
         var transferProcess = transferProcess(INITIAL, processId);
         var agreement = contractAgreement();
 
-        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any())).thenReturn(ServiceResult.success(participantAgent));
         when(store.findById(processId)).thenReturn(transferProcess);
         when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
         when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
@@ -170,7 +170,7 @@ class TransferProcessProtocolServiceImplTest {
         var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
 
-        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any())).thenReturn(ServiceResult.success(participantAgent));
         when(store.findById(any())).thenReturn(null);
 
         var message = TransferProcessRequestMessage.Builder.newInstance().transferProcessId("invalidId").protocol("protocol").build();
@@ -191,7 +191,7 @@ class TransferProcessProtocolServiceImplTest {
         var tokenRepresentation = tokenRepresentation();
         var agreement = contractAgreement();
 
-        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any())).thenReturn(ServiceResult.success(participantAgent));
         when(store.findById(processId)).thenReturn(transferProcess);
         when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
         when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
@@ -212,7 +212,7 @@ class TransferProcessProtocolServiceImplTest {
         var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
 
-        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), eq(message))).thenReturn(ServiceResult.success(participantAgent));
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
 
         var result = methodCall.call(service, participantContext, message, tokenRepresentation);
@@ -230,7 +230,7 @@ class TransferProcessProtocolServiceImplTest {
         when(store.findById(any())).thenReturn(transferProcessBuilder().build());
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcessBuilder().build()));
         when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(contractAgreement());
-        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.unauthorized("unauthorized"));
+        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.unauthorized("unauthorized"));
 
         var result = methodCall.call(service, participantContext, message, tokenRepresentation);
 
@@ -349,7 +349,7 @@ class TransferProcessProtocolServiceImplTest {
                     .dataAddress(dataAddress)
                     .build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
@@ -382,7 +382,7 @@ class TransferProcessProtocolServiceImplTest {
                     .dataAddress(dataAddress)
                     .build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.failure("invalid credentials"));
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
@@ -411,7 +411,7 @@ class TransferProcessProtocolServiceImplTest {
                     .dataAddress(dataAddress)
                     .build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
@@ -439,7 +439,7 @@ class TransferProcessProtocolServiceImplTest {
                     .dataAddress(dataAddress)
                     .build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
@@ -469,7 +469,7 @@ class TransferProcessProtocolServiceImplTest {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
@@ -500,7 +500,7 @@ class TransferProcessProtocolServiceImplTest {
             var foreignTransferProcess = transferProcessBuilder().id("foreignTransferProcessId").correlationId("consumerPid")
                     .participantContextId("anotherParticipantContextId").build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
@@ -530,7 +530,7 @@ class TransferProcessProtocolServiceImplTest {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.failure("error"));
@@ -556,7 +556,7 @@ class TransferProcessProtocolServiceImplTest {
                     .build();
 
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
@@ -580,7 +580,7 @@ class TransferProcessProtocolServiceImplTest {
                     .build();
             var contractAgreement = contractAgreementBuilder().assetId("assetId").build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(contractAgreement));
@@ -610,7 +610,7 @@ class TransferProcessProtocolServiceImplTest {
             var transferProcess = transferProcess(STARTED, "transferProcessId");
 
             when(store.findById("correlationId")).thenReturn(transferProcess);
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
             when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
@@ -637,7 +637,7 @@ class TransferProcessProtocolServiceImplTest {
                     .build();
             var agreement = contractAgreement();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
             when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
@@ -665,7 +665,7 @@ class TransferProcessProtocolServiceImplTest {
             var agreement = contractAgreement();
 
             var transferProcess = transferProcess(STARTED, "transferProcessId");
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
             when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
@@ -699,7 +699,7 @@ class TransferProcessProtocolServiceImplTest {
             var agreement = contractAgreement();
             var transferProcess = transferProcess(STARTED, "transferProcessId");
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
             when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
@@ -727,7 +727,7 @@ class TransferProcessProtocolServiceImplTest {
                     .reason("TestReason")
                     .build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
             when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
@@ -757,7 +757,7 @@ class TransferProcessProtocolServiceImplTest {
                     .reason("TestReason")
                     .build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
             when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
@@ -792,7 +792,7 @@ class TransferProcessProtocolServiceImplTest {
             var agreement = contractAgreement();
             var transferProcess = transferProcess(REQUESTED, "transferProcessId");
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
             when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
@@ -823,7 +823,7 @@ class TransferProcessProtocolServiceImplTest {
             var agreement = contractAgreement();
             var transferProcess = transferProcess(REQUESTED, "transferProcessId");
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
             when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
@@ -850,7 +850,7 @@ class TransferProcessProtocolServiceImplTest {
                     .build();
             var agreement = contractAgreement();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
             when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
@@ -878,7 +878,7 @@ class TransferProcessProtocolServiceImplTest {
             var agreement = contractAgreement();
 
             var transferProcess = transferProcess(REQUESTED, "transferProcessId");
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
             when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
@@ -913,7 +913,7 @@ class TransferProcessProtocolServiceImplTest {
             var transferProcess = transferProcessBuilder().id("transferProcessId")
                     .state(SUSPENDED.code()).type(PROVIDER).build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
             when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
@@ -944,7 +944,7 @@ class TransferProcessProtocolServiceImplTest {
             var transferProcess = transferProcessBuilder().id("transferProcessId")
                     .state(SUSPENDED.code()).type(PROVIDER).dataAddressOwner(true).build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
             when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
@@ -976,7 +976,7 @@ class TransferProcessProtocolServiceImplTest {
             var transferProcess = transferProcessBuilder().id("transferProcessId")
                     .state(RESUMED.code()).type(CONSUMER).build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
             when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
@@ -1007,7 +1007,7 @@ class TransferProcessProtocolServiceImplTest {
             var transferProcess = transferProcessBuilder().id("transferProcessId")
                     .state(RESUMED.code()).type(CONSUMER).build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
             when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
@@ -1035,7 +1035,7 @@ class TransferProcessProtocolServiceImplTest {
             var transferProcess = transferProcessBuilder().id("transferProcessId")
                     .state(REQUESTED.code()).type(PROVIDER).build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
             when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
@@ -1066,7 +1066,7 @@ class TransferProcessProtocolServiceImplTest {
                     .build();
             var agreement = contractAgreement();
             var transferProcess = transferProcessBuilder().state(STARTED.code()).build();
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById(any())).thenReturn(transferProcess);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
@@ -1095,7 +1095,7 @@ class TransferProcessProtocolServiceImplTest {
             var agreement = contractAgreement();
             var transferProcess = transferProcessBuilder().state(REQUESTED.code()).type(PROVIDER).build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById(any())).thenReturn(transferProcess);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
@@ -1124,7 +1124,7 @@ class TransferProcessProtocolServiceImplTest {
                     .reason("TestReason")
                     .build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById(any())).thenReturn(transferProcess);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
@@ -1153,7 +1153,7 @@ class TransferProcessProtocolServiceImplTest {
                     .reason("TestReason")
                     .build();
 
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById(any())).thenReturn(transferProcess);
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
             when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
@@ -1179,7 +1179,7 @@ class TransferProcessProtocolServiceImplTest {
                                                                                   TransferProcess.Type type,
                                                                                   TransferProcessStates currentState) {
             var transferProcess = transferProcessBuilder().state(currentState.code()).type(type).build();
-            when(protocolTokenValidator.verify(any(), any(), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
+            when(protocolTokenValidator.verify(any(), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
             when(store.findById(any())).thenReturn(transferProcess);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(contractAgreement());
@@ -1203,7 +1203,7 @@ class TransferProcessProtocolServiceImplTest {
                                                                                              TransferProcessStates currentState) {
             var transferProcess = transferProcessBuilder().state(currentState.code()).type(type).build();
             transferProcess.protocolMessageReceived(message.getId());
-            when(protocolTokenValidator.verify(any(), any(), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
+            when(protocolTokenValidator.verify(any(), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
             when(store.findById(any())).thenReturn(transferProcess);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
             when(store.breakLease(any())).thenReturn(StoreResult.success());
@@ -1224,7 +1224,7 @@ class TransferProcessProtocolServiceImplTest {
         <M extends ProcessRemoteMessage> void notify_shouldReturnConflict_whenFinalState(MethodCall<M> methodCall, M message,
                                                                                          TransferProcess.Type type) {
             var transferProcess = transferProcessBuilder().state(COMPLETED.code()).type(type).build();
-            when(protocolTokenValidator.verify(any(), any(), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
+            when(protocolTokenValidator.verify(any(), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
             when(store.findById(any())).thenReturn(transferProcess);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
             when(store.breakLease(any())).thenReturn(StoreResult.success());
@@ -1252,7 +1252,7 @@ class TransferProcessProtocolServiceImplTest {
                     .identity("wrongParticipantId")
                     .build();
 
-            when(protocolTokenValidator.verify(any(), any(), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
+            when(protocolTokenValidator.verify(any(), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
             when(store.findById(any())).thenReturn(transferProcess);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(contractAgreement());

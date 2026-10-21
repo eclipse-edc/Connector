@@ -15,9 +15,11 @@
 package org.eclipse.edc.protocol.dsp.http;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
+import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.controlplane.iam.AudienceResolver;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
+import org.eclipse.edc.protocol.dsp.http.dispatcher.CatalogAdditionalScopesExtractor;
 import org.eclipse.edc.protocol.dsp.http.message.DspRequestHandlerImpl;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.result.Result;
@@ -31,6 +33,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -89,5 +93,12 @@ class DspHttpCoreExtensionTest {
 
         assertThat(handler).isInstanceOf(DspRequestHandlerImpl.class);
 
+    }
+
+    @Test
+    void initialize_shouldRegisterCatalogAdditionalScopesExtractor(ServiceExtensionContext context, DspHttpCoreExtension extension) {
+        extension.initialize(context);
+
+        verify(requestScopeExtractorRegistry).registerExtractor(eq(CatalogRequestMessage.class), isA(CatalogAdditionalScopesExtractor.class));
     }
 }

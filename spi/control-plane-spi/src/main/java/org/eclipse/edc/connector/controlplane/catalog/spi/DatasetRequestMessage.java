@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.catalog.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import org.eclipse.edc.controlplane.ProcessRemoteMessage;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.policy.model.Policy;
 
 import java.util.Objects;
@@ -23,14 +23,11 @@ import java.util.Objects;
 /**
  * A request for a participant's {@link Dataset}.
  */
-public class DatasetRequestMessage extends ProcessRemoteMessage {
+public class DatasetRequestMessage extends ProtocolRemoteMessage {
 
     private String datasetId;
-    private final Policy policy;
 
     private DatasetRequestMessage() {
-        // at this time, this is just a placeholder.
-        policy = Policy.Builder.newInstance().build();
     }
 
     public String getDatasetId() {
@@ -39,15 +36,16 @@ public class DatasetRequestMessage extends ProcessRemoteMessage {
 
     /**
      * Returns the {@link Policy} associated with the Dataset Request. Currently, this is an empty policy and serves as
-     * placeholder.
+     * placeholder in order to execute the scope extraction.
      *
      * @return the stub {@link Policy}.
      */
+    @Override
     public Policy getPolicy() {
-        return policy;
+        return Policy.Builder.newInstance().build();
     }
 
-    public static class Builder extends ProcessRemoteMessage.Builder<DatasetRequestMessage, Builder> {
+    public static class Builder extends ProtocolRemoteMessage.Builder<DatasetRequestMessage, Builder> {
 
         private Builder() {
             super(new DatasetRequestMessage());

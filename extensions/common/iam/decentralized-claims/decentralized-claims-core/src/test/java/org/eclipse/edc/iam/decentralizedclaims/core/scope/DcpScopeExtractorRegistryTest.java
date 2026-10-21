@@ -15,11 +15,12 @@
 package org.eclipse.edc.iam.decentralizedclaims.core.scope;
 
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractor;
-import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Constraint;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.spi.result.Failure;
+import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -50,7 +51,7 @@ import static org.mockito.Mockito.when;
 
 public class DcpScopeExtractorRegistryTest {
 
-    private final RequestPolicyContext ctx = mock();
+    private final RequestContext ctx = mock();
     private final ScopeExtractor extractor = mock();
     private final DcpScopeExtractorRegistry registry = new DcpScopeExtractorRegistry();
 
@@ -63,7 +64,7 @@ public class DcpScopeExtractorRegistryTest {
     @ArgumentsSource(SingleConstraintProvider.class)
     void extractScopes(Policy policy, ConstraintData data) {
 
-        when(extractor.extractScopes(data.left(), data.operator(), data.right, ctx)).thenReturn(Set.of(data.left()));
+        when(extractor.extractScopes(data.left(), data.operator(), data.right, ctx)).thenReturn(Result.success(Set.of(data.left())));
 
         assertThat(registry.extractScopes(policy, ctx))
                 .isSucceeded()
@@ -78,7 +79,7 @@ public class DcpScopeExtractorRegistryTest {
 
         var scopes = constraintData.stream().map(ConstraintData::left).collect(Collectors.toSet());
 
-        constraintData.forEach(data -> when(extractor.extractScopes(data.left(), data.operator(), data.right, ctx)).thenReturn(Set.of(data.left())));
+        constraintData.forEach(data -> when(extractor.extractScopes(data.left(), data.operator(), data.right, ctx)).thenReturn(Result.success(Set.of(data.left()))));
 
 
         assertThat(registry.extractScopes(policy, ctx))
@@ -89,15 +90,13 @@ public class DcpScopeExtractorRegistryTest {
     }
 
     @Test
-    void extractScopes_fails_whenContextProblem() {
+    void extractScopes_fails_whenExtractorFails() {
 
         var left = "left";
         var right = "right";
         var operator = Operator.EQ;
         var problems = List.of("problem");
-        when(extractor.extractScopes(left, operator, right, ctx)).thenReturn(Set.of());
-        when(ctx.hasProblems()).thenReturn(true);
-        when(ctx.getProblems()).thenReturn(problems);
+        when(extractor.extractScopes(left, operator, right, ctx)).thenReturn(Result.failure(problems));
 
         var policy = permissionPolicy(atomicConstraint(left, operator, right));
 

@@ -38,7 +38,6 @@ import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolToke
 import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -364,7 +363,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     }
 
     private ServiceResult<ParticipantAgent> verifyRequest(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, Policy policy, ProtocolRemoteMessage message) {
-        return protocolTokenValidator.verify(participantContext, tokenRepresentation, RequestContractNegotiationPolicyContext::new, policy, message);
+        return protocolTokenValidator.verify(participantContext, tokenRepresentation, policy, message);
     }
 
     private ServiceResult<ContractNegotiation> getNegotiation(ParticipantContext participantContext, String negotiationId) {

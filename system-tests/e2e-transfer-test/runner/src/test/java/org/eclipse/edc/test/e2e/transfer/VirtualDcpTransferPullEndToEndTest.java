@@ -15,6 +15,8 @@
 package org.eclipse.edc.test.e2e.transfer;
 
 import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
+import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participants;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.ManagementApiClientV5;
@@ -40,7 +42,6 @@ import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.nats.testfixtures.NatsEndToEndExtension;
-import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.signaling.auth.Oauth2Extension;
@@ -87,12 +88,12 @@ class VirtualDcpTransferPullEndToEndTest {
     private static final String CONSUMER_VAULT_KEY = "consumer-" + UUID.randomUUID();
     private static final String CATALOG_ACCESS_CREDENTIAL = "CatalogAccessCredential";
     private static final String CATALOG_ACCESS_SCOPE = "org.eclipse.dspace.dcp.vc.type:%s:read".formatted(CATALOG_ACCESS_CREDENTIAL);
-    private static final Function<RequestCatalogPolicyContext, Set<String>> NO_SCOPES = context -> Set.of();
+    private static final Function<RequestContext, Set<String>> NO_SCOPES = context -> Set.of();
     /**
      * Delegate of the catalog {@link RequestScopeExtractorRegistry} extractor registered in the runtime, that can be
      * changed by each test.
      */
-    private static final AtomicReference<Function<RequestCatalogPolicyContext, Set<String>>> CATALOG_SCOPE_EXTRACTOR = new AtomicReference<>(NO_SCOPES);
+    private static final AtomicReference<Function<RequestContext, Set<String>>> CATALOG_SCOPE_EXTRACTOR = new AtomicReference<>(NO_SCOPES);
 
     private static Participants participants(ComponentRuntimeContext ctx, CredentialServiceEndToEndExtension ext) {
         var protocolEndpoint = ctx.getEndpoint("protocol");
@@ -153,7 +154,10 @@ class VirtualDcpTransferPullEndToEndTest {
             var consumerCatalogAccessCredential = issuer.issueCredential(participants.consumer().id(), CATALOG_ACCESS_CREDENTIAL, Map.of("status", "active"));
             credentialService.storeCredential(participants.consumer().contextId(), consumerCatalogAccessCredential);
 
-            requestScopeExtractorRegistry.registerExtractor(RequestCatalogPolicyContext.class,
+            // catalog requests have no common message supertype, so register the extractor for both message types
+            requestScopeExtractorRegistry.registerExtractor(CatalogRequestMessage.class,
+                    (policy, context) -> Result.success(CATALOG_SCOPE_EXTRACTOR.get().apply(context)));
+            requestScopeExtractorRegistry.registerExtractor(DatasetRequestMessage.class,
                     (policy, context) -> Result.success(CATALOG_SCOPE_EXTRACTOR.get().apply(context)));
         }
 
@@ -240,9 +244,8 @@ class VirtualDcpTransferPullEndToEndTest {
             return connectorClient.catalogs().requestCatalog(participants.consumer().contextId(), request);
         }
 
-        private Function<RequestCatalogPolicyContext, Set<String>> scopesFor(String participantContextId, RequestContext.Direction direction) {
-            return context -> {
-                var requestContext = context.requestContext();
+        private Function<RequestContext, Set<String>> scopesFor(String participantContextId, RequestContext.Direction direction) {
+            return requestContext -> {
                 if (participantContextId.equals(requestContext.getParticipantContextId()) && requestContext.getDirection() == direction) {
                     return Set.of(CATALOG_ACCESS_SCOPE);
                 }

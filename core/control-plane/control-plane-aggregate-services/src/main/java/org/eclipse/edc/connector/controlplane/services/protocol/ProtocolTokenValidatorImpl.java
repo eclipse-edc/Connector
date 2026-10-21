@@ -20,7 +20,6 @@ import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
@@ -55,9 +54,8 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
     }
 
     @Override
-    public ServiceResult<ParticipantAgent> verify(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, ProtocolRemoteMessage message) {
+    public ServiceResult<ParticipantAgent> verify(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, Policy policy, ProtocolRemoteMessage message) {
         var requestContext = RequestContext.Builder.newInstance().message(message).direction(RequestContext.Direction.Ingress).participantContextId(participantContext.getId()).build();
-        var policyContext = policyContextProvider.instantiate(requestContext);
 
         var profileContext = dataspaceProfileContextRegistry.getProfile(message.getProtocol());
         if (profileContext == null) {
@@ -65,7 +63,7 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
             return ServiceResult.unauthorized("Unauthorized");
         }
 
-        var scopes = requestScopeExtractorRegistry.extractScopes(policy, policyContext);
+        var scopes = requestScopeExtractorRegistry.extractScopes(policy, requestContext);
         if (scopes.failed()) {
             monitor.debug(() -> "Failed to extract scopes: %s".formatted(scopes.getFailureDetail()));
             return ServiceResult.unauthorized("Unauthorized");

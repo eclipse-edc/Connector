@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.controlplane;
 
+import org.eclipse.edc.policy.model.Policy;
+
 import java.util.Objects;
 
 /**
@@ -24,6 +26,16 @@ public abstract class ProtocolRemoteMessage {
     protected String protocol;
     protected String counterPartyId;
     protected String counterPartyAddress;
+
+    /**
+     * Returns the {@link Policy} associated with the message, or {@code null} if the message carries none. Messages with
+     * a non-null policy go through request scope extraction when dispatched.
+     *
+     * @return the message {@link Policy}, or {@code null}.
+     */
+    public Policy getPolicy() {
+        return null;
+    }
 
     /**
      * Returns the transport protocol this message must be sent over.

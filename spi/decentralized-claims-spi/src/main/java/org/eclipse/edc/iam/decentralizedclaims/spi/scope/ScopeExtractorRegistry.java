@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.spi.scope;
 
-import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.Result;
 
@@ -37,9 +37,9 @@ public interface ScopeExtractorRegistry {
     /**
      * Extract scopes from a policy.
      *
-     * @param policy        The input policy
-     * @param policyContext The policy context
+     * @param policy         The input policy
+     * @param requestContext The request context
      * @return The set of scopes to use if succeeded, otherwise failure
      */
-    Result<Set<String>> extractScopes(Policy policy, RequestPolicyContext policyContext);
+    Result<Set<String>> extractScopes(Policy policy, RequestContext requestContext);
 }

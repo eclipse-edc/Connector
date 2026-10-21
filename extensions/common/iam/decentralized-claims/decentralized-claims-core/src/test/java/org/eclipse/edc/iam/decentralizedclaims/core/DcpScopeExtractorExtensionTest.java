@@ -14,12 +14,10 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.core;
 
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.iam.decentralizedclaims.core.scope.DcpRequestScopeExtractor;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
-import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
-import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
-import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,9 +43,7 @@ class DcpScopeExtractorExtensionTest {
 
         ext.initialize(context);
 
-        verify(requestScopeExtractorRegistry).registerExtractor(eq(RequestCatalogPolicyContext.class), isA(DcpRequestScopeExtractor.class));
-        verify(requestScopeExtractorRegistry).registerExtractor(eq(RequestContractNegotiationPolicyContext.class), isA(DcpRequestScopeExtractor.class));
-        verify(requestScopeExtractorRegistry).registerExtractor(eq(RequestTransferProcessPolicyContext.class), isA(DcpRequestScopeExtractor.class));
+        verify(requestScopeExtractorRegistry).registerExtractor(eq(ProtocolRemoteMessage.class), isA(DcpRequestScopeExtractor.class));
     }
 
 

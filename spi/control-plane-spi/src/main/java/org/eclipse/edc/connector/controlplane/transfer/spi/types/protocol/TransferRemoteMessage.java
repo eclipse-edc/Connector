@@ -15,29 +15,16 @@
 package org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol;
 
 import org.eclipse.edc.controlplane.ProcessRemoteMessage;
-import org.eclipse.edc.policy.model.Policy;
 
 /**
  * A remote message related to the TransferProcess context
  */
 public abstract class TransferRemoteMessage extends ProcessRemoteMessage {
 
-    protected Policy policy;
-
-    @Override
-    public Policy getPolicy() {
-        return policy;
-    }
-
     public abstract static class Builder<M extends TransferRemoteMessage, B extends Builder<M, B>> extends ProcessRemoteMessage.Builder<M, B> {
 
         protected Builder(M message) {
             super(message);
-        }
-
-        public B policy(Policy policy) {
-            message.policy = policy;
-            return self();
         }
     }
 

@@ -21,7 +21,6 @@ import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScope;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScopeRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractor;
-import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -33,22 +32,18 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class DynamicScopeExtractorTest {
 
     private final DcpScopeRegistry registry = mock();
-    private final RequestPolicyContext context = mock();
 
     @Test
     void extractScope_shouldFail_whenRegistryFails() {
@@ -58,15 +53,13 @@ class DynamicScopeExtractorTest {
                 .message(msg)
                 .build();
 
-        when(context.requestContext()).thenReturn(ctx);
         when(registry.getScopeMapping()).thenReturn(ServiceResult.unexpected("registry-error"));
 
         var extractor = new DynamicScopeExtractor(registry);
 
-        Set<String> scopes = extractor.extractScopes("any", Operator.EQ, null, context);
+        var result = extractor.extractScopes("any", Operator.EQ, null, ctx);
 
-        assertTrue(scopes.isEmpty());
-        verify(context).reportProblem(contains("Failed to get scope mapping"));
+        assertThat(result).isFailed().detail().contains("Failed to get scope mapping");
     }
 
     @ParameterizedTest
@@ -113,13 +106,11 @@ class DynamicScopeExtractorTest {
 
         when(registry.getScopeMapping()).thenReturn(ServiceResult.success(List.of(wildcard, matching, nonMatchingProfile, wrongPrefix)));
 
-        when(context.requestContext()).thenReturn(ctx);
-
         var extractor = new DynamicScopeExtractor(registry);
 
-        var result = extractor.extractScopes("pre:resource", Operator.EQ, null, context);
+        var result = extractor.extractScopes("pre:resource", Operator.EQ, null, ctx);
 
-        assertThat(result).containsOnly("val-wild", "val-match");
+        assertThat(result).isSucceeded().satisfies(scopes -> assertThat(scopes).containsOnly("val-wild", "val-match"));
     }
 
     @Test
@@ -130,13 +121,13 @@ class DynamicScopeExtractorTest {
                 .message(msg)
                 .build();
 
-        when(context.requestContext()).thenReturn(ctx);
         when(registry.getScopeMapping()).thenReturn(ServiceResult.success(List.of()));
 
         ScopeExtractor extractor = new DynamicScopeExtractor(registry);
 
-        Set<String> result = extractor.extractScopes(12345, Operator.EQ, null, context);
-        assertTrue(result.isEmpty());
+        var result = extractor.extractScopes(12345, Operator.EQ, null, ctx);
+
+        assertThat(result).isSucceeded().satisfies(scopes -> assertThat(scopes).isEmpty());
     }
 
     @Test
@@ -148,12 +139,11 @@ class DynamicScopeExtractorTest {
                 .message(msg)
                 .build();
 
-        when(context.requestContext()).thenReturn(ctx);
-
         ScopeExtractor extractor = new DynamicScopeExtractor(registry);
 
-        Set<String> result = extractor.extractScopes(12345, Operator.EQ, null, context);
-        assertTrue(result.isEmpty());
+        var result = extractor.extractScopes(12345, Operator.EQ, null, ctx);
+
+        assertThat(result).isSucceeded().satisfies(scopes -> assertThat(scopes).isEmpty());
         verifyNoInteractions(registry);
     }
 

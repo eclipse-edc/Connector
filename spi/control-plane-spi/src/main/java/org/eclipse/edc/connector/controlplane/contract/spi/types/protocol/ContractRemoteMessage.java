@@ -15,13 +15,10 @@
 package org.eclipse.edc.connector.controlplane.contract.spi.types.protocol;
 
 import org.eclipse.edc.controlplane.ProcessRemoteMessage;
-import org.eclipse.edc.policy.model.Policy;
 
 /**
  * A remote message related to the ContractNegotiation context.
  */
 public abstract class ContractRemoteMessage extends ProcessRemoteMessage {
-
-    public abstract Policy getPolicy();
 
 }

@@ -20,7 +20,6 @@ import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
@@ -82,15 +81,13 @@ class ProtocolTokenValidatorImplTest {
         when(dataspaceProfileContextRegistry.getProfile(any())).thenReturn(dataspaceProfileContext);
         when(agentService.createFor(any(), any())).thenReturn(participantAgent);
 
-        var result = validator.verify(participantContext, tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
+        var result = validator.verify(participantContext, tokenRepresentation, policy, new TestMessage());
 
         assertThat(result).isSucceeded().isSameAs(participantAgent);
         verify(agentService).createFor(claimToken, participantId);
-        verify(requestScopeExtractorRegistry).extractScopes(same(policy), argThat(ctx -> {
-            var reqContext = ctx.requestContext();
-            return reqContext.getMessage().getClass().equals(TestMessage.class) && reqContext.getDirection().equals(RequestContext.Direction.Ingress) &&
-                    participantContext.getId().equals(reqContext.getParticipantContextId());
-        }));
+        verify(requestScopeExtractorRegistry).extractScopes(same(policy), argThat(reqContext ->
+                reqContext.getMessage().getClass().equals(TestMessage.class) && reqContext.getDirection().equals(RequestContext.Direction.Ingress) &&
+                        participantContext.getId().equals(reqContext.getParticipantContextId())));
         verify(dataspaceProfileContextRegistry).getProfile(protocol);
         verify(identityService).verifyJwtToken(
                 eq(participantContext.getId()),
@@ -103,7 +100,7 @@ class ProtocolTokenValidatorImplTest {
     void shouldReturnUnauthorized_whenTokenIsNotValid() {
         when(identityService.verifyJwtToken(any(), any(), any())).thenReturn(Result.failure("failure"));
 
-        var result = validator.verify(participantContext, TokenRepresentation.Builder.newInstance().build(), TestRequestPolicyContext::new, Policy.Builder.newInstance().build(), new TestMessage());
+        var result = validator.verify(participantContext, TokenRepresentation.Builder.newInstance().build(), Policy.Builder.newInstance().build(), new TestMessage());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
     }
@@ -117,7 +114,7 @@ class ProtocolTokenValidatorImplTest {
         when(identityService.verifyJwtToken(any(), any(), any())).thenReturn(Result.success(claimToken));
         when(dataspaceProfileContextRegistry.getProfile(any())).thenReturn(null);
 
-        var result = validator.verify(participantContext, tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
+        var result = validator.verify(participantContext, tokenRepresentation, policy, new TestMessage());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
     }
@@ -130,7 +127,7 @@ class ProtocolTokenValidatorImplTest {
         when(identityService.verifyJwtToken(any(), any(), any())).thenReturn(Result.success(claimToken));
         when(dataspaceProfileContextRegistry.getProfile(any())).thenReturn(createDataspaceProfileContext(null));
 
-        var result = validator.verify(participantContext, tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
+        var result = validator.verify(participantContext, tokenRepresentation, policy, new TestMessage());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
     }
@@ -156,15 +153,4 @@ class ProtocolTokenValidatorImplTest {
 
     }
 
-    private static class TestRequestPolicyContext extends RequestPolicyContext {
-
-        TestRequestPolicyContext(RequestContext requestContext) {
-            super(requestContext);
-        }
-
-        @Override
-        public String scope() {
-            return "request.test";
-        }
-    }
 }

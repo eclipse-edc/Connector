@@ -27,7 +27,6 @@ import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtoc
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -59,7 +58,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
     @Override
     @NotNull
     public ServiceResult<Catalog> getCatalog(ParticipantContext participantContext, CatalogRequestMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> protocolTokenValidator.verify(participantContext, tokenRepresentation, RequestCatalogPolicyContext::new, message)
+        return transactionContext.execute(() -> protocolTokenValidator.verify(participantContext, tokenRepresentation, message)
                 .map(agent -> {
                     try (var datasets = datasetResolver.query(participantContext, agent, message.getQuerySpec(), message.getProtocol())) {
                         var dataServices = dataServiceRegistry.getDataServices(participantContext.getId(), message.getProtocol());
@@ -77,7 +76,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
     @Override
     public @NotNull ServiceResult<Dataset> getDataset(ParticipantContext participantContext, DatasetRequestMessage message, TokenRepresentation tokenRepresentation) {
         var datasetId = message.getDatasetId();
-        return transactionContext.execute(() -> protocolTokenValidator.verify(participantContext, tokenRepresentation, RequestCatalogPolicyContext::new, message)
+        return transactionContext.execute(() -> protocolTokenValidator.verify(participantContext, tokenRepresentation, message)
                 .map(agent -> datasetResolver.getById(participantContext, agent, datasetId, message.getProtocol()))
                 .compose(dataset -> {
                     if (dataset == null) {
