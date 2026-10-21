@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 /**
- * Asserts that the {@code kid} header of a JWT contains the {@code iss}:
+ * Asserts that the {@code kid} header of a JWT starts with the {@code iss}, followed by a {@code #}:
  * <pre>
  *     kid := iss # key-id
  * </pre>
@@ -41,6 +41,6 @@ public class IssuerKeyIdValidationRule implements TokenValidationRule {
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
         var iss = toVerify.getStringClaim(JwtRegisteredClaimNames.ISSUER);
         // keyID MUST be a composite of the issuer and the key-id in the form <ISSUER>#<keyID>
-        return keyId.matches("%s#.*".formatted(iss)) ? Result.success() : Result.failure("kid header '%s' expected to correlate to 'iss' claim ('%s'), but it did not.".formatted(keyId, iss));
+        return iss != null && keyId != null && keyId.startsWith(iss + "#") ? Result.success() : Result.failure("kid header '%s' expected to correlate to 'iss' claim ('%s'), but it did not.".formatted(keyId, iss));
     }
 }
