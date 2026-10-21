@@ -24,6 +24,8 @@ import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
+import org.eclipse.edc.verifiablecredentials.jwt.rules.CredentialIssuerKeyIdValidationRule;
+import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerKeyIdValidationRule;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
@@ -37,6 +39,7 @@ import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ENVELOPED_PRES
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ENVELOPED_VERIFIABLE_PRESENTATION_TYPE;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ID;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.TYPE;
+import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VC_CLAIM;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VERIFIABLE_CREDENTIAL_JSON_KEY;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VERIFIABLE_PRESENTATION_TYPE;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VP_CLAIM;
@@ -184,13 +187,15 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
     /**
      * This method verifies a "Credential Envelope", which is a semicolon separated list of JWTS, prefixed with "data:application/vc+jwt,", where
      * each contains a single Verifiable Credential as JSON payload. N
-     * Note that these JWTs do not contain any registered claim names, so we can only validate their signatures.
+     * Besides the signature, the key that signed a JWT must belong to the credential's issuer. VCDM 1.1 credentials
+     * (i.e. JWTs with a "vc" claim) are validated with the same rules as in a VCDM 1.1 presentation.
      *
      * @param credentialEnvelopeString A semicolon separated list of JWTS, prefixed with "data:application/vc+jwt,", for example:
      *                                 <pre>data:application/vc+jwt:,eyAB....,data:application/vc+jwt,eyXYZ...</pre>
-     * @return a successful result only if all JWTs are valid (i.e. their signatures are correct).
+     * @return a successful result only if all JWTs are valid (i.e. their signatures are correct and they are signed by their issuer).
+     * @throws ParseException if parsing one of the JWTs fails
      */
-    private Result<Void> verifyCredentialEnvelope(String credentialEnvelopeString)  {
+    private Result<Void> verifyCredentialEnvelope(String credentialEnvelopeString) throws ParseException {
         // a credential envelope can contain multiple credentials, prefixed with "data:application/vc+jwt," and separated by ";"
 
         var credentialEnvelopes = credentialEnvelopeString.split(";");
@@ -202,10 +207,20 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
             }
             // we don't need to parse the JWT into a VC, because VC validation happens elsewhere
             envelope = envelope.substring(ENVELOPED_CREDENTIAL_CONTENT_TYPE.length() + 1);
-            results.add(tokenValidationService.validate(envelope, publicKeyResolver).mapEmpty());
+            results.add(tokenValidationService.validate(envelope, publicKeyResolver, credentialValidationRules(SignedJWT.parse(envelope))).mapEmpty());
         }
 
         return results.stream().reduce(Result::merge).orElse(Result.success());
+    }
+
+    private List<TokenValidationRule> credentialValidationRules(SignedJWT credential) throws ParseException {
+        var keyId = credential.getHeader().getKeyID();
+        if (credential.getJWTClaimsSet().getClaims().containsKey(VC_CLAIM)) {
+            var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(Constants.JWT_VC_TOKEN_CONTEXT));
+            rules.add(new IssuerKeyIdValidationRule(keyId));
+            return rules;
+        }
+        return List.of(new CredentialIssuerKeyIdValidationRule(keyId));
     }
 
     private List<TokenValidationRule> vpValidationRules(@Nullable String audience) {
