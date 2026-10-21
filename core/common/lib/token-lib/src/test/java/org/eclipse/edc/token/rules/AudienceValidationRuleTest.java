@@ -64,4 +64,25 @@ class AudienceValidationRuleTest {
         assertThat(result.getFailureMessages()).hasSize(1)
                 .contains("Required audience (aud) claim is missing in token");
     }
+
+    @Test
+    void validationOkBecauseAudienceNotProvided_allowsNull() {
+        var token = ClaimToken.Builder.newInstance()
+                .build();
+
+        var result = new AudienceValidationRule(endpointAudience, true).checkRule(token, emptyMap());
+
+        assertThat(result.succeeded()).isTrue();
+    }
+
+    @Test
+    void validationKoBecauseAudienceNotRespected_allowsNull() {
+        var token = ClaimToken.Builder.newInstance()
+                .claim(AUDIENCE, List.of("fake-audience"))
+                .build();
+
+        var result = new AudienceValidationRule(endpointAudience, true).checkRule(token, emptyMap());
+
+        assertThat(result.succeeded()).isFalse();
+    }
 }
