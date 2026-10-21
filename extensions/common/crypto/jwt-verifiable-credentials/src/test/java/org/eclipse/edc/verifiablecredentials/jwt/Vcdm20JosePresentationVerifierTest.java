@@ -20,6 +20,15 @@
 
 package org.eclipse.edc.verifiablecredentials.jwt;
 
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.VerifierContext;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -27,22 +36,29 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
 import org.eclipse.edc.token.TokenValidationServiceImpl;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
+import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
+import org.eclipse.edc.verifiablecredentials.jwt.rules.CredentialIssuerKeyIdValidationRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentMatchers;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.verifiablecredentials.jwt.TestFunctions.createPublicKey;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -122,7 +138,7 @@ class Vcdm20JosePresentationVerifierTest {
     @ValueSource(strings = { TestConstants.VP_SIMPLE_JOSE_ENVELOPED_CREDENTIAL, TestConstants.VP_ENVELOPED_JOSE_ENVELOPED_CREDENTIAL })
     @DisplayName("verify should fail when one of multiple VCs is invalid")
     void verify_multipleVc_oneInvalid(String vpToken) {
-        when(tokenValidationService.validate(anyString(), any(PublicKeyResolver.class)))
+        when(tokenValidationService.validate(anyString(), any(PublicKeyResolver.class), ArgumentMatchers.<List<TokenValidationRule>>argThat(rules -> rules.stream().anyMatch(CredentialIssuerKeyIdValidationRule.class::isInstance))))
                 .thenReturn(Result.success(ClaimToken.Builder.newInstance().build())) // first VC
                 .thenReturn(Result.failure("test-failure")); // second VC
 
@@ -263,6 +279,153 @@ class Vcdm20JosePresentationVerifierTest {
 
         private long future() {
             return Instant.now().plusSeconds(60).getEpochSecond();
+        }
+    }
+
+    @Nested
+    class IssuerBinding {
+        private static final String ISSUER_DID = "did:web:issuer.example.com";
+        private static final String ISSUER_KEY_ID = ISSUER_DID + "#key-1";
+        private static final String ATTACKER_KEY_ID = "did:web:attacker.example.com#key-1";
+        private static final String LOOKALIKE_KEY_ID = "did:web:issuer-example.com#key-1";
+        private final Vcdm20JosePresentationVerifier verifier = new Vcdm20JosePresentationVerifier(new TokenValidationServiceImpl(), new TokenValidationRulesRegistryImpl(), publicKeyResolver, false);
+        private final VerifierContext context = VerifierContext.Builder.newInstance().verifier(verifier).build();
+        private ECKey issuerKey;
+        private ECKey attackerKey;
+        private ECKey lookalikeKey;
+
+        @BeforeEach
+        void setUp() throws JOSEException {
+            issuerKey = new ECKeyGenerator(Curve.P_256).keyID(ISSUER_KEY_ID).generate();
+            attackerKey = new ECKeyGenerator(Curve.P_256).keyID(ATTACKER_KEY_ID).generate();
+            lookalikeKey = new ECKeyGenerator(Curve.P_256).keyID(LOOKALIKE_KEY_ID).generate();
+
+            // the presentation JWTs are not signed, their signature check is skipped for keys that resolve to null
+            when(publicKeyResolver.resolveKey(any())).thenReturn(Result.success(null));
+            when(publicKeyResolver.resolveKey(ISSUER_KEY_ID)).thenReturn(Result.success(createPublicKey(issuerKey.toPublicJWK())));
+            when(publicKeyResolver.resolveKey(ATTACKER_KEY_ID)).thenReturn(Result.success(createPublicKey(attackerKey.toPublicJWK())));
+            when(publicKeyResolver.resolveKey(LOOKALIKE_KEY_ID)).thenReturn(Result.success(createPublicKey(lookalikeKey.toPublicJWK())));
+        }
+
+        @Test
+        void verify_signedByIssuer() {
+            var credential = signedJwt(issuerKey, credential(ISSUER_DID));
+
+            assertThat(verifier.verify(simplePresentation(credential), context)).isSucceeded();
+        }
+
+        @Test
+        void verify_signedByIssuer_issuerObject() {
+            var credential = signedJwt(issuerKey, credential(Map.of("id", ISSUER_DID, "name", "Example Issuer")));
+
+            assertThat(verifier.verify(simplePresentation(credential), context)).isSucceeded();
+        }
+
+        @Test
+        void verify_signedByIssuer_matchingIss() {
+            var claims = new HashMap<>(credential(ISSUER_DID));
+            claims.put("iss", ISSUER_DID);
+
+            assertThat(verifier.verify(simplePresentation(signedJwt(issuerKey, claims)), context)).isSucceeded();
+        }
+
+        @Test
+        void verify_signedByOtherDid_expectFailure() {
+            var credential = signedJwt(attackerKey, credential(ISSUER_DID));
+
+            assertThat(verifier.verify(simplePresentation(credential), context)).isFailed()
+                    .detail().contains("kid header '%s' expected to correlate to the credential's issuer ('%s')".formatted(ATTACKER_KEY_ID, ISSUER_DID));
+        }
+
+        @Test
+        void verify_signedByOtherDid_issuerObject_expectFailure() {
+            var credential = signedJwt(attackerKey, credential(Map.of("id", ISSUER_DID)));
+
+            assertThat(verifier.verify(simplePresentation(credential), context)).isFailed()
+                    .detail().contains("kid header '%s' expected to correlate to the credential's issuer ('%s')".formatted(ATTACKER_KEY_ID, ISSUER_DID));
+        }
+
+        @Test
+        void verify_signedByLookalikeDid_expectFailure() {
+            var credential = signedJwt(lookalikeKey, credential(ISSUER_DID));
+
+            assertThat(verifier.verify(simplePresentation(credential), context)).isFailed()
+                    .detail().contains("expected to correlate to the credential's issuer");
+        }
+
+        @Test
+        void verify_signedByOtherDid_envelopedPresentation_expectFailure() {
+            var credential = signedJwt(attackerKey, credential(ISSUER_DID));
+            var presentation = jwt("{\"type\": \"EnvelopedVerifiablePresentation\", \"id\": \"data:application/vp+jwt,%s\"}".formatted(simplePresentation(credential)));
+
+            assertThat(verifier.verify(presentation, context)).isFailed()
+                    .detail().contains("expected to correlate to the credential's issuer");
+        }
+
+        @Test
+        void verify_issDiffersFromIssuer_expectFailure() {
+            var claims = new HashMap<>(credential("did:web:attacker.example.com"));
+            claims.put("iss", ISSUER_DID);
+
+            assertThat(verifier.verify(simplePresentation(signedJwt(attackerKey, claims)), context)).isFailed()
+                    .detail().contains("'iss' claim ('%s') expected to be equal to the credential's issuer".formatted(ISSUER_DID));
+        }
+
+        @Test
+        void verify_noIssuer_expectFailure() {
+            var claims = new HashMap<>(credential(ISSUER_DID));
+            claims.remove("issuer");
+
+            assertThat(verifier.verify(simplePresentation(signedJwt(issuerKey, claims)), context)).isFailed()
+                    .detail().contains("Credential must have an 'issuer' property");
+        }
+
+        @Test
+        void verify_vcdm11CredentialSignedByIssuer() {
+            var credential = signedJwt(issuerKey, Map.of("iss", ISSUER_DID, "vc", credential(ISSUER_DID)));
+
+            assertThat(verifier.verify(simplePresentation(credential), context)).isSucceeded();
+        }
+
+        @Test
+        void verify_vcdm11CredentialSignedByOtherDid_expectFailure() {
+            var credential = signedJwt(attackerKey, Map.of("iss", ISSUER_DID, "vc", credential(ISSUER_DID)));
+
+            assertThat(verifier.verify(simplePresentation(credential), context)).isFailed()
+                    .detail().contains("kid header '%s' expected to correlate to 'iss' claim ('%s')".formatted(ATTACKER_KEY_ID, ISSUER_DID));
+        }
+
+        @Test
+        void verify_vcdm11CredentialSignedByLookalikeDid_expectFailure() {
+            var credential = signedJwt(lookalikeKey, Map.of("iss", ISSUER_DID, "vc", credential(ISSUER_DID)));
+
+            assertThat(verifier.verify(simplePresentation(credential), context)).isFailed()
+                    .detail().contains("kid header '%s' expected to correlate to 'iss' claim ('%s')".formatted(LOOKALIKE_KEY_ID, ISSUER_DID));
+        }
+
+        private Map<String, Object> credential(Object issuer) {
+            return Map.of(
+                    "@context", List.of("https://www.w3.org/ns/credentials/v2"),
+                    "type", List.of("VerifiableCredential", "MembershipCredential"),
+                    "issuer", issuer,
+                    "credentialSubject", Map.of("id", "did:web:holder.example.com", "member", true));
+        }
+
+        private String simplePresentation(String credential) {
+            return jwt("{\"type\": \"VerifiablePresentation\", \"verifiableCredential\": [{\"type\": \"EnvelopedVerifiableCredential\", \"id\": \"data:application/vc+jwt,%s\"}]}"
+                    .formatted(credential));
+        }
+
+        private String signedJwt(ECKey key, Map<String, Object> claims) {
+            var claimsSet = new JWTClaimsSet.Builder();
+            claims.forEach(claimsSet::claim);
+            var signedJwt = new SignedJWT(new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(key.getKeyID()).build(), claimsSet.build());
+            try {
+                signedJwt.sign(new ECDSASigner(key));
+            } catch (JOSEException e) {
+                throw new RuntimeException(e);
+            }
+            return signedJwt.serialize();
         }
     }
 
