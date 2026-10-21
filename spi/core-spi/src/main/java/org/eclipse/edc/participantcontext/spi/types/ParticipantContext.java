@@ -89,6 +89,7 @@ public class ParticipantContext extends Entity implements ParticipantResource {
     public ParticipantContext.Builder toBuilder() {
         return Builder.newInstance()
                 .id(getId())
+                .identity(identity)
                 .createdAt(createdAt)
                 .lastModified(lastModified)
                 .state(getStateAsEnum())

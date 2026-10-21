@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.http;
 
 import jakarta.ws.rs.core.UriInfo;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.protocol.dsp.spi.http.DspVirtualSubResourceLocator;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
@@ -56,6 +57,9 @@ public class DspVirtualHttpCoreExtension implements ServiceExtension {
     @Inject
     private ParticipantProfileService participantProfileService;
 
+    @Inject
+    private ParticipantContextService participantContextService;
+
 
     private DspVirtualSubResourceLocator resourceLocator;
 
@@ -63,7 +67,7 @@ public class DspVirtualHttpCoreExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         webService.registerResource(ApiContext.PROTOCOL, new ProfileJerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE, this::profileFromUri));
         webService.registerResource(ApiContext.PROTOCOL, new UrlInfoRequestFilter());
-        webService.registerResource(ApiContext.PROTOCOL, new DspVirtualProfileDispatcher(participantProfileService, dpsVirtualSubResourceLocator()));
+        webService.registerResource(ApiContext.PROTOCOL, new DspVirtualProfileDispatcher(participantProfileService, dpsVirtualSubResourceLocator(), participantContextService));
         dataspaceProfileContextRegistry.addRegistrationCallback(this::registerJsonLdContext);
     }
 

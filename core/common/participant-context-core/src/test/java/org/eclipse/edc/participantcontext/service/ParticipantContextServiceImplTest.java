@@ -27,9 +27,14 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContextState.ACTIVATED;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContextState.DEACTIVATED;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -136,6 +141,7 @@ class ParticipantContextServiceImplTest {
     @Test
     void update() {
         var context = createParticipantContextContext();
+        when(participantContextStore.findById(context.getId())).thenReturn(StoreResult.success(context));
         when(participantContextStore.update(any())).thenReturn(StoreResult.success());
         assertThat(participantContextService.updateParticipantContext(context)).isSucceeded();
 
@@ -143,14 +149,70 @@ class ParticipantContextServiceImplTest {
     }
 
     @Test
+    void update_shouldKeepStoredState() {
+        var stored = createParticipantContextContext().toBuilder().state(DEACTIVATED).build();
+        when(participantContextStore.findById(stored.getId())).thenReturn(StoreResult.success(stored));
+        when(participantContextStore.update(any())).thenReturn(StoreResult.success());
+
+        var result = participantContextService.updateParticipantContext(createParticipantContextContext().toBuilder().property("key", "value").build());
+
+        assertThat(result).isSucceeded();
+        verify(participantContextStore).update(argThat(it -> it.getStateAsEnum() == DEACTIVATED && "value".equals(it.getProperties().get("key"))));
+    }
+
+    @Test
+    void update_whenNotExists() {
+        var context = createParticipantContextContext();
+        when(participantContextStore.findById(context.getId())).thenReturn(StoreResult.notFound("not found"));
+
+        assertThat(participantContextService.updateParticipantContext(context)).isFailed()
+                .satisfies(f -> Assertions.assertThat(f.getReason()).isEqualTo(NOT_FOUND));
+
+        verify(participantContextStore, never()).update(any());
+    }
+
+    @Test
     void update_whenStoreUpdateFails() {
         var context = createParticipantContextContext();
+        when(participantContextStore.findById(context.getId())).thenReturn(StoreResult.success(context));
         when(participantContextStore.update(any())).thenReturn(StoreResult.alreadyExists("test-msg"));
 
         assertThat(participantContextService.updateParticipantContext(context)).isFailed()
                 .detail().isEqualTo("test-msg");
 
         verify(participantContextStore).update(any());
+    }
+
+    @Test
+    void activate() {
+        var stored = createParticipantContextContext();
+        when(participantContextStore.findById(stored.getId())).thenReturn(StoreResult.success(stored));
+        when(participantContextStore.update(any())).thenReturn(StoreResult.success());
+
+        assertThat(participantContextService.activateParticipantContext(stored.getId())).isSucceeded();
+
+        verify(participantContextStore).update(argThat(it -> it.getStateAsEnum() == ACTIVATED && it.getIdentity().equals(stored.getIdentity())));
+    }
+
+    @Test
+    void deactivate() {
+        var stored = createParticipantContextContext();
+        when(participantContextStore.findById(stored.getId())).thenReturn(StoreResult.success(stored));
+        when(participantContextStore.update(any())).thenReturn(StoreResult.success());
+
+        assertThat(participantContextService.deactivateParticipantContext(stored.getId())).isSucceeded();
+
+        verify(participantContextStore).update(argThat(it -> it.getStateAsEnum() == DEACTIVATED));
+    }
+
+    @Test
+    void deactivate_whenNotExists() {
+        when(participantContextStore.findById(any())).thenReturn(StoreResult.notFound("not found"));
+
+        assertThat(participantContextService.deactivateParticipantContext("unknown")).isFailed()
+                .satisfies(f -> Assertions.assertThat(f.getReason()).isEqualTo(NOT_FOUND));
+
+        verify(participantContextStore, never()).update(any());
     }
 
     @Test

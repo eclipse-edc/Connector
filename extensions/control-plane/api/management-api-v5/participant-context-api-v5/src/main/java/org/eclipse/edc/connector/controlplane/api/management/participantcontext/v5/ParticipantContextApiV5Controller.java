@@ -118,6 +118,24 @@ public class ParticipantContextApiV5Controller implements ParticipantContextApiV
 
     }
 
+    @POST
+    @Path("{id}/activate")
+    @RequiredScope("management-api:admin")
+    @Override
+    public void activateParticipantV5(@PathParam("id") String participantContextId) {
+        participantContextService.activateParticipantContext(participantContextId)
+                .orElseThrow(exceptionMapper(ParticipantContext.class, participantContextId));
+    }
+
+    @POST
+    @Path("{id}/deactivate")
+    @RequiredScope("management-api:admin")
+    @Override
+    public void deactivateParticipantV5(@PathParam("id") String participantContextId) {
+        participantContextService.deactivateParticipantContext(participantContextId)
+                .orElseThrow(exceptionMapper(ParticipantContext.class, participantContextId));
+    }
+
     @DELETE
     @Path("{id}")
     @RequiredScope("management-api:admin")

@@ -214,6 +214,46 @@ public abstract class ParticipantContextApiControllerTestBase extends RestContro
     }
 
     @Nested
+    class ChangeState {
+        @Test
+        void activate_shouldCallService() {
+            when(service.activateParticipantContext(any())).thenReturn(ServiceResult.success());
+
+            baseRequest()
+                    .contentType(JSON)
+                    .post("/participants/id/activate")
+                    .then()
+                    .statusCode(204);
+
+            verify(service).activateParticipantContext("id");
+        }
+
+        @Test
+        void deactivate_shouldCallService() {
+            when(service.deactivateParticipantContext(any())).thenReturn(ServiceResult.success());
+
+            baseRequest()
+                    .contentType(JSON)
+                    .post("/participants/id/deactivate")
+                    .then()
+                    .statusCode(204);
+
+            verify(service).deactivateParticipantContext("id");
+        }
+
+        @Test
+        void deactivate_shouldReturnNotFound_whenNotFound() {
+            when(service.deactivateParticipantContext(any())).thenReturn(ServiceResult.notFound("not found"));
+
+            baseRequest()
+                    .contentType(JSON)
+                    .post("/participants/id/deactivate")
+                    .then()
+                    .statusCode(404);
+        }
+    }
+
+    @Nested
     class Update {
         @Test
         void update_shouldCallService() {

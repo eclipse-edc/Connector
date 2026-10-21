@@ -22,6 +22,7 @@ import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.protocol.spi.ProtocolVersion;
@@ -90,6 +91,22 @@ class DspVirtualMetadataApiControllerTest extends RestControllerTestBase {
                 .log().ifError()
                 .statusCode(404);
 
+    }
+
+    @Test
+    void shouldReturnNotFound_whenParticipantContextIsDeactivated() {
+        var participantContextId = "participantcontextId";
+
+        when(participantContextService.getParticipantContext(participantContextId))
+                .thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance().id(participantContextId).identity("identity")
+                        .state(ParticipantContextState.DEACTIVATED).build()));
+
+        when(transformerRegistry.transform(isA(VersionsError.class), eq(JsonObject.class))).thenReturn(Result.success(Json.createObjectBuilder().build()));
+
+        baseRequest()
+                .get("participantcontextId/.well-known/dspace-version")
+                .then()
+                .statusCode(404);
     }
 
     @Override

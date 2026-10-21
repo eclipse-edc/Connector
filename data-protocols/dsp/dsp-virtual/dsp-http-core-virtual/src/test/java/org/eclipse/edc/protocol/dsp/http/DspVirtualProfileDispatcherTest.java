@@ -19,19 +19,26 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.junit.annotations.ApiTest;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.protocol.dsp.spi.http.DspVirtualSubResourceLocator;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.protocol.spi.ProtocolVersion;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ApiTest
@@ -43,7 +50,13 @@ class DspVirtualProfileDispatcherTest extends RestControllerTestBase {
 
     private final ParticipantProfileService profileResolver = mock();
     private final DspVirtualSubResourceLocator subResourceLocator = mock();
+    private final ParticipantContextService participantContextService = mock();
     private final TestSubResource subResource = new TestSubResource();
+
+    @BeforeEach
+    void setUp() {
+        givenParticipantContext(ParticipantContextState.CREATED);
+    }
 
     @Test
     void shouldDispatchToRegisteredSubResource() {
@@ -93,6 +106,19 @@ class DspVirtualProfileDispatcherTest extends RestControllerTestBase {
     }
 
     @Test
+    void shouldReturnNotFound_whenParticipantContextIsDeactivated() {
+        givenProfile();
+        givenParticipantContext(ParticipantContextState.DEACTIVATED);
+
+        baseRequest()
+                .get("/%s/%s/catalog/request".formatted(PARTICIPANT_ID, PROFILE_ID))
+                .then()
+                .statusCode(404);
+
+        verifyNoInteractions(subResourceLocator);
+    }
+
+    @Test
     void shouldReturnNotFound_whenSubResourceSegmentIsNotAllowed() {
         baseRequest()
                 .get("/%s/%s/unknown/request".formatted(PARTICIPANT_ID, PROFILE_ID))
@@ -102,7 +128,12 @@ class DspVirtualProfileDispatcherTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DspVirtualProfileDispatcher(profileResolver, subResourceLocator);
+        return new DspVirtualProfileDispatcher(profileResolver, subResourceLocator, participantContextService);
+    }
+
+    private void givenParticipantContext(ParticipantContextState state) {
+        var participantContext = ParticipantContext.Builder.newInstance().id(PARTICIPANT_ID).identity("identity").state(state).build();
+        when(participantContextService.getParticipantContext(any())).thenReturn(ServiceResult.success(participantContext));
     }
 
     private void givenProfile() {

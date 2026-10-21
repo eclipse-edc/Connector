@@ -40,6 +40,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContextState.ACTIVATED;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContextState.DEACTIVATED;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.createParticipant;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.jsonLdContext;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.participantContext;
@@ -191,6 +193,33 @@ public class ParticipantContextApiV5EndToEndTest {
         }
 
         @Test
+        void update_shouldKeepState(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService service) {
+            var participantContextId = "test-user";
+            service.createParticipantContext(participantContext(participantContextId));
+            service.deactivateParticipantContext(participantContextId);
+
+            var body = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "ParticipantContext")
+                    .add(ID, participantContextId)
+                    .add("identity", participantContextId)
+                    .add("properties", createObjectBuilder(Map.of("newKey", "newValue")))
+                    .build()
+                    .toString();
+
+            context.baseRequest(authServer.createAdminToken())
+                    .contentType(JSON)
+                    .body(body)
+                    .put("/v5/participants/" + participantContextId)
+                    .then()
+                    .statusCode(204);
+
+            var ctx = service.getParticipantContext(participantContextId).orElseThrow(f -> new AssertionError("Participant not found"));
+            assertThat(ctx.getStateAsEnum()).isEqualTo(DEACTIVATED);
+            assertThat(ctx.getProperties()).containsEntry("newKey", "newValue");
+        }
+
+        @Test
         void update_validationFails(ManagementEndToEndV5TestContext context, OauthServer authServer) {
 
             var body = createObjectBuilder()
@@ -234,6 +263,72 @@ public class ParticipantContextApiV5EndToEndTest {
                     .then()
                     .statusCode(403);
 
+        }
+
+        @Test
+        void deactivate_shouldRejectParticipantToken(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService service) {
+            var participantContextId = "test-user";
+            createParticipant(service, participantContextId);
+            var participantToken = authServer.createToken(participantContextId);
+            var query = context.query().toString();
+
+            context.baseRequest(participantToken)
+                    .contentType(JSON)
+                    .body(query)
+                    .post("/v5/participants/" + participantContextId + "/assets/request")
+                    .then()
+                    .statusCode(200);
+
+            context.baseRequest(authServer.createAdminToken())
+                    .contentType(JSON)
+                    .post("/v5/participants/" + participantContextId + "/deactivate")
+                    .then()
+                    .statusCode(204);
+
+            assertThat(service.getParticipantContext(participantContextId).getContent().getStateAsEnum()).isEqualTo(DEACTIVATED);
+            context.baseRequest(participantToken)
+                    .contentType(JSON)
+                    .body(query)
+                    .post("/v5/participants/" + participantContextId + "/assets/request")
+                    .then()
+                    .statusCode(401);
+        }
+
+        @Test
+        void activate(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService service) {
+            var participantContextId = "test-user";
+            createParticipant(service, participantContextId);
+
+            context.baseRequest(authServer.createAdminToken())
+                    .contentType(JSON)
+                    .post("/v5/participants/" + participantContextId + "/activate")
+                    .then()
+                    .statusCode(204);
+
+            assertThat(service.getParticipantContext(participantContextId).getContent().getStateAsEnum()).isEqualTo(ACTIVATED);
+        }
+
+        @Test
+        void deactivate_notAuthorized(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService service) {
+            var participantContextId = "test-user";
+            createParticipant(service, participantContextId);
+
+            context.baseRequest(authServer.createToken(participantContextId))
+                    .contentType(JSON)
+                    .post("/v5/participants/" + participantContextId + "/deactivate")
+                    .then()
+                    .statusCode(403);
+
+            assertThat(service.getParticipantContext(participantContextId).getContent().getStateAsEnum()).isNotEqualTo(DEACTIVATED);
+        }
+
+        @Test
+        void deactivate_notFound(ManagementEndToEndV5TestContext context, OauthServer authServer) {
+            context.baseRequest(authServer.createAdminToken())
+                    .contentType(JSON)
+                    .post("/v5/participants/unknown/deactivate")
+                    .then()
+                    .statusCode(404);
         }
 
         @Test

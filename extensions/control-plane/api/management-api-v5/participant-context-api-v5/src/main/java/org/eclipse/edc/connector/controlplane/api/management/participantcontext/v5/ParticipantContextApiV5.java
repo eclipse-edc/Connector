@@ -89,6 +89,29 @@ public interface ParticipantContextApiV5 {
     )
     void deleteParticipantV5(String participantContextId);
 
+    @Operation(description = "Activates a ParticipantContext.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "The ParticipantContext was activated successfully."),
+                    @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
+                    @ApiResponse(responseCode = "404", description = "A ParticipantContext with the given ID does not exist.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
+            }
+    )
+    void activateParticipantV5(String participantContextId);
+
+    @Operation(description = "Deactivates a ParticipantContext. A deactivated ParticipantContext is answered like one that does not exist " +
+            "on the protocol API, and on the management API for non-admin callers. Its ongoing negotiations and transfers are not terminated.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "The ParticipantContext was deactivated successfully."),
+                    @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
+                    @ApiResponse(responseCode = "404", description = "A ParticipantContext with the given ID does not exist.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
+            }
+    )
+    void deactivateParticipantV5(String participantContextId);
+
     @Operation(description = "Get all DID documents across all Participant Contexts. Requires elevated access.",
             parameters = {
                     @Parameter(name = "offset", description = "the paging offset. defaults to 0"),

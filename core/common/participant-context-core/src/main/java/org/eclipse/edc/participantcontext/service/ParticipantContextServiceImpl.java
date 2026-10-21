@@ -17,11 +17,15 @@ package org.eclipse.edc.participantcontext.service;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.util.Collection;
+
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContextState.ACTIVATED;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContextState.DEACTIVATED;
 
 public record ParticipantContextServiceImpl(
         ParticipantContextStore participantContextStore,
@@ -42,8 +46,19 @@ public record ParticipantContextServiceImpl(
 
     @Override
     public ServiceResult<Void> updateParticipantContext(ParticipantContext participantContext) {
-        return transactionContext.execute(() -> participantContextStore.update(participantContext)
-                .flatMap(ServiceResult::from));
+        return transactionContext.execute(() -> participantContextStore.findById(participantContext.getId())
+                .flatMap(ServiceResult::from)
+                .compose(stored -> update(participantContext.toBuilder().state(stored.getStateAsEnum()).build())));
+    }
+
+    @Override
+    public ServiceResult<Void> activateParticipantContext(String participantContextId) {
+        return changeState(participantContextId, ACTIVATED);
+    }
+
+    @Override
+    public ServiceResult<Void> deactivateParticipantContext(String participantContextId) {
+        return changeState(participantContextId, DEACTIVATED);
     }
 
     @Override
@@ -56,5 +71,15 @@ public record ParticipantContextServiceImpl(
     public ServiceResult<Collection<ParticipantContext>> search(QuerySpec query) {
         return transactionContext.execute(() -> participantContextStore.query(query)
                 .flatMap(ServiceResult::from));
+    }
+
+    private ServiceResult<Void> changeState(String participantContextId, ParticipantContextState state) {
+        return transactionContext.execute(() -> participantContextStore.findById(participantContextId)
+                .flatMap(ServiceResult::from)
+                .compose(stored -> update(stored.toBuilder().state(state).build())));
+    }
+
+    private ServiceResult<Void> update(ParticipantContext participantContext) {
+        return ServiceResult.from(participantContextStore.update(participantContext));
     }
 }
