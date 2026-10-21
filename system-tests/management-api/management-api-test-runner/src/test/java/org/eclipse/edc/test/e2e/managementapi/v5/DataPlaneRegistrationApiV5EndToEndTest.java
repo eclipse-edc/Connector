@@ -41,6 +41,7 @@ import java.util.UUID;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.createParticipant;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -84,7 +85,7 @@ public class DataPlaneRegistrationApiV5EndToEndTest {
                     .statusCode(200)
                     .body(notNullValue());
 
-            var dataPlaneInstance = selectorService.findById("dataplane-1")
+            var dataPlaneInstance = selectorService.findById(PARTICIPANT_CONTEXT_ID, "dataplane-1")
                     .orElseThrow((e) -> new AssertionError("Data plane instance not found"));
 
             assertThat(dataPlaneInstance).isNotNull();
@@ -114,7 +115,7 @@ public class DataPlaneRegistrationApiV5EndToEndTest {
         }
 
         @Test
-        void registerDataPlane_shouldReturnConflict_whenDataPlaneIdIsOwnedByAnotherParticipant(ManagementEndToEndV5TestContext context,
+        void registerDataPlane_shouldRegisterSameIdForAnotherParticipant(ManagementEndToEndV5TestContext context,
                                                                                                OauthServer authServer,
                                                                                                ParticipantContextService srv,
                                                                                                DataPlaneSelectorService selectorService) {
@@ -139,11 +140,12 @@ public class DataPlaneRegistrationApiV5EndToEndTest {
                     .put("/v5/participants/" + otherParticipantId + "/dataplanes")
                     .then()
                     .log().ifValidationFails()
-                    .statusCode(409);
+                    .statusCode(200);
 
-            var dataPlaneInstance = selectorService.findById(dataPlaneId)
-                    .orElseThrow((e) -> new AssertionError("Data plane instance not found"));
-            assertThat(dataPlaneInstance.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID);
+            assertThat(selectorService.findById(PARTICIPANT_CONTEXT_ID, dataPlaneId)).isSucceeded()
+                    .extracting(DataPlaneInstance::getParticipantContextId).isEqualTo(PARTICIPANT_CONTEXT_ID);
+            assertThat(selectorService.findById(otherParticipantId, dataPlaneId)).isSucceeded()
+                    .extracting(DataPlaneInstance::getParticipantContextId).isEqualTo(otherParticipantId);
         }
 
         @Test

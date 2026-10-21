@@ -40,6 +40,7 @@ import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 public abstract class DataPlaneInstanceStoreTestBase {
 
     protected static final String CONNECTOR_NAME = "test-connector";
+    protected static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
 
     protected abstract DataPlaneInstanceStore getStore();
     
@@ -61,7 +62,7 @@ public abstract class DataPlaneInstanceStoreTestBase {
         return DataPlaneInstance.Builder.newInstance()
                 .id(id)
                 .url("http://somewhere.com:1234/api/v1")
-                .participantContextId("participantContextId")
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .allowedSourceType("source-type")
                 .allowedTransferType("transfer-type")
                 .destinationProvisionTypes(Set.of("provision-type"))
@@ -77,32 +78,21 @@ public abstract class DataPlaneInstanceStoreTestBase {
             var inst = createInstanceBuilder("test-id").build();
             getStore().save(inst);
 
-            assertThat(getStore().findById("test-id")).usingRecursiveComparison().isEqualTo(inst);
+            assertThat(getStore().findById(PARTICIPANT_CONTEXT_ID, "test-id")).usingRecursiveComparison().isEqualTo(inst);
         }
 
         @Test
         void findById_notExists() {
-            assertThat(getStore().findById("not-exist")).isNull();
+            assertThat(getStore().findById(PARTICIPANT_CONTEXT_ID, "not-exist")).isNull();
         }
 
-    }
-
-    @Nested
-    class GetAll {
         @Test
-        void getAll() {
-            var doc1 = createInstanceWithProperty("test-id", "name");
-            var doc2 = createInstanceWithProperty("test-id-2", "name");
+        void findById_shouldNotFindInstanceOfAnotherParticipantContext() {
+            getStore().save(createInstanceBuilder("test-id").participantContextId("other").build());
 
-            var store = getStore();
-
-            store.save(doc1);
-            store.save(doc2);
-
-            var foundItems = store.getAll();
-
-            assertThat(foundItems).isNotNull().hasSize(2);
+            assertThat(getStore().findById(PARTICIPANT_CONTEXT_ID, "test-id")).isNull();
         }
+
     }
 
     @Nested
@@ -215,10 +205,24 @@ public abstract class DataPlaneInstanceStoreTestBase {
                     .build();
             getStore().save(entry);
 
-            var result = getStore().findById(entry.getId());
+            var result = getStore().findById(PARTICIPANT_CONTEXT_ID, entry.getId());
 
             assertThat(result).isNotNull().usingRecursiveComparison().isEqualTo(entry);
             assertThat(result.getCreatedAt()).isGreaterThan(0);
+        }
+
+        @Test
+        void shouldStoreSameIdInDifferentParticipantContexts() {
+            var first = createInstanceBuilder("test-id").url("http://first.com").build();
+            var second = createInstanceBuilder("test-id").participantContextId("other").url("http://second.com").build();
+
+            getStore().save(first);
+            getStore().save(second);
+
+            assertThat(getStore().findById(PARTICIPANT_CONTEXT_ID, "test-id")).isNotNull()
+                    .extracting(it -> it.getUrl().toString()).isEqualTo("http://first.com");
+            assertThat(getStore().findById("other", "test-id")).isNotNull()
+                    .extracting(it -> it.getUrl().toString()).isEqualTo("http://second.com");
         }
 
         @Test
@@ -229,7 +233,7 @@ public abstract class DataPlaneInstanceStoreTestBase {
             entry.transitionToRegistered();
             getStore().save(entry);
 
-            var result = getStore().findById(entry.getId());
+            var result = getStore().findById(PARTICIPANT_CONTEXT_ID, entry.getId());
 
             assertThat(result).isNotNull();
             assertThat(result.getState()).isEqualTo(REGISTERED.code());
@@ -241,7 +245,7 @@ public abstract class DataPlaneInstanceStoreTestBase {
             entry.transitionToRegistered();
             getStore().save(entry);
 
-            var result = getStore().findById(entry.getId());
+            var result = getStore().findById(PARTICIPANT_CONTEXT_ID, entry.getId());
 
             assertThat(result).isNotNull();
             assertThat(result.getState()).isEqualTo(REGISTERED.code());
@@ -260,16 +264,29 @@ public abstract class DataPlaneInstanceStoreTestBase {
             var instance = createInstanceBuilder(id).build();
             getStore().save(instance);
 
-            var result = getStore().deleteById(id);
+            var result = getStore().deleteById(PARTICIPANT_CONTEXT_ID, id);
 
             assertThat(result).isSucceeded().usingRecursiveComparison().isEqualTo(instance);
+        }
+
+        @Test
+        void shouldDeleteOnlyInstanceOfParticipantContext() {
+            var id = UUID.randomUUID().toString();
+            getStore().save(createInstanceBuilder(id).build());
+            getStore().save(createInstanceBuilder(id).participantContextId("other").build());
+
+            var result = getStore().deleteById("other", id);
+
+            assertThat(result).isSucceeded();
+            assertThat(getStore().findById("other", id)).isNull();
+            assertThat(getStore().findById(PARTICIPANT_CONTEXT_ID, id)).isNotNull();
         }
 
         @Test
         void shouldFail_whenInstanceDoesNotExist() {
             var randomId = UUID.randomUUID().toString();
 
-            var result = getStore().deleteById(randomId);
+            var result = getStore().deleteById(PARTICIPANT_CONTEXT_ID, randomId);
 
             assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
         }

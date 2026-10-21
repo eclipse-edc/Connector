@@ -25,14 +25,12 @@ import java.util.List;
 
 /**
  * Main interaction interface for an EDC runtime (=control plane) to communicate with the DPF selector.
+ * <p>
+ * The identity of a {@link DataPlaneInstance} is the pair (participant context id, id): the same id can be used by
+ * different participant contexts.
  */
 @ExtensionPoint
 public interface DataPlaneSelectorService {
-
-    /**
-     * Returns all {@link DataPlaneInstance}s known in the system
-     */
-    ServiceResult<List<DataPlaneInstance>> getAll();
 
     /**
      * Search for {@link DataPlaneInstance}s that satisfy the query specification.
@@ -51,33 +49,36 @@ public interface DataPlaneSelectorService {
     ServiceResult<DataPlaneInstance> selectFor(TransferProcess transferProcess);
 
     /**
-     * Register a data plane instance. The method follows upsert semantics: when a dataplane with the same id exists, it
-     * gets updated.
+     * Register a data plane instance. The method follows upsert semantics: when a dataplane with the same id exists in
+     * the participant context of the instance, it gets updated.
      */
     ServiceResult<Void> register(DataPlaneInstance instance);
 
     /**
      * Unregister a Data Plane instance. The state will transition to {@link DataPlaneInstanceStates#UNREGISTERED}.
      *
+     * @param participantContextId the participant context id.
      * @param instanceId the instance id.
      * @return successful result if operation completed, failure otherwise.
      */
-    ServiceResult<Void> unregister(String instanceId);
+    ServiceResult<Void> unregister(String participantContextId, String instanceId);
 
     /**
      * Delete a Data Plane instance.
      *
+     * @param participantContextId the participant context id.
      * @param instanceId the instance id.
      * @return successful result if operation completed, failure otherwise.
      */
-    ServiceResult<Void> delete(String instanceId);
+    ServiceResult<Void> delete(String participantContextId, String instanceId);
 
     /**
-     * Find a Data Plane instance by id.
+     * Find a Data Plane instance by participant context and id.
      *
+     * @param participantContextId the participant context id.
      * @param id the id.
      * @return the {@link DataPlaneInstance} if operation is successful, failure otherwise.
      */
-    ServiceResult<DataPlaneInstance> findById(String id);
+    ServiceResult<DataPlaneInstance> findById(String participantContextId, String id);
 
 }

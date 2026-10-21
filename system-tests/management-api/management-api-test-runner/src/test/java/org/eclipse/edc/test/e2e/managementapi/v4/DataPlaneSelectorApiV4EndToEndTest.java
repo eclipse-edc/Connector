@@ -21,6 +21,7 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndTestContext;
 import org.eclipse.edc.test.e2e.managementapi.Runtimes;
@@ -39,11 +40,18 @@ public class DataPlaneSelectorApiV4EndToEndTest {
     abstract static class Tests {
 
         @Test
-        void getAllDataPlaneInstancesV4(ManagementEndToEndTestContext context, DataPlaneInstanceStore store) {
+        void getAllDataPlaneInstancesV4(ManagementEndToEndTestContext context, DataPlaneInstanceStore store,
+                                        SingleParticipantContextSupplier participantContextSupplier) {
+            var participantContextId = participantContextSupplier.get().orElseThrow(f -> new AssertionError(f.getFailureDetail())).getId();
             var instance = DataPlaneInstance.Builder.newInstance()
                     .url("http://localhost/any")
+                    .participantContextId(participantContextId)
                     .build();
             store.save(instance);
+            store.save(DataPlaneInstance.Builder.newInstance()
+                    .url("http://localhost/other")
+                    .participantContextId("other-participant-context")
+                    .build());
 
             context.baseRequest()
                     .get("/v4/dataplanes")

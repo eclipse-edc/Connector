@@ -47,15 +47,6 @@ public class DataPlaneSelectorServiceImpl implements DataPlaneSelectorService {
     }
 
     @Override
-    public ServiceResult<List<DataPlaneInstance>> getAll() {
-        return transactionContext.execute(() -> {
-            try (var stream = store.getAll()) {
-                return ServiceResult.success(stream.toList());
-            }
-        });
-    }
-
-    @Override
     public ServiceResult<List<DataPlaneInstance>> search(QuerySpec querySpec) {
         return transactionContext.execute(() -> {
             try (var stream = store.query(querySpec)) {
@@ -109,14 +100,14 @@ public class DataPlaneSelectorServiceImpl implements DataPlaneSelectorService {
     }
 
     @Override
-    public ServiceResult<Void> delete(String instanceId) {
-        return transactionContext.execute(() -> ServiceResult.from(store.deleteById(instanceId))).mapEmpty();
+    public ServiceResult<Void> delete(String participantContextId, String instanceId) {
+        return transactionContext.execute(() -> ServiceResult.from(store.deleteById(participantContextId, instanceId))).mapEmpty();
     }
 
     @Override
-    public ServiceResult<Void> unregister(String instanceId) {
+    public ServiceResult<Void> unregister(String participantContextId, String instanceId) {
         return transactionContext.execute(() -> {
-            var instance = store.findById(instanceId);
+            var instance = store.findById(participantContextId, instanceId);
             if (instance == null) {
                 return ServiceResult.notFound("Data Plane instance with id %s not found".formatted(instanceId));
             }
@@ -127,9 +118,9 @@ public class DataPlaneSelectorServiceImpl implements DataPlaneSelectorService {
     }
 
     @Override
-    public ServiceResult<DataPlaneInstance> findById(String id) {
+    public ServiceResult<DataPlaneInstance> findById(String participantContextId, String id) {
         return transactionContext.execute(() -> {
-            var instance = store.findById(id);
+            var instance = store.findById(participantContextId, id);
             if (instance == null) {
                 return ServiceResult.notFound("Data Plane instance with id %s not found".formatted(id));
             }

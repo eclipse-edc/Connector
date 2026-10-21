@@ -32,7 +32,6 @@ import org.eclipse.edc.signaling.port.transformer.DataFlowStatusMessageToDataFlo
 import org.eclipse.edc.signaling.port.transformer.DspDataAddressToDataAddressTransformer;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
@@ -44,7 +43,6 @@ import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 
 import java.io.IOException;
 
-import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
 import static org.eclipse.edc.signaling.DataPlaneSignalingApiExtension.NAME;
 
 @Extension(NAME)
@@ -118,12 +116,7 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
     }
 
     private ParticipantResource findDataPlaneInstance(String ownerId, String dataplaneId) {
-        return dataPlaneSelectorService.search(queryByParticipantContextId(ownerId)
-                        .filter(new Criterion("id", "=", dataplaneId))
-                        .build()
-                )
-                .map(it -> it.stream().findFirst().orElse(null))
-                .orElse(f -> null);
+        return dataPlaneSelectorService.findById(ownerId, dataplaneId).orElse(f -> null);
     }
 
 }

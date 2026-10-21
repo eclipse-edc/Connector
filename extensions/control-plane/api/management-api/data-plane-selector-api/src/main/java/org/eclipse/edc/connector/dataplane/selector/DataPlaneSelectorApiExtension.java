@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.dataplane.selector;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.api.v4.DataplaneSelectorApiV4Controller;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -51,6 +52,8 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
 
     @Inject
     private TypeTransformerRegistry transformerRegistry;
+    @Inject
+    private SingleParticipantContextSupplier participantContextSupplier;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -58,7 +61,7 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
 
         // V4
         managementApiTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(createBuilderFactory(Map.of()), typeManager, JSON_LD));
-        webservice.registerResource(ApiContext.MANAGEMENT, new DataplaneSelectorApiV4Controller(selectionService, managementApiTransformerRegistry));
+        webservice.registerResource(ApiContext.MANAGEMENT, new DataplaneSelectorApiV4Controller(selectionService, managementApiTransformerRegistry, participantContextSupplier));
         webservice.registerDynamicResource(ApiContext.MANAGEMENT, DataplaneSelectorApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
     }
 }

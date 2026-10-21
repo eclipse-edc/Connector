@@ -30,7 +30,6 @@ import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.Authorizati
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.signaling.domain.DataPlaneRegistrationMessage;
-import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 
 import java.util.Map;
 
@@ -60,13 +59,6 @@ public class DataPlaneRegistrationApiV5Controller implements DataPlaneRegistrati
         authorizationService.authorize(securityContext, participantContextId, participantContextId, ParticipantContext.class)
                 .orElseThrow(exceptionMapper(ParticipantContext.class, participantContextId));
 
-        dataPlaneSelectorService.findById(registration.dataplaneId())
-                .onSuccess(existing -> {
-                    if (!participantContextId.equals(existing.getParticipantContextId())) {
-                        throw new ObjectConflictException("Data plane with id %s is already registered by another participant context".formatted(registration.dataplaneId()));
-                    }
-                });
-
         var dataplaneInstance = DataPlaneInstance.Builder.newInstance()
                 .id(registration.dataplaneId())
                 .url(registration.endpoint())
@@ -93,7 +85,7 @@ public class DataPlaneRegistrationApiV5Controller implements DataPlaneRegistrati
         authorizationService.authorize(securityContext, participantContextId, dataplaneId, DataPlaneInstance.class)
                 .orElseThrow(exceptionMapper(DataPlaneInstance.class, dataplaneId));
 
-        dataPlaneSelectorService.delete(dataplaneId)
+        dataPlaneSelectorService.delete(participantContextId, dataplaneId)
                 .orElseThrow(exceptionMapper(DataPlaneInstance.class, dataplaneId));
 
         return Response.ok().build();

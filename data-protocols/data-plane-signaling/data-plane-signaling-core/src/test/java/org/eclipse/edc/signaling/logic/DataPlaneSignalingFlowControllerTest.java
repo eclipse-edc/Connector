@@ -230,7 +230,7 @@ public class DataPlaneSignalingFlowControllerTest {
                     .build();
             when(dataPlaneClient.terminate(any(), any())).thenReturn(StatusResult.success());
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(selectorService.findById(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
 
             var result = flowController.terminate(transferProcess);
 
@@ -247,7 +247,7 @@ public class DataPlaneSignalingFlowControllerTest {
                     .build();
             when(dataPlaneClient.terminate(any(), any())).thenReturn(StatusResult.success());
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
+            when(selectorService.findById(any(), any())).thenReturn(ServiceResult.notFound("not found"));
 
             var result = flowController.terminate(transferProcess);
 
@@ -282,7 +282,7 @@ public class DataPlaneSignalingFlowControllerTest {
             var dspDataAddress = createDspDataAddress();
             when(dataPlaneClient.started(any(), any())).thenReturn(StatusResult.success());
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(selectorService.findById(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(testDataAddress()));
             when(typeTransformerRegistry.transform(isA(DataAddress.class), any())).thenReturn(Result.success(dspDataAddress));
 
@@ -299,7 +299,7 @@ public class DataPlaneSignalingFlowControllerTest {
                     .id("transferProcessId")
                     .dataPlaneId("invalid")
                     .build();
-            when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
+            when(selectorService.findById(any(), any())).thenReturn(ServiceResult.notFound("not found"));
 
             var result = flowController.started(transferProcess);
 
@@ -334,7 +334,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(dataPlaneClient.completed(any())).thenReturn(StatusResult.success());
             var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(selectorService.findById(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
 
             var result = flowController.completed(transferProcess);
 
@@ -349,7 +349,7 @@ public class DataPlaneSignalingFlowControllerTest {
                     .id("transferProcessId")
                     .dataPlaneId("invalid")
                     .build();
-            when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
+            when(selectorService.findById(any(), any())).thenReturn(ServiceResult.notFound("not found"));
 
             var result = flowController.completed(transferProcess);
 
@@ -384,7 +384,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(dataPlaneClient.suspend(any(), any())).thenReturn(StatusResult.success());
             var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(selectorService.findById(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
 
             var result = flowController.suspend(transferProcess);
 
@@ -399,7 +399,7 @@ public class DataPlaneSignalingFlowControllerTest {
                     .id("transferProcessId")
                     .dataPlaneId("invalid")
                     .build();
-            when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
+            when(selectorService.findById(any(), any())).thenReturn(ServiceResult.notFound("not found"));
 
             var result = flowController.suspend(transferProcess);
 
@@ -435,7 +435,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(dataPlaneClient.resume(any(), any())).thenReturn(StatusResult.success(DataFlowStatusMessage.Builder.newInstance().build()));
             var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(selectorService.findById(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             var response = DataFlowResponse.Builder.newInstance().dataPlaneId("dataPlaneId").dataAddress(testDataAddress()).build();
             when(typeTransformerRegistry.transform(isA(DataFlowStatusMessage.class), any())).thenReturn(Result.success(response));
 
@@ -458,7 +458,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(dataPlaneClient.resume(any(), any())).thenReturn(StatusResult.success(DataFlowStatusMessage.Builder.newInstance().build()));
             var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(selectorService.findById(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             var dspDataAddress = createDspDataAddress();
             when(typeTransformerRegistry.transform(isA(DataAddress.class), any())).thenReturn(Result.success(dspDataAddress));
             var response = DataFlowResponse.Builder.newInstance().dataPlaneId("dataPlaneId").dataAddress(testDataAddress()).build();
@@ -477,7 +477,7 @@ public class DataPlaneSignalingFlowControllerTest {
                     .id("transferProcessId")
                     .dataPlaneId("invalid")
                     .build();
-            when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
+            when(selectorService.findById(any(), any())).thenReturn(ServiceResult.notFound("not found"));
 
             var result = flowController.resume(transferProcess);
 

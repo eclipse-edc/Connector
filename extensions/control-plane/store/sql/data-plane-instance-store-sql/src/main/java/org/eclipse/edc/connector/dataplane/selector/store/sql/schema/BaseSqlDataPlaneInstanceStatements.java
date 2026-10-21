@@ -18,7 +18,10 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
+import java.util.List;
+
 import static java.lang.String.format;
+import static org.eclipse.edc.sql.statement.SqlExecuteStatement.equalTo;
 
 public class BaseSqlDataPlaneInstanceStatements implements DataPlaneInstanceStatements {
 
@@ -30,12 +33,7 @@ public class BaseSqlDataPlaneInstanceStatements implements DataPlaneInstanceStat
 
     @Override
     public String getFindByIdTemplate() {
-        return format("SELECT * FROM %s WHERE %s = ?", getDataPlaneInstanceTable(), getIdColumn());
-    }
-
-    @Override
-    public String getAllTemplate() {
-        return format("SELECT * FROM %s", getDataPlaneInstanceTable());
+        return format("SELECT * FROM %s WHERE %s = ? AND %s = ?", getDataPlaneInstanceTable(), getParticipantContextIdColumn(), getIdColumn());
     }
 
     @Override
@@ -55,7 +53,8 @@ public class BaseSqlDataPlaneInstanceStatements implements DataPlaneInstanceStat
                 .jsonColumn(getLabelsColumn())
                 .jsonColumn(getPropertiesColumn())
                 .jsonColumn(getAuthorizationProfileColumn())
-                .upsertInto(getDataPlaneInstanceTable(), getIdColumn());
+                .upsertInto(getDataPlaneInstanceTable(), getParticipantContextIdColumn() + ", " + getIdColumn(),
+                        List.of(getParticipantContextIdColumn(), getIdColumn()));
     }
 
     @Override
@@ -65,7 +64,7 @@ public class BaseSqlDataPlaneInstanceStatements implements DataPlaneInstanceStat
 
     @Override
     public String getDeleteByIdTemplate() {
-        return executeStatement().delete(getDataPlaneInstanceTable(), getIdColumn());
+        return executeStatement().delete(getDataPlaneInstanceTable(), equalTo(getParticipantContextIdColumn()), equalTo(getIdColumn()));
     }
 
     @Override

@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.defaults.storage.dataplane;
 
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.connector.controlplane.defaults.storage.ParticipantResourceKey;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -32,7 +33,7 @@ import java.util.stream.Stream;
  */
 public class InMemoryDataPlaneInstanceStore implements DataPlaneInstanceStore {
 
-    private final Map<String, DataPlaneInstance> dataplaneInstances = new ConcurrentHashMap<>();
+    private final Map<ParticipantResourceKey, DataPlaneInstance> dataplaneInstances = new ConcurrentHashMap<>();
     private final QueryResolver<DataPlaneInstance> queryResolver;
 
     public InMemoryDataPlaneInstanceStore(CriterionOperatorRegistry criterionOperatorRegistry) {
@@ -40,28 +41,23 @@ public class InMemoryDataPlaneInstanceStore implements DataPlaneInstanceStore {
     }
 
     @Override
-    public @Nullable DataPlaneInstance findById(String id) {
-        return dataplaneInstances.get(id);
+    public @Nullable DataPlaneInstance findById(String participantContextId, String id) {
+        return dataplaneInstances.get(ParticipantResourceKey.of(participantContextId, id));
     }
 
     @Override
     public StoreResult<Void> save(DataPlaneInstance entity) {
-        dataplaneInstances.put(entity.getId(), entity);
+        dataplaneInstances.put(ParticipantResourceKey.of(entity.getParticipantContextId(), entity.getId()), entity);
         return StoreResult.success();
     }
 
     @Override
-    public StoreResult<DataPlaneInstance> deleteById(String instanceId) {
-        var old = dataplaneInstances.remove(instanceId);
+    public StoreResult<DataPlaneInstance> deleteById(String participantContextId, String instanceId) {
+        var old = dataplaneInstances.remove(ParticipantResourceKey.of(participantContextId, instanceId));
         if (old == null) {
             return StoreResult.notFound("Data plane instance %s not found".formatted(instanceId));
         }
         return StoreResult.success(old);
-    }
-
-    @Override
-    public Stream<DataPlaneInstance> getAll() {
-        return dataplaneInstances.values().stream();
     }
 
     @Override

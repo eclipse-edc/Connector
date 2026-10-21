@@ -17,6 +17,7 @@ package org.eclipse.edc.federatedcatalog.end2end;
 
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -25,6 +26,8 @@ public class DataplaneInstanceRegistrationExtension implements ServiceExtension 
 
     @Inject
     private DataPlaneInstanceStore dataPlaneInstanceStore;
+    @Inject
+    private SingleParticipantContextSupplier participantContextSupplier;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -32,6 +35,7 @@ public class DataplaneInstanceRegistrationExtension implements ServiceExtension 
                 .id("test-instance")
                 .allowedSourceType("test-src-type")
                 .url("http://test.local")
+                .participantContextId(participantContextSupplier.get().orElseThrow(f -> new IllegalStateException(f.getFailureDetail())).getId())
                 .build();
         dataPlaneInstanceStore.save(dpi);
     }
