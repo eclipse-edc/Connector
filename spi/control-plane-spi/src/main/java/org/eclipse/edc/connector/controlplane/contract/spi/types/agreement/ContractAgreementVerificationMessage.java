@@ -16,16 +16,8 @@ package org.eclipse.edc.connector.controlplane.contract.spi.types.agreement;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.controlplane.ProcessRemoteMessage;
-import org.eclipse.edc.policy.model.Policy;
 
 public class ContractAgreementVerificationMessage extends ContractRemoteMessage {
-
-    private Policy policy;
-
-    @Override
-    public Policy getPolicy() {
-        return policy;
-    }
 
     public static class Builder extends ProcessRemoteMessage.Builder<ContractAgreementVerificationMessage, Builder> {
 
@@ -35,11 +27,6 @@ public class ContractAgreementVerificationMessage extends ContractRemoteMessage 
 
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        public Builder policy(Policy policy) {
-            message.policy = policy;
-            return this;
         }
 
         @Override

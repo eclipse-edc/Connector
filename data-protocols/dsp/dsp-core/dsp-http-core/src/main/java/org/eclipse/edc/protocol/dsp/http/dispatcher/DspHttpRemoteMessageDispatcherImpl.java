@@ -17,16 +17,13 @@ package org.eclipse.edc.protocol.dsp.http.dispatcher;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolResponseBodyExtractor;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestFactory;
 import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.controlplane.iam.AudienceResolver;
 import org.eclipse.edc.http.spi.EdcHttpClient;
-import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.RequestContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -37,11 +34,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.failedFuture;
@@ -57,7 +52,6 @@ public class DspHttpRemoteMessageDispatcherImpl implements ProtocolRemoteMessage
     private static final String AUDIENCE_CLAIM = "aud";
     private static final String SCOPE_CLAIM = "scope";
     private final Map<Class<? extends ProtocolRemoteMessage>, MessageHandler<?, ?>> handlers = new HashMap<>();
-    private final Map<Class<? extends ProtocolRemoteMessage>, PolicyScope<? extends ProtocolRemoteMessage>> policyScopes = new HashMap<>();
     private final EdcHttpClient httpClient;
     private final IdentityService identityService;
     private final RequestScopeExtractorRegistry requestScopeExtractorRegistry;
@@ -87,30 +81,21 @@ public class DspHttpRemoteMessageDispatcherImpl implements ProtocolRemoteMessage
 
         var tokenParametersBuilder = TokenParameters.Builder.newInstance();
 
-        var policyScope = policyScopes.get(message.getClass());
-        if (policyScope != null) {
+        var policy = message.getPolicy();
+        if (policy != null) {
             var requestContext = RequestContext.Builder.newInstance()
                     .message(message)
                     .direction(RequestContext.Direction.Egress)
                     .participantContextId(participantContextId)
                     .build();
 
-            var context = policyScope.contextProvider.instantiate(requestContext);
-            var policy = ((Function<M, Policy>) policyScope.policyProvider).apply(message);
-
-            var extractedScopes = requestScopeExtractorRegistry.extractScopes(policy, context);
+            var extractedScopes = requestScopeExtractorRegistry.extractScopes(policy, requestContext);
             if (extractedScopes.failed()) {
                 return failedFuture(new EdcException(format("Unable to extract scopes: %s", extractedScopes.getFailureDetail())));
             }
 
-            var scopes = new LinkedHashSet<>(extractedScopes.getContent());
+            var scopes = extractedScopes.getContent();
 
-            // catalog request messages can carry additional, user-supplied scopes
-            if (message instanceof CatalogRequestMessage catalogRequestMessage) {
-                scopes.addAll(catalogRequestMessage.getAdditionalScopes());
-            }
-
-            // Only add the scope claim if there are scopes to add
             if (!scopes.isEmpty()) {
                 tokenParametersBuilder.claims(SCOPE_CLAIM, String.join(" ", scopes));
             }
@@ -136,13 +121,6 @@ public class DspHttpRemoteMessageDispatcherImpl implements ProtocolRemoteMessage
                                                                                 ProtocolResponseBodyExtractor<RB, RSP> bodyExtractor) {
         handlers.put(clazz, new MessageHandler<>((RequestFactory<M, Request>) requestFactory,
                 (ProtocolResponseBodyExtractor<ResponseBody, RSP>) bodyExtractor));
-    }
-
-    @Override
-    public <M extends ProtocolRemoteMessage> void registerPolicyScope(Class<M> messageClass,
-                                                              Function<M, Policy> policyProvider,
-                                                              RequestPolicyContext.Provider contextProvider) {
-        policyScopes.put(messageClass, new PolicyScope<>(messageClass, policyProvider, contextProvider));
     }
 
     @NotNull
@@ -172,12 +150,6 @@ public class DspHttpRemoteMessageDispatcherImpl implements ProtocolRemoteMessage
     private record MessageHandler<M extends ProtocolRemoteMessage, R>(
             RequestFactory<M, Request> requestFactory,
             ProtocolResponseBodyExtractor<ResponseBody, R> bodyExtractor) {
-    }
-
-    private record PolicyScope<M extends ProtocolRemoteMessage>(
-            Class<M> messageClass,
-            Function<M, Policy> policyProvider,
-            RequestPolicyContext.Provider contextProvider) {
     }
 
 }

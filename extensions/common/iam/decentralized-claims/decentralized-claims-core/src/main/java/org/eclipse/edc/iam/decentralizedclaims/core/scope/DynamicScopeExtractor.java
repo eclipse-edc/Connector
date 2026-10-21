@@ -21,8 +21,9 @@ import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScope;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScopeRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractor;
-import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Operator;
+import org.eclipse.edc.protocol.spi.RequestContext;
+import org.eclipse.edc.spi.result.Result;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -39,26 +40,25 @@ public class DynamicScopeExtractor implements ScopeExtractor {
     }
 
     @Override
-    public Set<String> extractScopes(Object leftValue, Operator operator, Object rightValue, RequestPolicyContext context) {
+    public Result<Set<String>> extractScopes(Object leftValue, Operator operator, Object rightValue, RequestContext context) {
         // extract only for supported messages
-        if (!SUPPORTED_MESSAGES.contains(context.requestContext().getMessage().getClass())) {
-            return Set.of();
+        if (!SUPPORTED_MESSAGES.contains(context.getMessage().getClass())) {
+            return Result.success(Set.of());
         }
         var result = registry.getScopeMapping();
         if (result.failed()) {
-            context.reportProblem("Failed to get scope mapping: " + result.getFailureMessages());
-            return Set.of();
+            return Result.failure("Failed to get scope mapping: " + result.getFailureMessages());
         }
-        return result.getContent().stream().filter(scope -> filterScope(scope, leftValue, context))
+        return Result.success(result.getContent().stream().filter(scope -> filterScope(scope, leftValue, context))
                 .map(DcpScope::getValue)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toSet()));
 
     }
 
-    private boolean filterScope(DcpScope scope, Object leftValue, RequestPolicyContext context) {
+    private boolean filterScope(DcpScope scope, Object leftValue, RequestContext context) {
         if (leftValue instanceof String leftOperand) {
             return (leftOperand.startsWith(scope.getPrefixMapping())) &&
-                    (scope.getProfile().equals(DcpScope.WILDCARD) || scope.getProfile().equals(context.requestContext().getMessage().getProtocol()));
+                    (scope.getProfile().equals(DcpScope.WILDCARD) || scope.getProfile().equals(context.getMessage().getProtocol()));
         } else {
             return false;
         }

@@ -16,14 +16,12 @@ package org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.controlplane.ProcessRemoteMessage;
-import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.Nullable;
 
 public class ContractNegotiationTerminationMessage extends ContractRemoteMessage {
 
     private String rejectionReason;
     private String code;
-    private Policy policy;
 
     @Nullable
     public String getRejectionReason() {
@@ -33,11 +31,6 @@ public class ContractNegotiationTerminationMessage extends ContractRemoteMessage
     @Nullable
     public String getCode() {
         return code;
-    }
-
-    @Override
-    public Policy getPolicy() {
-        return policy;
     }
 
     public static class Builder extends ProcessRemoteMessage.Builder<ContractNegotiationTerminationMessage, Builder> {
@@ -57,11 +50,6 @@ public class ContractNegotiationTerminationMessage extends ContractRemoteMessage
 
         public Builder code(String code) {
             message.code = code;
-            return this;
-        }
-
-        public Builder policy(Policy policy) {
-            message.policy = policy;
             return this;
         }
 

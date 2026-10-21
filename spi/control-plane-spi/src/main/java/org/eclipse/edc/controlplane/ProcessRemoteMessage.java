@@ -33,13 +33,17 @@ public abstract class ProcessRemoteMessage extends ProtocolRemoteMessage {
     protected String processId;
     protected String consumerPid;
     protected String providerPid;
+    protected Policy policy;
 
     /**
      * Returns the {@link Policy} associated with the process.
      *
      * @return the process {@link Policy}.
      */
-    public abstract Policy getPolicy();
+    @Override
+    public Policy getPolicy() {
+        return policy;
+    }
 
     /**
      * Returns the unique message id.
@@ -115,6 +119,17 @@ public abstract class ProcessRemoteMessage extends ProtocolRemoteMessage {
          */
         public B processId(String processId) {
             message.processId = processId;
+            return self();
+        }
+
+        /**
+         * Sets the {@link Policy} associated with the process.
+         *
+         * @param policy the policy.
+         * @return the builder.
+         */
+        public B policy(Policy policy) {
+            message.policy = policy;
             return self();
         }
 

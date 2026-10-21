@@ -14,13 +14,11 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.core;
 
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.iam.decentralizedclaims.core.scope.DcpRequestScopeExtractor;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScopeRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractorRegistry;
-import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
-import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
-import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -49,9 +47,7 @@ public class DcpScopeExtractorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        // Policy-constraint and default scopes (DcpRequestScopeExtractor) are extracted for all three request contexts.
-        requestScopeExtractorRegistry.registerExtractor(RequestCatalogPolicyContext.class, new DcpRequestScopeExtractor<>(scopeExtractorRegistry, dcpScopeRegistry));
-        requestScopeExtractorRegistry.registerExtractor(RequestContractNegotiationPolicyContext.class, new DcpRequestScopeExtractor<>(scopeExtractorRegistry, dcpScopeRegistry));
-        requestScopeExtractorRegistry.registerExtractor(RequestTransferProcessPolicyContext.class, new DcpRequestScopeExtractor<>(scopeExtractorRegistry, dcpScopeRegistry));
+        // Policy-constraint and default scopes (DcpRequestScopeExtractor) are extracted for every request message.
+        requestScopeExtractorRegistry.registerExtractor(ProtocolRemoteMessage.class, new DcpRequestScopeExtractor(scopeExtractorRegistry, dcpScopeRegistry));
     }
 }

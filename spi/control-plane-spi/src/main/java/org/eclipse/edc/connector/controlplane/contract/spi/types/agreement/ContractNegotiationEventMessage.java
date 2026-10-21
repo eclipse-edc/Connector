@@ -16,23 +16,16 @@ package org.eclipse.edc.connector.controlplane.contract.spi.types.agreement;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.controlplane.ProcessRemoteMessage;
-import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
 public class ContractNegotiationEventMessage extends ContractRemoteMessage {
     private Type type;
-    private Policy policy;
 
     @NotNull
     public Type getType() {
         return type;
-    }
-
-    @Override
-    public Policy getPolicy() {
-        return policy;
     }
 
     public static class Builder extends ProcessRemoteMessage.Builder<ContractNegotiationEventMessage, Builder> {
@@ -47,11 +40,6 @@ public class ContractNegotiationEventMessage extends ContractRemoteMessage {
 
         public Builder type(Type type) {
             message.type = type;
-            return this;
-        }
-
-        public Builder policy(Policy policy) {
-            message.policy = policy;
             return this;
         }
 

@@ -26,7 +26,6 @@ import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.controlplane.iam.AudienceResolver;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestScopeExtractorRegistry;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.RequestContext;
@@ -116,13 +115,11 @@ class DspHttpRemoteMessageDispatcherImplTest {
         when(identityService.obtainClientCredentials(any(), any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(authToken).build()));
 
-        dispatcher.registerPolicyScope(TestMessage.class, (m) -> policy, TestPolicyContext::new);
-
         when(requestScopeExtractorRegistry.extractScopes(eq(policy), any())).thenReturn(Result.success(Set.of()));
 
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
 
-        var message = new TestMessage();
+        var message = new TestMessage(policy);
         var result = dispatcher.dispatch(participantContext.getId(), String.class, message);
 
         assertThat(result).succeedsWithin(timeout);
@@ -151,13 +148,11 @@ class DspHttpRemoteMessageDispatcherImplTest {
         when(identityService.obtainClientCredentials(any(), any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(authToken).build()));
 
-        dispatcher.registerPolicyScope(TestMessage.class, (m) -> policy, TestPolicyContext::new);
-
         when(requestScopeExtractorRegistry.extractScopes(eq(policy), any())).thenReturn(Result.success(Set.of("policy-test-scope")));
 
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
 
-        var message = new TestMessage();
+        var message = new TestMessage(policy);
         var result = dispatcher.dispatch(participantContext.getId(), String.class, message);
 
         assertThat(result).succeedsWithin(timeout);
@@ -186,13 +181,11 @@ class DspHttpRemoteMessageDispatcherImplTest {
         when(identityService.obtainClientCredentials(any(), any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(authToken).build()));
 
-        dispatcher.registerPolicyScope(TestMessage.class, (m) -> policy, TestPolicyContext::new);
-
         when(requestScopeExtractorRegistry.extractScopes(eq(policy), any())).thenReturn(Result.success(Set.of("policy-test-scope")));
 
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
 
-        var message = new TestMessage();
+        var message = new TestMessage(policy);
         var result = dispatcher.dispatch(participantContext.getId(), String.class, message);
 
         assertThat(result).succeedsWithin(timeout);
@@ -201,11 +194,9 @@ class DspHttpRemoteMessageDispatcherImplTest {
         verify(identityService).obtainClientCredentials(any(), captor.capture());
         verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), isA(List.class));
         verify(requestFactory).createRequest(message);
-        verify(requestScopeExtractorRegistry).extractScopes(eq(policy), argThat(ctx -> {
-            var requestContext = ctx.requestContext();
-            return requestContext.getMessage().getClass().equals(TestMessage.class) && requestContext.getDirection().equals(RequestContext.Direction.Egress) &&
-                    participantContext.getId().equals(requestContext.getParticipantContextId());
-        }));
+        verify(requestScopeExtractorRegistry).extractScopes(eq(policy), argThat(requestContext ->
+                requestContext.getMessage().getClass().equals(TestMessage.class) && requestContext.getDirection().equals(RequestContext.Direction.Egress) &&
+                        participantContext.getId().equals(requestContext.getParticipantContextId())));
         assertThat(captor.getValue()).satisfies(tr -> {
             assertThat(tr.getStringClaim(SCOPE_CLAIM)).isEqualTo("policy-test-scope");
             assertThat(tr.getStringClaim(AUDIENCE_CLAIM)).isEqualTo(AUDIENCE_VALUE);
@@ -248,7 +239,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
     }
 
     @Test
-    void dispatch_shouldNotExtractScopes_whenPolicyScopeIsNotRegistered() {
+    void dispatch_shouldNotExtractScopes_whenMessageHasNoPolicy() {
         when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(dummyResponse(200)));
@@ -266,7 +257,6 @@ class DspHttpRemoteMessageDispatcherImplTest {
     void dispatch_whenCatalogRequestMessage_shouldExtractScopes() {
         var authToken = "token";
         Map<String, Object> additional = Map.of("foo", "bar");
-        var policy = Policy.Builder.newInstance().build();
         RequestFactory<CatalogRequestMessage, Request> rqFactory = mock();
         when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
         when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).claims(additional));
@@ -275,12 +265,11 @@ class DspHttpRemoteMessageDispatcherImplTest {
         when(identityService.obtainClientCredentials(any(), any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(authToken).build()));
 
-        dispatcher.registerPolicyScope(CatalogRequestMessage.class, (m) -> policy, TestPolicyContext::new);
-
-        when(requestScopeExtractorRegistry.extractScopes(eq(policy), any())).thenReturn(Result.success(Set.of("policy-test-scope")));
+        when(requestScopeExtractorRegistry.extractScopes(any(), any())).thenReturn(Result.success(Set.of("policy-test-scope")));
 
         dispatcher.registerMessage(CatalogRequestMessage.class, rqFactory, mock());
 
+        // the dispatcher sets only what the registry returns; additional scopes are contributed by a registered extractor
         var message = CatalogRequestMessage.Builder.newInstance().additionalScopes("scope1", "scope2").build();
         var result = dispatcher.dispatch(participantContext.getId(), String.class, message);
 
@@ -290,13 +279,11 @@ class DspHttpRemoteMessageDispatcherImplTest {
         verify(identityService).obtainClientCredentials(any(), captor.capture());
         verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), isA(List.class));
         verify(rqFactory).createRequest(message);
-        verify(requestScopeExtractorRegistry).extractScopes(eq(policy), argThat(ctx -> {
-            var requestContext = ctx.requestContext();
-            return requestContext.getMessage().getClass().equals(CatalogRequestMessage.class) && requestContext.getDirection().equals(RequestContext.Direction.Egress) &&
-                    participantContext.getId().equals(requestContext.getParticipantContextId());
-        }));
+        verify(requestScopeExtractorRegistry).extractScopes(any(), argThat(requestContext ->
+                requestContext.getMessage().getClass().equals(CatalogRequestMessage.class) && requestContext.getDirection().equals(RequestContext.Direction.Egress) &&
+                        participantContext.getId().equals(requestContext.getParticipantContextId())));
         assertThat(captor.getValue()).satisfies(tr -> {
-            assertThat(tr.getStringClaim(SCOPE_CLAIM)).isEqualTo("policy-test-scope scope1 scope2");
+            assertThat(tr.getStringClaim(SCOPE_CLAIM)).isEqualTo("policy-test-scope");
             assertThat(tr.getStringClaim(AUDIENCE_CLAIM)).isEqualTo(AUDIENCE_VALUE);
             assertThat(tr.getClaims()).containsAllEntriesOf(additional);
         });
@@ -310,18 +297,17 @@ class DspHttpRemoteMessageDispatcherImplTest {
         when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(dummyResponse(200)));
         when(identityService.obtainClientCredentials(any(), any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("any").build()));
-        when(requestScopeExtractorRegistry.extractScopes(eq(policy), isA(RequestPolicyContext.class)))
+        when(requestScopeExtractorRegistry.extractScopes(eq(policy), isA(RequestContext.class)))
                 .thenReturn(Result.success(Set.of("test-scope")));
 
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
-        dispatcher.registerPolicyScope(TestMessage.class, m -> policy, TestPolicyContext::new);
 
-        var result = dispatcher.dispatch(participantContext.getId(), String.class, new TestMessage());
+        var result = dispatcher.dispatch(participantContext.getId(), String.class, new TestMessage(policy));
 
         var captor = ArgumentCaptor.forClass(TokenParameters.class);
         verify(identityService).obtainClientCredentials(any(), captor.capture());
         assertThat(result).succeedsWithin(timeout);
-        verify(requestScopeExtractorRegistry).extractScopes(eq(policy), isA(RequestPolicyContext.class));
+        verify(requestScopeExtractorRegistry).extractScopes(eq(policy), isA(RequestContext.class));
         assertThat(captor.getValue()).satisfies(tr -> {
             assertThat(tr.getStringClaim(SCOPE_CLAIM)).isEqualTo("test-scope");
         });
@@ -329,23 +315,26 @@ class DspHttpRemoteMessageDispatcherImplTest {
 
     static class TestMessage extends ProtocolRemoteMessage {
 
+        private final Policy policy;
+
+        TestMessage() {
+            this(null);
+        }
+
+        TestMessage(Policy policy) {
+            this.policy = policy;
+        }
+
+        @Override
+        public Policy getPolicy() {
+            return policy;
+        }
+
         @Override
         public String getCounterPartyAddress() {
             return "http://connector";
         }
 
-    }
-
-    static class TestPolicyContext extends RequestPolicyContext {
-
-        protected TestPolicyContext(RequestContext requestContext) {
-            super(requestContext);
-        }
-
-        @Override
-        public String scope() {
-            return "scope.test";
-        }
     }
 
     @Nested

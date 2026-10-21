@@ -30,14 +30,10 @@ import java.util.List;
 @JsonDeserialize(builder = CatalogRequestMessage.Builder.class)
 public class CatalogRequestMessage extends ProtocolRemoteMessage {
 
-    private final Policy policy;
     private List<String> additionalScopes = new ArrayList<>();
     private QuerySpec querySpec;
 
-
     private CatalogRequestMessage() {
-        // at this time, this is just a placeholder.
-        policy = Policy.Builder.newInstance().build();
     }
 
     public QuerySpec getQuerySpec() {
@@ -45,12 +41,14 @@ public class CatalogRequestMessage extends ProtocolRemoteMessage {
     }
 
     /**
-     * Returns the {@link Policy} associated with the Catalog Request. Currently, this is an empty policy and serves as placeholder.
+     * Returns the {@link Policy} associated with the Catalog Request. Currently, this is an empty policy and serves as
+     * placeholder in order to execute the scope extraction.
      *
      * @return the stub {@link Policy}.
      */
+    @Override
     public Policy getPolicy() {
-        return policy;
+        return Policy.Builder.newInstance().build();
     }
 
     public List<String> getAdditionalScopes() {
