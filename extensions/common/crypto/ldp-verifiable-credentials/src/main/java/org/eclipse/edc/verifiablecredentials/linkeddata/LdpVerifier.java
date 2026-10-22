@@ -144,20 +144,20 @@ public class LdpVerifier implements CredentialVerifier {
     }
 
     /**
-     * Validates the credential issuer by comparing it with the provided verification method.
+     * Validates the credential issuer by comparing it with the ID of the verification method that the proof references.
      *
-     * @param expanded           The expanded JSON-LD object representing the credential.
-     * @param verificationMethod The verification method to compare with the issuer.
+     * @param expanded             The expanded JSON-LD object representing the credential.
+     * @param verificationMethodId The ID of the verification method to compare with the issuer.
      * @return A {@link Result} indicating success or failure.
      */
-    private Result<Void> validateCredentialIssuer(JsonObject expanded, VerificationMethod verificationMethod) {
+    private Result<Void> validateCredentialIssuer(JsonObject expanded, URI verificationMethodId) {
         try {
             var issuerUri = LdNode.of(expanded).node(VcVocab.ISSUER);
             if (!issuerUri.exists()) {
                 return failure("Document must contain an 'issuer' property.");
             }
-            if (!UriUtils.equalsIgnoreFragment(issuerUri.id(), verificationMethod.id())) {
-                return failure("Issuer and proof.verificationMethod mismatch: %s <> %s".formatted(issuerUri, verificationMethod.id()));
+            if (!UriUtils.equalsIgnoreFragment(issuerUri.id(), verificationMethodId)) {
+                return failure("Issuer and proof.verificationMethod mismatch: %s <> %s".formatted(issuerUri, verificationMethodId));
             }
         } catch (DocumentError e) {
             return failure("Error getting issuer: %s".formatted(e.getMessage()));
@@ -250,18 +250,24 @@ public class LdpVerifier implements CredentialVerifier {
                     return failure("Proof did not contain a valid signature.");
                 }
 
-                var verificationMethod = getMethod(proof, loader);
-                if (verificationMethod == null) {
+                var verificationMethodId = Optional.ofNullable(proof.method()).map(VerificationMethod::id).orElse(null);
+                if (verificationMethodId == null) {
                     return failure("Proof did not contain a VerificationMethod.");
+                }
+
+                if (isCredential(expanded)) {
+                    var failure = validateCredentialIssuer(expanded, verificationMethodId);
+                    if (failure.failed()) return failure;
+                }
+
+                // key material embedded in the proof is never used, the method is always resolved by its ID
+                var verificationMethod = resolveMethod(verificationMethodId, proof, loader);
+                if (verificationMethod == null || verificationMethod.id() == null || !isSameMethod(verificationMethodId, verificationMethod.id())) {
+                    return failure("Resolved verification method does not match proof.verificationMethod '%s'".formatted(verificationMethodId));
                 }
 
                 if (!(verificationMethod instanceof VerificationKey)) {
                     return failure("Proof did not contain a valid VerificationMethod, expected VerificationKey, got: %s".formatted(verificationMethod.getClass()));
-                }
-
-                if (isCredential(expanded)) {
-                    var failure = validateCredentialIssuer(expanded, verificationMethod);
-                    if (failure.failed()) return failure;
                 }
 
                 proof.verify(context, data, (VerificationKey) verificationMethod);
@@ -307,20 +313,12 @@ public class LdpVerifier implements CredentialVerifier {
         return success();
     }
 
-    private VerificationMethod getMethod(Proof proof, DocumentLoader loader) throws DocumentError {
-        final VerificationMethod method = proof.method();
-
-        if (method == null) {
-            throw new DocumentError(ErrorType.Missing, "ProofVerificationMethod");
-        }
-
-        final URI methodType = method.type();
-
-        if (methodType != null && method instanceof VerificationKey && (((VerificationKey) method).publicKey() != null)) {
-            return method;
-        }
-
-        return resolveMethod(method.id(), proof, loader);
+    /**
+     * Checks that a resolved verification method is the one that was requested. If the requested ID has no fragment, e.g. a DID
+     * with a single verification method, the resolved ID may add one.
+     */
+    private boolean isSameMethod(URI requestedId, URI resolvedId) {
+        return requestedId.getFragment() == null ? UriUtils.equalsIgnoreFragment(requestedId, resolvedId) : requestedId.equals(resolvedId);
     }
 
     private SignatureSuite findSuite(Collection<String> proofTypes, JsonObject expandedProof) {

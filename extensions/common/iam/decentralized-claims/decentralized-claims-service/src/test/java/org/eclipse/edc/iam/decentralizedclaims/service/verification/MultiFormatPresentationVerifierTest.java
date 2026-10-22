@@ -30,7 +30,6 @@ import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.security.signature.jws2020.Jws2020ProofDraft;
 import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.eclipse.edc.security.signature.jws2020.TestDocumentLoader;
-import org.eclipse.edc.security.signature.jws2020.TestFunctions;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.token.spi.TokenValidationService;
@@ -39,6 +38,7 @@ import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.linkeddata.LdpCreationUtils;
 import org.eclipse.edc.verifiablecredentials.linkeddata.LdpVerifier;
 import org.eclipse.edc.verifiablecredentials.linkeddata.TestData;
+import org.eclipse.edc.verifiablecredentials.linkeddata.TestMethodResolver;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -89,6 +89,7 @@ class MultiFormatPresentationVerifierTest {
     private final PublicKeyResolver publicKeyResolverMock = mock();
     private final TestDocumentLoader testDocLoader = new TestDocumentLoader("https://org.eclipse.edc/", "", SchemeRouter.defaultInstance());
     private final TokenValidationService tokenValidationService = mock();
+    private final TestMethodResolver methodResolver = new TestMethodResolver();
     private MultiFormatPresentationVerifier multiFormatVerifier;
 
     @BeforeAll
@@ -120,6 +121,7 @@ class MultiFormatPresentationVerifierTest {
                 .jsonLd(jsonLd)
                 .typeManager(typeManager)
                 .typeContext("test")
+                .methodResolvers(List.of(methodResolver))
                 .build();
 
         var jwtPresentationVerifier = new JwtPresentationVerifier(typeManager, "test", tokenValidationService, mock(), publicKeyResolverMock);
@@ -127,12 +129,12 @@ class MultiFormatPresentationVerifierTest {
         when(typeManager.getMapper("test")).thenReturn(MAPPER);
     }
 
-    private ProofDraft generateEmbeddedProofOptions(ECKey vcKey, String proofPurpose) {
+    private ProofDraft generateProofOptions(ECKey key, String verificationMethodId) {
 
         return Jws2020ProofDraft.Builder.newInstance()
                 .mapper(MAPPER)
                 .created(Instant.now())
-                .verificationMethod(TestFunctions.createKeyPair(vcKey, proofPurpose)) // embedded proof
+                .verificationMethod(methodResolver.publish(verificationMethodId, key))
                 .proofPurpose(URI.create("https://w3id.org/security#assertionMethod"))
                 .build();
     }
@@ -181,7 +183,7 @@ class MultiFormatPresentationVerifierTest {
         @Test
         void verify_hasLdpVc_success() {
             var nameCredential = createNameCredential();
-            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
+            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
 
             var vpContent = VP_CONTENT_TEMPLATE.formatted(signedNameCredential);
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(vpContent)));
@@ -194,10 +196,10 @@ class MultiFormatPresentationVerifierTest {
         void verify_hasLdpVcs_success() {
 
             var nameCredential = createNameCredential();
-            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
+            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
 
             var memberCredential = createMembershipCredential();
-            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
+            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
 
 
             var vpContent = "%s, %s".formatted(signedMemberCredential, signedNameCredential);
@@ -212,10 +214,10 @@ class MultiFormatPresentationVerifierTest {
             var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", TestData.VC_CONTENT_DEGREE_EXAMPLE));
 
             var nameCredential = createNameCredential();
-            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
+            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
 
             var memberCredential = createMembershipCredential();
-            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
+            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
 
             var vpContent = "%s, %s, \"%s\"".formatted(signedMemberCredential, signedNameCredential, vcJwt1);
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(vpContent))));
@@ -266,7 +268,7 @@ class MultiFormatPresentationVerifierTest {
         void verify_hasLdpVc_forged_fails() throws JOSEException {
             var spoofedKey = new ECKeyGenerator(Curve.P_384).keyID("violating-key").generate();
             var nameCredential = createNameCredential();
-            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateEmbeddedProofOptions(spoofedKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
+            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(spoofedKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
 
 
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(signedNameCredential))));
@@ -280,10 +282,10 @@ class MultiFormatPresentationVerifierTest {
         void verify_hasLdpVcs_forged_fails() throws JOSEException {
             var spoofedKey = new ECKeyGenerator(Curve.P_384).keyID("violating-key").generate();
             var nameCredential = createNameCredential();
-            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateEmbeddedProofOptions(spoofedKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
+            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(spoofedKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
 
             var memberCredential = createMembershipCredential();
-            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
+            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
 
 
             var vpContent = "%s, %s".formatted(signedMemberCredential, signedNameCredential);
@@ -300,10 +302,10 @@ class MultiFormatPresentationVerifierTest {
             var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", TestData.VC_CONTENT_DEGREE_EXAMPLE));
 
             var nameCredential = createNameCredential();
-            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
+            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
 
             var memberCredential = createMembershipCredential();
-            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateEmbeddedProofOptions(spoofedKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
+            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateProofOptions(spoofedKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
 
             var vpContent = "%s, %s, \"%s\"".formatted(signedMemberCredential, signedNameCredential, vcJwt1);
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(vpContent))));
@@ -322,10 +324,10 @@ class MultiFormatPresentationVerifierTest {
                     .thenReturn(Result.failure("Invalid signature"));
 
             var nameCredential = createNameCredential();
-            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
+            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
 
             var memberCredential = createMembershipCredential();
-            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
+            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
 
             var vpContent = "%s, %s, \"%s\"".formatted(signedMemberCredential, signedNameCredential, vcJwt1);
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(vpContent))));
@@ -360,7 +362,7 @@ class MultiFormatPresentationVerifierTest {
             var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", TestData.VC_CONTENT_DEGREE_EXAMPLE));
 
             var vpContent = VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"");
-            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
+            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
             assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null), MY_OWN_DID))
                     .isFailed().detail().contains("InvalidSignature");
         }
@@ -369,11 +371,11 @@ class MultiFormatPresentationVerifierTest {
         @Test
         void verify_hasLdpVc_success() {
             var nameCredential = createNameCredential();
-            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
+            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
 
             var vpContent = VP_CONTENT_TEMPLATE.formatted(signedNameCredential);
 
-            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
+            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
             assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null), MY_OWN_DID)).isSucceeded();
         }
 
@@ -382,14 +384,14 @@ class MultiFormatPresentationVerifierTest {
         void verify_hasLdpVcs_success() {
 
             var nameCredential = createNameCredential();
-            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
+            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
 
             var memberCredential = createMembershipCredential();
-            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
+            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
 
 
             var vpContent = VP_CONTENT_TEMPLATE.formatted("%s, %s".formatted(signedMemberCredential, signedNameCredential));
-            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
+            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
 
             assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null), MY_OWN_DID)).isSucceeded();
         }
@@ -401,13 +403,13 @@ class MultiFormatPresentationVerifierTest {
             var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", TestData.VC_CONTENT_DEGREE_EXAMPLE));
 
             var nameCredential = createNameCredential();
-            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
+            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
 
             var memberCredential = createMembershipCredential();
-            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
+            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
 
             var vpContent = VP_CONTENT_TEMPLATE.formatted("%s, %s, \"%s\"".formatted(signedMemberCredential, signedNameCredential, vcJwt1));
-            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
+            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
             assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null), MY_OWN_DID))
                     .isFailed().detail().contains("InvalidSignature");
             verifyNoInteractions(spy);
@@ -418,10 +420,10 @@ class MultiFormatPresentationVerifierTest {
         void verify_hasLdpVc_forged_fails() throws JOSEException {
             var spoofedKey = new ECKeyGenerator(Curve.P_384).keyID("violating-key").generate();
             var nameCredential = createNameCredential();
-            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateEmbeddedProofOptions(spoofedKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
+            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(spoofedKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
 
             var vpContent = VP_CONTENT_TEMPLATE.formatted("%s, %s".formatted(signedNameCredential, signedNameCredential));
-            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
+            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
 
             assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null), MY_OWN_DID))
                     .isFailed().detail().contains("InvalidSignature");
@@ -432,14 +434,14 @@ class MultiFormatPresentationVerifierTest {
         void verify_hasLdpVcs_forged_fails() throws JOSEException {
             var spoofedKey = new ECKeyGenerator(Curve.P_384).keyID("violating-key").generate();
             var nameCredential = createNameCredential();
-            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateEmbeddedProofOptions(spoofedKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
+            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(spoofedKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
 
             var memberCredential = createMembershipCredential();
-            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
+            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
 
 
             var vpContent = VP_CONTENT_TEMPLATE.formatted("%s, %s".formatted(signedMemberCredential, signedNameCredential));
-            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
+            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
 
             assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null), MY_OWN_DID))
                     .isFailed().detail().contains("InvalidSignature");
@@ -452,13 +454,13 @@ class MultiFormatPresentationVerifierTest {
             var vcJwt1 = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", TestData.VC_CONTENT_DEGREE_EXAMPLE));
 
             var nameCredential = createNameCredential();
-            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
+            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
 
             var memberCredential = createMembershipCredential();
-            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateEmbeddedProofOptions(spoofedKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
+            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateProofOptions(spoofedKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
 
             var vpContent = "%s, %s, \"%s\"".formatted(signedMemberCredential, signedNameCredential, vcJwt1);
-            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
+            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
 
             assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null), MY_OWN_DID))
                     .isFailed().detail().contains("InvalidSignature");
@@ -472,13 +474,13 @@ class MultiFormatPresentationVerifierTest {
             var vcJwt1 = JwtCreationUtils.createJwt(spoofedKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", TestData.VC_CONTENT_DEGREE_EXAMPLE));
 
             var nameCredential = createNameCredential();
-            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
+            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
 
             var memberCredential = createMembershipCredential();
-            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateEmbeddedProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
+            var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateProofOptions(vcSigningKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
 
             var vpContent = VP_CONTENT_TEMPLATE.formatted("%s, %s, \"%s\"".formatted(signedMemberCredential, signedNameCredential, vcJwt1));
-            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
+            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
 
             assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null), MY_OWN_DID))
                     .isFailed().detail().contains("InvalidSignature");
@@ -490,7 +492,7 @@ class MultiFormatPresentationVerifierTest {
             // create first VC-JWT (signed by the central issuer)
 
             var vpContent = VP_CONTENT_TEMPLATE.formatted("");
-            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateEmbeddedProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
+            var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
 
             assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null), MY_OWN_DID)).isSucceeded();
         }
