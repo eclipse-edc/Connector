@@ -63,6 +63,9 @@ public class SqlParticipantContextStore extends AbstractSqlStore implements Part
                 if (findByIdInternal(connection, id) != null) {
                     return alreadyExists(alreadyExistsErrorMessage(id));
                 }
+                if (isIdentityUsedByAnother(connection, participantContext)) {
+                    return alreadyExists(identityAlreadyExistsErrorMessage(participantContext.getIdentity()));
+                }
 
                 var stmt = statements.getInsertTemplate();
                 queryExecutor.execute(connection, stmt,
@@ -102,6 +105,9 @@ public class SqlParticipantContextStore extends AbstractSqlStore implements Part
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 if (findByIdInternal(connection, id) != null) {
+                    if (isIdentityUsedByAnother(connection, participantContext)) {
+                        return alreadyExists(identityAlreadyExistsErrorMessage(participantContext.getIdentity()));
+                    }
                     queryExecutor.execute(connection,
                             statements.getUpdateTemplate(),
                             id,
@@ -167,6 +173,11 @@ public class SqlParticipantContextStore extends AbstractSqlStore implements Part
             var stmt = statements.getFindByIdTemplate();
             return queryExecutor.single(connection, false, this::mapResultSet, stmt, id);
         });
+    }
+
+    private boolean isIdentityUsedByAnother(Connection connection, ParticipantContext participantContext) {
+        var stored = queryExecutor.single(connection, false, this::mapResultSet, statements.getFindByIdentityTemplate(), participantContext.getIdentity());
+        return stored != null && !stored.getId().equals(participantContext.getId());
     }
 
     private ParticipantContext mapResultSet(ResultSet resultSet) throws Exception {

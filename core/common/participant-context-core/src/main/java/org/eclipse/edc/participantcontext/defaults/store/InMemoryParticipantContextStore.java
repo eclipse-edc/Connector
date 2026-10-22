@@ -43,26 +43,31 @@ public class InMemoryParticipantContextStore implements ParticipantContextStore 
     }
 
     @Override
-    public StoreResult<Void> create(ParticipantContext participantContext) {
-        var prev = participants.putIfAbsent(participantContext.getId(), participantContext);
-        if (prev != null) {
+    public synchronized StoreResult<Void> create(ParticipantContext participantContext) {
+        if (participants.containsKey(participantContext.getId())) {
             return StoreResult.alreadyExists(alreadyExistsErrorMessage(participantContext.getId()));
         }
+        if (isIdentityUsedByAnother(participantContext)) {
+            return StoreResult.alreadyExists(identityAlreadyExistsErrorMessage(participantContext.getIdentity()));
+        }
+        participants.put(participantContext.getId(), participantContext);
         return StoreResult.success();
     }
 
     @Override
-    public StoreResult<Void> update(ParticipantContext participantContext) {
-        var prev = participants.replace(participantContext.getId(), participantContext);
-        if (prev != null) {
-            return StoreResult.success();
-        } else {
+    public synchronized StoreResult<Void> update(ParticipantContext participantContext) {
+        if (!participants.containsKey(participantContext.getId())) {
             return StoreResult.notFound(notFoundErrorMessage(participantContext.getId()));
         }
+        if (isIdentityUsedByAnother(participantContext)) {
+            return StoreResult.alreadyExists(identityAlreadyExistsErrorMessage(participantContext.getIdentity()));
+        }
+        participants.put(participantContext.getId(), participantContext);
+        return StoreResult.success();
     }
 
     @Override
-    public StoreResult<Void> deleteById(String id) {
+    public synchronized StoreResult<Void> deleteById(String id) {
         var prev = participants.remove(id);
         if (prev != null) {
             return StoreResult.success();
@@ -79,5 +84,11 @@ public class InMemoryParticipantContextStore implements ParticipantContextStore 
         }
 
         return  StoreResult.notFound(notFoundErrorMessage(participantContextId));
+    }
+
+    // the identity is unique, as in the SQL schema
+    private boolean isIdentityUsedByAnother(ParticipantContext participantContext) {
+        return participants.values().stream()
+                .anyMatch(other -> !other.getId().equals(participantContext.getId()) && other.getIdentity().equals(participantContext.getIdentity()));
     }
 }

@@ -25,6 +25,7 @@ import java.util.Map;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 public abstract class ParticipantContextStoreTestBase {
@@ -50,6 +51,16 @@ public abstract class ParticipantContextStoreTestBase {
         var result2 = getStore().create(context);
 
         assertThat(result2).isFailed().detail().contains("already exists");
+    }
+
+    @Test
+    void create_whenIdentityExists_shouldReturnFailure() {
+        assertThat(getStore().create(createParticipantContext("id1", "identity"))).isSucceeded();
+
+        var result = getStore().create(createParticipantContext("id2", "identity"));
+
+        assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_EXISTS);
+        assertThat(getStore().findById("id2")).isFailed();
     }
 
     @Test
@@ -162,6 +173,17 @@ public abstract class ParticipantContextStoreTestBase {
         assertThat(storeResult).isSucceeded();
 
         assertThat(storeResult.getContent().getProperties()).containsEntry("new-key", "new-value");
+    }
+
+    @Test
+    void update_whenIdentityUsedByAnother_shouldReturnFailure() {
+        assertThat(getStore().create(createParticipantContext("id1", "identity1"))).isSucceeded();
+        assertThat(getStore().create(createParticipantContext("id2", "identity2"))).isSucceeded();
+
+        var result = getStore().update(createParticipantContext("id2", "identity1"));
+
+        assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_EXISTS);
+        assertThat(getStore().findById("id2")).isSucceeded().extracting(ParticipantContext::getIdentity).isEqualTo("identity2");
     }
 
     @Test

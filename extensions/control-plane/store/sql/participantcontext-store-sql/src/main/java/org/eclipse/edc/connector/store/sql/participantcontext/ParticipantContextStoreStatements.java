@@ -65,6 +65,8 @@ public interface ParticipantContextStoreStatements extends SqlStatements {
      */
     String getFindByIdForUpdateTemplate();
 
+    String getFindByIdentityTemplate();
+
     SqlQueryStatement createQuery(QuerySpec query);
 
     String getSelectStatement();

@@ -29,6 +29,8 @@ import static java.util.Map.entry;
 
 public class AssetPropertyLookup implements PropertyLookup {
 
+    private static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
+
     private final PropertyLookup fallbackPropertyLookup = new ReflectionPropertyLookup();
     private final AssetIdCompatibility assetIdCompatibility;
 
@@ -42,6 +44,11 @@ public class AssetPropertyLookup implements PropertyLookup {
             if (AssetIdCompatibility.isLegacyIdOperand(key)) {
                 assetIdCompatibility.warnOnce();
                 return asset.getId();
+            }
+
+            // the participant context filter must not be shadowed by a property with the same name
+            if (PARTICIPANT_CONTEXT_ID.equals(key)) {
+                return asset.getParticipantContextId();
             }
 
             Stream<Map.Entry<String, Function<Asset, Map<String, Object>>>> mappings = Stream.of(

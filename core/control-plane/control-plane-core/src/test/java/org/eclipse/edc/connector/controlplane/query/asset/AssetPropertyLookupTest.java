@@ -87,6 +87,19 @@ class AssetPropertyLookupTest {
     }
 
     @Test
+    void shouldReturnParticipantContextId_whenPropertyWithSameNameExists() {
+        var asset = Asset.Builder.newInstance()
+                .participantContextId("participant-context-id")
+                .property("participantContextId", "other-participant-context-id")
+                .privateProperty("participantContextId", "other-participant-context-id")
+                .build();
+
+        var property = propertyLookup.getProperty("participantContextId", asset);
+
+        assertThat(property).isEqualTo("participant-context-id");
+    }
+
+    @Test
     void shouldReturnNull_whenObjectIsNotAnAsset() {
         var property = propertyLookup.getProperty("not-existent", "not-an-asset");
 

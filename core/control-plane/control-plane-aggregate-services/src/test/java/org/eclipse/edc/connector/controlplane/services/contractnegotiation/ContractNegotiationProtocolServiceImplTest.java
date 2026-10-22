@@ -219,6 +219,37 @@ class ContractNegotiationProtocolServiceImplTest {
         }
 
         @Test
+        void shouldReturnNotFound_whenNegotiationBelongsToAnotherParticipantContext() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var contractOffer = contractOffer();
+            var negotiation = contractNegotiationBuilder().participantContextId("otherParticipantContextId")
+                    .state(OFFERED.code()).type(PROVIDER).contractOffer(contractOffer()).build();
+            var message = ContractRequestMessage.Builder.newInstance()
+                    .callbackAddress("callbackAddress")
+                    .protocol("protocol")
+                    .processId("providerPid")
+                    .contractOffer(contractOffer)
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .build();
+
+            var validatableOffer = ValidatableConsumerOffer.Builder.newInstance().offerId(ContractOfferId.create("any", "any"))
+                    .accessPolicy(createPolicy()).contractPolicy(createPolicy()).contractDefinition(createContractDefinition()).build();
+            when(consumerOfferResolver.resolveOffer(participantContext.getId(), contractOffer.getId())).thenReturn(ServiceResult.success(validatableOffer));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(validationService.validateInitialOffer(participantAgent, validatableOffer)).thenReturn(Result.success());
+            when(store.findById("providerPid")).thenReturn(negotiation);
+
+            var result = service.notifyRequested(participantContext, message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+            verify(store, never()).findByIdAndLease(any());
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
+
+        @Test
         void shouldReturnNotFound_whenOfferNotFound() {
             var tokenRepresentation = tokenRepresentation();
             var contractOffer = contractOffer();
@@ -304,7 +335,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
         @Test
         void shouldTransitionToOffered_whenNegotiationAlreadyExist() {
-            var processId = "processId";
+            var processId = "providerPid";
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
             var contractOffer = contractOffer();
@@ -681,6 +712,7 @@ class ContractNegotiationProtocolServiceImplTest {
             var result = methodCall.call(service, wrongParticipantContext, message, tokenRepresentation);
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+            verify(store, never()).findByIdAndLease(any());
             verify(store, never()).save(any());
             verifyNoInteractions(listener);
         }
