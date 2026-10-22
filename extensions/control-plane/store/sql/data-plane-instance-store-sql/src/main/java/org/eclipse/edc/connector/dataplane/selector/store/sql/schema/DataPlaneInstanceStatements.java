@@ -85,8 +85,6 @@ public interface DataPlaneInstanceStatements extends SqlStatements {
 
     String getFindByIdTemplate();
 
-    String getAllTemplate();
-
     String getUpsertTemplate();
 
     String getSelectTemplate();

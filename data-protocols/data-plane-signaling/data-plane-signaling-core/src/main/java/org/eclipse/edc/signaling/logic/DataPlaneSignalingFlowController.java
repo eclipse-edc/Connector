@@ -165,7 +165,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .reason("suspend")
                 .build();
 
-        return selectorClient.findById(transferProcess.getDataPlaneId())
+        return selectorClient.findById(transferProcess.getParticipantContextId(), transferProcess.getDataPlaneId())
                 .flatMap(this::toStatusResult)
                 .map(clientFactory::createClient)
                 .compose(client -> client.suspend(transferProcess.getId(), message));
@@ -194,7 +194,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
 
         var message = builder.build();
 
-        return selectorClient.findById(dataPlaneId)
+        return selectorClient.findById(transferProcess.getParticipantContextId(), dataPlaneId)
                 .flatMap(this::toStatusResult)
                 .map(clientFactory::createClient)
                 .compose(client -> client.resume(transferProcess.getId(), message))
@@ -210,7 +210,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
             return StatusResult.success();
         }
 
-        return selectorClient.findById(transferProcess.getDataPlaneId())
+        return selectorClient.findById(transferProcess.getParticipantContextId(), transferProcess.getDataPlaneId())
                 .flatMap(this::toStatusResult)
                 .map(clientFactory::createClient)
                 .compose(client -> {
@@ -226,7 +226,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
             return StatusResult.fatalError("DataPlane id is null");
         }
 
-        return selectorClient.findById(transferProcess.getDataPlaneId())
+        return selectorClient.findById(transferProcess.getParticipantContextId(), transferProcess.getDataPlaneId())
                 .flatMap(this::toStatusResult)
                 .map(clientFactory::createClient)
                 .compose(client -> {
@@ -252,7 +252,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
             return StatusResult.fatalError("DataPlane id is null");
         }
 
-        return selectorClient.findById(transferProcess.getDataPlaneId())
+        return selectorClient.findById(transferProcess.getParticipantContextId(), transferProcess.getDataPlaneId())
                 .flatMap(this::toStatusResult)
                 .map(clientFactory::createClient)
                 .compose(client -> client.completed(transferProcess.getId()));

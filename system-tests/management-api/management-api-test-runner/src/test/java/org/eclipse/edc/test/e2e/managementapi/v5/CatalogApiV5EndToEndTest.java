@@ -99,7 +99,7 @@ public class CatalogApiV5EndToEndTest {
                 participantContextService.deleteParticipantContext(p.getId()).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
             }
 
-            dataPlaneInstanceStore.getAll().toList().forEach(dp -> dataPlaneInstanceStore.deleteById(dp.getId()));
+            dataPlaneInstanceStore.query(QuerySpec.max()).toList().forEach(dp -> dataPlaneInstanceStore.deleteById(dp.getParticipantContextId(), dp.getId()));
         }
 
         @Test

@@ -121,7 +121,7 @@ public class DataPlaneSelectorServiceImplTest {
 
         @Test
         void shouldReturnBadRequest_whenStrategyNotFound() {
-            when(store.getAll()).thenReturn(Stream.empty());
+            when(store.query(any())).thenReturn(Stream.empty());
             when(selectionStrategyRegistry.find(any())).thenReturn(null);
 
             var result = service.selectFor(transferProcessBuilder().build());
@@ -131,7 +131,7 @@ public class DataPlaneSelectorServiceImplTest {
 
         @Test
         void shouldReturnNotFound_whenInstanceNotFound() {
-            when(store.getAll()).thenReturn(Stream.empty());
+            when(store.query(any())).thenReturn(Stream.empty());
             var strategy = testRandomSelectionStrategy();
             when(selectionStrategyRegistry.find(any())).thenReturn(strategy);
 
@@ -143,11 +143,11 @@ public class DataPlaneSelectorServiceImplTest {
         @Test
         void shouldReturnNotFound_whenStrategyReturnsNull() {
             var transferProcess = transferProcessBuilder().transferType("chosenTransferType").build();
-            when(store.getAll()).thenReturn(Stream.empty());
+            when(store.query(any())).thenReturn(Stream.empty());
             SelectionStrategy strategy = mock();
             when(strategy.apply(any())).thenReturn(null);
             when(selectionStrategyRegistry.find(any())).thenReturn(strategy);
-            when(store.getAll()).thenReturn(Stream.of(createInstanceBuilder("expectedInstance").allowedTransferType("chosenTransferType").state(REGISTERED.code()).build()));
+            when(store.query(any())).thenReturn(Stream.of(createInstanceBuilder("expectedInstance").allowedTransferType("chosenTransferType").state(REGISTERED.code()).build()));
 
             var result = service.selectFor(transferProcess);
 
@@ -175,9 +175,9 @@ public class DataPlaneSelectorServiceImplTest {
         void shouldDelete() {
             var instanceId = UUID.randomUUID().toString();
             var instance = createInstanceBuilder(instanceId).build();
-            when(store.deleteById(any())).thenReturn(StoreResult.success(instance));
+            when(store.deleteById(any(), any())).thenReturn(StoreResult.success(instance));
 
-            var result = service.delete(instanceId);
+            var result = service.delete("participantContextId", instanceId);
 
             assertThat(result).isSucceeded().isNull();
         }
@@ -185,9 +185,9 @@ public class DataPlaneSelectorServiceImplTest {
         @Test
         void shouldReturnNotFound_whenInstanceIsNotFound() {
             var instanceId = UUID.randomUUID().toString();
-            when(store.deleteById(any())).thenReturn(StoreResult.notFound("not found"));
+            when(store.deleteById(any(), any())).thenReturn(StoreResult.notFound("not found"));
 
-            var result = service.delete(instanceId);
+            var result = service.delete("participantContextId", instanceId);
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
         }
@@ -200,18 +200,19 @@ public class DataPlaneSelectorServiceImplTest {
         @Test
         void shouldReturnInstance() {
             var instance = createInstanceBuilder("instanceId").build();
-            when(store.findById(any())).thenReturn(instance);
+            when(store.findById(any(), any())).thenReturn(instance);
 
-            var result = service.findById("instanceId");
+            var result = service.findById("participantContextId", "instanceId");
 
             assertThat(result).isSucceeded().isSameAs(instance);
+            verify(store).findById("participantContextId", "instanceId");
         }
 
         @Test
         void shouldFail_whenInstanceDoesNotExist() {
-            when(store.findById(any())).thenReturn(null);
+            when(store.findById(any(), any())).thenReturn(null);
 
-            var result = service.findById("any");
+            var result = service.findById("participantContextId", "any");
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
         }
@@ -268,10 +269,10 @@ public class DataPlaneSelectorServiceImplTest {
         @Test
         void shouldUnregisterInstance() {
             var instance = DataPlaneInstance.Builder.newInstance().url("http://any").build();
-            when(store.findById(any())).thenReturn(instance);
+            when(store.findById(any(), any())).thenReturn(instance);
             when(store.save(any())).thenReturn(StoreResult.success());
 
-            var result = service.unregister(UUID.randomUUID().toString());
+            var result = service.unregister("participantContextId", UUID.randomUUID().toString());
 
             assertThat(result).isSucceeded();
             verify(store).save(argThat(it -> it.getState() == UNREGISTERED.code()));
@@ -279,9 +280,9 @@ public class DataPlaneSelectorServiceImplTest {
 
         @Test
         void shouldFail_whenNotFound() {
-            when(store.findById(any())).thenReturn(null);
+            when(store.findById(any(), any())).thenReturn(null);
 
-            var result = service.unregister(UUID.randomUUID().toString());
+            var result = service.unregister("participantContextId", UUID.randomUUID().toString());
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
             verify(store, never()).save(any());

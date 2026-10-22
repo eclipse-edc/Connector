@@ -50,7 +50,7 @@ public class DataPlaneTransferAuthorizationFilter implements ContainerRequestFil
         }
 
         var dataPlaneId = transferProcess.getDataPlaneId();
-        var dataPlane = dataPlaneSelectorService.findById(dataPlaneId)
+        var dataPlane = dataPlaneSelectorService.findById(transferProcess.getParticipantContextId(), dataPlaneId)
                 .orElseThrow(f -> new NotAuthorizedException("Not authorized"));
 
         var authorizationProfile = dataPlane.getAuthorizationProfile();

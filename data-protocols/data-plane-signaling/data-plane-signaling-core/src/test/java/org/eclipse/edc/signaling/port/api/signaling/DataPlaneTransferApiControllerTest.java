@@ -77,9 +77,9 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
 
         @Test
         void shouldReturnUnauthorized_whenDataPlaneRelatedToTransferProcessDoesNotExist() {
-            var transferProcess = TransferProcess.Builder.newInstance().dataPlaneId("unexistent").build();
+            var transferProcess = TransferProcess.Builder.newInstance().participantContextId("participantContextId").dataPlaneId("unexistent").build();
             when(transferProcessService.findById(any())).thenReturn(transferProcess);
-            when(dataPlaneSelectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
+            when(dataPlaneSelectorService.findById(any(), any())).thenReturn(ServiceResult.notFound("not found"));
             var transferId = UUID.randomUUID().toString();
             var message = DataFlowStatusMessage.Builder.newInstance().build();
 
@@ -92,7 +92,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
                     .log().ifValidationFails()
                     .statusCode(401);
 
-            verify(dataPlaneSelectorService).findById("unexistent");
+            verify(dataPlaneSelectorService).findById("participantContextId", "unexistent");
             verify(transferProcessService, never()).notifyPrepared(any());
         }
 
@@ -101,7 +101,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
             var transferProcess = TransferProcess.Builder.newInstance().dataPlaneId("dataPlaneId").build();
             when(transferProcessService.findById(any())).thenReturn(transferProcess);
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://any").authorizationProfile(null).build();
-            when(dataPlaneSelectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(dataPlaneSelectorService.findById(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             var transferId = UUID.randomUUID().toString();
             var message = DataFlowStatusMessage.Builder.newInstance().build();
 
@@ -127,7 +127,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance()
                     .url("http://localhost/any")
                     .authorizationProfile(new AuthorizationProfile("unsupported", emptyMap())).build();
-            when(dataPlaneSelectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(dataPlaneSelectorService.findById(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(signalingAuthorizationRegistry.findByType(any())).thenReturn(null);
             var transferId = UUID.randomUUID().toString();
             var message = DataFlowStatusMessage.Builder.newInstance().build();
@@ -151,7 +151,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance()
                     .url("http://localhost/any")
                     .authorizationProfile(new AuthorizationProfile("type", emptyMap())).build();
-            when(dataPlaneSelectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(dataPlaneSelectorService.findById(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             SignalingAuthorization authorization = mock();
             when(authorization.isAuthorized(any(), any())).thenReturn(Result.failure("not authorized"));
             when(signalingAuthorizationRegistry.findByType(any())).thenReturn(authorization);
@@ -177,7 +177,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance()
                     .url("http://localhost/any")
                     .authorizationProfile(new AuthorizationProfile("type", emptyMap())).build();
-            when(dataPlaneSelectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(dataPlaneSelectorService.findById(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             SignalingAuthorization authorization = mock();
             when(authorization.isAuthorized(any(), any())).thenReturn(Result.success("dataPlaneId"));
             when(signalingAuthorizationRegistry.findByType(any())).thenReturn(authorization);
@@ -205,7 +205,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance()
                     .url("http://localhost/any")
                     .authorizationProfile(new AuthorizationProfile("type", emptyMap())).build();
-            when(dataPlaneSelectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(dataPlaneSelectorService.findById(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             SignalingAuthorization authorization = mock();
             when(authorization.isAuthorized(any(), any())).thenReturn(Result.success("differentDataPlaneId"));
             when(signalingAuthorizationRegistry.findByType(any())).thenReturn(authorization);
@@ -379,7 +379,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
         var dataPlaneInstance = DataPlaneInstance.Builder.newInstance()
                 .url("http://localhost/any")
                 .authorizationProfile(new AuthorizationProfile("type", emptyMap())).build();
-        when(dataPlaneSelectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+        when(dataPlaneSelectorService.findById(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
         SignalingAuthorization authorization = mock();
         when(authorization.isAuthorized(any(), any())).thenReturn(Result.success("dataPlaneId"));
         when(signalingAuthorizationRegistry.findByType(any())).thenReturn(authorization);

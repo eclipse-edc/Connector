@@ -115,7 +115,7 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
 
         @Test
         void shouldDeleteDataPlane() {
-            when(dataPlaneSelectorService.delete(any())).thenReturn(ServiceResult.success());
+            when(dataPlaneSelectorService.delete(any(), any())).thenReturn(ServiceResult.success());
 
             given()
                     .port(port)
@@ -125,12 +125,12 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
                     .log().ifValidationFails()
                     .statusCode(200);
 
-            verify(dataPlaneSelectorService).delete("dp-id");
+            verify(dataPlaneSelectorService).delete("participant-context-id", "dp-id");
         }
 
         @Test
         void shouldReturnNotFound_whenDataPlaneDoesNotExist() {
-            when(dataPlaneSelectorService.delete(any())).thenReturn(ServiceResult.notFound("not found"));
+            when(dataPlaneSelectorService.delete(any(), any())).thenReturn(ServiceResult.notFound("not found"));
 
             given()
                     .port(port)

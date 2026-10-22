@@ -25,6 +25,7 @@ import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.Runtimes;
 import org.junit.jupiter.api.AfterEach;
@@ -66,8 +67,8 @@ public class DataPlaneSelectorApiV5EndToEndTest {
 
         @AfterEach
         void teardown(ParticipantContextService participantContextService, DataPlaneSelectorService selectorService) {
-            selectorService.getAll().orElseThrow(f -> new AssertionError(f.getFailureDetail()))
-                    .forEach(instance -> selectorService.delete(instance.getId()));
+            selectorService.search(QuerySpec.max()).orElseThrow(f -> new AssertionError(f.getFailureDetail()))
+                    .forEach(instance -> selectorService.delete(instance.getParticipantContextId(), instance.getId()));
             participantContextService.deleteParticipantContext(PARTICIPANT_CONTEXT_ID)
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
             participantContextService.deleteParticipantContext(OTHER_PARTICIPANT_CONTEXT_ID)

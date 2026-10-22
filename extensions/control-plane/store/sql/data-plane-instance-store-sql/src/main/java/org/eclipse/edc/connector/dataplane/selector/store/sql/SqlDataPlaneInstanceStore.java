@@ -57,14 +57,14 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
     }
 
     @Override
-    public StoreResult<DataPlaneInstance> deleteById(String instanceId) {
+    public StoreResult<DataPlaneInstance> deleteById(String participantContextId, String instanceId) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var instance = findByIdInternal(connection, instanceId);
+                var instance = findByIdInternal(connection, participantContextId, instanceId);
                 if (instance == null) {
                     return StoreResult.notFound("DataPlane instance %s not found".formatted(instanceId));
                 }
-                queryExecutor.execute(connection, statements.getDeleteByIdTemplate(), instanceId);
+                queryExecutor.execute(connection, statements.getDeleteByIdTemplate(), participantContextId, instanceId);
                 return StoreResult.success(instance);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
@@ -73,11 +73,12 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
     }
 
     @Override
-    public DataPlaneInstance findById(String id) {
+    public DataPlaneInstance findById(String participantContextId, String id) {
+        Objects.requireNonNull(participantContextId);
         Objects.requireNonNull(id);
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                return findByIdInternal(connection, id);
+                return findByIdInternal(connection, participantContextId, id);
             } catch (Exception exception) {
                 throw new EdcPersistenceException(exception);
             }
@@ -114,18 +115,6 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
     }
 
     @Override
-    public Stream<DataPlaneInstance> getAll() {
-        return transactionContext.execute(() -> {
-            try {
-                var sql = statements.getAllTemplate();
-                return queryExecutor.query(getConnection(), true, this::mapResultSet, sql);
-            } catch (SQLException exception) {
-                throw new EdcPersistenceException(exception);
-            }
-        });
-    }
-
-    @Override
     public Stream<DataPlaneInstance> query(QuerySpec querySpec) {
         return transactionContext.execute(() -> {
             try {
@@ -137,9 +126,9 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
         });
     }
 
-    private DataPlaneInstance findByIdInternal(Connection connection, String id) {
+    private DataPlaneInstance findByIdInternal(Connection connection, String participantContextId, String id) {
         var sql = statements.getFindByIdTemplate();
-        return queryExecutor.single(connection, false, this::mapResultSet, sql, id);
+        return queryExecutor.single(connection, false, this::mapResultSet, sql, participantContextId, id);
     }
 
     @SuppressWarnings("deprecation")

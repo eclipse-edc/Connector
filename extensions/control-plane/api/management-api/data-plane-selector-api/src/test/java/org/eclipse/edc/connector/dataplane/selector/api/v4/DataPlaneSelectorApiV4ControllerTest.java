@@ -21,6 +21,8 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.junit.annotations.ApiTest;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -33,9 +35,12 @@ import static io.restassured.RestAssured.given;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ApiTest
@@ -43,6 +48,8 @@ public class DataPlaneSelectorApiV4ControllerTest extends RestControllerTestBase
 
     private final DataPlaneSelectorService selectionService = mock();
     private final TypeTransformerRegistry transformerRegistry = mock();
+    private final SingleParticipantContextSupplier participantContextSupplier = () ->
+            ServiceResult.success(ParticipantContext.Builder.newInstance().id("participant-context-id").identity("identity").build());
 
     public static DataPlaneInstance createInstance(String id) {
         return DataPlaneInstance.Builder.newInstance()
@@ -52,9 +59,9 @@ public class DataPlaneSelectorApiV4ControllerTest extends RestControllerTestBase
     }
 
     @Test
-    void getAll() {
+    void getAll_shouldReturnInstancesOfTheParticipantContext() {
         var list = List.of(createInstance("test-id1"), createInstance("test-id2"), createInstance("test-id3"));
-        when(selectionService.getAll()).thenReturn(ServiceResult.success(list));
+        when(selectionService.search(any())).thenReturn(ServiceResult.success(list));
         when(transformerRegistry.transform(isA(DataPlaneInstance.class), eq(JsonObject.class)))
                 .thenAnswer(i -> Result.success(jsonInstance(i.getArgument(0, DataPlaneInstance.class).getId())));
 
@@ -68,11 +75,13 @@ public class DataPlaneSelectorApiV4ControllerTest extends RestControllerTestBase
         assertThat(array).hasSize(3)
                 .allSatisfy(jo -> assertThat(jo.asJsonObject().getString(ID))
                         .isIn("test-id1", "test-id2", "test-id3"));
+        verify(selectionService).search(argThat(query -> query.getFilterExpression().stream()
+                .anyMatch(c -> c.getOperandLeft().equals("participantContextId") && c.getOperandRight().equals("participant-context-id"))));
     }
 
     @Test
     void getAll_noneExist() {
-        when(selectionService.getAll()).thenReturn(ServiceResult.success(emptyList()));
+        when(selectionService.search(any())).thenReturn(ServiceResult.success(emptyList()));
 
         var array = baseRequest()
                 .get()
@@ -97,6 +106,6 @@ public class DataPlaneSelectorApiV4ControllerTest extends RestControllerTestBase
 
     @Override
     protected Object controller() {
-        return new DataplaneSelectorApiV4Controller(selectionService, transformerRegistry);
+        return new DataplaneSelectorApiV4Controller(selectionService, transformerRegistry, participantContextSupplier);
     }
 }

@@ -68,7 +68,8 @@ public class DataPlaneRegistrationApiV4Controller implements DataPlaneRegistrati
     @DELETE
     @Override
     public Response delete(@PathParam("dataplaneId") String dataplaneId) {
-        dataPlaneSelectorService.delete(dataplaneId)
+        participantContextSupplier.get()
+                .compose(participantContext -> dataPlaneSelectorService.delete(participantContext.getId(), dataplaneId))
                 .orElseThrow(it -> mapToException(it, DataPlaneInstance.class, dataplaneId));
 
         return Response.ok().build();
