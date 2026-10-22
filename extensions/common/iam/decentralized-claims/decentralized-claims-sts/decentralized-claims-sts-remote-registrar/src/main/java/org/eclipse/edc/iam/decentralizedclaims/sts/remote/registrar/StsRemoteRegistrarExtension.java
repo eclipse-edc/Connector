@@ -82,8 +82,9 @@ public class StsRemoteRegistrarExtension implements ServiceExtension {
                 .description("Vault alias of STS OAuth2 client secret").validator(notBlank()).requiredWhen(this::isOauthSts).build());
     }
 
+    // only an explicitly selected type makes the keys required, so the configuration can be filled in several writes
     private boolean isOauthSts(ParticipantConfigView config) {
-        return OAUTH_STS_TYPE.equals(config.getEntry(STS_TYPE_CONFIG_KEY).orElseGet(secureTokenServiceRegistry::defaultType));
+        return config.getEntry(STS_TYPE_CONFIG_KEY).map(OAUTH_STS_TYPE::equals).orElse(false);
     }
 
     private StsRemoteClientConfiguration clientConfiguration(String participantContextId) {
