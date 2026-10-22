@@ -32,6 +32,7 @@ import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.VerifierContext;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
 import org.eclipse.edc.token.TokenValidationServiceImpl;
@@ -62,13 +63,17 @@ import static org.eclipse.edc.verifiablecredentials.jwt.TestFunctions.createPubl
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class Vcdm20JosePresentationVerifierTest {
     private final TokenValidationService tokenValidationService = mock();
     private final PublicKeyResolver publicKeyResolver = mock();
-    private final Vcdm20JosePresentationVerifier verifier = new Vcdm20JosePresentationVerifier(tokenValidationService, new TokenValidationRulesRegistryImpl(), publicKeyResolver, false);
+    private final Monitor monitor = mock();
+    private final Vcdm20JosePresentationVerifier verifier = new Vcdm20JosePresentationVerifier(monitor, tokenValidationService, new TokenValidationRulesRegistryImpl(), publicKeyResolver, false);
 
     @BeforeEach
     void setUp() {
@@ -144,6 +149,62 @@ class Vcdm20JosePresentationVerifierTest {
 
         assertThat(verifier.verify(vpToken, mock())).isFailed()
                 .detail().contains("test-failure");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "[\"VerifiablePresentation\"]", "[\"VerifiablePresentation\", \"ExamplePresentation\"]", "[\"EnvelopedVerifiablePresentation\"]" })
+    @DisplayName("canHandle should return true when the type is a list that contains a presentation type")
+    void canHandle_typeList(String type) {
+        assertThat(verifier.canHandle(jwt("{\"type\":%s}".formatted(type)))).isTrue();
+    }
+
+    @Test
+    @DisplayName("canHandle should return false when the type is a list without a presentation type")
+    void canHandle_typeListWithoutPresentationType() {
+        assertThat(verifier.canHandle(jwt("{\"type\":[\"UnknownType\"]}"))).isFalse();
+    }
+
+    @Test
+    @DisplayName("verify should succeed for VP token whose type is a list")
+    void verify_vpToken_typeList() {
+        var token = jwt("{\"type\":[\"VerifiablePresentation\"],\"verifiableCredential\":[{\"type\":\"EnvelopedVerifiableCredential\",\"id\":\"data:application/vc+jwt,%s\"}]}"
+                .formatted(TestConstants.RANDOM_JWT));
+        assertThat(verifier.verify(token, mock())).isSucceeded();
+    }
+
+    @Test
+    @DisplayName("verify should fail for VP token whose type list contains no presentation type")
+    void verify_typeListWithoutPresentationType_expectFailure() {
+        assertThat(verifier.verify(jwt("{\"type\":[\"UnknownType\"]}"), mock())).isFailed()
+                .detail().contains("unknown type");
+    }
+
+    @Test
+    @DisplayName("verify should succeed, but log a warning, for a VP token without a 'typ' header")
+    void verify_vpTokenWithoutTyp_shouldWarn() {
+        var token = jwt("{\"type\":\"VerifiablePresentation\",\"verifiableCredential\":[]}");
+
+        assertThat(verifier.verify(token, mock())).isSucceeded();
+        verify(monitor).warning(contains("no 'typ' header"));
+    }
+
+    @Test
+    @DisplayName("verify should not log a warning for a VP token with a 'typ' header")
+    void verify_vpTokenWithTyp_shouldNotWarn() {
+        var token = jwt("{\"alg\":\"ES256\",\"typ\":\"vp+jwt\"}", "{\"type\":\"VerifiablePresentation\",\"verifiableCredential\":[]}");
+
+        assertThat(verifier.verify(token, mock())).isSucceeded();
+        verify(monitor, never()).warning(anyString());
+    }
+
+    @Test
+    @DisplayName("verify should log a warning for an enveloped VP token without a 'typ' header")
+    void verify_envelopedVpTokenWithoutTyp_shouldWarn() {
+        var vpToken = jwt("{\"type\":\"VerifiablePresentation\",\"verifiableCredential\":[]}");
+        var envelope = jwt("{\"alg\":\"ES256\",\"typ\":\"vp+jwt\"}", "{\"type\":\"EnvelopedVerifiablePresentation\",\"id\":\"data:application/vp+jwt,%s\"}".formatted(vpToken));
+
+        assertThat(verifier.verify(envelope, mock())).isSucceeded();
+        verify(monitor).warning(contains("no 'typ' header"));
     }
 
     @Test
@@ -269,8 +330,25 @@ class Vcdm20JosePresentationVerifierTest {
                     .detail().contains("did not contain expected audience");
         }
 
+        @Test
+        void verify_vpTokenWithTypeList_wrongAudience_expectFailure() {
+            var token = jwt("{\"type\": [\"VerifiablePresentation\"], \"verifiableCredential\": [], \"aud\": \"did:web:other\"}");
+
+            assertThat(verifier(false).verify(token, context)).isFailed()
+                    .detail().contains("did not contain expected audience");
+        }
+
+        @Test
+        void verify_vpTokenWithTypeList_expired_expectFailure() {
+            var token = jwt("{\"type\": [\"VerifiablePresentation\"], \"verifiableCredential\": [], \"aud\": \"%s\", \"exp\": %d}"
+                    .formatted(AUDIENCE, Instant.now().minusSeconds(60).getEpochSecond()));
+
+            assertThat(verifier(false).verify(token, context)).isFailed()
+                    .detail().contains("Token has expired");
+        }
+
         private Vcdm20JosePresentationVerifier verifier(boolean requireAudience) {
-            return new Vcdm20JosePresentationVerifier(new TokenValidationServiceImpl(), rulesRegistry, publicKeyResolver, requireAudience);
+            return new Vcdm20JosePresentationVerifier(monitor, new TokenValidationServiceImpl(), rulesRegistry, publicKeyResolver, requireAudience);
         }
 
         private String vpToken(String additionalClaims) {
@@ -288,7 +366,7 @@ class Vcdm20JosePresentationVerifierTest {
         private static final String ISSUER_KEY_ID = ISSUER_DID + "#key-1";
         private static final String ATTACKER_KEY_ID = "did:web:attacker.example.com#key-1";
         private static final String LOOKALIKE_KEY_ID = "did:web:issuer-example.com#key-1";
-        private final Vcdm20JosePresentationVerifier verifier = new Vcdm20JosePresentationVerifier(new TokenValidationServiceImpl(), new TokenValidationRulesRegistryImpl(), publicKeyResolver, false);
+        private final Vcdm20JosePresentationVerifier verifier = new Vcdm20JosePresentationVerifier(monitor, new TokenValidationServiceImpl(), new TokenValidationRulesRegistryImpl(), publicKeyResolver, false);
         private final VerifierContext context = VerifierContext.Builder.newInstance().verifier(verifier).build();
         private ECKey issuerKey;
         private ECKey attackerKey;
@@ -430,8 +508,12 @@ class Vcdm20JosePresentationVerifierTest {
     }
 
     private static String jwt(String payloadJson) {
+        return jwt("{\"alg\":\"ES256\"}", payloadJson);
+    }
+
+    private static String jwt(String headerJson, String payloadJson) {
         var header = Base64.getUrlEncoder().withoutPadding()
-                .encodeToString("{\"alg\":\"ES256\"}".getBytes(StandardCharsets.UTF_8));
+                .encodeToString(headerJson.getBytes(StandardCharsets.UTF_8));
         var payload = Base64.getUrlEncoder().withoutPadding()
                 .encodeToString(payloadJson.getBytes(StandardCharsets.UTF_8));
         return header + "." + payload + ".AAAA";
