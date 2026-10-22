@@ -109,8 +109,10 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                                 return requestedAction(message, negotiation, contractOffer, agent);
                             }
 
-                            return onMessageDo(participantContext, message, agent,
-                                    negotiation -> requestedAction(message, negotiation, contractOffer, agent));
+                            // the ownership is checked before leasing, so that a negotiation of another participant context is never leased
+                            return getNegotiation(participantContext, message.getProcessId())
+                                    .compose(owned -> onMessageDo(participantContext, message, agent,
+                                            negotiation -> requestedAction(message, negotiation, contractOffer, agent)));
                         })
                 ));
     }
@@ -126,8 +128,10 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                         return offeredAction(message, negotiation);
                     }
 
-                    return onMessageDo(participantContext, message, agent,
-                            negotiation -> offeredAction(message, negotiation));
+                    // the ownership is checked before leasing, so that a negotiation of another participant context is never leased
+                    return getNegotiation(participantContext, message.getProcessId())
+                            .compose(owned -> onMessageDo(participantContext, message, agent,
+                                    negotiation -> offeredAction(message, negotiation)));
                 }));
     }
 

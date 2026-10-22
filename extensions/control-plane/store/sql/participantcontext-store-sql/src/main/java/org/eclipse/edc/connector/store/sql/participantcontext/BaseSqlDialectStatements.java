@@ -63,6 +63,11 @@ public class BaseSqlDialectStatements implements ParticipantContextStoreStatemen
     }
 
     @Override
+    public String getFindByIdentityTemplate() {
+        return format("SELECT * FROM %s WHERE %s = ?", getParticipantContextTable(), getIdentityColumn());
+    }
+
+    @Override
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
         var select = getSelectStatement();
         return new SqlQueryStatement(select, querySpec, new ParticipantContextMapping(this), new PostgresqlOperatorTranslator());

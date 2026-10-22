@@ -31,10 +31,11 @@ public interface ParticipantContextStore {
     StoreResult<Collection<ParticipantContext>> query(QuerySpec querySpec);
 
     /**
-     * Creates a new ParticipantContext in the store.
+     * Creates a new ParticipantContext in the store. Both the id and the identity must be unique.
      *
      * @param participantContext The {@link ParticipantContext} to be created.
-     * @return A {@link StoreResult} indicating the success or failure of the operation.
+     * @return A {@link StoreResult} indicating the success or failure of the operation: already exists if the id or the
+     *         identity is already used by another ParticipantContext.
      */
     StoreResult<Void> create(ParticipantContext participantContext);
 
@@ -42,7 +43,8 @@ public interface ParticipantContextStore {
      * Updates a ParticipantContext resource in the store.
      *
      * @param participantContext The ParticipantContext resource to update. Note that <em>all fields</em> are overwritten.
-     * @return success if participant context exists, failure otherwise
+     * @return success if participant context exists, not found otherwise, already exists if the identity is used by
+     *         another ParticipantContext
      */
     StoreResult<Void> update(ParticipantContext participantContext);
 
@@ -76,6 +78,10 @@ public interface ParticipantContextStore {
 
     default String alreadyExistsErrorMessage(String id) {
         return "A ParticipantContext with ID '%s' already exists.".formatted(id);
+    }
+
+    default String identityAlreadyExistsErrorMessage(String identity) {
+        return "A ParticipantContext with identity '%s' already exists.".formatted(identity);
     }
 
     default String notFoundErrorMessage(String id) {
