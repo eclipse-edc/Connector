@@ -61,18 +61,27 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
 
     @NotNull
     private Result<Void> validateVerifiableCredentials(List<VerifiableCredential> credentials, @Nullable String presentationHolder, DataspaceProfileContext dataspaceProfileContext) {
-        var rules = new ArrayList<>(this.baseRules);
-        rules.add(new HasValidIssuer(dataspaceProfileContext));
+        // issuer trust and subject binding are checked first: the base rules may fetch remote resources referenced by the credential
+        // (e.g. status lists, schemas), which must not happen for credentials of untrusted issuers
+        var trustRules = new ArrayList<CredentialValidationRule>();
+        trustRules.add(new HasValidIssuer(dataspaceProfileContext));
 
         if (presentationHolder != null) {
-            rules.add(new HasValidSubjectIds(presentationHolder));
+            trustRules.add(new HasValidSubjectIds(presentationHolder));
         }
+
+        var trustRule = combine(trustRules);
+        var baseRule = combine(baseRules);
 
         return credentials
                 .stream()
-                .map(c -> rules.stream().reduce(t -> success(), CredentialValidationRule::and).apply(c))
+                .map(c -> trustRule.apply(c).compose(v -> baseRule.apply(c)))
                 .reduce(Result::merge)
                 .orElseGet(Result::success);
+    }
+
+    private CredentialValidationRule combine(List<CredentialValidationRule> rules) {
+        return rules.stream().reduce(t -> success(), CredentialValidationRule::and);
     }
 
 }

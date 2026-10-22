@@ -17,7 +17,9 @@ package org.eclipse.edc.iam.verifiablecredentials;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
+import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
@@ -27,6 +29,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Collections.emptyList;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions.createCredentialBuilder;
@@ -36,6 +39,8 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unchecked")
@@ -188,6 +193,78 @@ class VerifiableCredentialValidationServiceImplTest {
 
         var result = validationService.validate(List.of(vpContainer1, vpContainer2), EXPECTED_AUDIENCE, createProfile());
         assertThat(result).isSucceeded();
+    }
+
+    @Test
+    void verify_untrustedIssuer_shouldNotApplyBaseRules() {
+        CredentialValidationRule baseRule = mock();
+        var service = new VerifiableCredentialValidationServiceImpl(verifier, List.of(baseRule));
+        var presentation = createPresentationBuilder()
+                .holder(CONSUMER_DID)
+                .type("VerifiablePresentation")
+                .credentials(List.of(createCredentialBuilder()
+                        .issuer(new Issuer("did:web:untrusted", Map.of()))
+                        .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                                .id(CONSUMER_DID)
+                                .claim("some-claim", "some-val")
+                                .build()))
+                        .build()))
+                .build();
+        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
+
+        var result = service.validate(List.of(vpContainer), EXPECTED_AUDIENCE, createProfile());
+
+        assertThat(result).isFailed().detail().contains("not supported for issuer 'did:web:untrusted'");
+        verifyNoInteractions(baseRule);
+    }
+
+    @Test
+    void verify_invalidSubjectId_shouldNotApplyBaseRules() {
+        CredentialValidationRule baseRule = mock();
+        var service = new VerifiableCredentialValidationServiceImpl(verifier, List.of(baseRule));
+        var presentation = createPresentationBuilder()
+                .holder(CONSUMER_DID)
+                .type("VerifiablePresentation")
+                .credentials(List.of(createCredentialBuilder()
+                        .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                                .id("invalid-subject-id")
+                                .claim("some-claim", "some-val")
+                                .build()))
+                        .build()))
+                .build();
+        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
+
+        var result = service.validate(List.of(vpContainer), EXPECTED_AUDIENCE, createProfile());
+
+        assertThat(result).isFailed().detail().contains("Not all credential subject IDs match the expected subject ID");
+        verifyNoInteractions(baseRule);
+    }
+
+    @Test
+    void verify_trustedIssuer_shouldApplyBaseRules() {
+        CredentialValidationRule baseRule = mock();
+        when(baseRule.apply(any())).thenReturn(Result.failure("base rule failed"));
+        var service = new VerifiableCredentialValidationServiceImpl(verifier, List.of(baseRule));
+        var credential = createCredentialBuilder()
+                .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                        .id(CONSUMER_DID)
+                        .claim("some-claim", "some-val")
+                        .build()))
+                .build();
+        var presentation = createPresentationBuilder()
+                .holder(CONSUMER_DID)
+                .type("VerifiablePresentation")
+                .credentials(List.of(credential))
+                .build();
+        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
+
+        var result = service.validate(List.of(vpContainer), EXPECTED_AUDIENCE, createProfile());
+
+        assertThat(result).isFailed().detail().isEqualTo("base rule failed");
+        verify(baseRule).apply(credential);
     }
 
     private DataspaceProfileContext createProfile() {
