@@ -15,9 +15,12 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.decentralizedclaims.transform.TestData;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.DataModelVersion;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.json.JsonMapperFactory;
@@ -33,7 +36,11 @@ import org.junit.jupiter.api.Test;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
+import java.nio.charset.StandardCharsets;
+import java.text.ParseException;
 import java.time.Instant;
+import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,6 +51,7 @@ import static org.eclipse.edc.iam.decentralizedclaims.transform.TestData.EXAMPLE
 import static org.eclipse.edc.iam.decentralizedclaims.transform.TestData.EXMPLE_JWT_VP_NO_VP_CLAIM;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
@@ -188,5 +196,57 @@ class JwtToVerifiablePresentationTransformerTest {
         assertThat(vp.getTypes()).containsExactlyInAnyOrder("VerifiablePresentation");
         assertThat(vp.getCredentials()).isEmpty();
         verify(context, atLeastOnce()).reportProblem(eq("Credential object is not a valid EnvelopedVerifiableCredential"));
+    }
+
+    @DisplayName("VP is the VP JWT itself, not wrapped in an EnvelopedVerifiablePresentation")
+    @Test
+    void transform_plainPresentation() throws ParseException {
+        var vp = transformer.transform(plainPresentation(), context);
+        assertThat(vp).isNotNull();
+        assertThat(vp.getHolder()).isEqualTo("did:web:example:holder");
+        assertThat(vp.getDataModelVersion()).isEqualTo(DataModelVersion.V_2_0);
+        assertThat(vp.getTypes()).containsExactlyInAnyOrder("VerifiablePresentation");
+        assertThat(vp.getCredentials()).hasSize(2)
+                .allSatisfy(vc -> {
+                    assertThat(vc.getCredentialSubject()).isNotEmpty();
+                    assertThat(vc.getType()).containsExactlyInAnyOrder("ExampleDegreeCredential", "ExamplePersonCredential", "VerifiableCredential");
+                });
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @DisplayName("VP is the VP JWT itself, and its type is a list")
+    @Test
+    void transform_plainPresentation_typeList() throws ParseException {
+        var claims = new JWTClaimsSet.Builder(SignedJWT.parse(plainPresentation()).getJWTClaimsSet())
+                .claim("type", List.of("VerifiablePresentation", "ExamplePresentation"))
+                .build();
+
+        var vp = transformer.transform(unsignedJwt(claims), context);
+        assertThat(vp).isNotNull();
+        assertThat(vp.getTypes()).containsExactlyInAnyOrder("VerifiablePresentation", "ExamplePresentation");
+        assertThat(vp.getCredentials()).hasSize(2);
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @DisplayName("VCDM 2.0 JWT is neither a VerifiablePresentation nor an EnvelopedVerifiablePresentation")
+    @Test
+    void transform_vcdm20_unknownType() throws ParseException {
+        var claims = new JWTClaimsSet.Builder(SignedJWT.parse(plainPresentation()).getJWTClaimsSet())
+                .claim("type", "ExamplePresentation")
+                .build();
+
+        assertThat(transformer.transform(unsignedJwt(claims), context)).isNull();
+        verify(context).reportProblem(contains("Presentations secured with JOSE MUST be of type"));
+    }
+
+    private String plainPresentation() throws ParseException {
+        var envelopeId = SignedJWT.parse(TestData.EXAMPLE_ENVELOPED_PRESENTATION_WITH_HOLDER).getJWTClaimsSet().getStringClaim("id");
+        return envelopeId.substring("data:application/vp+jwt,".length());
+    }
+
+    private String unsignedJwt(JWTClaimsSet claims) {
+        var encoder = Base64.getUrlEncoder().withoutPadding();
+        return encoder.encodeToString("{\"alg\":\"ES256\"}".getBytes(StandardCharsets.UTF_8)) + "." +
+                encoder.encodeToString(claims.toString().getBytes(StandardCharsets.UTF_8)) + ".AAAA";
     }
 }

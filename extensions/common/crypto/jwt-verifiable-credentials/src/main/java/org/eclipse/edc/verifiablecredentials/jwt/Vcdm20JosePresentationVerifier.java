@@ -19,6 +19,7 @@ import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.CredentialVerifier;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.VerifierContext;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
@@ -30,8 +31,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ENVELOPED_CREDENTIAL_CONTENT_TYPE;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ENVELOPED_CREDENTIAL_TYPE;
@@ -49,6 +52,8 @@ import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VP_CLAIM;
  * Verifiable Credentials Data Model (VCDM) 2.0 specification. Both enveloped presentations and simple VP tokens are supported.
  */
 public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
+    private static final String VP_JWT_TYPE = "vp+jwt";
+    private final Monitor monitor;
     private final TokenValidationService tokenValidationService;
     private final TokenValidationRulesRegistry tokenValidationRulesRegistry;
     private final PublicKeyResolver publicKeyResolver;
@@ -56,11 +61,13 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
 
     /**
      * Creates a verifier that checks the presentation JWTs with the rules registered for {@link Constants#JWT_VP_TOKEN_CONTEXT}.
+     * Presentation JWTs without a {@code typ} header are accepted, but a warning is logged.
      *
      * @param requireAudience whether the presentation JWTs must have an {@code aud} claim. Otherwise, it is only checked when present.
      */
-    public Vcdm20JosePresentationVerifier(TokenValidationService tokenValidationService, TokenValidationRulesRegistry tokenValidationRulesRegistry,
+    public Vcdm20JosePresentationVerifier(Monitor monitor, TokenValidationService tokenValidationService, TokenValidationRulesRegistry tokenValidationRulesRegistry,
                                           PublicKeyResolver publicKeyResolver, boolean requireAudience) {
+        this.monitor = monitor;
         this.tokenValidationService = tokenValidationService;
         this.tokenValidationRulesRegistry = tokenValidationRulesRegistry;
         this.publicKeyResolver = publicKeyResolver;
@@ -75,12 +82,7 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
                 return false;
             }
 
-            var type = jwtClaimsSet.getStringClaim(TYPE);
-            if (type == null) {
-                return false;
-            }
-
-            return type.equals(ENVELOPED_VERIFIABLE_PRESENTATION_TYPE) || type.equals(VERIFIABLE_PRESENTATION_TYPE);
+            return presentationType(jwtClaimsSet) != null;
 
         } catch (ParseException e) {
             return false;
@@ -90,11 +92,17 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
     @Override
     public Result<Void> verify(String rawInput, VerifierContext verifierContext) {
         try {
-            var jwtClaimsSet = SignedJWT.parse(rawInput).getJWTClaimsSet();
-            var type = jwtClaimsSet.getStringClaim(TYPE);
-            if (type == null) {
+            var jwt = SignedJWT.parse(rawInput);
+            var jwtClaimsSet = jwt.getJWTClaimsSet();
+            if (jwtClaimsSet.getClaim(TYPE) == null) {
                 return Result.failure("Not a valid VP token - missing the 'type' claim");
             }
+            var type = presentationType(jwtClaimsSet);
+            if (type == null) {
+                return Result.failure("Not a valid VP token - unknown type '%s'".formatted(jwtClaimsSet.getClaim(TYPE)));
+            }
+
+            warnIfUntyped(jwt);
 
             // validate JWT signature and claims
             var rules = vpValidationRules(verifierContext.getAudience());
@@ -103,11 +111,9 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
                 return verificationResult.mapEmpty();
             }
 
-            return switch (type) {
-                case ENVELOPED_VERIFIABLE_PRESENTATION_TYPE -> verifyEnvelopedPresentation(jwtClaimsSet, rules);
-                case VERIFIABLE_PRESENTATION_TYPE -> verifyVpToken(jwtClaimsSet);
-                default -> Result.failure("Not a valid VP token - unknown type '%s'".formatted(type));
-            };
+            return ENVELOPED_VERIFIABLE_PRESENTATION_TYPE.equals(type)
+                    ? verifyEnvelopedPresentation(jwtClaimsSet, rules)
+                    : verifyVpToken(jwtClaimsSet);
 
 
         } catch (ParseException e) {
@@ -141,7 +147,9 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
             }
             vpEnvelope = vpEnvelope.substring(ENVELOPED_PRESENTATION_CONTENT_TYPE.length() + 1);
             results.add(tokenValidationService.validate(vpEnvelope, publicKeyResolver, rules).mapEmpty());
-            results.add(verifyVpToken(SignedJWT.parse(vpEnvelope).getJWTClaimsSet()));
+            var vpJwt = SignedJWT.parse(vpEnvelope);
+            warnIfUntyped(vpJwt);
+            results.add(verifyVpToken(vpJwt.getJWTClaimsSet()));
         }
         return results.stream().reduce(Result::merge).orElse(Result.success());
     }
@@ -221,6 +229,29 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
             return rules;
         }
         return List.of(new CredentialIssuerKeyIdValidationRule(keyId));
+    }
+
+    /**
+     * Returns the presentation type of the JWT. The {@code type} claim is either a single string or a list that contains the type.
+     *
+     * @return {@link Constants#ENVELOPED_VERIFIABLE_PRESENTATION_TYPE}, {@link Constants#VERIFIABLE_PRESENTATION_TYPE}, or null if it is neither
+     */
+    private @Nullable String presentationType(JWTClaimsSet claimsSet) {
+        var type = claimsSet.getClaim(TYPE);
+        var types = type instanceof List<?> list ? list : Collections.singletonList(type);
+        return Stream.of(ENVELOPED_VERIFIABLE_PRESENTATION_TYPE, VERIFIABLE_PRESENTATION_TYPE)
+                .filter(types::contains)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * VC-JOSE-COSE expects presentation JWTs to carry the {@code typ} header {@code vp+jwt}, but presentations without it are still accepted.
+     */
+    private void warnIfUntyped(SignedJWT presentation) {
+        if (presentation.getHeader().getType() == null) {
+            monitor.warning("Presentation JWT has no 'typ' header, expected '%s'. It is accepted nonetheless.".formatted(VP_JWT_TYPE));
+        }
     }
 
     private List<TokenValidationRule> vpValidationRules(@Nullable String audience) {

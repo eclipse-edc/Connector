@@ -260,7 +260,7 @@ public class DcpCoreExtension implements ServiceExtension {
                     .requireBinding(requirePresentationBinding)
                     .build();
 
-            var joseVerifier = new Vcdm20JosePresentationVerifier(tokenValidationService, rulesRegistry, didPublicKeyResolver, requirePresentationBinding);
+            var joseVerifier = new Vcdm20JosePresentationVerifier(monitor, tokenValidationService, rulesRegistry, didPublicKeyResolver, requirePresentationBinding);
 
             presentationVerifier = new MultiFormatPresentationVerifier(jwtVerifier, ldpVerifier, joseVerifier);
         }
