@@ -37,17 +37,30 @@ public interface ParticipantContextConfigValidatorRegistry {
     void register(ParticipantConfigEntry entry);
 
     /**
-     * Validates a write, either a full replacement or a merge patch, of a participant context configuration.
+     * Validates a full replacement of a participant context configuration.
      * <p>
      * The values in {@code write} are validated, and must be submitted as public or private entries according to the
-     * sensitivity of their key. {@code null} values are removals and are not validated. Required keys are checked
-     * against {@code effective}, the configuration as it would be after the write.
+     * sensitivity of their key. Required keys are checked against {@code effective}, the configuration as it would be
+     * after the write.
      *
      * @param write     the submitted configuration, with plain text private entries.
      * @param effective the view of the configuration after the write is applied.
      * @return the validation result, carrying all the violations found.
      */
     ValidationResult validateWrite(ParticipantContextConfiguration write, ParticipantConfigView effective);
+
+    /**
+     * Validates a merge patch of a participant context configuration.
+     * <p>
+     * The values in {@code patch} are validated, and must be submitted as public or private entries according to the
+     * sensitivity of their key. {@code null} values are removals and are not validated. Required keys are not
+     * checked: a configuration can be completed by several patches, from different writers and in any order, so a
+     * missing key is reported by {@link #validate(ParticipantConfigView)} instead.
+     *
+     * @param patch the submitted patch, with plain text private entries.
+     * @return the validation result, carrying all the violations found.
+     */
+    ValidationResult validatePatch(ParticipantContextConfiguration patch);
 
     /**
      * Checks a stored configuration: every key required by the registered entries must be present, and the registered

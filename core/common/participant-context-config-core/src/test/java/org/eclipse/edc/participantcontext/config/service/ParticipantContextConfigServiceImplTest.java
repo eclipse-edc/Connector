@@ -117,8 +117,7 @@ public class ParticipantContextConfigServiceImplTest {
 
         assertThat(service.merge(patch)).isSucceeded();
 
-        // the stored configuration is only read for validation: a read-modify-write here would race with concurrent
-        // merges and lose entries
+        // a read-modify-write here would race with concurrent merges and lose entries
         verify(store).merge(argThat(applied -> applied.getEntries().equals(Map.of("key", "value"))));
         verify(store, never()).save(any());
     }
@@ -212,41 +211,20 @@ public class ParticipantContextConfigServiceImplTest {
         }
 
         @Test
-        void merge_shouldReturnBadRequest_whenRemovingRequiredKey() {
-            validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("required").required().build());
-            when(store.get("participantContext")).thenReturn(ParticipantContextConfiguration.Builder.newInstance()
-                    .participantContextId("participantContext")
-                    .entries(Map.of("required", "value"))
-                    .build());
-            var entries = new HashMap<String, String>();
-            entries.put("required", null);
+        void merge_shouldReturnBadRequest_whenInvalid() {
+            validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("url").validator(httpUrl()).build());
             var patch = ParticipantContextConfiguration.Builder.newInstance()
                     .participantContextId("participantContext")
-                    .entries(entries)
+                    .entries(Map.of("url", "not-an-url"))
                     .build();
 
-            assertThat(service.merge(patch)).isFailed().messages().containsExactly("'required' is required");
+            assertThat(service.merge(patch)).isFailed().messages().containsExactly("'url' must be an absolute http(s) URL");
             verify(store, never()).merge(any());
         }
 
         @Test
-        void merge_shouldSucceed_whenRequiredKeyIsStored() {
-            validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("required").sensitive().required().build());
-            when(store.get("participantContext")).thenReturn(ParticipantContextConfiguration.Builder.newInstance()
-                    .participantContextId("participantContext")
-                    .privateEntries(Map.of("required", "encrypted"))
-                    .build());
-            var patch = ParticipantContextConfiguration.Builder.newInstance()
-                    .participantContextId("participantContext")
-                    .entries(Map.of("other", "value"))
-                    .build();
-
-            assertThat(service.merge(patch)).isSucceeded();
-            verify(store).merge(any());
-        }
-
-        @Test
-        void merge_shouldReturnBadRequest_whenNoStoredConfigAndRequiredKeyMissing() {
+        void merge_shouldNotCheckRequiredKeys() {
+            validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("required").required().build());
             validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("type").build());
             validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("url")
                     .requiredWhen(view -> view.getEntry("type").filter("remote"::equals).isPresent())
@@ -256,8 +234,23 @@ public class ParticipantContextConfigServiceImplTest {
                     .entries(Map.of("type", "remote"))
                     .build();
 
-            assertThat(service.merge(patch)).isFailed().messages().containsExactly("'url' is required");
-            verify(store, never()).merge(any());
+            // the configuration may be completed by other writers, in any order
+            assertThat(service.merge(patch)).isSucceeded();
+            verify(store).merge(any());
+        }
+
+        @Test
+        void merge_shouldAllowRemovingRequiredKey() {
+            validatorRegistry.register(ParticipantConfigEntry.Builder.newInstance("required").required().build());
+            var entries = new HashMap<String, String>();
+            entries.put("required", null);
+            var patch = ParticipantContextConfiguration.Builder.newInstance()
+                    .participantContextId("participantContext")
+                    .entries(entries)
+                    .build();
+
+            assertThat(service.merge(patch)).isSucceeded();
+            verify(store).merge(any());
         }
 
         @Test
