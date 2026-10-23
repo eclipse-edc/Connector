@@ -71,9 +71,9 @@ public class ParticipantContextConfigServiceImpl implements ParticipantContextCo
     @Override
     public ServiceResult<Void> merge(ParticipantContextConfiguration config) {
         return transactionContext.execute(() -> {
-            // validated against the current configuration: the required keys are checked on the merged result
-            var effective = config.mergeOnto(configStore.get(config.getParticipantContextId()));
-            var validation = validatorRegistry.validateWrite(config, ParticipantConfigView.of(effective));
+            // required keys are not checked: several writers complete the configuration with patches in any order,
+            // a missing key is reported by validate()
+            var validation = validatorRegistry.validatePatch(config);
             if (validation.failed()) {
                 return ServiceResult.badRequest(validation.getFailureMessages());
             }

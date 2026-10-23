@@ -100,25 +100,13 @@ class ParticipantContextConfigValidatorRegistryImplTest {
         }
 
         @Test
-        void shouldNotValidateRemovals() {
-            registry.register(ParticipantConfigEntry.Builder.newInstance("key").validator(value -> {
-                throw new AssertionError("removals must not be validated");
-            }).build());
-            var entries = new HashMap<String, String>();
-            entries.put("key", null);
-            var patch = config(entries, Map.of());
-
-            assertThat(registry.validateWrite(patch, view(config(Map.of(), Map.of())))).isSucceeded();
-        }
-
-        @Test
         void shouldCheckRequiredKeys_onEffectiveConfiguration() {
             registry.register(ParticipantConfigEntry.Builder.newInstance("required").required().build());
-            var patch = config(Map.of("other", "value"), Map.of());
+            var write = config(Map.of("other", "value"), Map.of());
 
-            assertThat(registry.validateWrite(patch, view(config(Map.of("other", "value"), Map.of())))).isFailed().messages()
+            assertThat(registry.validateWrite(write, view(config(Map.of("other", "value"), Map.of())))).isFailed().messages()
                     .containsExactly("'required' is required");
-            assertThat(registry.validateWrite(patch, view(config(Map.of("other", "value"), Map.of("required", "encrypted"))))).isSucceeded();
+            assertThat(registry.validateWrite(write, view(config(Map.of("other", "value"), Map.of("required", "encrypted"))))).isSucceeded();
         }
 
         @Test
@@ -156,6 +144,44 @@ class ParticipantContextConfigValidatorRegistryImplTest {
 
             assertThat(strictRegistry.validateWrite(write, view(write))).isFailed().messages().containsExactlyInAnyOrder(
                     "'unknown' is not a known configuration key", "'unknownSecret' is not a known configuration key");
+        }
+    }
+
+    @Nested
+    class ValidatePatch {
+
+        @Test
+        void shouldFail_whenValueInvalidOrMisplaced() {
+            registry.register(ParticipantConfigEntry.Builder.newInstance("number").validator(longValue(1, 10)).build());
+            registry.register(ParticipantConfigEntry.Builder.newInstance("secret").sensitive().build());
+
+            var result = registry.validatePatch(config(Map.of("number", "nan", "secret", "value"), Map.of()));
+
+            assertThat(result).isFailed();
+            assertThat(result.getFailure().getViolations()).extracting(Violation::path)
+                    .containsExactlyInAnyOrder("number", "secret");
+        }
+
+        @Test
+        void shouldNotValidateRemovals() {
+            registry.register(ParticipantConfigEntry.Builder.newInstance("key").validator(value -> {
+                throw new AssertionError("removals must not be validated");
+            }).build());
+            var entries = new HashMap<String, String>();
+            entries.put("key", null);
+
+            assertThat(registry.validatePatch(config(entries, Map.of()))).isSucceeded();
+        }
+
+        @Test
+        void shouldNotCheckRequiredKeys() {
+            registry.register(ParticipantConfigEntry.Builder.newInstance("required").required().build());
+            registry.register(ParticipantConfigEntry.Builder.newInstance("url")
+                    .requiredWhen(view -> view.getEntry("type").filter("remote"::equals).isPresent())
+                    .build());
+
+            // another writer may supply them in a later patch
+            assertThat(registry.validatePatch(config(Map.of("type", "remote"), Map.of()))).isSucceeded();
         }
     }
 

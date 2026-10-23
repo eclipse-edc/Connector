@@ -84,8 +84,7 @@ public class StsSignatureRegistrarExtension implements ServiceExtension {
                 .description("Key id set on the Self-Issued tokens").validator(notBlank()).requiredWhen(this::isSignatureSts).build());
     }
 
-    // only an explicitly selected type makes the keys required, so the configuration can be filled in several writes
     private boolean isSignatureSts(ParticipantConfigView config) {
-        return config.getEntry(STS_TYPE_CONFIG_KEY).map(SIGNATURE_STS_TYPE::equals).orElse(false);
+        return SIGNATURE_STS_TYPE.equals(config.getEntry(STS_TYPE_CONFIG_KEY).orElseGet(secureTokenServiceRegistry::defaultType));
     }
 }

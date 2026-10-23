@@ -37,6 +37,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class StsRemoteRegistrarExtensionTest {
@@ -59,6 +60,7 @@ class StsRemoteRegistrarExtensionTest {
 
     @Test
     void initialize_shouldRegisterConfigEntries_requiredWhenOauthTypeIsSelected(StsRemoteRegistrarExtension extension, ServiceExtensionContext context) {
+        when(registry.defaultType()).thenReturn(OAUTH_STS_TYPE);
         var captor = ArgumentCaptor.forClass(ParticipantConfigEntry.class);
 
         extension.initialize(context);
@@ -67,8 +69,8 @@ class StsRemoteRegistrarExtensionTest {
         assertThat(captor.getAllValues()).extracting(ParticipantConfigEntry::getKey)
                 .containsExactlyInAnyOrder("edc.iam.sts.oauth.token.url", "edc.iam.sts.oauth.client.id", "edc.iam.sts.oauth.client.secret.alias");
         assertThat(captor.getAllValues()).allSatisfy(entry -> {
-            // the default type does not make the keys required, the configuration can be completed in later writes
-            assertThat(entry.isRequired(view(Map.of()))).isFalse();
+            // without an explicit type, the default type applies
+            assertThat(entry.isRequired(view(Map.of()))).isTrue();
             assertThat(entry.isRequired(view(Map.of(STS_TYPE_CONFIG_KEY, OAUTH_STS_TYPE)))).isTrue();
             assertThat(entry.isRequired(view(Map.of(STS_TYPE_CONFIG_KEY, "signature")))).isFalse();
         });

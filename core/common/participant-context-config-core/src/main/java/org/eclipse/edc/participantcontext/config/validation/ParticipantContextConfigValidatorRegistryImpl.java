@@ -50,19 +50,14 @@ public class ParticipantContextConfigValidatorRegistryImpl implements Participan
 
     @Override
     public ValidationResult validateWrite(ParticipantContextConfiguration write, ParticipantConfigView effective) {
-        var violations = new ArrayList<Violation>();
-        write.getEntries().forEach((key, value) -> {
-            if (value != null) {
-                violations.addAll(validateEntry(key, value, false));
-            }
-        });
-        write.getPrivateEntries().forEach((key, value) -> {
-            if (value != null) {
-                violations.addAll(validateEntry(key, value, true));
-            }
-        });
+        var violations = submittedEntryViolations(write);
         violations.addAll(missingRequiredKeys(effective));
         return toResult(violations);
+    }
+
+    @Override
+    public ValidationResult validatePatch(ParticipantContextConfiguration patch) {
+        return toResult(submittedEntryViolations(patch));
     }
 
     @Override
@@ -78,6 +73,21 @@ public class ParticipantContextConfigValidatorRegistryImpl implements Participan
         });
         violations.addAll(missingRequiredKeys(configuration));
         return toResult(violations);
+    }
+
+    private List<Violation> submittedEntryViolations(ParticipantContextConfiguration write) {
+        var violations = new ArrayList<Violation>();
+        write.getEntries().forEach((key, value) -> {
+            if (value != null) {
+                violations.addAll(validateEntry(key, value, false));
+            }
+        });
+        write.getPrivateEntries().forEach((key, value) -> {
+            if (value != null) {
+                violations.addAll(validateEntry(key, value, true));
+            }
+        });
+        return violations;
     }
 
     private List<Violation> validateEntry(String key, String value, boolean isPrivate) {

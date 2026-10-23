@@ -39,6 +39,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class StsSignatureRegistrarExtensionTest {
@@ -70,11 +71,22 @@ class StsSignatureRegistrarExtensionTest {
         assertThat(captor.getAllValues()).extracting(ParticipantConfigEntry::getKey)
                 .containsExactlyInAnyOrder(SIGNATURE_KEY_NAME, SIGNATURE_KID);
         assertThat(captor.getAllValues()).allSatisfy(entry -> {
-            // the default type does not make the keys required, the configuration can be completed in later writes
-            assertThat(entry.isRequired(view(Map.of()))).isFalse();
             assertThat(entry.isRequired(view(Map.of(STS_TYPE_CONFIG_KEY, SIGNATURE_STS_TYPE)))).isTrue();
             assertThat(entry.isRequired(view(Map.of(STS_TYPE_CONFIG_KEY, "oauth")))).isFalse();
         });
+    }
+
+    @Test
+    void initialize_shouldRegisterConfigEntries_requiredWhenSignatureIsTheDefaultType(StsSignatureRegistrarExtension extension, ServiceExtensionContext context) {
+        var captor = ArgumentCaptor.forClass(ParticipantConfigEntry.class);
+
+        extension.initialize(context);
+
+        verify(configValidatorRegistry, times(2)).register(captor.capture());
+        when(registry.defaultType()).thenReturn(SIGNATURE_STS_TYPE);
+        assertThat(captor.getAllValues()).allSatisfy(entry -> assertThat(entry.isRequired(view(Map.of()))).isTrue());
+        when(registry.defaultType()).thenReturn("oauth");
+        assertThat(captor.getAllValues()).allSatisfy(entry -> assertThat(entry.isRequired(view(Map.of()))).isFalse());
     }
 
     private ParticipantConfigView view(Map<String, String> entries) {
