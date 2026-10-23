@@ -36,6 +36,7 @@ public class DidDocument {
     private final List<VerificationMethod> verificationMethod = new ArrayList<>();
     private final List<String> authentication = new ArrayList<>();
     private final List<String> capabilityInvocation = new ArrayList<>();
+    private final List<String> assertionMethod = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -59,6 +60,10 @@ public class DidDocument {
 
     public List<String> getCapabilityInvocation() {
         return capabilityInvocation;
+    }
+
+    public List<String> getAssertionMethod() {
+        return assertionMethod;
     }
 
     @Override
@@ -100,13 +105,21 @@ public class DidDocument {
             return this;
         }
 
+        @JsonDeserialize(contentUsing = VerificationRelationshipDeserializer.class)
         public Builder authentication(List<String> authentication) {
             document.authentication.addAll(authentication);
             return this;
         }
 
+        @JsonDeserialize(contentUsing = VerificationRelationshipDeserializer.class)
         public Builder capabilityInvocation(List<String> capabilityInvocation) {
             document.capabilityInvocation.addAll(capabilityInvocation);
+            return this;
+        }
+
+        @JsonDeserialize(contentUsing = VerificationRelationshipDeserializer.class)
+        public Builder assertionMethod(List<String> assertionMethod) {
+            document.assertionMethod.addAll(assertionMethod);
             return this;
         }
 
