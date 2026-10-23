@@ -94,11 +94,9 @@ public class Jws2020Proof implements Proof, MethodAdapter {
         if (verificationMethod == null) {
             throw new DocumentError(DocumentError.ErrorType.Missing, "VerificationMethod");
         }
+        // which purposes are valid depends on the secured document, so the verifier checks them
         if (purpose == null) {
             throw new DocumentError(DocumentError.ErrorType.Missing, "ProofPurpose");
-        }
-        if (!purpose.equals(URI.create("https://w3id.org/security#assertionMethod"))) {
-            throw new DocumentError(DocumentError.ErrorType.Invalid, "ProofPurpose");
         }
         if (jws == null || ((SolidProofValue) jws).toByteArray().length == 0) {
             throw new DocumentError(DocumentError.ErrorType.Missing, "ProofValue");

@@ -60,6 +60,8 @@ import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
 public class LdpVerifier implements CredentialVerifier {
+    private static final URI ASSERTION_METHOD = URI.create("https://w3id.org/security#assertionMethod");
+    private static final URI AUTHENTICATION = URI.create("https://w3id.org/security#authentication");
 
     private JsonLd jsonLd;
     private TypeManager typeManager;
@@ -165,6 +167,53 @@ public class LdpVerifier implements CredentialVerifier {
         return success();
     }
 
+    /**
+     * Validates the presentation holder by comparing it with the ID of the verification method that the proof references.
+     *
+     * @param expanded             The expanded JSON-LD object representing the presentation.
+     * @param verificationMethodId The ID of the verification method to compare with the holder.
+     * @return A {@link Result} indicating success or failure.
+     */
+    private Result<Void> validatePresentationHolder(JsonObject expanded, URI verificationMethodId) {
+        try {
+            var holderUri = LdNode.of(expanded).node(VcVocab.HOLDER);
+            if (!holderUri.exists()) {
+                return failure("Presentation must contain a 'holder' property.");
+            }
+            if (!UriUtils.equalsIgnoreFragment(holderUri.id(), verificationMethodId)) {
+                return failure("Holder and proof.verificationMethod mismatch: %s <> %s".formatted(holderUri.id(), verificationMethodId));
+            }
+        } catch (DocumentError e) {
+            return failure("Error getting holder: %s".formatted(e.getMessage()));
+        }
+        return success();
+    }
+
+    /**
+     * Validates the proof purpose: credential proofs must have the purpose {@code assertionMethod}, presentation proofs
+     * {@code authentication}. Presentation proofs with the purpose {@code assertionMethod} are accepted as well, because
+     * holders create them that way so far.
+     *
+     * @param expanded      The expanded JSON-LD object representing the credential or presentation.
+     * @param expandedProof The expanded proof of that document.
+     * @return A {@link Result} indicating success or failure.
+     */
+    private Result<Void> validateProofPurpose(JsonObject expanded, JsonObject expandedProof) {
+        var allowedPurposes = isPresentation(expanded) ? List.of(AUTHENTICATION, ASSERTION_METHOD) : List.of(ASSERTION_METHOD);
+        try {
+            var purpose = LdNode.of(expandedProof).node(DataIntegrityVocab.PURPOSE);
+            if (!purpose.exists()) {
+                return failure("Proof must contain a 'proofPurpose' property.");
+            }
+            if (!allowedPurposes.contains(purpose.id())) {
+                return failure("Invalid proof purpose '%s', expected one of %s.".formatted(purpose.id(), allowedPurposes));
+            }
+        } catch (DocumentError e) {
+            return failure("Error getting proof purpose: %s".formatted(e.getMessage()));
+        }
+        return success();
+    }
+
     private Result<Void> verifyExpanded(JsonObject expanded, VerifierContext context, JsonStructure ldContext) throws VerificationError, DocumentError {
 
         if (isCredential(expanded)) {
@@ -226,6 +275,11 @@ public class LdpVerifier implements CredentialVerifier {
                 return failure("%s: %s, %s".formatted(ErrorType.Missing, VcVocab.PROOF, Term.TYPE));
             }
 
+            var purposeValidation = validateProofPurpose(expanded, expandedProof.asJsonObject());
+            if (purposeValidation.failed()) {
+                return purposeValidation;
+            }
+
             var signatureSuite = findSuite(proofTypes, expandedProof);
 
             if (signatureSuite == null) {
@@ -257,6 +311,9 @@ public class LdpVerifier implements CredentialVerifier {
 
                 if (isCredential(expanded)) {
                     var failure = validateCredentialIssuer(expanded, verificationMethodId);
+                    if (failure.failed()) return failure;
+                } else if (isPresentation(expanded)) {
+                    var failure = validatePresentationHolder(expanded, verificationMethodId);
                     if (failure.failed()) return failure;
                 }
 

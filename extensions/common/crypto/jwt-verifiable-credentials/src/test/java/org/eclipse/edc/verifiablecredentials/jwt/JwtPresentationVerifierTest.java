@@ -224,6 +224,22 @@ class JwtPresentationVerifierTest {
         assertThat(result).isFailed().detail().contains("JWT signature not valid");
     }
 
+    @DisplayName("VP-JWT without credentials with a spoofed signature - expect a failure")
+    @Test
+    void verifyPresentation_noCredential_vpJwtInvalid() throws JOSEException {
+        var spoofedKey = new ECKeyGenerator(Curve.P_256)
+                .keyID(VP_HOLDER_ID + "#" + PRESENTER_KEY_ID)
+                .generate();
+        var vpJwt = JwtCreationUtils.createJwt(spoofedKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(""))));
+
+        var context = VerifierContext.Builder.newInstance()
+                .verifier(verifier)
+                .audience(MY_OWN_DID)
+                .build();
+        var result = verifier.verify(vpJwt, context);
+        assertThat(result).isFailed().detail().contains("JWT signature not valid");
+    }
+
     @DisplayName("VP-JWT with a missing claim - expect a failure")
     @Test
     void verifyPresentation_vpJwt_invalidClaims() {

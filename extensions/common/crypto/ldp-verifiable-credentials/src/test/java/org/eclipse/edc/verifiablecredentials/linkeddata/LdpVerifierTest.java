@@ -55,7 +55,7 @@ import static org.mockito.Mockito.when;
 
 class LdpVerifierTest {
 
-    private static final String VP_HOLDER = "did:web:vp-holder";
+    private static final String VP_HOLDER = "did:web:test-issuer";
     private final ObjectMapper mapper = JsonMapperFactory.defaultJsonMapper();
     private final TestDocumentLoader testDocLoader = new TestDocumentLoader("https://org.eclipse.edc/", "", SchemeRouter.defaultInstance());
     private final TestMethodResolver methodResolver = new TestMethodResolver();
@@ -283,15 +283,74 @@ class LdpVerifierTest {
                 var vpVm = methodResolver.publish(VP_HOLDER + "#key-1", vpKey);
                 var rawVp = LdpCreationUtils.signDocument(input, vpKey, generateEmbeddedProof(vpVm), testDocLoader);
                 // tamper with the presentation
-                rawVp = rawVp.replace("\"https://holder.test.com\"", "\"https://another-holder.test.com\"");
+                rawVp = rawVp.replace("\"https://exapmle.com/test-vp\"", "\"https://exapmle.com/another-vp\"");
                 // modify
                 var res = ldpVerifier.verify(rawVp, context);
                 assertThat(res).isFailed().detail().contains("InvalidSignature");
             }
 
             @Test
-            void verify_proofPurposeNotAssertionMethod() throws JOSEException {
-                // create signed VP, that contains the VC
+            void verify_proofPurposeAuthentication_success() throws JOSEException {
+                var vpKey = new ECKeyGenerator(Curve.P_384)
+                        .keyID("vp-sign-key")
+                        .generate();
+                var input = TestData.VP_CONTENT_TEMPLATE.formatted("");
+
+                var proof = proofBuilder(methodResolver.publish(VP_HOLDER + "#key-1", vpKey))
+                        .proofPurpose(URI.create("https://w3id.org/security#authentication"))
+                        .build();
+                var rawVp = LdpCreationUtils.signDocument(input, vpKey, proof, testDocLoader);
+
+                assertThat(ldpVerifier.verify(rawVp, context)).isSucceeded();
+            }
+
+            @Test
+            void verify_proofPurposeInvalid_shouldFail() throws JOSEException {
+                var vpKey = new ECKeyGenerator(Curve.P_384)
+                        .keyID("vp-sign-key")
+                        .generate();
+                var input = TestData.VP_CONTENT_TEMPLATE.formatted("");
+
+                var proof = proofBuilder(methodResolver.publish(VP_HOLDER + "#key-1", vpKey))
+                        .proofPurpose(URI.create("https://w3id.org/security#capabilityInvocation"))
+                        .build();
+                var rawVp = LdpCreationUtils.signDocument(input, vpKey, proof, testDocLoader);
+
+                assertThat(ldpVerifier.verify(rawVp, context)).isFailed()
+                        .detail().contains("Invalid proof purpose 'https://w3id.org/security#capabilityInvocation'");
+            }
+
+            @Test
+            void verify_signedByOtherDid_shouldFail() throws JOSEException {
+                // a key of another DID, published in that DID's document, signs a presentation for the holder
+                var attackerKey = new ECKeyGenerator(Curve.P_384)
+                        .keyID("attacker-key")
+                        .generate();
+                var input = TestData.VP_CONTENT_TEMPLATE.formatted("");
+
+                var verificationMethod = methodResolver.publish("did:web:attacker#key-1", attackerKey);
+                var rawVp = LdpCreationUtils.signDocument(input, attackerKey, generateEmbeddedProof(verificationMethod), testDocLoader);
+
+                assertThat(ldpVerifier.verify(rawVp, context)).isFailed()
+                        .detail().contains("Holder and proof.verificationMethod mismatch");
+            }
+
+            @Test
+            void verify_noHolder_shouldFail() throws JOSEException {
+                var vpKey = new ECKeyGenerator(Curve.P_384)
+                        .keyID("vp-sign-key")
+                        .generate();
+                var input = TestData.VP_CONTENT_TEMPLATE.formatted("").replace("\"holder\": \"%s\",".formatted(VP_HOLDER), "");
+
+                var verificationMethod = methodResolver.publish(VP_HOLDER + "#key-1", vpKey);
+                var rawVp = LdpCreationUtils.signDocument(input, vpKey, generateEmbeddedProof(verificationMethod), testDocLoader);
+
+                assertThat(ldpVerifier.verify(rawVp, context)).isFailed()
+                        .detail().contains("Presentation must contain a 'holder' property");
+            }
+
+            @Test
+            void verify_credentialProofPurposeNotAssertionMethod() throws JOSEException {
                 var nameKey = new ECKeyGenerator(Curve.P_256)
                         .keyID("vc-sign-key1")
                         .generate();
@@ -302,7 +361,7 @@ class LdpVerifierTest {
                         proofOptions.proofPurpose(URI.create("https://test.org/notValid")).build(), testDocLoader);
 
                 assertThat(ldpVerifier.verify(signedNameCredential, context)).isFailed()
-                        .detail().contains("InvalidProofPurpose");
+                        .detail().contains("Invalid proof purpose 'https://test.org/notValid'");
             }
         }
 
@@ -473,6 +532,20 @@ class LdpVerifierTest {
             }
 
             @Test
+            void verify_proofPurposeAuthentication_shouldFail() throws JOSEException {
+                var nameKey = new ECKeyGenerator(Curve.P_256)
+                        .keyID("vc-sign-key1")
+                        .generate();
+
+                var nameCredential = createNameCredential();
+                var proofOptions = proofBuilder(methodResolver.publish(NAME_ISSUER_KEY, nameKey)).proofPurpose(URI.create("https://w3id.org/security#authentication")).build();
+                var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, nameKey, proofOptions, testDocLoader);
+
+                assertThat(ldpVerifier.verify(signedNameCredential, context)).isFailed()
+                        .detail().contains("Invalid proof purpose 'https://w3id.org/security#authentication'");
+            }
+
+            @Test
             void verify_proofPurposeNotAssertionMethod() throws JOSEException {
                 var nameKey = new ECKeyGenerator(Curve.P_256)
                         .keyID("vc-sign-key1")
@@ -483,7 +556,7 @@ class LdpVerifierTest {
                 var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, nameKey, proofOptions, testDocLoader);
 
                 assertThat(ldpVerifier.verify(signedNameCredential, context)).isFailed()
-                        .detail().contains("InvalidProofPurpose");
+                        .detail().contains("Invalid proof purpose 'https://test.org/notValid'");
             }
 
             @Test
