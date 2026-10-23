@@ -46,4 +46,10 @@ allprojects {
         configDirectory.set(rootProject.file("resources"))
     }
 
+    tasks.withType<Test>().configureEach {
+        // tests use Docker containers and other resources that are not task inputs, so they always run instead of being
+        // taken from the build cache
+        outputs.doNotCacheIf("tests depend on resources that are not task inputs") { true }
+    }
+
 }

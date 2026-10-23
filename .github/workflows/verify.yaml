@@ -27,6 +27,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: basic
+          cache-read-only: true
       - name: Run Checkstyle
         run: ./gradlew checkstyleMain checkstyleTest checkstyleTestFixtures
 
@@ -35,6 +39,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: basic
+          cache-read-only: true
       - name: Run Javadoc
         run: ./gradlew javadoc
 
@@ -43,6 +51,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: basic
       - name: Run unit tests
         run: ./gradlew test
 
@@ -51,6 +62,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: basic
+          cache-read-only: true
       - name: Postgresql Tests
         run: ./gradlew test -DincludeTags="PostgresqlIntegrationTest"
 
@@ -59,6 +74,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: basic
+          cache-read-only: true
       - name: End to End Integration Tests
         run: ./gradlew test -DincludeTags="EndToEndTest"
 
@@ -67,6 +86,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: basic
+          cache-read-only: true
       - name: Component Tests
         run: ./gradlew test -DincludeTags="ComponentTest"
 
@@ -75,6 +98,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: basic
+          cache-read-only: true
       - name: Component Tests
         run: ./gradlew test -DincludeTags="ApiTest"
 
@@ -83,6 +110,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
+      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        with:
+          cache-provider: basic
+          cache-read-only: true
       - name: TCK Tests
         run: ./gradlew compileJava test -DincludeTags="TckTest" -PverboseTest=true
 
