@@ -132,7 +132,7 @@ public class JwtPresentationVerifier implements CredentialVerifier {
             var rawCredentials = extractCredentials(vpClaim.get(Constants.VERIFIABLE_CREDENTIAL_JSON_KEY));
 
             if (rawCredentials.isEmpty()) {
-                return Result.success();
+                return verificationResult.mapEmpty();
             }
 
             // every VC is represented as another JWT, so we verify all of them

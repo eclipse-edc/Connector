@@ -76,7 +76,7 @@ public interface TestData {
                   "https://www.w3.org/2018/credentials/examples/v1"
                 ],
                 "id": "https://exapmle.com/test-vp",
-                "holder": "https://holder.test.com",
+                "holder": "did:web:test-issuer",
                 "type": [
                   "VerifiablePresentation"
                 ],

@@ -27,6 +27,7 @@ import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.CredentialIssuerKeyIdValidationRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerKeyIdValidationRule;
+import org.eclipse.edc.verifiablecredentials.jwt.rules.PresentationHolderKeyIdValidationRule;
 import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
@@ -50,6 +51,7 @@ import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VP_CLAIM;
 /**
  * This verifier verifies a JWT that contains a Verifiable Presentation (VP) as JSON payload that conforms to the
  * Verifiable Credentials Data Model (VCDM) 2.0 specification. Both enveloped presentations and simple VP tokens are supported.
+ * Every presentation JWT, and the envelope around it, must be signed with a key of the presentation's {@code holder}.
  */
 public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
     private static final String VP_JWT_TYPE = "vp+jwt";
@@ -104,16 +106,21 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
 
             warnIfUntyped(jwt);
 
-            // validate JWT signature and claims
-            var rules = vpValidationRules(verifierContext.getAudience());
-            var verificationResult = tokenValidationService.validate(rawInput, publicKeyResolver, rules);
+            var keyId = jwt.getHeader().getKeyID();
+            if (ENVELOPED_VERIFIABLE_PRESENTATION_TYPE.equals(type)) {
+                // the envelope has no holder, its key is checked against the holder of each presentation it contains
+                var verificationResult = tokenValidationService.validate(rawInput, publicKeyResolver, vpValidationRules(verifierContext.getAudience()));
+                if (verificationResult.failed()) {
+                    return verificationResult.mapEmpty();
+                }
+                return verifyEnvelopedPresentation(jwtClaimsSet, keyId, verifierContext.getAudience());
+            }
+
+            var verificationResult = tokenValidationService.validate(rawInput, publicKeyResolver, vpValidationRules(verifierContext.getAudience(), keyId));
             if (verificationResult.failed()) {
                 return verificationResult.mapEmpty();
             }
-
-            return ENVELOPED_VERIFIABLE_PRESENTATION_TYPE.equals(type)
-                    ? verifyEnvelopedPresentation(jwtClaimsSet, rules)
-                    : verifyVpToken(jwtClaimsSet);
+            return verifyVpToken(jwtClaimsSet);
 
 
         } catch (ParseException e) {
@@ -127,12 +134,14 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
      * claim contains a semicolon-separated list of JWTs, prefixed with "data:application/vp+jwt,", where each contains
      * a single Verifiable Presentation. Each of these JWTs represents a "Credential Envelope".
      *
-     * @param claimsSet the parsed JWT claims representing the enveloped VP
-     * @param rules     the rules each presentation JWT is validated with
-     * @return a successful result only if all presentations and all JWTs in them are valid (i.e. their signatures are correct).
+     * @param claimsSet      the parsed JWT claims representing the enveloped VP
+     * @param envelopeKeyId  the key ID that signed the envelope, which must belong to the holder of every presentation in it
+     * @param audience       the expected audience of the presentation JWTs, if any
+     * @return a successful result only if all presentations and all JWTs in them are valid (i.e. their signatures are correct
+     *         and they are signed by the presentation's holder).
      * @throws ParseException if parsing one of the JWTs fails
      */
-    private Result<Void> verifyEnvelopedPresentation(JWTClaimsSet claimsSet, List<TokenValidationRule> rules) throws ParseException {
+    private Result<Void> verifyEnvelopedPresentation(JWTClaimsSet claimsSet, @Nullable String envelopeKeyId, @Nullable String audience) throws ParseException {
         var vpEnvelopeString = claimsSet.getStringClaim(ID);
         if (vpEnvelopeString == null) {
             return Result.failure("No enveloped credential found in '%s' claim".formatted(ID));
@@ -146,8 +155,10 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
                 return Result.failure("Incorrect presentation envelope. Must start with '%s,' but it did not.".formatted(ENVELOPED_PRESENTATION_CONTENT_TYPE));
             }
             vpEnvelope = vpEnvelope.substring(ENVELOPED_PRESENTATION_CONTENT_TYPE.length() + 1);
-            results.add(tokenValidationService.validate(vpEnvelope, publicKeyResolver, rules).mapEmpty());
             var vpJwt = SignedJWT.parse(vpEnvelope);
+            var rules = vpValidationRules(audience, vpJwt.getHeader().getKeyID());
+            rules.add(new PresentationHolderKeyIdValidationRule(envelopeKeyId));
+            results.add(tokenValidationService.validate(vpEnvelope, publicKeyResolver, rules).mapEmpty());
             warnIfUntyped(vpJwt);
             results.add(verifyVpToken(vpJwt.getJWTClaimsSet()));
         }
@@ -259,6 +270,15 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
         if (audience != null) {
             rules.add(new AudienceValidationRule(audience, !requireAudience));
         }
+        return rules;
+    }
+
+    /**
+     * Returns the rules for a JWT that carries a presentation, which must be signed with a key of the presentation's holder.
+     */
+    private List<TokenValidationRule> vpValidationRules(@Nullable String audience, @Nullable String keyId) {
+        var rules = vpValidationRules(audience);
+        rules.add(new PresentationHolderKeyIdValidationRule(keyId));
         return rules;
     }
 }

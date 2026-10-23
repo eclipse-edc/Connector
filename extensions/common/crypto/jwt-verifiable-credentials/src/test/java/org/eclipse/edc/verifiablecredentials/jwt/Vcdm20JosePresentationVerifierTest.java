@@ -70,6 +70,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class Vcdm20JosePresentationVerifierTest {
+    private static final String HOLDER_DID = "did:web:holder.example.com";
+    private static final String HOLDER_KEY_ID = HOLDER_DID + "#key-1";
     private final TokenValidationService tokenValidationService = mock();
     private final PublicKeyResolver publicKeyResolver = mock();
     private final Monitor monitor = mock();
@@ -323,7 +325,7 @@ class Vcdm20JosePresentationVerifierTest {
 
         @Test
         void verify_envelopedPresentationWithWrongAudience_expectFailure() {
-            var envelope = jwt("{\"type\": \"EnvelopedVerifiablePresentation\", \"aud\": \"%s\", \"id\": \"data:application/vp+jwt,%s\"}"
+            var envelope = presentationJwt(HOLDER_KEY_ID, "{\"type\": \"EnvelopedVerifiablePresentation\", \"aud\": \"%s\", \"id\": \"data:application/vp+jwt,%s\"}"
                     .formatted(AUDIENCE, vpToken(", \"aud\": \"did:web:other\"")));
 
             assertThat(verifier(false).verify(envelope, context)).isFailed()
@@ -332,7 +334,7 @@ class Vcdm20JosePresentationVerifierTest {
 
         @Test
         void verify_vpTokenWithTypeList_wrongAudience_expectFailure() {
-            var token = jwt("{\"type\": [\"VerifiablePresentation\"], \"verifiableCredential\": [], \"aud\": \"did:web:other\"}");
+            var token = presentationJwt(HOLDER_KEY_ID, "{\"type\": [\"VerifiablePresentation\"], \"holder\": \"%s\", \"verifiableCredential\": [], \"aud\": \"did:web:other\"}".formatted(HOLDER_DID));
 
             assertThat(verifier(false).verify(token, context)).isFailed()
                     .detail().contains("did not contain expected audience");
@@ -340,8 +342,8 @@ class Vcdm20JosePresentationVerifierTest {
 
         @Test
         void verify_vpTokenWithTypeList_expired_expectFailure() {
-            var token = jwt("{\"type\": [\"VerifiablePresentation\"], \"verifiableCredential\": [], \"aud\": \"%s\", \"exp\": %d}"
-                    .formatted(AUDIENCE, Instant.now().minusSeconds(60).getEpochSecond()));
+            var token = presentationJwt(HOLDER_KEY_ID, "{\"type\": [\"VerifiablePresentation\"], \"holder\": \"%s\", \"verifiableCredential\": [], \"aud\": \"%s\", \"exp\": %d}"
+                    .formatted(HOLDER_DID, AUDIENCE, Instant.now().minusSeconds(60).getEpochSecond()));
 
             assertThat(verifier(false).verify(token, context)).isFailed()
                     .detail().contains("Token has expired");
@@ -352,7 +354,7 @@ class Vcdm20JosePresentationVerifierTest {
         }
 
         private String vpToken(String additionalClaims) {
-            return jwt("{\"type\": \"VerifiablePresentation\", \"verifiableCredential\": []%s}".formatted(additionalClaims));
+            return presentationJwt(HOLDER_KEY_ID, "{\"type\": \"VerifiablePresentation\", \"holder\": \"%s\", \"verifiableCredential\": []%s}".formatted(HOLDER_DID, additionalClaims));
         }
 
         private long future() {
@@ -434,7 +436,7 @@ class Vcdm20JosePresentationVerifierTest {
         @Test
         void verify_signedByOtherDid_envelopedPresentation_expectFailure() {
             var credential = signedJwt(attackerKey, credential(ISSUER_DID));
-            var presentation = jwt("{\"type\": \"EnvelopedVerifiablePresentation\", \"id\": \"data:application/vp+jwt,%s\"}".formatted(simplePresentation(credential)));
+            var presentation = presentationJwt(HOLDER_KEY_ID, "{\"type\": \"EnvelopedVerifiablePresentation\", \"id\": \"data:application/vp+jwt,%s\"}".formatted(simplePresentation(credential)));
 
             assertThat(verifier.verify(presentation, context)).isFailed()
                     .detail().contains("expected to correlate to the credential's issuer");
@@ -490,8 +492,8 @@ class Vcdm20JosePresentationVerifierTest {
         }
 
         private String simplePresentation(String credential) {
-            return jwt("{\"type\": \"VerifiablePresentation\", \"verifiableCredential\": [{\"type\": \"EnvelopedVerifiableCredential\", \"id\": \"data:application/vc+jwt,%s\"}]}"
-                    .formatted(credential));
+            return presentationJwt(HOLDER_KEY_ID, "{\"type\": \"VerifiablePresentation\", \"holder\": \"%s\", \"verifiableCredential\": [{\"type\": \"EnvelopedVerifiableCredential\", \"id\": \"data:application/vc+jwt,%s\"}]}"
+                    .formatted(HOLDER_DID, credential));
         }
 
         private String signedJwt(ECKey key, Map<String, Object> claims) {
@@ -505,6 +507,116 @@ class Vcdm20JosePresentationVerifierTest {
             }
             return signedJwt.serialize();
         }
+    }
+
+    @Nested
+    class HolderBinding {
+        private static final String ATTACKER_KEY_ID = "did:web:attacker.example.com#key-1";
+        private static final String LOOKALIKE_KEY_ID = "did:web:holder-example.com#key-1";
+        private final Vcdm20JosePresentationVerifier verifier = new Vcdm20JosePresentationVerifier(monitor, new TokenValidationServiceImpl(), new TokenValidationRulesRegistryImpl(), publicKeyResolver, false);
+        private final VerifierContext context = VerifierContext.Builder.newInstance().verifier(verifier).build();
+
+        @BeforeEach
+        void setUp() {
+            // the presentation JWTs are not signed, their signature check is skipped for keys that resolve to null
+            when(publicKeyResolver.resolveKey(any())).thenReturn(Result.success(null));
+        }
+
+        @Test
+        void verify_signedByHolder() {
+            assertThat(verifier.verify(vpToken(HOLDER_KEY_ID, "\"%s\"".formatted(HOLDER_DID)), context)).isSucceeded();
+        }
+
+        @Test
+        void verify_signedByHolder_holderObject() {
+            assertThat(verifier.verify(vpToken(HOLDER_KEY_ID, "{\"id\": \"%s\"}".formatted(HOLDER_DID)), context)).isSucceeded();
+        }
+
+        @Test
+        void verify_signedByHolder_matchingIss() {
+            var token = presentationJwt(HOLDER_KEY_ID, "{\"type\": \"VerifiablePresentation\", \"holder\": \"%s\", \"iss\": \"%s\", \"verifiableCredential\": []}"
+                    .formatted(HOLDER_DID, HOLDER_DID));
+
+            assertThat(verifier.verify(token, context)).isSucceeded();
+        }
+
+        @Test
+        void verify_signedByOtherDid_expectFailure() {
+            assertThat(verifier.verify(vpToken(ATTACKER_KEY_ID, "\"%s\"".formatted(HOLDER_DID)), context)).isFailed()
+                    .detail().contains("kid header '%s' expected to correlate to the presentation's holder ('%s')".formatted(ATTACKER_KEY_ID, HOLDER_DID));
+        }
+
+        @Test
+        void verify_signedByOtherDid_holderObject_expectFailure() {
+            assertThat(verifier.verify(vpToken(ATTACKER_KEY_ID, "{\"id\": \"%s\"}".formatted(HOLDER_DID)), context)).isFailed()
+                    .detail().contains("kid header '%s' expected to correlate to the presentation's holder ('%s')".formatted(ATTACKER_KEY_ID, HOLDER_DID));
+        }
+
+        @Test
+        void verify_signedByLookalikeDid_expectFailure() {
+            assertThat(verifier.verify(vpToken(LOOKALIKE_KEY_ID, "\"%s\"".formatted(HOLDER_DID)), context)).isFailed()
+                    .detail().contains("expected to correlate to the presentation's holder");
+        }
+
+        @Test
+        void verify_noKid_expectFailure() {
+            var token = jwt("{\"type\": \"VerifiablePresentation\", \"holder\": \"%s\", \"verifiableCredential\": []}".formatted(HOLDER_DID));
+
+            assertThat(verifier.verify(token, context)).isFailed()
+                    .detail().contains("kid header 'null' expected to correlate to the presentation's holder");
+        }
+
+        @Test
+        void verify_issDiffersFromHolder_expectFailure() {
+            var token = presentationJwt(ATTACKER_KEY_ID, "{\"type\": \"VerifiablePresentation\", \"holder\": \"%s\", \"iss\": \"did:web:attacker.example.com\", \"verifiableCredential\": []}"
+                    .formatted(HOLDER_DID));
+
+            assertThat(verifier.verify(token, context)).isFailed()
+                    .detail().contains("'iss' claim ('did:web:attacker.example.com') expected to be equal to the presentation's holder ('%s')".formatted(HOLDER_DID));
+        }
+
+        @Test
+        void verify_noHolder_expectFailure() {
+            var token = presentationJwt(HOLDER_KEY_ID, "{\"type\": \"VerifiablePresentation\", \"verifiableCredential\": []}");
+
+            assertThat(verifier.verify(token, context)).isFailed()
+                    .detail().contains("Presentation must have a 'holder' property");
+        }
+
+        @Test
+        void verify_envelopedPresentation_signedByHolder() {
+            var envelope = envelope(HOLDER_KEY_ID, vpToken(HOLDER_KEY_ID, "\"%s\"".formatted(HOLDER_DID)));
+
+            assertThat(verifier.verify(envelope, context)).isSucceeded();
+        }
+
+        @Test
+        void verify_envelopedPresentation_envelopeSignedByOtherDid_expectFailure() {
+            var envelope = envelope(ATTACKER_KEY_ID, vpToken(HOLDER_KEY_ID, "\"%s\"".formatted(HOLDER_DID)));
+
+            assertThat(verifier.verify(envelope, context)).isFailed()
+                    .detail().contains("kid header '%s' expected to correlate to the presentation's holder ('%s')".formatted(ATTACKER_KEY_ID, HOLDER_DID));
+        }
+
+        @Test
+        void verify_envelopedPresentation_presentationSignedByOtherDid_expectFailure() {
+            var envelope = envelope(HOLDER_KEY_ID, vpToken(ATTACKER_KEY_ID, "\"%s\"".formatted(HOLDER_DID)));
+
+            assertThat(verifier.verify(envelope, context)).isFailed()
+                    .detail().contains("kid header '%s' expected to correlate to the presentation's holder ('%s')".formatted(ATTACKER_KEY_ID, HOLDER_DID));
+        }
+
+        private String vpToken(String keyId, String holderJson) {
+            return presentationJwt(keyId, "{\"type\": \"VerifiablePresentation\", \"holder\": %s, \"verifiableCredential\": []}".formatted(holderJson));
+        }
+
+        private String envelope(String keyId, String vpToken) {
+            return presentationJwt(keyId, "{\"type\": \"EnvelopedVerifiablePresentation\", \"id\": \"data:application/vp+jwt,%s\"}".formatted(vpToken));
+        }
+    }
+
+    private static String presentationJwt(String keyId, String payloadJson) {
+        return jwt("{\"alg\":\"ES256\",\"kid\":\"%s\"}".formatted(keyId), payloadJson);
     }
 
     private static String jwt(String payloadJson) {
