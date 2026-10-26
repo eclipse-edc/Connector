@@ -35,11 +35,11 @@ import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.MAX_VALUE;
@@ -81,11 +81,14 @@ public class DatasetResolverImpl implements DatasetResolver {
                 .filter(filterByParticipantContextId(participantContext.getId()))
                 .build();
 
+        var matcher = new ContractDefinitionMatcher(contractDefinitions, criterionOperatorRegistry);
+        // the datasets are only built for the requested page: the offers are enough to know which assets are part of it
         return assetIndex.queryAssets(assetsQuery)
-                .map(asset -> toDataset(contractDefinitions, asset, resolved.policies(), protocol))
-                .filter(Dataset::hasOffers)
+                .map(asset -> new AssetOffers(asset, offers(matcher.matching(asset), resolved.policies())))
+                .filter(AssetOffers::hasOffers)
                 .skip(querySpec.getOffset())
-                .limit(querySpec.getLimit());
+                .limit(querySpec.getLimit())
+                .map(assetOffers -> toDataset(assetOffers, protocol));
     }
 
     @Override
@@ -96,10 +99,12 @@ public class DatasetResolverImpl implements DatasetResolver {
             return null;
         }
 
+        var matcher = new ContractDefinitionMatcher(contractDefinitions, criterionOperatorRegistry);
         return Optional.of(id)
                 .map(assetId -> assetIndex.findById(participantContext.getId(), assetId))
-                .map(asset -> toDataset(contractDefinitions, asset, resolved.policies(), protocol))
-                .filter(Dataset::hasOffers)
+                .map(asset -> new AssetOffers(asset, offers(matcher.matching(asset), resolved.policies())))
+                .filter(AssetOffers::hasOffers)
+                .map(assetOffers -> toDataset(assetOffers, protocol))
                 .orElse(null);
     }
 
@@ -111,8 +116,8 @@ public class DatasetResolverImpl implements DatasetResolver {
         var endpointUrl = asset.getPropertyAsString(DCAT_ENDPOINT_URL_ATTRIBUTE);
         if (endpointUrl == null) {
             monitor.warning("""
-                        Asset %s has no 'endpointURL' property and the DataAddress baseUrl is used instead, please adapt it as the
-                        DataAddress will be removed from Asset in the forthcoming versions"""
+                    Asset %s has no 'endpointURL' property and the DataAddress baseUrl is used instead, please adapt it as the
+                    DataAddress will be removed from Asset in the forthcoming versions"""
                     .formatted(asset.getId()));
             endpointUrl = asset.getDataAddress().getStringProperty(EDC_NAMESPACE + "baseUrl", null);
         }
@@ -125,35 +130,46 @@ public class DatasetResolverImpl implements DatasetResolver {
                         .build());
     }
 
-    private Dataset toDataset(List<ContractDefinition> contractDefinitions, Asset asset, Map<String, Policy> policies, String protocol) {
+    private List<Offer> offers(List<ContractDefinition> contractDefinitions, Map<String, Policy> policies) {
+        var offers = new ArrayList<Offer>();
+        for (var contractDefinition : contractDefinitions) {
+            var policy = policies.computeIfAbsent(contractDefinition.getContractPolicyId(), policyId ->
+                    Optional.ofNullable(policyDefinitionStore.findById(contractDefinition.getParticipantContextId(), policyId))
+                            .map(PolicyDefinition::getPolicy)
+                            .orElse(null)
+            );
 
+            if (policy != null) {
+                offers.add(new Offer(contractDefinition, policy));
+            }
+        }
+        return offers;
+    }
+
+    private Dataset toDataset(AssetOffers assetOffers, String protocol) {
+        var asset = assetOffers.asset();
         var distributions = distributionResolver.getDistributions(protocol, asset);
         var datasetBuilder = buildDataset(asset)
                 .id(asset.getId())
                 .distributions(distributions)
                 .properties(asset.getProperties());
 
-        contractDefinitions.stream()
-                .filter(definition -> definition.getAssetsSelector().stream()
-                        .map(criterionOperatorRegistry::toPredicate)
-                        .reduce(x -> true, Predicate::and)
-                        .test(asset)
-                )
-                .forEach(contractDefinition -> {
-                    var policy = policies.computeIfAbsent(contractDefinition.getContractPolicyId(), policyId ->
-                            Optional.ofNullable(policyDefinitionStore.findById(contractDefinition.getParticipantContextId(), policyId))
-                                    .map(PolicyDefinition::getPolicy)
-                                    .orElse(null)
-                    );
-
-                    if (policy != null) {
-                        var contractId = ContractOfferId.create(contractDefinition.getId(), asset.getId());
-                        var offerPolicy = policy.toBuilder().type(PolicyType.OFFER).build();
-                        datasetBuilder.offer(contractId.toString(), offerPolicy);
-                    }
-                });
+        for (var offer : assetOffers.offers()) {
+            var contractId = ContractOfferId.create(offer.contractDefinition().getId(), asset.getId());
+            var offerPolicy = offer.policy().toBuilder().type(PolicyType.OFFER).build();
+            datasetBuilder.offer(contractId.toString(), offerPolicy);
+        }
 
         return datasetBuilder.build();
+    }
+
+    private record Offer(ContractDefinition contractDefinition, Policy policy) {
+    }
+
+    private record AssetOffers(Asset asset, List<Offer> offers) {
+        boolean hasOffers() {
+            return !offers.isEmpty();
+        }
     }
 
 }
