@@ -104,11 +104,11 @@ maven/mavencentral/io.opentelemetry/opentelemetry-common/1.66.0, Apache-2.0, app
 maven/mavencentral/io.opentelemetry/opentelemetry-common/1.67.0, Apache-2.0, approved, #32463
 maven/mavencentral/io.opentelemetry/opentelemetry-context/1.66.0, Apache-2.0, approved, #32020
 maven/mavencentral/io.opentelemetry/opentelemetry-context/1.67.0, Apache-2.0, approved, #32464
-maven/mavencentral/io.rest-assured/json-path/6.1.0, Apache-2.0, approved, #32467
-maven/mavencentral/io.rest-assured/rest-assured-common/6.1.0, Apache-2.0, approved, #32468
+maven/mavencentral/io.rest-assured/json-path/6.2.0, Apache-2.0, approved, #32568
+maven/mavencentral/io.rest-assured/rest-assured-common/6.2.0, Apache-2.0, approved, #32572
 maven/mavencentral/io.rest-assured/rest-assured/6.0.1, Apache-2.0, approved, #29907
-maven/mavencentral/io.rest-assured/rest-assured/6.1.0, Apache-2.0, approved, #32462
-maven/mavencentral/io.rest-assured/xml-path/6.1.0, Apache-2.0, approved, #32466
+maven/mavencentral/io.rest-assured/rest-assured/6.2.0, Apache-2.0, approved, #32566
+maven/mavencentral/io.rest-assured/xml-path/6.2.0, Apache-2.0, approved, #32570
 maven/mavencentral/io.setl/rdf-urdna/1.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.swagger.core.v3/swagger-annotations-jakarta/2.2.42, Apache-2.0, approved, #5947
 maven/mavencentral/io.swagger.core.v3/swagger-annotations-jakarta/2.2.55, Apache-2.0, approved, #5947
@@ -153,22 +153,24 @@ maven/mavencentral/net.sf.saxon/Saxon-HE/12.9, MPL-2.0 AND Apache-2.0 AND W3C AN
 maven/mavencentral/org.antlr/antlr4-runtime/4.13.2, BSD-3-Clause, approved, #10767
 maven/mavencentral/org.apache.commons/commons-compress/1.28.0, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #22677
 maven/mavencentral/org.apache.commons/commons-lang3/3.18.0, Apache-2.0, approved, #22470
-maven/mavencentral/org.apache.commons/commons-lang3/3.19.0, Apache-2.0, approved, #23560
+maven/mavencentral/org.apache.commons/commons-lang3/3.21.0, Apache-2.0, approved, #32018
 maven/mavencentral/org.apache.commons/commons-lang3/3.7, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.commons/commons-lang3/3.8.1, Apache-2.0, approved, #815
 maven/mavencentral/org.apache.commons/commons-pool2/2.13.1, Apache-2.0 AND CC-PDDC, approved, #25941
 maven/mavencentral/org.apache.commons/commons-text/1.3, Apache-2.0, approved, clearlydefined
-maven/mavencentral/org.apache.groovy/groovy-bom/5.0.3, Apache-2.0, approved, #26472
-maven/mavencentral/org.apache.groovy/groovy-json/5.0.3, Apache-2.0, approved, #32569
-maven/mavencentral/org.apache.groovy/groovy-xml/5.0.3, Apache-2.0, approved, #32567
-maven/mavencentral/org.apache.groovy/groovy/5.0.3, Apache-2.0 AND BSD-3-Clause AND MIT AND LicenseRef-Public-Domain, approved, #26473
+maven/mavencentral/org.apache.groovy/groovy-bom/5.0.8, Apache-2.0, approved, #26472
+maven/mavencentral/org.apache.groovy/groovy-json/5.0.8, Apache-2.0, approved, #32569
+maven/mavencentral/org.apache.groovy/groovy-xml/5.0.8, Apache-2.0, approved, #32567
+maven/mavencentral/org.apache.groovy/groovy/5.0.8, Apache-2.0 AND BSD-3-Clause AND MIT AND LicenseRef-Public-Domain, approved, #26473
 maven/mavencentral/org.apache.httpcomponents.client5/httpclient5/5.5.1, Apache-2.0 AND MPL-2.0, approved, #24483
 maven/mavencentral/org.apache.httpcomponents.core5/httpcore5-h2/5.3.6, Apache-2.0, approved, #16867
 maven/mavencentral/org.apache.httpcomponents.core5/httpcore5/5.3.6, Apache-2.0, approved, #16866
 maven/mavencentral/org.apache.httpcomponents/httpclient/4.5.13, Apache-2.0, approved, #15248
+maven/mavencentral/org.apache.httpcomponents/httpclient/4.5.14, Apache-2.0, approved, #15248
 maven/mavencentral/org.apache.httpcomponents/httpcore/4.4.13, Apache-2.0, approved, CQ23528
 maven/mavencentral/org.apache.httpcomponents/httpcore/4.4.14, Apache-2.0, approved, CQ23528
-maven/mavencentral/org.apache.httpcomponents/httpmime/4.5.13, Apache-2.0, approved, CQ11718
+maven/mavencentral/org.apache.httpcomponents/httpcore/4.4.16, Apache-2.0, approved, CQ23528
+maven/mavencentral/org.apache.httpcomponents/httpmime/4.5.14, Apache-2.0, approved, CQ11718
 maven/mavencentral/org.apache.maven.doxia/doxia-core/1.12.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.maven.doxia/doxia-logging-api/1.12.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.maven.doxia/doxia-module-xdoc/1.12.0, Apache-2.0, approved, clearlydefined
