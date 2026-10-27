@@ -224,6 +224,36 @@ public class PolicyDefinitionApiV5EndToEndTest {
         }
 
         @Test
+        void create_shouldFail_whenRightOperandIsIdReference(ManagementEndToEndV5TestContext context) {
+            var policy = createObjectBuilder()
+                    .add(TYPE, "Set")
+                    .add("permission", createArrayBuilder()
+                            .add(createObjectBuilder()
+                                    .add("action", "use")
+                                    .add("constraint", createArrayBuilder().add(createObjectBuilder()
+                                                    .add("leftOperand", "inForceDate")
+                                                    .add("operator", "eq")
+                                                    .add("rightOperand", createObjectBuilder().add(ID, "https://w3id.org/example/EU")))
+                                            .build()))
+                            .build())
+                    .build();
+
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "PolicyDefinition")
+                    .add("policy", policy)
+                    .build();
+
+            context.baseRequest(participantTokenJwt)
+                    .body(requestBody.toString())
+                    .contentType(JSON)
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(400);
+        }
+
+        @Test
         void create_WithPrivateProperties(ManagementEndToEndV5TestContext context, PolicyDefinitionStore store) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())

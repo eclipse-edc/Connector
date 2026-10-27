@@ -15,6 +15,8 @@
 package org.eclipse.edc.validator.jsonobject.validators;
 
 import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
@@ -26,7 +28,8 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 
 /**
- * Verifies that a @value is present and not blank.
+ * Verifies that the property carries a non-blank string {@code @value}. A value that is absent, blank, not a string
+ * (e.g. a number, boolean or an {@code @id}-only node reference) reports a violation rather than throwing.
  */
 public class MandatoryValue implements Validator<JsonObject> {
     private final JsonLdPath path;
@@ -39,10 +42,14 @@ public class MandatoryValue implements Validator<JsonObject> {
     public ValidationResult validate(JsonObject input) {
         return Optional.ofNullable(input.getJsonArray(path.last()))
                 .filter(it -> !it.isEmpty())
-                .map(it -> it.getJsonObject(0))
-                .map(it -> it.getString(VALUE))
+                .map(it -> it.get(0))
+                .filter(JsonObject.class::isInstance)
+                .map(JsonValue::asJsonObject)
+                .map(it -> it.get(VALUE))
+                .filter(JsonString.class::isInstance)
+                .map(it -> ((JsonString) it).getString())
                 .filter(it -> !it.isBlank())
                 .map(it -> ValidationResult.success())
-                .orElseGet(() -> ValidationResult.failure(violation(format("mandatory value '%s' is missing or it is blank", path), path.toString())));
+                .orElseGet(() -> ValidationResult.failure(violation(format("mandatory value '%s' is missing, blank or not a string", path), path.toString())));
     }
 }

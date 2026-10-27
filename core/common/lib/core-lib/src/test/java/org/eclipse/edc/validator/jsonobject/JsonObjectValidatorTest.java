@@ -171,6 +171,34 @@ class JsonObjectValidatorTest {
     }
 
     @Test
+    void shouldValidateMandatoryValue_failure_whenValueIsIdReference() {
+        var input = createObjectBuilder()
+                .add("property", createArrayBuilder().add(createObjectBuilder().add(ID, "https://example.com/id")));
+
+        var result = JsonObjectValidator.newValidator()
+                .verify("property", MandatoryValue::new)
+                .build()
+                .validate(input.build());
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .hasSize(1).first().satisfies(violation -> assertThat(violation.path()).isEqualTo("property"));
+    }
+
+    @Test
+    void shouldValidateMandatoryValue_failure_whenValueIsNotString() {
+        var input = createObjectBuilder()
+                .add("property", createArrayBuilder().add(createObjectBuilder().add(VALUE, 42)));
+
+        var result = JsonObjectValidator.newValidator()
+                .verify("property", MandatoryValue::new)
+                .build()
+                .validate(input.build());
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .hasSize(1).first().satisfies(violation -> assertThat(violation.path()).isEqualTo("property"));
+    }
+
+    @Test
     void shouldValidateMandatoryArrayMinSize_failure() {
         var input = createObjectBuilder()
                 .add("arrayProperty", createArrayBuilder()
