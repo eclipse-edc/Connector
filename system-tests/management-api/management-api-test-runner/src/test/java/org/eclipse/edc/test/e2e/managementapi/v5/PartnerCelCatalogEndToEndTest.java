@@ -39,7 +39,7 @@ import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.policy.cel.model.CelExpression;
-import org.eclipse.edc.policy.cel.store.CelExpressionStore;
+import org.eclipse.edc.policy.cel.service.CelPolicyExpressionService;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
@@ -102,11 +102,12 @@ public class PartnerCelCatalogEndToEndTest {
 
         @AfterEach
         void teardown(ParticipantContextService participantContextService, PartnerStore partnerStore, PartnerGroupStore groupStore,
-                      CelExpressionStore celExpressionStore, ContractDefinitionStore contractDefinitionStore,
+                      CelPolicyExpressionService celExpressionService, ContractDefinitionStore contractDefinitionStore,
                       PolicyDefinitionStore policyDefinitionStore, AssetIndex assetIndex) {
             partnerStore.query(QuerySpec.max()).forEach(p -> partnerStore.deleteById(p.getParticipantContextId(), p.getId()));
             groupStore.query(QuerySpec.max()).forEach(g -> groupStore.deleteById(g.getParticipantContextId(), g.getId()));
-            celExpressionStore.query(QuerySpec.max()).forEach(e -> celExpressionStore.delete(e.getId()));
+            celExpressionService.query(QuerySpec.max()).orElseThrow(f -> new AssertionError(f.getFailureDetail()))
+                    .forEach(e -> celExpressionService.delete(e.getId()));
             contractDefinitionStore.findAll(QuerySpec.max()).toList().forEach(cd -> contractDefinitionStore.deleteById(cd.getParticipantContextId(), cd.getId()));
             policyDefinitionStore.findAll(QuerySpec.max()).toList().forEach(pd -> policyDefinitionStore.delete(pd.getParticipantContextId(), pd.getId()));
             assetIndex.queryAssets(QuerySpec.max()).toList().forEach(a -> assetIndex.deleteById(a.getParticipantContextId(), a.getId()));
@@ -116,14 +117,15 @@ public class PartnerCelCatalogEndToEndTest {
 
         @Test
         void shouldRestrictCatalogToPartnerGroup(ManagementEndToEndV5TestContext context, OauthServer authServer,
-                                                 CelExpressionStore celExpressionStore, AssetIndex assetIndex,
+                                                 CelPolicyExpressionService celExpressionService, AssetIndex assetIndex,
                                                  PolicyDefinitionStore policyDefinitionStore, ContractDefinitionStore contractDefinitionStore) {
-            celExpressionStore.create(CelExpression.Builder.newInstance()
+            celExpressionService.create(CelExpression.Builder.newInstance()
                     .id(UUID.randomUUID().toString())
                     .leftOperand("partnerGroup")
                     .expression("ctx.partners.byIdentity(ctx.agent.id).inGroup(this.rightOperand)")
                     .description("counterparty must belong to the partner group named by the right operand")
-                    .build());
+                    .build())
+                    .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
             var assetId = "asset-" + UUID.randomUUID();
             assetIndex.create(asset(assetId));
             createContractOffer(policyDefinitionStore, contractDefinitionStore, assetId, "partnerGroup", "gold");
@@ -137,14 +139,15 @@ public class PartnerCelCatalogEndToEndTest {
 
         @Test
         void shouldRestrictCatalogByPartnerProperty(ManagementEndToEndV5TestContext context, OauthServer authServer,
-                                                    CelExpressionStore celExpressionStore, AssetIndex assetIndex,
+                                                    CelPolicyExpressionService celExpressionService, AssetIndex assetIndex,
                                                     PolicyDefinitionStore policyDefinitionStore, ContractDefinitionStore contractDefinitionStore) {
-            celExpressionStore.create(CelExpression.Builder.newInstance()
+            celExpressionService.create(CelExpression.Builder.newInstance()
                     .id(UUID.randomUUID().toString())
                     .leftOperand("partnerBusinessId")
                     .expression("ctx.partners.query({'businessId': this.rightOperand}).exists(p, p.identity == ctx.agent.id)")
                     .description("counterparty must be the partner registered with the given business identifier")
-                    .build());
+                    .build())
+                    .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
             var assetId = "asset-" + UUID.randomUUID();
             assetIndex.create(asset(assetId));
             createContractOffer(policyDefinitionStore, contractDefinitionStore, assetId, "partnerBusinessId", "BID-A");
