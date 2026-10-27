@@ -82,4 +82,11 @@ public interface CelExpressionEngine {
      * @return a service result containing the boolean result of the evaluation or an error
      */
     ServiceResult<Boolean> evaluateExpression(Object leftOperand, Operator operator, Object rightOperand, Map<String, Object> params);
+
+    /**
+     * Discards what the engine keeps in memory about the registered expressions, so that the next lookup reads them
+     * from the store. To be called after the registered expressions have changed.
+     */
+    default void invalidate() {
+    }
 }

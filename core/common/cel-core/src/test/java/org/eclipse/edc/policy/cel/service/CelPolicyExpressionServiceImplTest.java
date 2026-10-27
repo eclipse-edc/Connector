@@ -30,6 +30,7 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -49,6 +50,7 @@ public class CelPolicyExpressionServiceImplTest {
         var result = service.create(expr);
 
         assertThat(result).isSucceeded();
+        verify(engine).invalidate();
     }
 
     @Test
@@ -86,6 +88,7 @@ public class CelPolicyExpressionServiceImplTest {
         var result = service.update(expr);
 
         assertThat(result).isSucceeded();
+        verify(engine).invalidate();
     }
 
     @Test
@@ -131,6 +134,7 @@ public class CelPolicyExpressionServiceImplTest {
         var result = service.delete("id");
 
         assertThat(result).isSucceeded();
+        verify(engine).invalidate();
     }
 
     private CelExpression celExpression(String id) {

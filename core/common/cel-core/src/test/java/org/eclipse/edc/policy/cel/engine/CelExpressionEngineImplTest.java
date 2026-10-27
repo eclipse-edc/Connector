@@ -22,9 +22,11 @@ import org.eclipse.edc.policy.cel.model.CelExpression;
 import org.eclipse.edc.policy.cel.store.CelExpressionStore;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,6 +34,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,6 +49,8 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class CelExpressionEngineImplTest {
@@ -81,6 +89,34 @@ public class CelExpressionEngineImplTest {
         var result = registry.evaluateExpression("test", Operator.EQ, "null", claims);
 
         assertThat(result).isSucceeded();
+    }
+
+    @Test
+    void evaluateExpression_shouldEvaluateEachCallWithItsOwnParams_whenExpressionReused() {
+        when(store.query(any())).thenReturn(List.of(expression("ctx.agent.id == 'agent-123' && this.rightOperand == 'right'")));
+
+        assertThat(registry.evaluateExpression("test", Operator.EQ, "right", createParams("agent-123"))).isSucceeded().isEqualTo(true);
+        assertThat(registry.evaluateExpression("test", Operator.EQ, "right", createParams("agent-456"))).isSucceeded().isEqualTo(false);
+        assertThat(registry.evaluateExpression("test", Operator.EQ, "other", createParams("agent-123"))).isSucceeded().isEqualTo(false);
+        assertThat(registry.evaluateExpression("test", Operator.EQ, "right", createParams("agent-123"))).isSucceeded().isEqualTo(true);
+    }
+
+    @Test
+    void evaluateExpression_shouldUseUpdatedExpression() {
+        when(store.query(any()))
+                .thenReturn(List.of(expression("ctx.agent.id == 'agent-123'")))
+                .thenReturn(List.of(expression("ctx.agent.id == 'agent-456'")));
+
+        assertThat(registry.evaluateExpression("test", Operator.EQ, "null", createParams("agent-123"))).isSucceeded().isEqualTo(true);
+        assertThat(registry.evaluateExpression("test", Operator.EQ, "null", createParams("agent-123"))).isSucceeded().isEqualTo(false);
+    }
+
+    @Test
+    void evaluateExpression_shouldFailEveryTime_whenExpressionInvalid() {
+        when(store.query(any())).thenReturn(List.of(expression("invalid expression")));
+
+        assertThat(registry.evaluateExpression("test", Operator.EQ, "null", createParams("agent-123"))).isFailed();
+        assertThat(registry.evaluateExpression("test", Operator.EQ, "null", createParams("agent-123"))).isFailed();
     }
 
     @Test
@@ -325,9 +361,8 @@ public class CelExpressionEngineImplTest {
     void canEvaluate() {
         when(store.query(any())).thenReturn(List.of(expression("empty")));
 
-        var result = registry.canEvaluate("leftOperand");
-
-        assertThat(result).isTrue();
+        assertThat(registry.canEvaluate("test")).isTrue();
+        assertThat(registry.canEvaluate("other")).isFalse();
     }
 
     @Test
@@ -369,9 +404,85 @@ public class CelExpressionEngineImplTest {
         var expr = expressionBuilder("empty").scopes(Set.of("scope1", "scope2")).build();
         when(store.query(any())).thenReturn(List.of(expr));
 
-        var result = registry.evaluationScopes("leftOperand");
+        var result = registry.evaluationScopes("test");
 
         assertThat(result).containsAll(expr.getScopes());
+    }
+
+    @Test
+    void evaluationScopes_shouldIncludeExpressionsBoundToAction() {
+        var expr = expressionBuilder("empty").leftOperand("other").actions(Set.of("use")).scopes(Set.of("scope1")).build();
+        when(store.query(any())).thenReturn(List.of(expr));
+
+        assertThat(registry.evaluationScopes("use")).containsExactly("scope1");
+        assertThat(registry.evaluationScopes("test")).isEmpty();
+    }
+
+    @Nested
+    class ExpressionsCache {
+
+        private final MutableClock clock = new MutableClock();
+        private final CelExpressionEngineImpl cachingEngine = new CelExpressionEngineImpl(transactionContext, store, mock(), functionRegistry, clock, 1000);
+
+        @Test
+        void shouldReadExpressionsOnce_withinTtl() {
+            when(store.query(any())).thenReturn(List.of(expression("ctx.agent.id == 'agent-123'")));
+
+            assertThat(cachingEngine.canEvaluate("test")).isTrue();
+            assertThat(cachingEngine.evaluationScopes("test")).isNotNull();
+            assertThat(cachingEngine.evaluateExpression("test", Operator.EQ, "null", createParams("agent-123"))).isSucceeded().isEqualTo(true);
+
+            verify(store, times(1)).query(QuerySpec.max());
+        }
+
+        @Test
+        void shouldReadExpressionsAgain_whenTtlExpired() {
+            when(store.query(any()))
+                    .thenReturn(List.of(expression("ctx.agent.id == 'agent-123'")))
+                    .thenReturn(List.of(expression("ctx.agent.id == 'agent-456'")));
+
+            assertThat(cachingEngine.evaluateExpression("test", Operator.EQ, "null", createParams("agent-123"))).isSucceeded().isEqualTo(true);
+            clock.advance(999);
+            assertThat(cachingEngine.evaluateExpression("test", Operator.EQ, "null", createParams("agent-123"))).isSucceeded().isEqualTo(true);
+            clock.advance(1);
+            assertThat(cachingEngine.evaluateExpression("test", Operator.EQ, "null", createParams("agent-123"))).isSucceeded().isEqualTo(false);
+
+            verify(store, times(2)).query(any());
+        }
+
+        @Test
+        void shouldReadExpressionsAgain_whenInvalidated() {
+            when(store.query(any()))
+                    .thenReturn(List.of())
+                    .thenReturn(List.of(expression("true")));
+
+            assertThat(cachingEngine.canEvaluate("test")).isFalse();
+            cachingEngine.invalidate();
+            assertThat(cachingEngine.canEvaluate("test")).isTrue();
+        }
+    }
+
+    private static class MutableClock extends Clock {
+        private Instant now = Instant.parse("2026-01-01T00:00:00Z");
+
+        void advance(long millis) {
+            now = now.plusMillis(millis);
+        }
+
+        @Override
+        public ZoneId getZone() {
+            return ZoneOffset.UTC;
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            return this;
+        }
+
+        @Override
+        public Instant instant() {
+            return now;
+        }
     }
 
     private CelExpression expression(String expr) {

@@ -48,11 +48,13 @@ import org.eclipse.edc.policy.model.Rule;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import java.time.Clock;
 import java.util.List;
 
 import static org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext.CATALOG_SCOPE;
@@ -67,6 +69,17 @@ import static org.eclipse.edc.policy.cel.CelPolicyCoreExtension.NAME;
 public class CelPolicyCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Common Expression Language Policy Core Extension";
+
+    static final long DEFAULT_EXPRESSIONS_CACHE_TTL_MS = 5000;
+
+    @Setting(description = "How long (in milliseconds) the registered CEL expressions are kept in memory before they are read from the " +
+            "store again. Changes made through this runtime apply immediately, changes made by other replicas within this time. " +
+            "0 reads them from the store on every policy evaluation.",
+            key = "edc.policy.cel.expressions.cache.ttl.ms", defaultValue = DEFAULT_EXPRESSIONS_CACHE_TTL_MS + "")
+    private long expressionsCacheTtlMs;
+
+    @Inject
+    private Clock clock;
 
     @Inject
     private PolicyEngine policyEngine;
@@ -120,7 +133,8 @@ public class CelPolicyCoreExtension implements ServiceExtension {
     @Provider
     public CelExpressionEngine policyExpressionEngine() {
         if (celExpressionEngine == null) {
-            celExpressionEngine = new CelExpressionEngineImpl(transactionContext, celExpressionStore, monitor, celFunctionRegistry());
+            celExpressionEngine = new CelExpressionEngineImpl(transactionContext, celExpressionStore, monitor, celFunctionRegistry(),
+                    clock, expressionsCacheTtlMs);
         }
         return celExpressionEngine;
     }

@@ -41,7 +41,7 @@ public class CelPolicyExpressionServiceImpl implements CelPolicyExpressionServic
 
     @Override
     public ServiceResult<Void> create(CelExpression expression) {
-        return tx.execute(() -> {
+        return afterWrite(tx.execute(() -> {
             var validationResult = engine.validate(expression.getExpression());
             if (validationResult.failed()) {
                 return validationResult;
@@ -52,7 +52,7 @@ public class CelPolicyExpressionServiceImpl implements CelPolicyExpressionServic
             } else {
                 return ServiceResult.from(result);
             }
-        });
+        }));
     }
 
     @Override
@@ -70,7 +70,7 @@ public class CelPolicyExpressionServiceImpl implements CelPolicyExpressionServic
 
     @Override
     public ServiceResult<Void> update(CelExpression expression) {
-        return tx.execute(() -> {
+        return afterWrite(tx.execute(() -> {
             var validationResult = engine.validate(expression.getExpression());
             if (validationResult.failed()) {
                 return validationResult;
@@ -81,13 +81,13 @@ public class CelPolicyExpressionServiceImpl implements CelPolicyExpressionServic
             } else {
                 return ServiceResult.from(result);
             }
-        });
+        }));
     }
 
     @Override
     public ServiceResult<Void> delete(String id) {
-        return tx.execute(() -> store.delete(id)
-                .flatMap(ServiceResult::from));
+        return afterWrite(tx.execute(() -> store.delete(id)
+                .flatMap(ServiceResult::from)));
     }
 
     @Override
@@ -105,5 +105,13 @@ public class CelPolicyExpressionServiceImpl implements CelPolicyExpressionServic
             response.error(result.getFailureDetail());
         }
         return ServiceResult.success(response.build());
+    }
+
+    /**
+     * Lets the engine read the changed expressions, once the transaction that changed them is over.
+     */
+    private <T> ServiceResult<T> afterWrite(ServiceResult<T> result) {
+        engine.invalidate();
+        return result;
     }
 }
