@@ -35,7 +35,7 @@ import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.policy.cel.model.CelExpression;
-import org.eclipse.edc.policy.cel.store.CelExpressionStore;
+import org.eclipse.edc.policy.cel.service.CelPolicyExpressionService;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
@@ -89,9 +89,10 @@ public class CelSupportedOperatorsCatalogEndToEndTest {
         }
 
         @AfterEach
-        void teardown(ParticipantContextService participantContextService, CelExpressionStore celExpressionStore,
+        void teardown(ParticipantContextService participantContextService, CelPolicyExpressionService celExpressionService,
                       ContractDefinitionStore contractDefinitionStore, PolicyDefinitionStore policyDefinitionStore, AssetIndex assetIndex) {
-            celExpressionStore.query(QuerySpec.max()).forEach(e -> celExpressionStore.delete(e.getId()));
+            celExpressionService.query(QuerySpec.max()).orElseThrow(f -> new AssertionError(f.getFailureDetail()))
+                    .forEach(e -> celExpressionService.delete(e.getId()));
             contractDefinitionStore.findAll(QuerySpec.max()).toList().forEach(cd -> contractDefinitionStore.deleteById(cd.getParticipantContextId(), cd.getId()));
             policyDefinitionStore.findAll(QuerySpec.max()).toList().forEach(pd -> policyDefinitionStore.delete(pd.getParticipantContextId(), pd.getId()));
             assetIndex.queryAssets(QuerySpec.max()).toList().forEach(a -> assetIndex.deleteById(a.getParticipantContextId(), a.getId()));
@@ -101,9 +102,9 @@ public class CelSupportedOperatorsCatalogEndToEndTest {
 
         @Test
         void shouldEvaluateExpression_whenOperatorSupported(ManagementEndToEndV5TestContext context, OauthServer authServer,
-                                                           CelExpressionStore celExpressionStore, AssetIndex assetIndex,
+                                                           CelPolicyExpressionService celExpressionService, AssetIndex assetIndex,
                                                            PolicyDefinitionStore policyDefinitionStore, ContractDefinitionStore contractDefinitionStore) {
-            celExpressionStore.create(expression("true", Operator.EQ));
+            celExpressionService.create(expression("true", Operator.EQ)).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
             var assetId = offerAsset(assetIndex, policyDefinitionStore, contractDefinitionStore, Operator.EQ);
 
             assertThat(datasetIds(fetchCatalog(context, authServer))).containsExactly(assetId);
@@ -111,10 +112,10 @@ public class CelSupportedOperatorsCatalogEndToEndTest {
 
         @Test
         void shouldNotEvaluateExpression_whenOperatorNotSupported(ManagementEndToEndV5TestContext context, OauthServer authServer,
-                                                                  CelExpressionStore celExpressionStore, AssetIndex assetIndex,
+                                                                  CelPolicyExpressionService celExpressionService, AssetIndex assetIndex,
                                                                   PolicyDefinitionStore policyDefinitionStore, ContractDefinitionStore contractDefinitionStore) {
             // the expression would grant access, but it must not be invoked with NEQ: the constraint is denied instead
-            celExpressionStore.create(expression("true", Operator.EQ));
+            celExpressionService.create(expression("true", Operator.EQ)).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
             offerAsset(assetIndex, policyDefinitionStore, contractDefinitionStore, Operator.NEQ);
 
             assertThat(datasetIds(fetchCatalog(context, authServer))).isEmpty();
@@ -122,11 +123,11 @@ public class CelSupportedOperatorsCatalogEndToEndTest {
 
         @Test
         void shouldSkipExpressionsNotSupportingOperator(ManagementEndToEndV5TestContext context, OauthServer authServer,
-                                                        CelExpressionStore celExpressionStore, AssetIndex assetIndex,
+                                                        CelPolicyExpressionService celExpressionService, AssetIndex assetIndex,
                                                         PolicyDefinitionStore policyDefinitionStore, ContractDefinitionStore contractDefinitionStore) {
             // expressions on the same left operand are ANDed: the denying one must be skipped for EQ
-            celExpressionStore.create(expression("true", Operator.EQ));
-            celExpressionStore.create(expression("false", Operator.NEQ));
+            celExpressionService.create(expression("true", Operator.EQ)).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+            celExpressionService.create(expression("false", Operator.NEQ)).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
             var assetId = offerAsset(assetIndex, policyDefinitionStore, contractDefinitionStore, Operator.EQ);
 
             assertThat(datasetIds(fetchCatalog(context, authServer))).containsExactly(assetId);

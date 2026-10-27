@@ -197,9 +197,9 @@ public class CelExpressionApiV5EndToEndTest {
         }
 
         @Test
-        void createPolicyDefinition_whenOperatorSupported(ManagementEndToEndV5TestContext context, OauthServer authServer, CelExpressionStore store) {
+        void createPolicyDefinition_whenOperatorSupported(ManagementEndToEndV5TestContext context, OauthServer authServer, CelPolicyExpressionService service) {
             var leftOperand = EDC_NAMESPACE + "celOperand-" + UUID.randomUUID();
-            store.create(expressionBuilder(leftOperand, "this.rightOperand == 'value'")
+            service.create(expressionBuilder(leftOperand, "this.rightOperand == 'value'")
                             .supportedOperators(Set.of(Operator.EQ, Operator.IS_PART_OF))
                             .build())
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
@@ -214,9 +214,9 @@ public class CelExpressionApiV5EndToEndTest {
         }
 
         @Test
-        void createPolicyDefinition_whenOperatorNotSupported(ManagementEndToEndV5TestContext context, OauthServer authServer, CelExpressionStore store) {
+        void createPolicyDefinition_whenOperatorNotSupported(ManagementEndToEndV5TestContext context, OauthServer authServer, CelPolicyExpressionService service) {
             var leftOperand = EDC_NAMESPACE + "celOperand-" + UUID.randomUUID();
-            store.create(expressionBuilder(leftOperand, "this.rightOperand == 'value'")
+            service.create(expressionBuilder(leftOperand, "this.rightOperand == 'value'")
                             .supportedOperators(Set.of(Operator.EQ, Operator.IS_PART_OF))
                             .build())
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
@@ -234,13 +234,13 @@ public class CelExpressionApiV5EndToEndTest {
         }
 
         @Test
-        void createPolicyDefinition_whenAnyExpressionSupportsOperator(ManagementEndToEndV5TestContext context, OauthServer authServer, CelExpressionStore store) {
+        void createPolicyDefinition_whenAnyExpressionSupportsOperator(ManagementEndToEndV5TestContext context, OauthServer authServer, CelPolicyExpressionService service) {
             var leftOperand = EDC_NAMESPACE + "celOperand-" + UUID.randomUUID();
-            store.create(expressionBuilder(leftOperand, "this.rightOperand == 'value'")
+            service.create(expressionBuilder(leftOperand, "this.rightOperand == 'value'")
                             .supportedOperators(Set.of(Operator.EQ))
                             .build())
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
-            store.create(expressionBuilder(leftOperand, "this.rightOperand != 'value'")
+            service.create(expressionBuilder(leftOperand, "this.rightOperand != 'value'")
                             .supportedOperators(Set.of(Operator.NEQ))
                             .build())
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
