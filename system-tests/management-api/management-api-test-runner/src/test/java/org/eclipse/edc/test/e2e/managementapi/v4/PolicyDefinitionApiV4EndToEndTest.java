@@ -383,6 +383,35 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .body("[1].message", startsWith("leftOperand 'https://w3id.org/edc/v0.0.1/ns/left' is not bound to any functions"));
         }
 
+        @Test
+        void shouldNotStorePolicyDefinition_whenRightOperandIsIdReference(ManagementEndToEndTestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "PolicyDefinition")
+                    .add("policy", odrlPolicyWithIdRightOperand())
+                    .build();
+
+            context.baseRequest()
+                    .body(requestBody)
+                    .contentType(JSON)
+                    .post("/v4/policydefinitions")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(400);
+        }
+
+        private JsonObject odrlPolicyWithIdRightOperand() {
+            return createObjectBuilder()
+                    .add(TYPE, "Set")
+                    .add("permission", createArrayBuilder().add(createObjectBuilder()
+                            .add("action", "use")
+                            .add("constraint", createArrayBuilder().add(createObjectBuilder()
+                                    .add("leftOperand", "https://w3id.org/edc/v0.0.1/ns/left")
+                                    .add("operator", "eq")
+                                    .add("rightOperand", createObjectBuilder().add(ID, "https://w3id.org/example/EU"))))))
+                    .build();
+        }
+
         private JsonObject emptyOdrlPolicy() {
             return createObjectBuilder()
                     .add(TYPE, "Set")

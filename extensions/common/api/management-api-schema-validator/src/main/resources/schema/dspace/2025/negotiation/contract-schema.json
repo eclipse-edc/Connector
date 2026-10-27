@@ -346,13 +346,27 @@
     "RightOperand": {
       "oneOf": [
         {
+          "$ref": "#/definitions/Literal"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Literal"
+          }
+        }
+      ]
+    },
+    "Literal": {
+      "$comment": "A right operand is a literal value: a plain string or a value object carrying a @value. A node reference such as {\"@id\": ...} is not a literal and is rejected: use the plain string instead.",
+      "oneOf": [
+        {
           "type": "string"
         },
         {
-          "type": "object"
-        },
-        {
-          "type": "array"
+          "type": "object",
+          "required": [
+            "@value"
+          ]
         }
       ]
     },
