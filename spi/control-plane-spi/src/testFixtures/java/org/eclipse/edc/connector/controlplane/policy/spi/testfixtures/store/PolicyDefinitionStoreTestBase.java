@@ -834,6 +834,23 @@ public abstract class PolicyDefinitionStoreTestBase {
         }
 
         @Test
+        void whenIdInFilter() {
+            var policy1 = TestFunctions.createPolicy(getRandomId());
+            var policy2 = TestFunctions.createPolicy(getRandomId());
+            var policy3 = TestFunctions.createPolicy(getRandomId());
+            getPolicyDefinitionStore().create(policy1);
+            getPolicyDefinitionStore().create(policy2);
+            getPolicyDefinitionStore().create(policy3);
+
+            var querySpec = QuerySpec.Builder.newInstance()
+                    .filter(filterByParticipantContextId(PARTICIPANT_CONTEXT_ID))
+                    .filter(Criterion.criterion("id", "in", List.of(policy1.getId(), policy3.getId(), "unknown")))
+                    .build();
+
+            assertThat(getPolicyDefinitionStore().findAll(querySpec)).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(policy1, policy3);
+        }
+
+        @Test
         void whenSort() {
             var policy1 = TestFunctions.createPolicy("C");
             var policy2 = TestFunctions.createPolicy("A");

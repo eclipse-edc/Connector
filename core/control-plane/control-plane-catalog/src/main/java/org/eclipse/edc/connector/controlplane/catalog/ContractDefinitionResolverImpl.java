@@ -19,19 +19,22 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.ResolvedContractDefini
 import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.result.Result;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Optional;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 
-import static java.lang.String.format;
+import static java.util.stream.Collectors.toCollection;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.IN;
 
 /**
  * Determines the contract definitions applicable to a {@link ParticipantAgent} by evaluating the access control and
@@ -39,6 +42,12 @@ import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.q
  * access control and usage policy, see {@link ContractDefinition}.
  */
 public class ContractDefinitionResolverImpl implements ContractDefinitionResolver {
+
+    /**
+     * How many policies are loaded with a single query, to keep the number of query parameters bounded.
+     */
+    static final int POLICY_BATCH_SIZE = 1000;
+
     private final PolicyEngine policyEngine;
     private final PolicyDefinitionStore policyStore;
     private final ContractDefinitionStore definitionStore;
@@ -51,24 +60,38 @@ public class ContractDefinitionResolverImpl implements ContractDefinitionResolve
 
     @Override
     public ResolvedContractDefinitions resolveFor(ParticipantContext participantContext, ParticipantAgent agent) {
-        var policies = new HashMap<String, Policy>();
         var query = queryByParticipantContextId(participantContext.getId()).limit(Integer.MAX_VALUE).build();
-        var definitions = definitionStore.findAll(query)
-                .filter(definition -> {
-                    var accessResult = Optional.of(definition.getAccessPolicyId())
-                            .map(policyId -> policies.computeIfAbsent(policyId,
-                                    key -> Optional.ofNullable(policyStore.findById(participantContext.getId(), key))
-                                            .map(PolicyDefinition::getPolicy)
-                                            .orElse(null))
-                            )
-                            .map(policy -> policyEngine.evaluate(policy, new CatalogPolicyContext(participantContext.getId(), agent)))
-                            .orElse(Result.failure(format("Policy %s not found", definition.getAccessPolicyId())));
+        var definitions = definitionStore.findAll(query).toList();
 
-                    return accessResult.succeeded();
-                })
+        var accessPolicyIds = definitions.stream().map(ContractDefinition::getAccessPolicyId).collect(toCollection(LinkedHashSet::new));
+        var policies = loadPolicies(participantContext.getId(), accessPolicyIds);
+
+        // the evaluation does not depend on the contract definition, so every access policy is evaluated only once
+        var accessGranted = new HashMap<String, Boolean>();
+        var granted = definitions.stream()
+                .filter(definition -> accessGranted.computeIfAbsent(definition.getAccessPolicyId(), policyId -> {
+                    var policy = policies.get(policyId);
+                    return policy != null && policyEngine.evaluate(policy, new CatalogPolicyContext(participantContext.getId(), agent)).succeeded();
+                }))
                 .toList();
 
-        return new ResolvedContractDefinitions(definitions, policies);
+        return new ResolvedContractDefinitions(granted, policies);
+    }
+
+    private Map<String, Policy> loadPolicies(String participantContextId, LinkedHashSet<String> policyIds) {
+        var policies = new HashMap<String, Policy>();
+        var ids = new ArrayList<>(policyIds);
+        for (var from = 0; from < ids.size(); from += POLICY_BATCH_SIZE) {
+            var batch = List.copyOf(ids.subList(from, Math.min(from + POLICY_BATCH_SIZE, ids.size())));
+            var query = queryByParticipantContextId(participantContextId)
+                    .filter(criterion("id", IN, batch))
+                    .limit(batch.size())
+                    .build();
+            try (var found = policyStore.findAll(query)) {
+                found.forEach(definition -> policies.put(definition.getId(), definition.getPolicy()));
+            }
+        }
+        return policies;
     }
 
 }
