@@ -64,6 +64,7 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class DatasetResolverImplTest {
@@ -222,6 +223,23 @@ class DatasetResolverImplTest {
             var datasets = datasetResolver.query(createParticipantContext(), createParticipantAgent(), querySpec, "protocol");
 
             assertThat(datasets).hasSize(3).map(getId()).containsExactly("2", "3", "4");
+        }
+
+        @Test
+        void shouldBuildDatasetsOnlyForTheRequestedPage() {
+            var contractDefinition = contractDefinitionBuilder("definitionId").contractPolicyId("contractPolicyId").build();
+            var assets = range(0, 10).mapToObj(it -> createAsset(String.valueOf(it)).build()).toList();
+            when(definitionResolver.resolveFor(any(), any())).thenReturn(new ResolvedContractDefinitions(List.of(contractDefinition)));
+            when(assetIndex.queryAssets(isA(QuerySpec.class))).thenAnswer(i -> assets.stream());
+            when(policyStore.findById("participantContextId", "contractPolicyId")).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build());
+            var querySpec = QuerySpec.Builder.newInstance().range(new Range(6, 8)).build();
+
+            var datasets = datasetResolver.query(createParticipantContext(), createParticipantAgent(), querySpec, "protocol").toList();
+
+            assertThat(datasets).map(getId()).containsExactly("6", "7");
+            verify(distributionResolver).getDistributions("protocol", assets.get(6));
+            verify(distributionResolver).getDistributions("protocol", assets.get(7));
+            verifyNoMoreInteractions(distributionResolver);
         }
 
         @Test
