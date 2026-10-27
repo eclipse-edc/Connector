@@ -31,6 +31,7 @@ import org.eclipse.edc.spi.result.Result;
 import java.security.Principal;
 import java.util.List;
 
+import static jakarta.ws.rs.HttpMethod.OPTIONS;
 import static org.eclipse.edc.api.authentication.filter.Constants.REQUEST_PROPERTY_CLAIMS;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
@@ -65,6 +66,10 @@ public class ServicePrincipalAuthenticationFilter implements ContainerRequestFil
 
     @Override
     public void filter(ContainerRequestContext containerRequestContext) {
+        // OPTIONS requests don't have credentials - do not authenticate
+        if (OPTIONS.equalsIgnoreCase(containerRequestContext.getMethod())) {
+            return;
+        }
 
         var claims = containerRequestContext.getProperty(REQUEST_PROPERTY_CLAIMS);
         if (claims instanceof ClaimToken claimToken) {

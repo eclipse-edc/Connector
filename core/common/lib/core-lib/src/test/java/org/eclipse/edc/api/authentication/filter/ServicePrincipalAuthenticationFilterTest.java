@@ -35,6 +35,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -67,6 +68,7 @@ class ServicePrincipalAuthenticationFilterTest {
         verify(request).getProperty(REQUEST_PROPERTY_CLAIMS);
         verify(request).setSecurityContext(argThat(sc -> sc.getUserPrincipal() instanceof ParticipantPrincipal pp &&
                 "test-context-id".equals(pp.getName())));
+        verify(request).getMethod();
         verifyNoMoreInteractions(request);
     }
 
@@ -84,6 +86,7 @@ class ServicePrincipalAuthenticationFilterTest {
         verify(request).getProperty(REQUEST_PROPERTY_CLAIMS);
         verify(request, never()).setSecurityContext(argThat(sc -> sc.getUserPrincipal() instanceof ParticipantPrincipal));
         verify(request).abortWith(argThat(response -> response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode()));
+        verify(request).getMethod();
         verifyNoMoreInteractions(request);
     }
 
@@ -172,5 +175,17 @@ class ServicePrincipalAuthenticationFilterTest {
 
         verify(request).abortWith(argThat(response -> response.getStatus() == 401));
         verify(request, never()).setSecurityContext(any());
+    }
+
+    @Test
+    void filter_optionsMethod_skipsAuthentication() {
+        var request = mock(ContainerRequestContext.class);
+        when(request.getMethod()).thenReturn("options");
+
+        filter.filter(request);
+
+        verify(request).getMethod();
+        verifyNoMoreInteractions(request);
+        verifyNoInteractions(participantContextService);
     }
 }
