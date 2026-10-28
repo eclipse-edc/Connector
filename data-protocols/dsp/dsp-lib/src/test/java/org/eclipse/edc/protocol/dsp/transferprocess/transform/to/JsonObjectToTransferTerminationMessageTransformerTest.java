@@ -26,7 +26,9 @@ import java.util.Map;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.LANGUAGE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
@@ -67,6 +69,42 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
         assertThat(result.getReason()).isEqualTo(format("[{\"%sfoo\":[{\"@value\":\"bar\"}]}]", DSP_NAMESPACE.namespace()));
         assertThat(result.getCode()).isEqualTo("testCode");
 
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void shouldStoreTextReason_whenReasonIsPlainText() {
+        var json = Json.createObjectBuilder()
+                .add(TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "consumerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_REASON_TERM), "timeout")
+                .build();
+
+        var result = transformer.transform(TestJsonLd.expand(json), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getReason()).isEqualTo("timeout");
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void shouldJoinTextReasons_whenSeveral() {
+        var reasons = Json.createArrayBuilder()
+                .add("first")
+                .add(Json.createObjectBuilder().add(VALUE, "second").add(LANGUAGE, "en"))
+                .build();
+        var json = Json.createObjectBuilder()
+                .add(TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "consumerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_REASON_TERM), reasons)
+                .build();
+
+        var result = transformer.transform(TestJsonLd.expand(json), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getReason()).isEqualTo("first; second");
         verify(context, never()).reportProblem(anyString());
     }
 
