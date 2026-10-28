@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.runtime.core.http;
 
+import okhttp3.Dispatcher;
 import okhttp3.EventListener;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -50,6 +51,17 @@ public class OkHttpClientFactory {
         if (configuration.getSendBufferSize() > 0 || configuration.getReceiveBufferSize() > 0) {
             builder.socketFactory(new CustomSocketFactory(configuration.getSendBufferSize(), configuration.getReceiveBufferSize()));
         }
+
+        // the dispatcher limits asynchronous calls only (e.g. DSP messages). All the participants hosted by a
+        // counter-party runtime share the same host, so the per-host limit caps the DSP traffic to that runtime
+        var dispatcher = new Dispatcher();
+        if (configuration.getMaxRequests() > 0) {
+            dispatcher.setMaxRequests(configuration.getMaxRequests());
+        }
+        if (configuration.getMaxRequestsPerHost() > 0) {
+            dispatcher.setMaxRequestsPerHost(configuration.getMaxRequestsPerHost());
+        }
+        builder.dispatcher(dispatcher);
 
         ofNullable(okHttpEventListener).ifPresent(builder::eventListener);
 
