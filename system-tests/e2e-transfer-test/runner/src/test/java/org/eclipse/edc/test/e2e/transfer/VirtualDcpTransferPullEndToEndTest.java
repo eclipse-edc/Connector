@@ -372,6 +372,30 @@ class VirtualDcpTransferPullEndToEndTest {
         }
 
         @Test
+        void negotiation_fails_withWrongAssigner(ManagementApiClientV5 connectorClient,
+                                                 Participants participants) {
+
+            var providerAddress = participants.provider().getProtocolEndpoint();
+            var assetId = setup(connectorClient, participants.provider());
+
+            var offer = connectorClient.fetchDataset(participants.consumer().contextId(), participants.consumer().profile(), assetId, providerAddress, participants.provider().id())
+                    .offers().stream().findFirst().orElseThrow();
+
+            var providerNegotiationsBefore = connectorClient.negotiations().search(participants.provider().contextId(), new QuerySpectDto(List.of())).size();
+
+            // the wrong assigner becomes the counter-party id of the consumer negotiation, and thus the audience of the self-issued token
+            var wrongProviderId = "did:web:wrong-provider";
+            var negotiationId = connectorClient.initContractNegotiation(participants.consumer().contextId(), participants.consumer().profile(), assetId, offer, providerAddress, wrongProviderId);
+
+            connectorClient.waitForContractNegotiationState(participants.consumer().contextId(), negotiationId, ContractNegotiationStates.TERMINATED.name());
+            var error = connectorClient.getNegotiationError(participants.consumer().contextId(), negotiationId);
+            assertThat(error).isNotNull().contains("Unauthorized");
+
+            // the provider rejected the token, so it never created a negotiation
+            assertThat(connectorClient.negotiations().search(participants.provider().contextId(), new QuerySpectDto(List.of()))).hasSize(providerNegotiationsBefore);
+        }
+
+        @Test
         void policyMonitor_shouldNotTerminateTransfer_whenCredentialIsValid(ManagementApiClientV5 connectorClient,
                                                                             Participants participants) {
 
