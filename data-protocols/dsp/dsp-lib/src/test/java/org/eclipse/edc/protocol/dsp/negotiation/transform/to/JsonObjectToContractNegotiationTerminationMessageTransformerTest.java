@@ -74,6 +74,42 @@ class JsonObjectToContractNegotiationTerminationMessageTransformerTest {
     }
 
     @Test
+    void transform_shouldStoreTextReason_whenReasonIsPlainText() {
+        var message = jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "consumerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_REASON_TERM), "timeout")
+                .build();
+
+        var result = transformer.transform(TestJsonLd.expand(message), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getRejectionReason()).isEqualTo("timeout");
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void transform_shouldJoinTextReasons_whenSeveral() {
+        var reasons = jsonFactory.createArrayBuilder()
+                .add("first")
+                .add(jsonFactory.createObjectBuilder().add(JsonLdKeywords.VALUE, "second").add(JsonLdKeywords.LANGUAGE, "en"))
+                .build();
+        var message = jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "consumerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_REASON_TERM), reasons)
+                .build();
+
+        var result = transformer.transform(TestJsonLd.expand(message), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getRejectionReason()).isEqualTo("first; second");
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
     void verify_noCodeNodReason() {
         var message = jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.ID, "id1")

@@ -16,6 +16,8 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
@@ -24,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static jakarta.json.JsonValue.ValueType.ARRAY;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
@@ -75,12 +78,31 @@ public class JsonObjectToTransferTerminationMessageTransformer extends Namespace
             } else {
                 var array = (JsonArray) reasons;
                 if (array.size() > 0) {
-                    builder.reason(array.toString());
+                    builder.reason(reasonText(array));
                 }
             }
         }
 
         return builder.build();
 
+    }
+
+    /**
+     * The reasons as text: a plain-text reason, expanded to a value object ({@code {"@value": "..."}}), contributes its
+     * value, and several are joined with "; ". When any reason is structured, all of them are kept as JSON.
+     */
+    private String reasonText(JsonArray reasons) {
+        var texts = reasons.stream().map(this::valueText).toList();
+        return texts.contains(null) ? reasons.toString() : String.join("; ", texts);
+    }
+
+    private @Nullable String valueText(JsonValue reason) {
+        if (reason instanceof JsonString text) {
+            return text.getString();
+        }
+        if (reason instanceof JsonObject object && object.get(VALUE) instanceof JsonString text) {
+            return text.getString();
+        }
+        return null;
     }
 }
