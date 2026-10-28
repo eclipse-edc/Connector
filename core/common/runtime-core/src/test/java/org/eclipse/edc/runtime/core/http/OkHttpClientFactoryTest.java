@@ -91,6 +91,28 @@ class OkHttpClientFactoryTest {
         });
     }
 
+    @Test
+    void shouldConfigureDispatcherLimits() {
+        var configuration = mock(OkHttpClientConfiguration.class);
+        when(configuration.getMaxRequests()).thenReturn(256);
+        when(configuration.getMaxRequestsPerHost()).thenReturn(64);
+
+        var okHttpClient = OkHttpClientFactory.create(configuration, eventListener, monitor);
+
+        assertThat(okHttpClient.dispatcher().getMaxRequests()).isEqualTo(256);
+        assertThat(okHttpClient.dispatcher().getMaxRequestsPerHost()).isEqualTo(64);
+    }
+
+    @Test
+    void shouldKeepDispatcherDefaults_whenLimitsNotSet() {
+        var configuration = mock(OkHttpClientConfiguration.class);
+
+        var okHttpClient = OkHttpClientFactory.create(configuration, eventListener, monitor);
+
+        assertThat(okHttpClient.dispatcher().getMaxRequests()).isEqualTo(64);
+        assertThat(okHttpClient.dispatcher().getMaxRequestsPerHost()).isEqualTo(5);
+    }
+
     @NotNull
     private Interceptor dummySuccessfulResponse() {
         return it -> new Response.Builder()

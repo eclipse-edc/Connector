@@ -24,6 +24,8 @@ public class OkHttpClientConfiguration {
     public static final int DEFAULT_OK_HTTP_CLIENT_TIMEOUT_READ = 30;
     public static final int DEFAULT_OK_HTTP_CLIENT_SEND_BUFFER_SIZE = 0;
     public static final int DEFAULT_OK_HTTP_CLIENT_RECEIVE_BUFFER_SIZE = 0;
+    public static final int DEFAULT_OK_HTTP_CLIENT_MAX_REQUESTS = 64;
+    public static final int DEFAULT_OK_HTTP_CLIENT_MAX_REQUESTS_PER_HOST = 5;
 
     @Setting(description = "OkHttpClient: If true, enable HTTPS call enforcement", defaultValue = DEFAULT_OK_HTTP_CLIENT_HTTPS_ENFORCE + "", key = "edc.http.client.https.enforce")
     private boolean enforceHttps;
@@ -36,6 +38,13 @@ public class OkHttpClientConfiguration {
     private int sendBufferSize;
     @Setting(description = "OkHttpClient: receive buffer size, in bytes", defaultValue = DEFAULT_OK_HTTP_CLIENT_RECEIVE_BUFFER_SIZE + "", key = "edc.http.client.receive.buffer.size", min = 1)
     private int receiveBufferSize;
+    @Setting(description = "OkHttpClient: maximum number of asynchronous requests executed concurrently. Further requests are queued",
+            defaultValue = DEFAULT_OK_HTTP_CLIENT_MAX_REQUESTS + "", key = "edc.http.client.max.requests", min = 1)
+    private int maxRequests;
+    @Setting(description = "OkHttpClient: maximum number of asynchronous requests executed concurrently against the same host. " +
+            "Further requests are queued. Every participant hosted by the same counter-party runtime shares the same host",
+            defaultValue = DEFAULT_OK_HTTP_CLIENT_MAX_REQUESTS_PER_HOST + "", key = "edc.http.client.max.requests.per.host", min = 1)
+    private int maxRequestsPerHost;
 
     public OkHttpClientConfiguration() {
     }
@@ -58,6 +67,14 @@ public class OkHttpClientConfiguration {
 
     public int getReceiveBufferSize() {
         return receiveBufferSize;
+    }
+
+    public int getMaxRequests() {
+        return maxRequests;
+    }
+
+    public int getMaxRequestsPerHost() {
+        return maxRequestsPerHost;
     }
 
     public Builder toBuilder() {
@@ -98,6 +115,16 @@ public class OkHttpClientConfiguration {
 
         public Builder receiveBufferSize(int receiveBufferSize) {
             instance.receiveBufferSize = receiveBufferSize;
+            return this;
+        }
+
+        public Builder maxRequests(int maxRequests) {
+            instance.maxRequests = maxRequests;
+            return this;
+        }
+
+        public Builder maxRequestsPerHost(int maxRequestsPerHost) {
+            instance.maxRequestsPerHost = maxRequestsPerHost;
             return this;
         }
 
