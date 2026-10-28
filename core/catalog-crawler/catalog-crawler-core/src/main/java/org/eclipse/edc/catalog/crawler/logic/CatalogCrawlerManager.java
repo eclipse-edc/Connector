@@ -145,7 +145,7 @@ public class CatalogCrawlerManager {
                 monitor.severe(format("The following Node has errored out more than %d times. We'll discard it now: [%s]", configuration.maxRetries(), item));
             } else {
                 monitor.debug(format("The following Node has errored out. Will re-queue after a delay of %s seconds: [%s]", configuration.retryDelaySeconds(), item));
-                crawlers.schedule(createCrawler(item), configuration.retryDelaySeconds(), TimeUnit.SECONDS);
+                crawlers.schedule(createCrawler(new TargetNodeRetryCount(retries, targetNode)), configuration.retryDelaySeconds(), TimeUnit.SECONDS);
             }
         }
     }
