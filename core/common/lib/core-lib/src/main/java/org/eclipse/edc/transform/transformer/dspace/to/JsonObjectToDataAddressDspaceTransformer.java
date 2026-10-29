@@ -28,8 +28,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.eclipse.edc.controlplane.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY_TERM;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_TYPE_PROPERTY_TERM;
 
@@ -37,6 +39,8 @@ import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSeri
  * Transforms a {@link JsonObject} into a DataAddress using the DSPACE-serialization format.
  */
 public class JsonObjectToDataAddressDspaceTransformer extends NamespacedJsonLdToModelTransformer<JsonObject, DataAddress> {
+
+    private static final String EDC_ENDPOINT_PROPERTY = EDC_NAMESPACE + "endpoint";
 
     public JsonObjectToDataAddressDspaceTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, DataAddress.class, namespace);
@@ -47,6 +51,11 @@ public class JsonObjectToDataAddressDspaceTransformer extends NamespacedJsonLdTo
         var builder = DataAddress.Builder.newInstance();
         transformString(jsonObject.get(forNamespace(ENDPOINT_TYPE_PROPERTY_TERM)), builder::type, context);
         transformEndpointProperties(jsonObject.get(forNamespace(ENDPOINT_PROPERTIES_PROPERTY_TERM)), ep -> builder.property(ep.name(), ep.value()), context);
+        // the endpoint is a member of the DataAddress, kept where the serializer and the signaling transformers read it
+        var endpoint = transformString(jsonObject.get(forNamespace(ENDPOINT_PROPERTY_TERM)), context);
+        if (endpoint != null) {
+            builder.property(EDC_ENDPOINT_PROPERTY, endpoint);
+        }
         return builder.build();
     }
 
