@@ -116,6 +116,24 @@ class CatalogCrawlerManagerTest {
     }
 
     @Test
+    void shouldDiscardNode_whenMaxRetriesExceeded() {
+        var maxRetries = 2;
+        // retry immediately, and use a long period so the next crawl cycle cannot interfere with the count
+        var manager = createManagerBuilder()
+                .configuration(new CatalogCrawlerConfiguration(true, 1, 3600, 0, maxRetries, 0))
+                .build();
+        when(nodeDirectoryMock.getAll()).thenReturn(List.of(createNode()));
+        when(crawlerActionRegistry.findForProtocol(TEST_PROTOCOL)).thenReturn(List.of(queryAdapterMock));
+        when(queryAdapterMock.apply(any())).thenReturn(failedFuture(new EdcException("unexpected exception")));
+
+        manager.start();
+
+        await().untilAsserted(() -> verify(monitorMock).severe(startsWith("The following Node has errored out more than")));
+        // one initial attempt plus maxRetries, then the node is discarded
+        verify(queryAdapterMock, times(maxRetries + 1)).apply(any());
+    }
+
+    @Test
     void executePlan_withCustomFiltering() {
         when(nodeDirectoryMock.getAll()).thenReturn(List.of(createNode(), createNode(), createNode()));
         var filter = mock(TargetNodeFilter.class);
