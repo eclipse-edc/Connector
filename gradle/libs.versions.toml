@@ -105,7 +105,7 @@ nats = { module = "io.nats:jnats", version = "2.26.4" }
 
 dcp-tck = { module = "org.eclipse.dataspacetck.dcp:dcp-tck", version = "1.2.1" }
 dsp-tck = { module = "org.eclipse.dataspacetck.dsp:dsp-tck", version = "1.0.2" }
-dps-tck = { module = "org.eclipse.dataspacetck.dps:dps-tck", version = "1.3.1" }
+dps-tck = { module = "org.eclipse.dataspacetck.dps:dps-tck", version = "1.3.2" }
 
 [bundles]
 jackson = ["jackson-annotations", "jackson-databind"]
