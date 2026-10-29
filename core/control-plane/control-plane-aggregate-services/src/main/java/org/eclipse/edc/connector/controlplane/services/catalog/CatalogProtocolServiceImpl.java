@@ -55,11 +55,16 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
         this.transactionContext = transactionContext;
     }
 
+    /**
+     * The token is verified outside the transaction: verification makes remote calls (DID resolution, the presentation
+     * request to the counter-party's credential service), and an enclosing transaction would keep a database
+     * connection checked out, idle, for their whole duration.
+     */
     @Override
     @NotNull
     public ServiceResult<Catalog> getCatalog(ParticipantContext participantContext, CatalogRequestMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> protocolTokenValidator.verify(participantContext, tokenRepresentation, message)
-                .map(agent -> {
+        return protocolTokenValidator.verify(participantContext, tokenRepresentation, message)
+                .map(agent -> transactionContext.execute(() -> {
                     try (var datasets = datasetResolver.query(participantContext, agent, message.getQuerySpec(), message.getProtocol())) {
                         var dataServices = dataServiceRegistry.getDataServices(participantContext.getId(), message.getProtocol());
 
@@ -69,22 +74,24 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
                                 .participantId(identityResolver.getParticipantId(participantContext.getId(), message.getProtocol()))
                                 .build();
                     }
-                })
-        );
+                }));
     }
 
+    /**
+     * The token is verified outside the transaction, see {@link #getCatalog}.
+     */
     @Override
     public @NotNull ServiceResult<Dataset> getDataset(ParticipantContext participantContext, DatasetRequestMessage message, TokenRepresentation tokenRepresentation) {
         var datasetId = message.getDatasetId();
-        return transactionContext.execute(() -> protocolTokenValidator.verify(participantContext, tokenRepresentation, message)
-                .map(agent -> datasetResolver.getById(participantContext, agent, datasetId, message.getProtocol()))
+        return protocolTokenValidator.verify(participantContext, tokenRepresentation, message)
+                .map(agent -> transactionContext.execute(() -> datasetResolver.getById(participantContext, agent, datasetId, message.getProtocol())))
                 .compose(dataset -> {
                     if (dataset == null) {
                         return ServiceResult.notFound(format("Dataset %s does not exist", datasetId));
                     }
 
                     return ServiceResult.success(dataset);
-                }));
+                });
     }
 
 }

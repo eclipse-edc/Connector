@@ -48,7 +48,9 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -110,7 +112,9 @@ class CatalogProtocolServiceImplTest {
                 assertThat(catalog.getParticipantId()).isEqualTo(participantId);
             });
             verify(datasetResolver).query(eq(participantContext), eq(participantAgent), eq(querySpec), eq("protocol"));
-            verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+            var inOrder = inOrder(protocolTokenValidator, transactionContext);
+            inOrder.verify(protocolTokenValidator).verify(participantContext, tokenRepresentation, message);
+            inOrder.verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
         }
 
         @Test
@@ -124,6 +128,8 @@ class CatalogProtocolServiceImplTest {
             var result = service.getCatalog(participantContext, message, tokenRepresentation);
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
+            verify(transactionContext, never()).execute(any(TransactionContext.ResultTransactionBlock.class));
+            verify(datasetResolver, never()).query(any(), any(), any(), any());
         }
     }
 
@@ -144,7 +150,9 @@ class CatalogProtocolServiceImplTest {
 
             assertThat(result).isSucceeded().isEqualTo(dataset);
             verify(datasetResolver).getById(participantContext, participantAgent, "datasetId", "protocol");
-            verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+            var inOrder = inOrder(protocolTokenValidator, transactionContext);
+            inOrder.verify(protocolTokenValidator).verify(participantContext, tokenRepresentation, message);
+            inOrder.verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
         }
 
         @Test
@@ -172,6 +180,8 @@ class CatalogProtocolServiceImplTest {
             var result = service.getDataset(participantContext, message, tokenRepresentation);
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
+            verify(transactionContext, never()).execute(any(TransactionContext.ResultTransactionBlock.class));
+            verify(datasetResolver, never()).getById(any(), any(), any(), any());
         }
     }
 }
