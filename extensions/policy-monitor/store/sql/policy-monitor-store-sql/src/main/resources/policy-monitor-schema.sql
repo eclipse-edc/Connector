@@ -17,11 +17,6 @@ CREATE TABLE IF NOT EXISTS edc_policy_monitor
     lease_duration       INTEGER
 );
 
--- Add lease columns to tables created before the lease was moved from edc_lease to the entry row
-ALTER TABLE edc_policy_monitor ADD COLUMN IF NOT EXISTS leased_by VARCHAR;
-ALTER TABLE edc_policy_monitor ADD COLUMN IF NOT EXISTS leased_at BIGINT;
-ALTER TABLE edc_policy_monitor ADD COLUMN IF NOT EXISTS lease_duration INTEGER;
-
 COMMENT ON COLUMN edc_policy_monitor.leased_at IS 'posix timestamp of lease';
 COMMENT ON COLUMN edc_policy_monitor.lease_duration IS 'duration of lease in milliseconds';
 
