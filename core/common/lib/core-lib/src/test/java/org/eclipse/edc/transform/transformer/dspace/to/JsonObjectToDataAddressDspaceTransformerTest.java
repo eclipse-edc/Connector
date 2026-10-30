@@ -17,7 +17,6 @@ package org.eclipse.edc.transform.transformer.dspace.to;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObjectBuilder;
-import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.jsonld.spi.Namespaces;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
@@ -25,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.controlplane.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
@@ -36,10 +34,7 @@ import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSeri
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_PROPERTY_TYPE_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_TYPE_PROPERTY_TERM;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class JsonObjectToDataAddressDspaceTransformerTest {
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
@@ -48,7 +43,6 @@ class JsonObjectToDataAddressDspaceTransformerTest {
 
     @Test
     void transform() {
-        var nestedResponseChannel = responseChannelAddress();
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, jsonFactory.createArrayBuilder().add(Namespaces.DSPACE_CONTEXT_2025_1))
                 .add(TYPE, DSPACE_DATAADDRESS_TYPE_TERM)
@@ -59,16 +53,8 @@ class JsonObjectToDataAddressDspaceTransformerTest {
                         .add(property("authType", "bearer"))
                         .add(property("foo", "bar"))
                         .add(property("fizz", "buzz"))
-                        .add(propertyWith(nestedResponseChannel))
                 )
                 .build();
-
-        when(context.transform(any(), eq(DataAddress.class)))
-                .thenReturn(DataAddress.Builder.newInstance()
-                        .type("SomeType")
-                        .property("john", "doe")
-                        .property("internal", "prop")
-                        .build());
 
         var dataAddress = transformer.transform(expand(jsonObj), context);
 
@@ -79,10 +65,6 @@ class JsonObjectToDataAddressDspaceTransformerTest {
                 .containsEntry("authorization", "some-token")
                 .containsEntry("authType", "bearer")
                 .containsEntry("fizz", "buzz");
-        assertThat(dataAddress.getResponseChannel()).isNotNull();
-        assertThat(dataAddress.getResponseChannel().getProperties())
-                .containsEntry("john", "doe")
-                .containsEntry("internal", "prop");
     }
 
     @Test
@@ -108,22 +90,6 @@ class JsonObjectToDataAddressDspaceTransformerTest {
                 .add(TYPE, ENDPOINT_PROPERTY_PROPERTY_TYPE_TERM)
                 .add("name", key)
                 .add("value", value);
-    }
-
-    private JsonObjectBuilder propertyWith(JsonObjectBuilder builder) {
-        return jsonFactory.createObjectBuilder()
-                .add(TYPE, ENDPOINT_PROPERTY_PROPERTY_TYPE_TERM)
-                .add("name", EDC_DATA_ADDRESS_RESPONSE_CHANNEL)
-                .add("value", builder);
-    }
-
-    private JsonObjectBuilder responseChannelAddress() {
-        return jsonFactory.createObjectBuilder()
-                .add(TYPE, DSPACE_DATAADDRESS_TYPE_TERM)
-                .add(ENDPOINT_TYPE_PROPERTY_TERM, "SomeType")
-                .add(ENDPOINT_PROPERTIES_PROPERTY_TERM, jsonFactory.createArrayBuilder()
-                        .add(property("john", "doe"))
-                        .add(property("internal", "prop")));
     }
 
 }

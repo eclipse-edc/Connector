@@ -17,7 +17,6 @@ package org.eclipse.edc.transform.transformer.edc.from;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
-import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.json.JsonMapperFactory;
@@ -32,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.controlplane.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
 import static org.eclipse.edc.controlplane.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -62,9 +60,6 @@ class JsonObjectFromDataAddressTransformerTest {
 
     @Test
     void transform() {
-        var innerDataAddress = DataAddress.Builder.newInstance()
-                .property(EDC_DATA_ADDRESS_TYPE_PROPERTY, "type")
-                .build();
         var message = DataAddress.Builder.newInstance()
                 .type(type)
                 .property("string", "test")
@@ -78,14 +73,7 @@ class JsonObjectFromDataAddressTransformerTest {
                 .property("nestedJsonObjectWithArray", Map.of(
                         "key", List.of("value1", "value2"),
                         "anotherKey", List.of("value3", "value4")))
-                .responseChannel(innerDataAddress)
                 .build();
-
-        when(context.transform(innerDataAddress, JsonObject.class))
-                .thenReturn(
-                        jsonObject()
-                                .add(TYPE, EDC_NAMESPACE + "DataAddress")
-                                .add(EDC_DATA_ADDRESS_TYPE_PROPERTY, "type").build());
 
         var expectedJson = jsonObject()
                 .add(TYPE, EDC_NAMESPACE + "DataAddress")
@@ -93,10 +81,6 @@ class JsonObjectFromDataAddressTransformerTest {
                 .add("string", "test")
                 .add("integer", 123)
                 .add("whatAboutDouble", 123.456)
-                .add(EDC_DATA_ADDRESS_RESPONSE_CHANNEL,
-                        jsonObject()
-                                .add(TYPE, EDC_NAMESPACE + "DataAddress")
-                                .add(EDC_DATA_ADDRESS_TYPE_PROPERTY, "type"))
                 .add("nestedJsonObject",
                         jsonObject()
                                 .add("key", jsonObject().add("testKey", "testValue")))

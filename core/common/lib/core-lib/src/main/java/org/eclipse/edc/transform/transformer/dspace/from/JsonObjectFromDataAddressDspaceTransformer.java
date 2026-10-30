@@ -16,6 +16,7 @@ package org.eclipse.edc.transform.transformer.dspace.from;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
 import jakarta.json.stream.JsonCollectors;
 import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
@@ -56,7 +57,7 @@ public class JsonObjectFromDataAddressDspaceTransformer extends NamespacedJsonLd
     public @Nullable JsonObject transform(@NotNull DataAddress dataAddress, @NotNull TransformerContext context) {
         var endpointProperties = dataAddress.getProperties().entrySet().stream()
                 .filter(e -> !EXCLUDED_PROPERTIES.contains(e.getKey()))
-                .map(it -> endpointProperty(it.getKey(), it.getValue(), context))
+                .map(it -> endpointProperty(it.getKey(), it.getValue()))
                 .collect(JsonCollectors.toJsonArray());
 
         var builder = jsonFactory.createObjectBuilder()
@@ -71,21 +72,31 @@ public class JsonObjectFromDataAddressDspaceTransformer extends NamespacedJsonLd
         return builder.build();
     }
 
-    private JsonObject endpointProperty(String key, Object value, TransformerContext context) {
+    private JsonObject endpointProperty(String key, Object value) {
         var builder = jsonFactory.createObjectBuilder()
                 .add(TYPE, forNamespace(ENDPOINT_PROPERTY_PROPERTY_TYPE_TERM))
                 .add(forNamespace(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM), key);
 
         if (value instanceof String stringVal) {
             builder.add(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM), stringVal);
-        } else if (value instanceof DataAddress dataAddress) {
-            var transformedAddress = context.transform(dataAddress, JsonObject.class);
-            builder.add(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM), transformedAddress);
         } else {
-            var convertedValue = typeManager.getMapper(typeContext).convertValue(value, JsonObject.class);
-            builder.add(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM), convertedValue);
+            convertToJsonObject(value, builder);
         }
 
         return builder.build();
+    }
+
+    /**
+     * convert property value to json object
+     *
+     * @param value the value.
+     * @param builder the builder.
+     * @deprecated DataAddress properties can only be String, as defined in DSP protocol, this method will be removed soon
+     *     and non-string DataAddress properties, if ever exist, will be serialized in some way.
+     */
+    @Deprecated(since = "1.0.0")
+    private void convertToJsonObject(Object value, JsonObjectBuilder builder) {
+        var convertedValue = typeManager.getMapper(typeContext).convertValue(value, JsonObject.class);
+        builder.add(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM), convertedValue);
     }
 }

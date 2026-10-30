@@ -47,12 +47,7 @@ public class JsonObjectFromDataAddressTransformer extends JsonLdFromModelTransfo
 
         builder.add(TYPE, EDC_NAMESPACE + "DataAddress");
 
-        Function<Object, JsonValue> func = v -> {
-            if (v instanceof DataAddress) {
-                return context.transform(v, JsonObject.class);
-            }
-            return mapper.convertValue(v, JsonValue.class);
-        };
+        Function<Object, JsonValue> func = v -> mapper.convertValue(v, JsonValue.class);
 
         transformProperties(dataAddress.getProperties(), builder, func, context);
 
