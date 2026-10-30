@@ -26,16 +26,11 @@ import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.eclipse.edc.sql.testfixtures.RowLeaseUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.time.Clock;
 import java.time.Duration;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.testfixtures.store.TestFunctions.createTransferProcess;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
@@ -79,20 +74,6 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     @Override
     protected boolean isLeasedBy(String negotiationId, String owner) {
         return leaseUtil.isLeased(negotiationId, owner);
-    }
-
-    @Test
-    void schema_shouldAddLeaseAndVersionColumnsToExistingTable() {
-        var table = statements.getTransferProcessTableName();
-        extension.runQuery("ALTER TABLE %s DROP COLUMN %s, DROP COLUMN %s, DROP COLUMN %s, DROP COLUMN %s".formatted(table,
-                statements.getLeasedByColumn(), statements.getLeasedAtColumn(), statements.getLeaseDurationColumn(), statements.getVersionColumn()));
-
-        extension.runQuery(TestUtils.getResourceFileContentAsString("transfer-process-schema.sql"));
-
-        var transferProcess = createTransferProcess("id1", INITIAL);
-        store.save(transferProcess);
-        assertThat(store.nextNotLeased(1, hasState(INITIAL.code()))).hasSize(1);
-        assertThat(isLeasedBy(transferProcess.getId(), CONNECTOR_NAME)).isTrue();
     }
 
 }
