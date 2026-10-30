@@ -401,52 +401,6 @@ public class CatalogApiV5EndToEndTest {
         }
 
         @Test
-        void getDatasetWithResponseChannel_shouldReturnDataset(ManagementEndToEndV5TestContext context, AssetIndex assetIndex,
-                                                               DataPlaneInstanceStore dataPlaneInstanceStore,
-                                                               PolicyDefinitionStore policyDefinitionStore,
-                                                               ContractDefinitionStore contractDefinitionStore) {
-
-            createContractOffer(policyDefinitionStore, contractDefinitionStore, List.of());
-
-            var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
-                    .allowedTransferType("any-PULL").allowedTransferType("any-PULL-response")
-                    .participantContextId(PARTICIPANT_CONTEXT_ID)
-                    .build();
-            dataPlaneInstanceStore.save(dataPlaneInstance);
-
-            var responseChannel = DataAddress.Builder.newInstance()
-                    .type("response")
-                    .build();
-
-            var dataAddressWithResponseChannel = DataAddress.Builder.newInstance()
-                    .type("test-type")
-                    .responseChannel(responseChannel)
-                    .build();
-            assetIndex.create(createAssetBuilder("asset-response").dataAddress(dataAddressWithResponseChannel).build());
-            var requestBody = createObjectBuilder()
-                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
-                    .add(TYPE, "DatasetRequest")
-                    .add(ID, "asset-response")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
-                    .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("profile", context.profile())
-                    .build()
-                    .toString();
-
-            context.baseRequest(participantTokenJwt)
-                    .contentType(JSON)
-                    .body(requestBody)
-                    .post("/v5/participants/%s/catalog/dataset/request".formatted(PARTICIPANT_CONTEXT_ID))
-                    .then()
-                    .log().ifValidationFails()
-                    .statusCode(200)
-                    .contentType(JSON)
-                    .body(ID, is("asset-response"))
-                    .body(TYPE, is("Dataset"))
-                    .body("distribution[0].format", is("any-PULL-response"));
-        }
-
-        @Test
         void getDataset_shouldFilterDistributionsByAssetProfiles(ManagementEndToEndV5TestContext context, AssetIndex assetIndex,
                                                                  DataPlaneInstanceStore dataPlaneInstanceStore,
                                                                  PolicyDefinitionStore policyDefinitionStore,

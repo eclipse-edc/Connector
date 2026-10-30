@@ -27,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static org.eclipse.edc.controlplane.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY_TERM;
@@ -72,9 +71,6 @@ public class JsonObjectToDataAddressDspaceTransformer extends NamespacedJsonLdTo
             var name = transformString(jo.get(forNamespace(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM)), context);
             var valueObj = jo.get(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM));
 
-            if (EDC_DATA_ADDRESS_RESPONSE_CHANNEL.equals(name)) {
-                return new DspaceEndpointProperty(name, transformObject(valueObj, DataAddress.class, context));
-            }
             return new DspaceEndpointProperty(name, transformString(valueObj, context));
         };
         if (jsonValue instanceof JsonObject object) {
