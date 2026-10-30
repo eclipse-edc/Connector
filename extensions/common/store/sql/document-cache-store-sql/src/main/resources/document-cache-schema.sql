@@ -26,10 +26,6 @@ CREATE TABLE IF NOT EXISTS edc_cached_document
     PRIMARY KEY (id)
 );
 
--- migration for deployments that created the table before the document_type column was introduced
-ALTER TABLE edc_cached_document
-    ADD COLUMN IF NOT EXISTS document_type VARCHAR NOT NULL DEFAULT 'JSON_LD';
-
 COMMENT ON COLUMN edc_cached_document.content IS 'The cached document (a JSON-LD context or a JSON schema), serialized as JSON';
 
 COMMENT ON COLUMN edc_cached_document.document_type IS 'The kind of cached document: JSON_LD or JSON_SCHEMA';

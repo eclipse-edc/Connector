@@ -35,7 +35,6 @@ import java.time.Duration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.TestFunctions.createAgreement;
 import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiation;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
 
@@ -126,20 +125,6 @@ class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestB
         assertThat(result.succeeded()).isTrue();
         assertThat(store.findById(negotiation.getId())).isNotNull();
         assertThat(leaseUtil.getLeasedBy(negotiation.getId())).isNull();
-    }
-
-    @Test
-    void schema_shouldAddLeaseAndVersionColumnsToExistingTable() {
-        var table = statements.getContractNegotiationTable();
-        extension.runQuery("ALTER TABLE %s DROP COLUMN %s, DROP COLUMN %s, DROP COLUMN %s, DROP COLUMN %s".formatted(table,
-                statements.getLeasedByColumn(), statements.getLeasedAtColumn(), statements.getLeaseDurationColumn(), statements.getVersionColumn()));
-
-        extension.runQuery(TestUtils.getResourceFileContentAsString("contract-negotiation-schema.sql"));
-
-        var negotiation = createNegotiation("id1");
-        store.save(negotiation);
-        assertThat(store.nextNotLeased(1, hasState(REQUESTED.code()))).hasSize(1);
-        assertThat(isLeasedBy(negotiation.getId(), CONNECTOR_NAME)).isTrue();
     }
 
 }

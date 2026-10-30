@@ -24,6 +24,15 @@ dependencies {
     implementation(project(":core:common:lib:core-lib"))
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
 }
 
 
+
+tasks.test {
+    // SqlSchemasTest reads the SQL schemas of all the modules: re-run it when one of them changes
+    inputs.files(fileTree(rootDir) {
+        include("**/src/main/resources/**/*.sql")
+        exclude("**/build/**")
+    }).withPropertyName("sqlSchemas")
+}
