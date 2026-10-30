@@ -9,6 +9,61 @@ info:
 servers:
 - url: /
 paths:
+  /transfers/{transferId}/dataflow/completed:
+    post:
+      tags:
+      - Data Plane Transfer events
+      description: Notify a completed transfer
+      operationId: completed
+      parameters:
+      - name: transferId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Completed notification delivered correctly
+        "404":
+          description: Transfer process does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /transfers/{transferId}/dataflow/errored:
+    post:
+      tags:
+      - Data Plane Transfer events
+      description: Notify an errored transfer
+      operationId: errored
+      parameters:
+      - name: transferId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DataFlowStatusMessage"
+      responses:
+        "200":
+          description: Errored notification delivered correctly
+        "404":
+          description: Transfer process does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /transfers/{transferId}/dataflow/prepared:
     post:
       tags:
@@ -69,61 +124,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /transfers/{transferId}/dataflow/errored:
-    post:
-      tags:
-      - Data Plane Transfer events
-      description: Notify an errored transfer
-      operationId: errored
-      parameters:
-      - name: transferId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DataFlowStatusMessage"
-      responses:
-        "200":
-          description: Errored notification delivered correctly
-        "404":
-          description: Transfer process does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-  /transfers/{transferId}/dataflow/completed:
-    post:
-      tags:
-      - Data Plane Transfer events
-      description: Notify a completed transfer
-      operationId: completed
-      parameters:
-      - name: transferId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Completed notification delivered correctly
-        "404":
-          description: Transfer process does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
 components:
   schemas:
     ApiErrorDetail:
@@ -151,20 +151,6 @@ components:
           type: string
         state:
           type: string
-      example:
-        dataAddress:
-          endpoint: endpoint
-          endpointType: endpointType
-          '@type': '@type'
-          endpointProperties:
-          - '@type': '@type'
-            name: name
-            value: value
-          - '@type': '@type'
-            name: name
-            value: value
-        state: state
-        error: error
     DspDataAddress:
       type: object
       properties:
@@ -178,17 +164,6 @@ components:
             $ref: "#/components/schemas/EndpointProperty"
         endpointType:
           type: string
-      example:
-        endpoint: endpoint
-        endpointType: endpointType
-        '@type': '@type'
-        endpointProperties:
-        - '@type': '@type'
-          name: name
-          value: value
-        - '@type': '@type'
-          name: name
-          value: value
     EndpointProperty:
       type: object
       properties:
@@ -198,7 +173,3 @@ components:
           type: string
         value:
           type: string
-      example:
-        '@type': '@type'
-        name: name
-        value: value

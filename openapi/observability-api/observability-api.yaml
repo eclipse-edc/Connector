@@ -67,49 +67,6 @@ paths:
                 $ref: "#/components/schemas/HealthStatus"
 components:
   schemas:
-    HealthStatus:
-      type: object
-      properties:
-        componentResults:
-          type: array
-          items:
-            $ref: "#/components/schemas/HealthCheckResult"
-        isSystemHealthy:
-          type: boolean
-      example:
-        isSystemHealthy: true
-        componentResults:
-        - component: component
-          failure:
-            failureDetail: failureDetail
-            messages:
-            - messages
-            - messages
-          isHealthy: true
-        - component: component
-          failure:
-            failureDetail: failureDetail
-            messages:
-            - messages
-            - messages
-          isHealthy: true
-    HealthCheckResult:
-      type: object
-      properties:
-        component:
-          type: string
-        failure:
-          $ref: "#/components/schemas/Failure"
-        isHealthy:
-          type: boolean
-      example:
-        component: component
-        failure:
-          failureDetail: failureDetail
-          messages:
-          - messages
-          - messages
-        isHealthy: true
     Failure:
       type: object
       properties:
@@ -119,8 +76,21 @@ components:
           type: array
           items:
             type: string
-      example:
-        failureDetail: failureDetail
-        messages:
-        - messages
-        - messages
+    HealthCheckResult:
+      type: object
+      properties:
+        component:
+          type: string
+        failure:
+          $ref: "#/components/schemas/Failure"
+        isHealthy:
+          type: boolean
+    HealthStatus:
+      type: object
+      properties:
+        componentResults:
+          type: array
+          items:
+            $ref: "#/components/schemas/HealthCheckResult"
+        isSystemHealthy:
+          type: boolean
