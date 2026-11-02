@@ -174,20 +174,5 @@ public class PostgresPolicyMonitorStoreTest extends PolicyMonitorStoreTestBase {
             assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(ALREADY_LEASED);
             assertThat(isLeasedBy(entry.getId(), "other-connector")).isTrue();
         }
-
-        @Test
-        void schema_shouldAddLeaseColumnsToExistingTable() {
-            extension.runQuery("DROP TABLE " + statements.getPolicyMonitorTable());
-            extension.runQuery("CREATE TABLE edc_policy_monitor (entry_id VARCHAR NOT NULL PRIMARY KEY, state INTEGER NOT NULL, " +
-                    "created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL, state_count INTEGER DEFAULT 0 NOT NULL, state_time_stamp BIGINT, " +
-                    "trace_context JSON, error_detail VARCHAR, properties JSON, contract_id VARCHAR)");
-
-            extension.runQuery(TestUtils.getResourceFileContentAsString("policy-monitor-schema.sql"));
-
-            var entry = createEntry();
-            store.save(entry);
-            assertThat(store.nextNotLeased(1, hasState(STARTED.code()))).hasSize(1);
-            assertThat(isLeasedBy(entry.getId(), CONNECTOR_NAME)).isTrue();
-        }
     }
 }

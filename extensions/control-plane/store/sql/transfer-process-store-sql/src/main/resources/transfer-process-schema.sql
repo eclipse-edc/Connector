@@ -33,13 +33,6 @@ CREATE TABLE IF NOT EXISTS edc_transfer_process
     version                    BIGINT  DEFAULT 0 NOT NULL
 );
 
--- Add lease columns to tables created before the lease was moved from edc_lease to the transfer process row
-ALTER TABLE edc_transfer_process ADD COLUMN IF NOT EXISTS leased_by VARCHAR;
-ALTER TABLE edc_transfer_process ADD COLUMN IF NOT EXISTS leased_at BIGINT;
-ALTER TABLE edc_transfer_process ADD COLUMN IF NOT EXISTS lease_duration INTEGER;
--- Add the version column to tables created before optimistic locking was introduced
-ALTER TABLE edc_transfer_process ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 0 NOT NULL;
-
 COMMENT ON COLUMN edc_transfer_process.trace_context IS 'Java Map serialized as JSON';
 COMMENT ON COLUMN edc_transfer_process.dataplane_metadata IS 'Dataplane Metadata serialized as JSON';
 COMMENT ON COLUMN edc_transfer_process.leased_at IS 'posix timestamp of lease';
