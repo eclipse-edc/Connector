@@ -49,6 +49,7 @@ maven/mavencentral/com.google.code.findbugs/jsr305/3.0.1, Apache-2.0 and CC-BY-2
 maven/mavencentral/com.google.code.findbugs/jsr305/3.0.2, Apache-2.0 and CC-BY-2.5, approved, #15220
 maven/mavencentral/com.google.code.gson/gson/2.13.2, Apache-2.0, approved, #20656
 maven/mavencentral/com.google.crypto.tink/tink/1.23.0, Apache-2.0, approved, #29832
+maven/mavencentral/com.google.crypto.tink/tink/1.24.0, Apache-2.0, approved, #32571
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.41.0, Apache-2.0, approved, #22631
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.42.0, Apache-2.0, approved, #23390
 maven/mavencentral/com.google.guava/failureaccess/1.0.3, Apache-2.0, approved, CQ22654
