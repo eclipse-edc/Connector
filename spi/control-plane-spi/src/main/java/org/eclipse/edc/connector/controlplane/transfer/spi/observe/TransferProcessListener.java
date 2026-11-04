@@ -190,4 +190,15 @@ public interface TransferProcessListener {
 
     }
 
+    /**
+     * Called when the data plane reported a non-recoverable error of the data flow of a {@link TransferProcess}. The
+     * transfer process doesn't change state.
+     *
+     * @param process the transfer process whose data flow errored.
+     * @param error   the error reported by the data plane.
+     */
+    default void dataFlowErrored(TransferProcess process, String error) {
+
+    }
+
 }

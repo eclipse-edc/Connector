@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transfer.listener;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessCompleted;
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessDataFlowErrored;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessInitiated;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessPreparationRequested;
@@ -109,6 +110,15 @@ public class TransferProcessEventListener implements TransferProcessListener {
     @Override
     public void resumed(TransferProcess process) {
         var event = withBaseProperties(TransferProcessResumed.Builder.newInstance(), process)
+                .build();
+
+        eventRouter.publish(event);
+    }
+
+    @Override
+    public void dataFlowErrored(TransferProcess process, String error) {
+        var event = withBaseProperties(TransferProcessDataFlowErrored.Builder.newInstance(), process)
+                .error(error)
                 .build();
 
         eventRouter.publish(event);

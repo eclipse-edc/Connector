@@ -29,12 +29,7 @@ record SignalingApiConfiguration(
                 key = "web.http." + ApiContext.SIGNALING + ".path",
                 description = "Path for " + ApiContext.SIGNALING + " api context",
                 defaultValue = DEFAULT_SIGNALING_PATH)
-        String path,
-        @Setting(
-                key = "web.http." + ApiContext.SIGNALING + ".public.uri",
-                description = "Public uri for " + ApiContext.SIGNALING + " api context. If not defined, the 'localhost' one will be used.",
-                required = false)
-        String publicUri
+        String path
 ) {
 
     private static final String DEFAULT_SIGNALING_PATH = "/api/signaling";
