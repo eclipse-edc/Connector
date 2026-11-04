@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.services.spi.transferprocess;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyDataFlowErroredCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyStartedCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
@@ -123,5 +124,14 @@ public interface TransferProcessService {
      * @return the result.
      */
     ServiceResult<Void> notifyStarted(NotifyStartedCommand command);
+
+    /**
+     * Notifies the system that the data plane reported a non-recoverable error of the data flow. The transfer process
+     * doesn't change state.
+     *
+     * @param command the command.
+     * @return the result.
+     */
+    ServiceResult<Void> notifyDataFlowErrored(NotifyDataFlowErroredCommand command);
 
 }

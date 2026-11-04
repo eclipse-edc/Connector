@@ -340,9 +340,9 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
         }
 
         @Test
-        void shouldLogWarning() {
+        void shouldLogWarningAndNotifyDataFlowErrored() {
             var transferId = UUID.randomUUID().toString();
-            when(transferProcessService.complete(any())).thenReturn(ServiceResult.success());
+            when(transferProcessService.notifyDataFlowErrored(any())).thenReturn(ServiceResult.success());
             var message = DataFlowStatusMessage.Builder.newInstance().error("data-plane error").build();
 
             given()
@@ -355,6 +355,24 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
                     .statusCode(200);
 
             verify(monitor).warning(contains("data-plane error"));
+            verify(transferProcessService).notifyDataFlowErrored(argThat(command -> command.getEntityId().equals(transferId) &&
+                    command.getError().equals("data-plane error")));
+        }
+
+        @Test
+        void shouldReturnError_whenServiceCallFails() {
+            var transferId = UUID.randomUUID().toString();
+            when(transferProcessService.notifyDataFlowErrored(any())).thenReturn(ServiceResult.notFound("not found"));
+            var message = DataFlowStatusMessage.Builder.newInstance().error("data-plane error").build();
+
+            given()
+                    .port(port)
+                    .contentType(ContentType.JSON)
+                    .body(message)
+                    .post("/transfers/{transferId}/dataflow/errored", transferId)
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(404);
         }
     }
 

@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
-import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -37,9 +36,6 @@ import static org.eclipse.edc.signaling.DataPlaneSignalingFlowControllerExtensio
 public class DataPlaneSignalingFlowControllerExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Signaling Api";
-
-    @Configuration
-    private SignalingApiConfiguration apiConfiguration;
 
     @Inject
     private TypeTransformerRegistry transformerRegistry;

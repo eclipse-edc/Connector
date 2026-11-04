@@ -23,6 +23,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyDataFlowErroredCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyStartedCommand;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
@@ -92,10 +93,8 @@ public class DataPlaneTransferApiController implements DataPlaneTransferApi {
     @Override
     public Response errored(@PathParam("transferId") String transferId, DataFlowStatusMessage message) {
         monitor.warning("Errored DataFlow notification received about TransferProcess %s: %s".formatted(transferId, message.getError()));
+        transferProcessService.notifyDataFlowErrored(new NotifyDataFlowErroredCommand(transferId, message.getError()))
+                .orElseThrow(exceptionMapper(TransferProcess.class, transferId));
         return Response.ok().build();
     }
-
-
-
-
 }

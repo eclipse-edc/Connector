@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemo
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessCompleted;
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessDataFlowErrored;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessInitiated;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessRequested;
@@ -30,9 +31,12 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessTerminated;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.retry.TransferWaitStrategy;
+import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyDataFlowErroredCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
@@ -72,6 +76,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.matchers.EventEnvelopeMatcher.isEnvelopeOf;
 import static org.mockito.ArgumentMatchers.any;
@@ -81,6 +86,7 @@ import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -228,6 +234,27 @@ public class TransferProcessEventDispatchTest {
         service.terminate(new TerminateTransferCommand(initiateResult.getContent().getId(), "any reason"));
 
         await().atMost(TIMEOUT).untilAsserted(() -> verify(eventSubscriber, atLeastOnce()).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
+    }
+
+    @Test
+    void shouldDispatchEventOnDataFlowErrored_withoutChangingState(TransferProcessService service,
+                                                                   TransferProcessStore store,
+                                                                   EventRouter eventRouter) {
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .type(TransferProcess.Type.PROVIDER)
+                .state(STARTED.code())
+                .participantContextId("participantContextId")
+                .build();
+        store.save(transferProcess);
+        eventRouter.register(TransferProcessEvent.class, eventSubscriber);
+
+        var result = service.notifyDataFlowErrored(new NotifyDataFlowErroredCommand(transferProcess.getId(), "data-plane error"));
+
+        assertThat(result).isSucceeded();
+        await().atMost(TIMEOUT).untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessDataFlowErrored.class))));
+        assertThat(service.getState(transferProcess.getId())).isEqualTo(STARTED.name());
+        verify(eventSubscriber, never()).on(argThat(isEnvelopeOf(TransferProcessTerminated.class)));
     }
 
     @Test

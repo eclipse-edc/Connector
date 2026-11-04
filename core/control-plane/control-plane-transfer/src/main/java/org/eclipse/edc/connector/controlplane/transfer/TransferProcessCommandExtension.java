@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.transfer;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.CompleteTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.InitiateTransferCommandHandler;
+import org.eclipse.edc.connector.controlplane.transfer.command.handlers.NotifyDataFlowErroredCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.NotifyPreparedCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.NotifyStartedCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.ResumeTransferCommandHandler;
@@ -63,6 +64,7 @@ public class TransferProcessCommandExtension implements ServiceExtension {
         registry.register(new CompleteTransferCommandHandler(store, observable));
         registry.register(new NotifyPreparedCommandHandler(store, observable, dataAddressStore));
         registry.register(new NotifyStartedCommandHandler(store, observable, dataAddressStore));
+        registry.register(new NotifyDataFlowErroredCommandHandler(store, observable));
     }
 
 }

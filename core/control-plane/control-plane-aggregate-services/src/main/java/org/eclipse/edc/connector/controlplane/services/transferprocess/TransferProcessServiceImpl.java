@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.CompleteTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.InitiateTransferCommand;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyDataFlowErroredCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyStartedCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
@@ -128,6 +129,11 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     @Override
     public ServiceResult<Void> notifyStarted(NotifyStartedCommand command) {
+        return execute(command);
+    }
+
+    @Override
+    public ServiceResult<Void> notifyDataFlowErrored(NotifyDataFlowErroredCommand command) {
         return execute(command);
     }
 

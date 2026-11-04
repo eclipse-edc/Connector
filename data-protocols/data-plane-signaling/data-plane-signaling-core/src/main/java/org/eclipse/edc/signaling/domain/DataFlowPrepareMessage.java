@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.signaling.domain;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +25,6 @@ public final class DataFlowPrepareMessage {
     private String dataFlowId;
     private String agreementId;
     private String datasetId;
-    private URI callbackAddress;
     private String profile;
     private List<String> labels;
     private Map<String, Object> metadata;
@@ -61,10 +59,6 @@ public final class DataFlowPrepareMessage {
 
     public String getDatasetId() {
         return datasetId;
-    }
-
-    public URI getCallbackAddress() {
-        return callbackAddress;
     }
 
     public String getProfile() {
