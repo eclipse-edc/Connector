@@ -84,7 +84,7 @@ public class DataPlaneSignalingTestClient {
         var builder = createObjectBuilder()
                 .add("dataplaneId", dataPlaneId())
                 .add("endpoint", getDataFlowsEndpoint())
-                .add("transferTypes", createArrayBuilder()
+                .add("profiles", createArrayBuilder()
                         .add("Finite-PUSH")
                         .add("Finite-PULL")
                         .add("NonFinite-PUSH")
