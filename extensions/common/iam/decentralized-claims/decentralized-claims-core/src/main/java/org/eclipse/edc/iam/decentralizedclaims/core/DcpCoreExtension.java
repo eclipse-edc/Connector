@@ -109,6 +109,14 @@ public class DcpCoreExtension implements ServiceExtension {
             defaultValue = "false")
     private boolean requirePresentationBinding;
 
+    @Setting(
+           key = "edc.iam.vc.validation.schema.subject-only",
+           description = "When set to true, the JSON schema referenced in a VC will be validated only " +
+                    "against the credential subjects instead of the credential itself.",
+           defaultValue = "false"
+    )
+    private boolean validateOnlyCredentialSubject;
+
     @Inject
     private SecureTokenService secureTokenService;
     @Inject
@@ -236,7 +244,7 @@ public class DcpCoreExtension implements ServiceExtension {
         var rules = List.of(
                 new IsInValidityPeriod(clock),
                 new IsNotRevoked(revocationServiceRegistry),
-                new HasValidSubjectSchema(typeManager.getMapper())
+                new HasValidSubjectSchema(typeManager.getMapper(), validateOnlyCredentialSubject)
         );
 
         var credentialValidationService = new VerifiableCredentialValidationServiceImpl(createPresentationVerifier(context), rules);
