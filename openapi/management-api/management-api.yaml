@@ -5,7 +5,7 @@ info:
   license:
     name: "The Apache License, Version 2.0"
     url: http://www.apache.org/licenses/LICENSE-2.0.txt
-  version: 4.3.0
+  version: 4.4.0
 servers:
 - url: /
 paths:
@@ -6647,7 +6647,7 @@ components:
           type: array
           items:
             type: string
-        transferTypes:
+        profiles:
           uniqueItems: true
           type: array
           items:
