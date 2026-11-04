@@ -110,10 +110,10 @@ public class DcpCoreExtension implements ServiceExtension {
     private boolean requirePresentationBinding;
 
     @Setting(
-           key = "edc.iam.vc.validation.schema.subject-only",
-           description = "When set to true, the JSON schema referenced in a VC will be validated only " +
+            key = "edc.iam.vc.validation.schema.subject-only",
+            description = "When set to true, the JSON schema referenced in a VC will be validated only " +
                     "against the credential subjects instead of the credential itself.",
-           defaultValue = "false"
+            defaultValue = "false"
     )
     private boolean validateOnlyCredentialSubject;
 
