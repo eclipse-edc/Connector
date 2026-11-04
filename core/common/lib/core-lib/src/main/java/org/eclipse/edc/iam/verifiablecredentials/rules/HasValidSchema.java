@@ -32,7 +32,7 @@ import java.util.Objects;
  * Performs JSON Schema Validation of the credential subjects. Every credential subject must be validated against all
  * credential schemas, and all validations must succeed in order for this rule to pass.
  */
-public class HasValidSubjectSchema implements CredentialValidationRule {
+public class HasValidSchema implements CredentialValidationRule {
     private final ObjectMapper jsonMapper;
     private final boolean validateOnlySubject;
     private final SchemaRegistry factory = SchemaRegistry.withDialects(List.of(Dialects.getDraft202012(), Dialects.getDraft4()),
@@ -42,7 +42,7 @@ public class HasValidSubjectSchema implements CredentialValidationRule {
             }
     );
 
-    public HasValidSubjectSchema(ObjectMapper jsonMapper, boolean validateOnlySubject) {
+    public HasValidSchema(ObjectMapper jsonMapper, boolean validateOnlySubject) {
         this.jsonMapper = jsonMapper;
         this.validateOnlySubject = validateOnlySubject;
     }

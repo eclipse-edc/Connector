@@ -31,13 +31,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getResource;
 
-class HasValidSubjectSchemaTest {
+class HasValidSchemaTest {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Nested
     class OnlySubjectValidation {
-        private final HasValidSubjectSchema rule = new HasValidSubjectSchema(mapper, true);
+        private final HasValidSchema rule = new HasValidSchema(mapper, true);
 
         @Test
         void validate_oneSchema_oneSubject() {
@@ -189,7 +189,7 @@ class HasValidSubjectSchemaTest {
 
     @Nested
     class EntireVcValidation {
-        private final HasValidSubjectSchema rule = new HasValidSubjectSchema(mapper, false);
+        private final HasValidSchema rule = new HasValidSchema(mapper, false);
 
         @Test
         void validate_vcIdIsValidDid() {
