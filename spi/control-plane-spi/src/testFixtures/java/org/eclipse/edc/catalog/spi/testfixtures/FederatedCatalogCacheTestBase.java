@@ -33,6 +33,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class FederatedCatalogCacheTestBase {
 
+    protected static final String PARTICIPANT_CONTEXT_ID = "participant-context-id";
+    protected static final String OTHER_PARTICIPANT_CONTEXT_ID = "other-participant-context-id";
+
     protected abstract FederatedCatalogCache getStore();
 
     private Catalog createCatalog(String id, Asset asset) {
@@ -75,9 +78,9 @@ public abstract class FederatedCatalogCacheTestBase {
             var assetId = UUID.randomUUID().toString();
             var catalogEntry = createCatalog(contractOfferId, createAsset(assetId));
 
-            getStore().save(catalogEntry);
+            getStore().save(PARTICIPANT_CONTEXT_ID, catalogEntry);
 
-            var result = getStore().query(QuerySpec.none());
+            var result = getStore().query(PARTICIPANT_CONTEXT_ID, QuerySpec.none());
 
             assertThat(result)
                     .hasSize(1)
@@ -94,10 +97,10 @@ public abstract class FederatedCatalogCacheTestBase {
             var entry1 = createCatalog(contractOfferId1, createAsset(assetId));
             var entry2 = createCatalog(contractOfferId1, createAsset(assetId));
 
-            getStore().save(entry1);
-            getStore().save(entry2);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry1);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry2);
 
-            var result = getStore().query(QuerySpec.none());
+            var result = getStore().query(PARTICIPANT_CONTEXT_ID, QuerySpec.none());
 
             assertThat(result)
                     .hasSize(1)
@@ -116,10 +119,10 @@ public abstract class FederatedCatalogCacheTestBase {
             var entry1 = createCatalog(contractOfferId1, createAsset(assetId1));
             var entry2 = createCatalog(contractOfferId2, createAsset(assetId2));
 
-            getStore().save(entry1);
-            getStore().save(entry2);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry1);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry2);
 
-            var result = getStore().query(QuerySpec.none());
+            var result = getStore().query(PARTICIPANT_CONTEXT_ID, QuerySpec.none());
 
             assertThat(result)
                     .hasSize(2)
@@ -140,11 +143,11 @@ public abstract class FederatedCatalogCacheTestBase {
             var entry1 = createCatalogBuilder(contractOfferId1, createAsset(assetId1)).participantId("participant1").build();
             var entry2 = createCatalogBuilder(contractOfferId2, createAsset(assetId2)).participantId("participant2").build();
 
-            getStore().save(entry1);
-            getStore().save(entry2);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry1);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry2);
 
             var query = QuerySpec.Builder.newInstance().filter(Criterion.criterion("participantId", "=", entry1.getParticipantId())).build();
-            var result = getStore().query(query);
+            var result = getStore().query(PARTICIPANT_CONTEXT_ID, query);
 
             assertThat(result)
                     .hasSize(1)
@@ -160,11 +163,11 @@ public abstract class FederatedCatalogCacheTestBase {
             var entry1 = createCatalogBuilder(contractOfferId1, createAsset(assetId1)).build();
             var entry2 = createCatalogBuilder(contractOfferId2, createAsset(assetId2)).build();
 
-            getStore().save(entry1);
-            getStore().save(entry2);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry1);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry2);
 
             var query = QuerySpec.Builder.newInstance().filter(Criterion.criterion("datasets.id", "=", assetId2)).build();
-            var result = getStore().query(query);
+            var result = getStore().query(PARTICIPANT_CONTEXT_ID, query);
 
             assertThat(result)
                     .hasSize(1)
@@ -180,11 +183,11 @@ public abstract class FederatedCatalogCacheTestBase {
             var entry1 = createCatalogBuilder(contractOfferId1, createAsset(assetId1)).property("name", "value").build();
             var entry2 = createCatalogBuilder(contractOfferId2, createAsset(assetId2)).build();
 
-            getStore().save(entry1);
-            getStore().save(entry2);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry1);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry2);
 
             var query = QuerySpec.Builder.newInstance().filter(Criterion.criterion("properties.name", "=", "value")).build();
-            var result = getStore().query(query);
+            var result = getStore().query(PARTICIPANT_CONTEXT_ID, query);
 
             assertThat(result)
                     .hasSize(1)
@@ -201,11 +204,11 @@ public abstract class FederatedCatalogCacheTestBase {
             var entry1 = createCatalogBuilder(contractOfferId1, createAsset(assetId1), endpoint).build();
             var entry2 = createCatalogBuilder(contractOfferId2, createAsset(assetId2)).build();
 
-            getStore().save(entry1);
-            getStore().save(entry2);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry1);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry2);
 
             var query = QuerySpec.Builder.newInstance().filter(Criterion.criterion("dataServices.endpointUrl", "=", endpoint)).build();
-            var result = getStore().query(query);
+            var result = getStore().query(PARTICIPANT_CONTEXT_ID, query);
 
             assertThat(result)
                     .hasSize(1)
@@ -225,13 +228,13 @@ public abstract class FederatedCatalogCacheTestBase {
             var entry1 = createCatalog(contractOfferId1, createAsset(assetId1));
             var entry2 = createCatalog(contractOfferId2, createAsset(assetId2));
 
-            getStore().save(entry1);
-            getStore().save(entry2);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry1);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry2);
 
-            assertThat(getStore().query(QuerySpec.none())).hasSize(2);
+            assertThat(getStore().query(PARTICIPANT_CONTEXT_ID, QuerySpec.none())).hasSize(2);
 
-            getStore().deleteExpired(); // none of them is marked, d
-            assertThat(getStore().query(QuerySpec.none())).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(entry1, entry2);
+            getStore().deleteExpired(PARTICIPANT_CONTEXT_ID); // none of them is marked, d
+            assertThat(getStore().query(PARTICIPANT_CONTEXT_ID, QuerySpec.none())).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(entry1, entry2);
 
         }
 
@@ -244,17 +247,51 @@ public abstract class FederatedCatalogCacheTestBase {
             var entry1 = createCatalog(contractOfferId1, createAsset(assetId1));
             var entry2 = createCatalog(contractOfferId2, createAsset(assetId2));
 
-            getStore().save(entry1);
-            getStore().save(entry2);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry1);
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry2);
 
-            assertThat(getStore().query(QuerySpec.none())).hasSize(2);
+            assertThat(getStore().query(PARTICIPANT_CONTEXT_ID, QuerySpec.none())).hasSize(2);
 
-            getStore().expireAll(); // two items marked
-            getStore().save(createCatalog(UUID.randomUUID().toString(), createAsset(UUID.randomUUID().toString())));
-            getStore().deleteExpired(); // should delete only marked items
-            assertThat(getStore().query(QuerySpec.none())).hasSize(1)
+            getStore().expireAll(PARTICIPANT_CONTEXT_ID); // two items marked
+            getStore().save(PARTICIPANT_CONTEXT_ID, createCatalog(UUID.randomUUID().toString(), createAsset(UUID.randomUUID().toString())));
+            getStore().deleteExpired(PARTICIPANT_CONTEXT_ID); // should delete only marked items
+            assertThat(getStore().query(PARTICIPANT_CONTEXT_ID, QuerySpec.none())).hasSize(1)
                     .doesNotContain(entry1, entry2);
 
+        }
+    }
+
+    @Nested
+    class ParticipantIsolation {
+
+        @Test
+        void query_shouldOnlyReturnCatalogsOfParticipant() {
+            var entry = createCatalog(UUID.randomUUID().toString(), createAsset(UUID.randomUUID().toString()));
+            var otherEntry = createCatalog(UUID.randomUUID().toString(), createAsset(UUID.randomUUID().toString()));
+
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry);
+            getStore().save(OTHER_PARTICIPANT_CONTEXT_ID, otherEntry);
+
+            assertThat(getStore().query(PARTICIPANT_CONTEXT_ID, QuerySpec.none()))
+                    .usingRecursiveFieldByFieldElementComparator().containsExactly(entry);
+            assertThat(getStore().query(OTHER_PARTICIPANT_CONTEXT_ID, QuerySpec.none()))
+                    .usingRecursiveFieldByFieldElementComparator().containsExactly(otherEntry);
+        }
+
+        @Test
+        void expireAndDelete_shouldOnlyAffectParticipant() {
+            var entry = createCatalog(UUID.randomUUID().toString(), createAsset(UUID.randomUUID().toString()));
+            var otherEntry = createCatalog(UUID.randomUUID().toString(), createAsset(UUID.randomUUID().toString()));
+
+            getStore().save(PARTICIPANT_CONTEXT_ID, entry);
+            getStore().save(OTHER_PARTICIPANT_CONTEXT_ID, otherEntry);
+
+            getStore().expireAll(PARTICIPANT_CONTEXT_ID);
+            getStore().deleteExpired(PARTICIPANT_CONTEXT_ID);
+
+            assertThat(getStore().query(PARTICIPANT_CONTEXT_ID, QuerySpec.none())).isEmpty();
+            assertThat(getStore().query(OTHER_PARTICIPANT_CONTEXT_ID, QuerySpec.none()))
+                    .usingRecursiveFieldByFieldElementComparator().containsExactly(otherEntry);
         }
     }
 }

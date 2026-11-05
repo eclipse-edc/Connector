@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Amadeus IT Group - initial API and implementation
+ *       Think-it GmbH - multi-participant support
  *
  */
 
@@ -26,10 +27,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public abstract class TargetNodeDirectoryTestBase {
 
+    protected static final String PARTICIPANT_CONTEXT_ID = "participant-context-id";
+    protected static final String OTHER_PARTICIPANT_CONTEXT_ID = "other-participant-context-id";
+
     protected abstract TargetNodeDirectory getStore();
 
     private TargetNode createTargetNode(String id) {
-        return new TargetNode(UUID.randomUUID().toString(), id, "http://example.com", List.of());
+        return createTargetNode(id, PARTICIPANT_CONTEXT_ID);
+    }
+
+    private TargetNode createTargetNode(String id, String participantContextId) {
+        return new TargetNode(UUID.randomUUID().toString(), id, "http://example.com", participantContextId, List.of());
     }
 
     @Nested
@@ -41,7 +49,7 @@ public abstract class TargetNodeDirectoryTestBase {
 
             getStore().insert(node);
 
-            var result = getStore().getAll();
+            var result = getStore().getAll(PARTICIPANT_CONTEXT_ID);
 
             assertThat(result)
                     .hasSize(1)
@@ -57,11 +65,28 @@ public abstract class TargetNodeDirectoryTestBase {
             getStore().insert(node1);
             getStore().insert(node2);
 
-            var result = getStore().getAll();
+            var result = getStore().getAll(PARTICIPANT_CONTEXT_ID);
 
             assertThat(result)
                     .hasSize(1)
                     .allSatisfy(n -> assertThat(n).usingRecursiveComparison().isEqualTo(node2));
+        }
+
+        @Test
+        void insert_sameIdDifferentParticipant_shouldBeIsolated() {
+            var id = UUID.randomUUID().toString();
+            var node = createTargetNode(id, PARTICIPANT_CONTEXT_ID);
+            var otherNode = createTargetNode(id, OTHER_PARTICIPANT_CONTEXT_ID);
+
+            getStore().insert(node);
+            getStore().insert(otherNode);
+
+            assertThat(getStore().getAll(PARTICIPANT_CONTEXT_ID))
+                    .hasSize(1)
+                    .allSatisfy(n -> assertThat(n).usingRecursiveComparison().isEqualTo(node));
+            assertThat(getStore().getAll(OTHER_PARTICIPANT_CONTEXT_ID))
+                    .hasSize(1)
+                    .allSatisfy(n -> assertThat(n).usingRecursiveComparison().isEqualTo(otherNode));
         }
     }
 
@@ -74,12 +99,21 @@ public abstract class TargetNodeDirectoryTestBase {
 
             nodes.forEach(getStore()::insert);
 
-            var result = getStore().getAll();
+            var result = getStore().getAll(PARTICIPANT_CONTEXT_ID);
 
             assertThat(result)
                     .hasSize(2)
                     .anySatisfy(n -> assertThat(n.id()).isEqualTo(nodes.get(0).id()))
                     .anySatisfy(n -> assertThat(n.id()).isEqualTo(nodes.get(1).id()));
+        }
+
+        @Test
+        void getAll_shouldOnlyReturnNodesOfParticipant() {
+            getStore().insert(createTargetNode(UUID.randomUUID().toString(), PARTICIPANT_CONTEXT_ID));
+            getStore().insert(createTargetNode(UUID.randomUUID().toString(), OTHER_PARTICIPANT_CONTEXT_ID));
+
+            assertThat(getStore().getAll(PARTICIPANT_CONTEXT_ID)).hasSize(1)
+                    .allSatisfy(n -> assertThat(n.participantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID));
         }
     }
 
@@ -91,17 +125,28 @@ public abstract class TargetNodeDirectoryTestBase {
             var node = createTargetNode(UUID.randomUUID().toString());
             getStore().insert(node);
 
-            var removed = getStore().remove(node.id());
+            var removed = getStore().remove(PARTICIPANT_CONTEXT_ID, node.id());
 
             assertThat(removed).usingRecursiveComparison().isEqualTo(node);
-            assertThat(getStore().getAll()).isEmpty();
+            assertThat(getStore().getAll(PARTICIPANT_CONTEXT_ID)).isEmpty();
         }
 
         @Test
         void remove_notFound_shouldReturnNull() {
-            var result = getStore().remove("non-existent-id");
+            var result = getStore().remove(PARTICIPANT_CONTEXT_ID, "non-existent-id");
 
             assertThat(result).isNull();
+        }
+
+        @Test
+        void remove_differentParticipant_shouldNotRemove() {
+            var node = createTargetNode(UUID.randomUUID().toString(), PARTICIPANT_CONTEXT_ID);
+            getStore().insert(node);
+
+            var result = getStore().remove(OTHER_PARTICIPANT_CONTEXT_ID, node.id());
+
+            assertThat(result).isNull();
+            assertThat(getStore().getAll(PARTICIPANT_CONTEXT_ID)).hasSize(1);
         }
     }
 }

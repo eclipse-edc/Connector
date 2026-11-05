@@ -22,6 +22,7 @@ public class TargetNodeMapping extends TranslationMapping {
 
     public TargetNodeMapping(TargetNodeStatements statements) {
         add("id", statements.getIdColumn());
+        add("participantContextId", statements.getParticipantContextIdColumn());
         add("name", statements.getNameColumn());
         add("targetUrl", statements.getTargetUrlColumn());
         add("supportedProtocols", new JsonFieldTranslator(statements.getSupportedProtocolsColumn()));

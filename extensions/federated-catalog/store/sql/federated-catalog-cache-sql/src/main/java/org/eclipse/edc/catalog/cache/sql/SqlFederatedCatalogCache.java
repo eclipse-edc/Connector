@@ -44,7 +44,7 @@ public class SqlFederatedCatalogCache extends AbstractSqlStore implements Federa
     }
 
     @Override
-    public void save(Catalog catalog) {
+    public void save(String participantContextId, Catalog catalog) {
 
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
@@ -52,10 +52,10 @@ public class SqlFederatedCatalogCache extends AbstractSqlStore implements Federa
                         .map(Object::toString)
                         .orElse(catalog.getId());
 
-                if (findByIdInternal(connection, id) == null) {
-                    insertInternal(connection, id, catalog);
+                if (findByIdInternal(connection, participantContextId, id) == null) {
+                    insertInternal(connection, participantContextId, id, catalog);
                 } else {
-                    updateInternal(connection, id, catalog);
+                    updateInternal(connection, participantContextId, id, catalog);
                 }
 
             } catch (SQLException e) {
@@ -65,10 +65,10 @@ public class SqlFederatedCatalogCache extends AbstractSqlStore implements Federa
     }
 
     @Override
-    public Collection<Catalog> query(QuerySpec querySpec) {
+    public Collection<Catalog> query(String participantContextId, QuerySpec querySpec) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var query = statements.createQuery(querySpec);
+                var query = statements.createQuery(participantContextId, querySpec);
                 return queryExecutor.query(connection, true, this::mapResultSet, query.getQueryAsString(), query.getParameters()).toList();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
@@ -77,11 +77,11 @@ public class SqlFederatedCatalogCache extends AbstractSqlStore implements Federa
     }
 
     @Override
-    public void deleteExpired() {
+    public void deleteExpired(String participantContextId) {
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var stmt = statements.getDeleteByMarkedTemplate();
-                queryExecutor.execute(connection, stmt, true);
+                queryExecutor.execute(connection, stmt, participantContextId, true);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -89,11 +89,11 @@ public class SqlFederatedCatalogCache extends AbstractSqlStore implements Federa
     }
 
     @Override
-    public void expireAll() {
+    public void expireAll(String participantContextId) {
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var stmt = statements.getUpdateAsMarkedTemplate();
-                queryExecutor.execute(connection, stmt, true);
+                queryExecutor.execute(connection, stmt, true, participantContextId);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -101,19 +101,19 @@ public class SqlFederatedCatalogCache extends AbstractSqlStore implements Federa
 
     }
 
-    private Catalog findByIdInternal(Connection connection, String id) {
+    private Catalog findByIdInternal(Connection connection, String participantContextId, String id) {
         var stmt = statements.getFindByIdTemplate();
-        return queryExecutor.single(connection, false, this::mapResultSet, stmt, id);
+        return queryExecutor.single(connection, false, this::mapResultSet, stmt, participantContextId, id);
     }
 
-    private void insertInternal(Connection connection, String id, Catalog catalog) {
+    private void insertInternal(Connection connection, String participantContextId, String id, Catalog catalog) {
         var stmt = statements.getInsertTemplate();
-        queryExecutor.execute(connection, stmt, id, toJson(catalog), false);
+        queryExecutor.execute(connection, stmt, id, participantContextId, toJson(catalog), false);
     }
 
-    private void updateInternal(Connection connection, String id, Catalog catalog) {
+    private void updateInternal(Connection connection, String participantContextId, String id, Catalog catalog) {
         var stmt = statements.getUpdateTemplate();
-        queryExecutor.execute(connection, stmt, toJson(catalog), false, id);
+        queryExecutor.execute(connection, stmt, toJson(catalog), false, participantContextId, id);
     }
 
     private Catalog mapResultSet(ResultSet resultSet) throws Exception {

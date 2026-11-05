@@ -20,12 +20,21 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.crawler.spi.model.UpdateResponse;
 
 public class CatalogUpdateResponse extends UpdateResponse {
+    private final String participantContextId;
     private final Catalog catalog;
 
     @JsonCreator
-    public CatalogUpdateResponse(@JsonProperty("source") String source, @JsonProperty("catalog") Catalog catalog) {
+    public CatalogUpdateResponse(@JsonProperty("participantContextId") String participantContextId, @JsonProperty("source") String source, @JsonProperty("catalog") Catalog catalog) {
         super(source);
+        this.participantContextId = participantContextId;
         this.catalog = catalog;
+    }
+
+    /**
+     * The local participant context on whose behalf the catalog was crawled.
+     */
+    public String getParticipantContextId() {
+        return participantContextId;
     }
 
     public Catalog getCatalog() {

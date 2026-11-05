@@ -24,6 +24,9 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import org.eclipse.edc.catalog.api.query.BaseCatalogsApiController;
 import org.eclipse.edc.catalog.spi.QueryService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.validation.SchemaType;
 
@@ -35,14 +38,20 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 @Path("/v4/catalogs")
 public class CatalogsApiV4Controller extends BaseCatalogsApiController implements CatalogsApiV4 {
 
-    public CatalogsApiV4Controller(QueryService queryService, TypeTransformerRegistry transformerRegistry) {
+    private final SingleParticipantContextSupplier participantContextSupplier;
+
+    public CatalogsApiV4Controller(QueryService queryService, TypeTransformerRegistry transformerRegistry, SingleParticipantContextSupplier participantContextSupplier) {
         super(queryService, transformerRegistry);
+        this.participantContextSupplier = participantContextSupplier;
     }
 
     @Override
     @POST
     @Path("/request")
     public JsonArray requestCatalogsV4(@SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson, @DefaultValue("false") @QueryParam("flatten") boolean flatten) {
-        return requestCatalogs(querySpecJson, flatten);
+        var participantContextId = participantContextSupplier.get()
+                .map(ParticipantContext::getParticipantContextId)
+                .orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
+        return requestCatalogs(participantContextId, querySpecJson, flatten);
     }
 }

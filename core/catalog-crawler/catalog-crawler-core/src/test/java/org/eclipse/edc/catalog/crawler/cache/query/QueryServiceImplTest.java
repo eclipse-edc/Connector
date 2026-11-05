@@ -26,12 +26,14 @@ import java.util.List;
 import static org.eclipse.edc.catalog.crawler.TestUtil.createCatalog;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class QueryServiceImplTest {
 
+    private static final String PARTICIPANT_CONTEXT_ID = "participant-context-id";
     private static final Catalog CATALOG_ABC = createCatalog("ABC");
     private static final Catalog CATALOG_DEF = createCatalog("DEF");
     private static final Catalog CATALOG_XYZ = createCatalog("XYZ");
@@ -42,31 +44,31 @@ class QueryServiceImplTest {
     @Test
     void getCatalog() {
 
-        when(storeMock.query(any())).thenReturn(List.of(CATALOG_ABC, CATALOG_DEF, CATALOG_XYZ));
+        when(storeMock.query(any(), any())).thenReturn(List.of(CATALOG_ABC, CATALOG_DEF, CATALOG_XYZ));
 
-        var catalog = queryService.getCatalog(QuerySpec.none());
+        var catalog = queryService.getCatalog(PARTICIPANT_CONTEXT_ID, QuerySpec.none());
         assertThat(catalog).isSucceeded();
         Assertions.assertThat(catalog.getContent()).containsExactlyInAnyOrder(CATALOG_ABC, CATALOG_DEF, CATALOG_XYZ);
-        verify(storeMock).query(any());
+        verify(storeMock).query(eq(PARTICIPANT_CONTEXT_ID), any());
     }
 
     @Test
     void getCatalog_storeThrowsException() {
-        when(storeMock.query(any())).thenThrow(new RuntimeException("test exception"));
+        when(storeMock.query(any(), any())).thenThrow(new RuntimeException("test exception"));
 
-        var catalog = queryService.getCatalog(QuerySpec.none());
+        var catalog = queryService.getCatalog(PARTICIPANT_CONTEXT_ID, QuerySpec.none());
         assertThat(catalog).isFailed()
                 .detail().isEqualTo("test exception");
-        verify(storeMock).query(any());
+        verify(storeMock).query(eq(PARTICIPANT_CONTEXT_ID), any());
     }
 
     @Test
     void getCatalog_empty() {
-        when(storeMock.query(any())).thenReturn(Collections.emptyList());
+        when(storeMock.query(any(), any())).thenReturn(Collections.emptyList());
 
-        var catalog = queryService.getCatalog(QuerySpec.none());
+        var catalog = queryService.getCatalog(PARTICIPANT_CONTEXT_ID, QuerySpec.none());
         assertThat(catalog).isSucceeded();
         Assertions.assertThat(catalog.getContent()).isEmpty();
-        verify(storeMock).query(any());
+        verify(storeMock).query(eq(PARTICIPANT_CONTEXT_ID), any());
     }
 }

@@ -17,6 +17,7 @@ package org.eclipse.edc.catalog;
 import io.restassured.http.ContentType;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.catalog.spi.FederatedCatalogCache;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
@@ -33,6 +34,8 @@ import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -100,6 +103,7 @@ public class ControlPlaneCrawlerComponentTest {
 
     private static final ObjectMapper OBJECT_MAPPER = JsonMapperFactory.defaultJsonMapper();
     private static final Duration TEST_TIMEOUT = ofSeconds(30);
+    private static final String PARTICIPANT_CONTEXT_ID = "test-participant";
 
     private final int port = getFreePort();
     private final String path = "/api/management";
@@ -223,8 +227,8 @@ public class ControlPlaneCrawlerComponentTest {
     @Test
     @DisplayName("Verify crawler inside control plane: crawl multiple targets with distinct catalogs")
     void crawlMultiple_shouldCollectAll(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
-        var node1 = new TargetNode("test-node1", "did:web:" + UUID.randomUUID(), "http://test-node1.com", singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
-        var node2 = new TargetNode("test-node2", "did:web:" + UUID.randomUUID(), "http://test-node2.com", singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
+        var node1 = new TargetNode("test-node1", "did:web:" + UUID.randomUUID(), "http://test-node1.com", PARTICIPANT_CONTEXT_ID, singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
+        var node2 = new TargetNode("test-node2", "did:web:" + UUID.randomUUID(), "http://test-node2.com", PARTICIPANT_CONTEXT_ID, singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
 
         when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(node1.id(), node1.targetUrl()))))
                 .thenReturn(catalogOf(toBytes(ttr), "catalog-node1", createDataset("offer1"), createDataset("offer2")));
@@ -239,6 +243,33 @@ public class ControlPlaneCrawlerComponentTest {
             assertThat(catalogs).hasSize(2);
             assertThat(catalogs.stream().flatMap(c -> c.getDatasets().stream()).map(Dataset::getId))
                     .containsExactlyInAnyOrder("offer1", "offer2", "offer3");
+        });
+    }
+
+    @Test
+    @DisplayName("Verify crawler inside control plane: multiple participant contexts are isolated")
+    void crawl_multipleParticipants_shouldIsolateCatalogs(TypeTransformerRegistry ttr, TargetNodeDirectory directory,
+                                                          FederatedCatalogCache cache, ParticipantContextStore participantContextStore) {
+        var otherParticipant = "other-participant";
+        participantContextStore.create(ParticipantContext.Builder.newInstance()
+                .id(otherParticipant).identity(otherParticipant).build());
+
+        var defaultNode = new TargetNode("node-default", "did:web:" + UUID.randomUUID(), "http://node-default.com", PARTICIPANT_CONTEXT_ID, singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
+        var otherNode = new TargetNode("node-other", "did:web:" + UUID.randomUUID(), "http://node-other.com", otherParticipant, singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
+
+        when(dispatcher.dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(byte[].class), isA(CatalogRequestMessage.class)))
+                .thenReturn(catalogOf(toBytes(ttr), "catalog-default", createDataset("offer-default")));
+        when(dispatcher.dispatch(eq(otherParticipant), eq(byte[].class), isA(CatalogRequestMessage.class)))
+                .thenReturn(catalogOf(toBytes(ttr), "catalog-other", createDataset("offer-other")));
+
+        directory.insert(defaultNode);
+        directory.insert(otherNode);
+
+        await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
+            assertThat(cache.query(PARTICIPANT_CONTEXT_ID, QuerySpec.max())).hasSize(1)
+                    .allSatisfy(c -> assertThat(c.getProperties()).containsEntry(PROPERTY_ORIGINATOR, "http://node-default.com"));
+            assertThat(cache.query(otherParticipant, QuerySpec.max())).hasSize(1)
+                    .allSatisfy(c -> assertThat(c.getProperties()).containsEntry(PROPERTY_ORIGINATOR, "http://node-other.com"));
         });
     }
 
@@ -381,7 +412,7 @@ public class ControlPlaneCrawlerComponentTest {
                     var nodeUrl = format("http://test-node%s.com", i);
                     var numAssets = 1 + rnd.nextInt(10);
                     var nodeId = "did:web:" + i + "-count-" + numAssets;
-                    var node = new TargetNode("test-node-" + i, nodeId, nodeUrl, singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
+                    var node = new TargetNode("test-node-" + i, nodeId, nodeUrl, PARTICIPANT_CONTEXT_ID, singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
                     when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(nodeId, nodeUrl))))
                             .thenReturn(randomCatalog(toBytes(ttr), "catalog-" + nodeUrl, numAssets));
 
@@ -404,8 +435,8 @@ public class ControlPlaneCrawlerComponentTest {
     @Test
     @DisplayName("Crawl multiple targets with conflicting asset IDs")
     void crawlMultiple_whenConflictingAssetIds_shouldOverwrite(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
-        var node1 = new TargetNode("test-node1", "did:web:" + UUID.randomUUID(), "http://test-node1.com", singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
-        var node2 = new TargetNode("test-node2", "did:web:" + UUID.randomUUID(), "http://test-node2.com", singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
+        var node1 = new TargetNode("test-node1", "did:web:" + UUID.randomUUID(), "http://test-node1.com", PARTICIPANT_CONTEXT_ID, singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
+        var node2 = new TargetNode("test-node2", "did:web:" + UUID.randomUUID(), "http://test-node2.com", PARTICIPANT_CONTEXT_ID, singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
 
         when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(node1.id(), node1.targetUrl()))))
                 .thenReturn(catalogOf(toBytes(ttr), "catalog-" + node1.targetUrl(), createDataset("offer1"), createDataset("offer2"), createDataset("offer3")));
@@ -513,6 +544,6 @@ public class ControlPlaneCrawlerComponentTest {
     }
 
     private @NotNull TargetNode targetNode() {
-        return new TargetNode("test-node", "did:web:" + UUID.randomUUID(), "http://test-node.com", singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
+        return new TargetNode("test-node", "did:web:" + UUID.randomUUID(), "http://test-node.com", PARTICIPANT_CONTEXT_ID, singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
     }
 }

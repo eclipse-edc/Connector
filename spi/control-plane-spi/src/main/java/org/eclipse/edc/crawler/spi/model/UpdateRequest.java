@@ -17,7 +17,9 @@ package org.eclipse.edc.crawler.spi.model;
 import org.eclipse.edc.crawler.spi.CrawlerAction;
 
 /**
- * {@link CrawlerAction}s accept {@code UpdateRequests} to execute
+ * {@link CrawlerAction}s accept {@code UpdateRequests} to execute. The {@code participantContextId} identifies the local
+ * participant context on whose behalf the crawl is performed, so that the request is dispatched with that participant's
+ * identity.
  */
-public record UpdateRequest(String nodeId, String nodeUrl, String protocol) {
+public record UpdateRequest(String participantContextId, String nodeId, String nodeUrl, String protocol) {
 }

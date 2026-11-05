@@ -38,13 +38,13 @@ public abstract class BaseCatalogsApiController {
         this.transformerRegistry = transformerRegistry;
     }
 
-    public JsonArray requestCatalogs(JsonObject querySpecJson, boolean flatten) {
+    public JsonArray requestCatalogs(String participantContextId, JsonObject querySpecJson, boolean flatten) {
         var querySpec = querySpecJson == null
                 ? QuerySpec.none()
                 : transformerRegistry.transform(querySpecJson, QuerySpec.class)
                         .orElseThrow(InvalidRequestException::new);
 
-        return queryService.getCatalog(querySpec)
+        return queryService.getCatalog(participantContextId, querySpec)
                 .orElseThrow(exceptionMapper(Catalog.class))
                 .stream()
                 .map(catalog -> flatten ? FederatedCatalogUtil.flatten(catalog) : catalog)

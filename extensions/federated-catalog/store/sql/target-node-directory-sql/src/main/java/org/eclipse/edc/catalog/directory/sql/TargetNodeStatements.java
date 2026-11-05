@@ -28,6 +28,10 @@ public interface TargetNodeStatements extends SqlStatements {
         return "id";
     }
 
+    default String getParticipantContextIdColumn() {
+        return "participant_context_id";
+    }
+
     default String getNameColumn() {
         return "name";
     }
@@ -48,7 +52,7 @@ public interface TargetNodeStatements extends SqlStatements {
 
     String getDeleteTemplate();
 
-    SqlQueryStatement createQuery(QuerySpec query);
+    SqlQueryStatement createQuery(String participantContextId, QuerySpec query);
 
     String getSelectStatement();
 }

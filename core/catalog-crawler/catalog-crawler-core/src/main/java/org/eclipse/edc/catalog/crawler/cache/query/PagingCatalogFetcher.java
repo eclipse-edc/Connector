@@ -20,8 +20,6 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.Range;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -48,16 +46,14 @@ import static org.eclipse.edc.federatedcatalog.util.FederatedCatalogUtil.merge;
  */
 public class PagingCatalogFetcher {
     private final ProtocolRemoteMessageDispatcher messageDispatcher;
-    private final SingleParticipantContextSupplier participantContextSupplier;
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
     private final TypeTransformerRegistry transformerRegistry;
     private final JsonLd jsonLdService;
 
-    public PagingCatalogFetcher(ProtocolRemoteMessageDispatcher messageDispatcher, SingleParticipantContextSupplier participantContextSupplier,
+    public PagingCatalogFetcher(ProtocolRemoteMessageDispatcher messageDispatcher,
                                 Monitor monitor, ObjectMapper objectMapper, TypeTransformerRegistry transformerRegistry, JsonLd jsonLdService) {
         this.messageDispatcher = messageDispatcher;
-        this.participantContextSupplier = participantContextSupplier;
         this.monitor = monitor;
         this.objectMapper = objectMapper;
         this.transformerRegistry = transformerRegistry;
@@ -68,12 +64,13 @@ public class PagingCatalogFetcher {
      * Gets all contract offers. Requests are split in digestible chunks to match {@code batchSize} until no more offers
      * can be obtained.
      *
-     * @param catalogRequest The catalog request. This will be copied for every request.
-     * @param from           The (zero-based) index of the first item
-     * @param batchSize      The size of one batch
+     * @param participantContextId The local participant context on whose behalf the request is dispatched.
+     * @param catalogRequest        The catalog request. This will be copied for every request.
+     * @param from                  The (zero-based) index of the first item
+     * @param batchSize             The size of one batch
      * @return A list of {@link ContractOffer} objects
      */
-    public @NotNull CompletableFuture<Catalog> fetch(CatalogRequestMessage catalogRequest, int from, int batchSize) {
+    public @NotNull CompletableFuture<Catalog> fetch(String participantContextId, CatalogRequestMessage catalogRequest, int from, int batchSize) {
 
         var range = new Range(from, from + batchSize);
         var rangedRequest = CatalogRequestMessage.Builder.newInstance()
@@ -83,12 +80,11 @@ public class PagingCatalogFetcher {
                 .querySpec(QuerySpec.Builder.newInstance().range(range).build())
                 .build();
 
-        var participantResult  = participantContextSupplier.get().map(ParticipantContext::getId);
-        if (participantResult.failed()) {
-            return failedFuture(new EdcException(participantResult.getFailureDetail()));
+        if (participantContextId == null) {
+            return failedFuture(new EdcException("No participant context id provided to dispatch the catalog request"));
         }
 
-        return messageDispatcher.dispatch(participantResult.getContent(), byte[].class, rangedRequest)
+        return messageDispatcher.dispatch(participantContextId, byte[].class, rangedRequest)
                 .thenCompose(this::readCatalogFrom)
                 .thenApply(catalog -> copy(catalog).build())
                 .thenCompose(catalog -> {
@@ -96,7 +92,7 @@ public class PagingCatalogFetcher {
                     var datasets = catalog.getDatasets();
                     if (datasets.size() >= batchSize) {
                         monitor.debug(format("Fetching next batch from %s to %s", from, from + batchSize));
-                        return fetch(rangedRequest, range.getFrom() + batchSize, batchSize)
+                        return fetch(participantContextId, rangedRequest, range.getFrom() + batchSize, batchSize)
                                 .thenApply(catalogChunk -> merge(catalog, catalogChunk));
                     } else {
                         return completedFuture(catalog);

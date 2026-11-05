@@ -28,6 +28,10 @@ public interface FederatedCatalogCacheStatements extends SqlStatements {
         return "id";
     }
 
+    default String getParticipantContextIdColumn() {
+        return "participant_context_id";
+    }
+
     default String getCatalogColumn() {
         return "catalog";
     }
@@ -47,7 +51,7 @@ public interface FederatedCatalogCacheStatements extends SqlStatements {
 
     String getUpdateTemplate();
 
-    SqlQueryStatement createQuery(QuerySpec query);
+    SqlQueryStatement createQuery(String participantContextId, QuerySpec query);
 
     String getSelectStatement();
 }

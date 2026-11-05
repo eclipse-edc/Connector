@@ -34,7 +34,7 @@ import static java.util.Optional.ofNullable;
  */
 public class InMemoryFederatedCatalogCache implements FederatedCatalogCache {
 
-    private final Map<String, MarkableEntry<Catalog>> cache = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, MarkableEntry<Catalog>>> cache = new ConcurrentHashMap<>();
     private final LockManager lockManager;
     private final QueryResolver<Catalog> queryResolver;
 
@@ -45,32 +45,36 @@ public class InMemoryFederatedCatalogCache implements FederatedCatalogCache {
     }
 
     @Override
-    public void save(Catalog catalog) {
+    public void save(String participantContextId, Catalog catalog) {
         lockManager.writeLock(() -> {
             var id = ofNullable(catalog.getProperties().get(CatalogConstants.PROPERTY_ORIGINATOR))
                     .map(Object::toString)
                     .orElse(catalog.getId());
-            return cache.put(id, new MarkableEntry<>(false, catalog));
+            return partition(participantContextId).put(id, new MarkableEntry<>(false, catalog));
         });
     }
 
     @Override
-    public Collection<Catalog> query(QuerySpec query) {
-        var catalogs = cache.values().stream().map(me -> me.entry);
+    public Collection<Catalog> query(String participantContextId, QuerySpec query) {
+        var catalogs = partition(participantContextId).values().stream().map(me -> me.entry);
         return lockManager.readLock(() -> queryResolver.query(catalogs, query)).toList();
     }
 
     @Override
-    public void deleteExpired() {
+    public void deleteExpired(String participantContextId) {
         lockManager.writeLock(() -> {
-            cache.values().removeIf(MarkableEntry::isMarked);
+            partition(participantContextId).values().removeIf(MarkableEntry::isMarked);
             return null;
         });
     }
 
     @Override
-    public void expireAll() {
-        cache.replaceAll((k, v) -> new MarkableEntry<>(true, v.getEntry()));
+    public void expireAll(String participantContextId) {
+        partition(participantContextId).replaceAll((k, v) -> new MarkableEntry<>(true, v.getEntry()));
+    }
+
+    private Map<String, MarkableEntry<Catalog>> partition(String participantContextId) {
+        return cache.computeIfAbsent(participantContextId, k -> new ConcurrentHashMap<>());
     }
 
     private static class MarkableEntry<B> {

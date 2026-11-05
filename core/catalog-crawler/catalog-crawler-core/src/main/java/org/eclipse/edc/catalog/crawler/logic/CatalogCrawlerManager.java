@@ -28,10 +28,12 @@ import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.net.ConnectException;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.catalog.spi.CatalogCrawlerConfiguration.CATALOG_CRAWLER_ENABLED_SETTING;
@@ -48,6 +50,7 @@ public class CatalogCrawlerManager {
     private ScheduledExecutorService crawlers;
     private CatalogCrawlerConfiguration configuration;
     private FederatedCatalogCache store;
+    private Supplier<Collection<String>> participantContextsSupplier;
     private ScheduledExecutorService scheduler;
 
     private CatalogCrawlerManager() {
@@ -90,19 +93,21 @@ public class CatalogCrawlerManager {
     }
 
     private void crawlCatalogs() {
-        store.deleteExpired();
-        store.expireAll();
-
-        var workItems = directory.getAll().stream()
+        var workItems = participantContextsSupplier.get().stream()
+                .flatMap(participantContextId -> {
+                    store.deleteExpired(participantContextId);
+                    store.expireAll(participantContextId);
+                    return directory.getAll(participantContextId).stream();
+                })
                 .filter(nodeFilter) // use all nodes EXCEPT self
+                .map(node -> new TargetNodeRetryCount(0, node))
                 .toList();
 
         if (workItems.isEmpty()) {
             monitor.debug("No node to crawl, to disable the crawler, please configure the '%s' setting accordingly. Next execution in %s"
                     .formatted(CATALOG_CRAWLER_ENABLED_SETTING, Duration.ofSeconds(configuration.periodSeconds())));
         } else {
-            workItems.stream().map(node -> new TargetNodeRetryCount(0, node))
-                    .map(this::createCrawler).forEach(crawler -> crawlers.execute(crawler));
+            workItems.stream().map(this::createCrawler).forEach(crawler -> crawlers.execute(crawler));
 
             monitor.debug("catalog crawling completed: %d entries evaluated. Next execution in %s"
                     .formatted(workItems.size(), Duration.ofSeconds(configuration.periodSeconds())));
@@ -121,7 +126,7 @@ public class CatalogCrawlerManager {
                 return;
             }
 
-            var updateRequest = new UpdateRequest(targetNode.id(), targetNode.targetUrl(), protocol);
+            var updateRequest = new UpdateRequest(targetNode.participantContextId(), targetNode.id(), targetNode.targetUrl(), protocol);
             adapter.get().apply(updateRequest)
                     .thenAccept(this::persist)
                     .whenComplete((v, throwable) -> onCompletion(item, throwable));
@@ -154,7 +159,7 @@ public class CatalogCrawlerManager {
         if (updateResponse instanceof CatalogUpdateResponse catalogUpdateResponse) {
             var catalog = catalogUpdateResponse.getCatalog();
             catalog.getProperties().put(CatalogConstants.PROPERTY_ORIGINATOR, updateResponse.getSource());
-            store.save(catalog);
+            store.save(catalogUpdateResponse.getParticipantContextId(), catalog);
         } else {
             monitor.warning("Expected a response of type %s but got %s. Will discard".formatted(CatalogUpdateResponse.class, updateResponse.getClass()));
         }
@@ -206,11 +211,17 @@ public class CatalogCrawlerManager {
             return this;
         }
 
+        public Builder participantContextsSupplier(Supplier<Collection<String>> participantContextsSupplier) {
+            instance.participantContextsSupplier = participantContextsSupplier;
+            return this;
+        }
+
         public CatalogCrawlerManager build() {
             Objects.requireNonNull(instance.configuration, "ExecutionManager.Builder: Configuration cannot be null");
             Objects.requireNonNull(instance.monitor, "ExecutionManager.Builder: Monitor cannot be null");
             Objects.requireNonNull(instance.crawlerActionRegistry, "ExecutionManager.Builder: nodeQueryAdapterRegistry cannot be null");
             Objects.requireNonNull(instance.directory, "ExecutionManager.Builder: nodeDirectory cannot be null");
+            Objects.requireNonNull(instance.participantContextsSupplier, "ExecutionManager.Builder: participantContextsSupplier cannot be null");
 
             instance.crawlers = Executors.newScheduledThreadPool(instance.configuration.numCrawlers());
 

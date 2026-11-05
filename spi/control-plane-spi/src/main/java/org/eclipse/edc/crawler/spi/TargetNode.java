@@ -21,11 +21,13 @@ import java.util.List;
 
 /**
  * Represents an abstract crawl target, i.e. some endpoint, that a crawler can target using a specific {@link CrawlerAction}.
- * All {@link TargetNode} entries are maintained in a {@link TargetNodeDirectory}.
+ * All {@link TargetNode} entries are maintained in a {@link TargetNodeDirectory}, scoped to the local participant context
+ * (identified by {@code participantContextId}) on whose behalf the node is crawled.
  */
 public record TargetNode(@JsonProperty("name") String name,
                          @JsonProperty("id") String id,
                          @JsonProperty("url") String targetUrl,
+                         @JsonProperty("participantContextId") String participantContextId,
                          @JsonProperty("supportedProtocols") List<String> supportedProtocols) {
     @JsonCreator
     public TargetNode {

@@ -32,8 +32,8 @@ public class QueryServiceImpl implements QueryService {
     }
 
     @Override
-    public ServiceResult<Collection<Catalog>> getCatalog(QuerySpec query) {
+    public ServiceResult<Collection<Catalog>> getCatalog(String participantContextId, QuerySpec query) {
 
-        return ServiceResult.from(Result.ofThrowable(() -> cache.query(query)));
+        return ServiceResult.from(Result.ofThrowable(() -> cache.query(participantContextId, query)));
     }
 }
