@@ -15,12 +15,10 @@
 package org.eclipse.edc.catalog.crawler;
 
 import org.eclipse.edc.catalog.crawler.cache.query.QueryServiceImpl;
-import org.eclipse.edc.catalog.crawler.logic.CrawlerActionRegistryImpl;
 import org.eclipse.edc.catalog.crawler.store.InMemoryFederatedCatalogCache;
 import org.eclipse.edc.catalog.crawler.store.InMemoryNodeDirectory;
 import org.eclipse.edc.catalog.spi.FederatedCatalogCache;
 import org.eclipse.edc.catalog.spi.QueryService;
-import org.eclipse.edc.crawler.spi.CrawlerActionRegistry;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -59,11 +57,6 @@ public class CatalogCrawlerDefaultServicesExtension implements ServiceExtension 
     @Provider
     public QueryService defaultQueryEngine() {
         return new QueryServiceImpl(store);
-    }
-
-    @Provider
-    public CrawlerActionRegistry crawlerActionRegistry() {
-        return new CrawlerActionRegistryImpl();
     }
 
 }

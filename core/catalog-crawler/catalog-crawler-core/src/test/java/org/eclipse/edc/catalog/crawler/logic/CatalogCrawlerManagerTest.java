@@ -14,19 +14,21 @@
 
 package org.eclipse.edc.catalog.crawler.logic;
 
+import org.eclipse.edc.catalog.crawler.cache.query.DspCatalogFetcher;
 import org.eclipse.edc.catalog.spi.CatalogCrawlerConfiguration;
 import org.eclipse.edc.catalog.spi.FederatedCatalogCache;
-import org.eclipse.edc.catalog.spi.model.CatalogUpdateResponse;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
-import org.eclipse.edc.crawler.spi.CrawlerAction;
-import org.eclipse.edc.crawler.spi.CrawlerActionRegistry;
 import org.eclipse.edc.crawler.spi.TargetNode;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
 import org.eclipse.edc.crawler.spi.TargetNodeFilter;
-import org.eclipse.edc.crawler.spi.model.UpdateRequest;
+import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.ConnectException;
@@ -56,20 +58,22 @@ class CatalogCrawlerManagerTest {
     private static final String PARTICIPANT_CONTEXT_ID = "participant-context-id";
     private final TargetNodeDirectory nodeDirectoryMock = mock();
     private final Monitor monitorMock = mock();
-    private final CrawlerActionRegistry crawlerActionRegistry = mock();
-    private final Runnable preExecutionTaskMock = mock();
-    private final CrawlerAction queryAdapterMock = mock();
-    private final Runnable postExecutionTask = mock();
+    private final DspCatalogFetcher catalogFetcher = mock();
     private final FederatedCatalogCache store = mock();
+    private final ParticipantContextStore participantContextStore = mock();
 
     private CatalogCrawlerManager manager = createManagerBuilder().build();
+
+    @BeforeEach
+    void setUp() {
+        when(participantContextStore.query(any())).thenReturn(StoreResult.success(List.of(participantContext(PARTICIPANT_CONTEXT_ID))));
+    }
 
     @Test
     void shouldStoreTheCatalog() {
         when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(createNode()));
-        when(crawlerActionRegistry.findForProtocol(any())).thenReturn(List.of(queryAdapterMock));
         var catalog = new Catalog();
-        when(queryAdapterMock.apply(any())).thenReturn(completedFuture(new CatalogUpdateResponse(PARTICIPANT_CONTEXT_ID, "source", catalog)));
+        when(catalogFetcher.fetch(any(), any(), any(), any())).thenReturn(completedFuture(catalog));
 
         manager.start();
 
@@ -84,17 +88,12 @@ class CatalogCrawlerManagerTest {
     @Test
     void shouldCrawlOnBehalfOfEachParticipantContext() {
         var otherParticipant = "other-participant-context-id";
-        manager = createManagerBuilder()
-                .participantContextsSupplier(() -> List.of(PARTICIPANT_CONTEXT_ID, otherParticipant))
-                .build();
+        when(participantContextStore.query(any())).thenReturn(StoreResult.success(
+                List.of(participantContext(PARTICIPANT_CONTEXT_ID), participantContext(otherParticipant))));
         when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(createNode()));
         when(nodeDirectoryMock.getAll(otherParticipant)).thenReturn(List.of(
                 new TargetNode("othernode", "did:web:" + UUID.randomUUID(), "http://other.com", otherParticipant, List.of(TEST_PROTOCOL))));
-        when(crawlerActionRegistry.findForProtocol(any())).thenReturn(List.of(queryAdapterMock));
-        when(queryAdapterMock.apply(any())).thenAnswer(invocation -> {
-            UpdateRequest request = invocation.getArgument(0);
-            return completedFuture(new CatalogUpdateResponse(request.participantContextId(), "source", new Catalog()));
-        });
+        when(catalogFetcher.fetch(any(), any(), any(), any())).thenReturn(completedFuture(new Catalog()));
 
         manager.start();
 
@@ -107,21 +106,21 @@ class CatalogCrawlerManagerTest {
     }
 
     @Test
-    void shouldNotQueryCatalog_whenProtocolVersionNotSupported() {
-        when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(createNode()));
-        when(crawlerActionRegistry.findForProtocol(any())).thenReturn(List.of());
+    void shouldSkipNode_whenNoProtocolDeclared() {
+        when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(
+                new TargetNode("testnode", "did:web:" + UUID.randomUUID(), "http://test.com", PARTICIPANT_CONTEXT_ID, List.of())));
 
         manager.start();
 
-        verifyNoInteractions(queryAdapterMock);
+        await().untilAsserted(() -> verify(monitorMock).warning(startsWith("Node")));
+        verifyNoInteractions(catalogFetcher);
     }
 
     @Test
     void shouldLogSevere_whenUnexpectedException() {
         when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(createNode()));
-        when(crawlerActionRegistry.findForProtocol(TEST_PROTOCOL)).thenReturn(List.of(queryAdapterMock));
         var exc = new EdcException("unexpected exception");
-        when(queryAdapterMock.apply(any())).thenReturn(failedFuture(exc));
+        when(catalogFetcher.fetch(any(), any(), any(), any())).thenReturn(failedFuture(exc));
 
         manager.start();
 
@@ -133,8 +132,7 @@ class CatalogCrawlerManagerTest {
     @Test
     void shouldLogInfo_whenQueryReturnsConnectException() {
         when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(createNode()));
-        when(crawlerActionRegistry.findForProtocol(TEST_PROTOCOL)).thenReturn(List.of(queryAdapterMock));
-        when(queryAdapterMock.apply(any())).thenReturn(failedFuture(new ConnectException("cannot connect")));
+        when(catalogFetcher.fetch(any(), any(), any(), any())).thenReturn(failedFuture(new ConnectException("cannot connect")));
 
         manager.start();
 
@@ -151,14 +149,13 @@ class CatalogCrawlerManagerTest {
                 .configuration(new CatalogCrawlerConfiguration(true, 1, 3600, 0, maxRetries, 0))
                 .build();
         when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(createNode()));
-        when(crawlerActionRegistry.findForProtocol(TEST_PROTOCOL)).thenReturn(List.of(queryAdapterMock));
-        when(queryAdapterMock.apply(any())).thenReturn(failedFuture(new EdcException("unexpected exception")));
+        when(catalogFetcher.fetch(any(), any(), any(), any())).thenReturn(failedFuture(new EdcException("unexpected exception")));
 
         manager.start();
 
         await().untilAsserted(() -> verify(monitorMock).severe(startsWith("The following Node has errored out more than")));
         // one initial attempt plus maxRetries, then the node is discarded
-        verify(queryAdapterMock, times(maxRetries + 1)).apply(any());
+        verify(catalogFetcher, times(maxRetries + 1)).fetch(any(), any(), any(), any());
     }
 
     @Test
@@ -181,7 +178,7 @@ class CatalogCrawlerManagerTest {
         manager.start();
 
         verify(monitorMock).warning(anyString());
-        verifyNoInteractions(preExecutionTaskMock, queryAdapterMock, postExecutionTask);
+        verifyNoInteractions(catalogFetcher);
     }
 
     @Test
@@ -214,15 +211,20 @@ class CatalogCrawlerManagerTest {
         return CatalogCrawlerManager.Builder.newInstance()
                 .configuration(enabledCrawler())
                 .nodeDirectory(nodeDirectoryMock)
-                .nodeQueryAdapterRegistry(crawlerActionRegistry)
+                .catalogFetcher(catalogFetcher)
                 .store(store)
-                .participantContextsSupplier(() -> List.of(PARTICIPANT_CONTEXT_ID))
+                .participantContextStore(participantContextStore)
                 .monitor(monitorMock);
     }
 
     @NotNull
     private TargetNode createNode() {
         return new TargetNode("testnode" + UUID.randomUUID(), "did:web:" + UUID.randomUUID(), "http://test.com", PARTICIPANT_CONTEXT_ID, List.of(TEST_PROTOCOL));
+    }
+
+    @NotNull
+    private ParticipantContext participantContext(String id) {
+        return ParticipantContext.Builder.newInstance().id(id).identity("did:web:" + id).state(ParticipantContextState.ACTIVATED).build();
     }
 
 }

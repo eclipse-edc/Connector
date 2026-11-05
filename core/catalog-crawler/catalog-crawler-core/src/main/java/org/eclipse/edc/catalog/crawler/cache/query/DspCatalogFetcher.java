@@ -14,15 +14,11 @@
 
 package org.eclipse.edc.catalog.crawler.cache.query;
 
-import org.eclipse.edc.catalog.spi.model.CatalogUpdateResponse;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
-import org.eclipse.edc.crawler.spi.CrawlerAction;
-import org.eclipse.edc.crawler.spi.model.UpdateRequest;
-import org.eclipse.edc.crawler.spi.model.UpdateResponse;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -37,30 +33,38 @@ import static java.util.Optional.ofNullable;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.eclipse.edc.federatedcatalog.util.FederatedCatalogUtil.copy;
 
-public class DspCatalogRequestAction implements CrawlerAction {
+/**
+ * Fetches the catalog of a remote DSP node. Sub-catalogs are fetched recursively so that the returned {@link Catalog}
+ * preserves the remote hierarchy.
+ */
+public class DspCatalogFetcher {
     private static final int INITIAL_OFFSET = 0;
     private static final int BATCH_SIZE = 100;
     private final PagingCatalogFetcher fetcher;
 
-    public DspCatalogRequestAction(ProtocolRemoteMessageDispatcher messageDispatcher,
-                                   Monitor monitor, ObjectMapper objectMapper, TypeTransformerRegistry transformerRegistry, JsonLd jsonLdService
+    public DspCatalogFetcher(ProtocolRemoteMessageDispatcher messageDispatcher,
+                             Monitor monitor, ObjectMapper objectMapper, TypeTransformerRegistry transformerRegistry, JsonLd jsonLdService
     ) {
-        fetcher = new PagingCatalogFetcher(messageDispatcher, monitor,  objectMapper, transformerRegistry, jsonLdService);
+        fetcher = new PagingCatalogFetcher(messageDispatcher, monitor, objectMapper, transformerRegistry, jsonLdService);
     }
 
-    @Override
-    public CompletableFuture<UpdateResponse> apply(UpdateRequest request) {
+    /**
+     * Fetches the (possibly paged) catalog from the given node and expands any nested sub-catalogs.
+     *
+     * @param participantContextId the local participant context on whose behalf the crawl is performed
+     * @param nodeId               the id of the remote node
+     * @param nodeUrl              the DSP endpoint of the remote node
+     * @param protocol             the protocol to use
+     */
+    public CompletableFuture<Catalog> fetch(String participantContextId, String nodeId, String nodeUrl, String protocol) {
         var catalogRequest = CatalogRequestMessage.Builder.newInstance()
-                .protocol(request.protocol())
-                .counterPartyAddress(request.nodeUrl())
-                .counterPartyId(request.nodeId())
+                .protocol(protocol)
+                .counterPartyAddress(nodeUrl)
+                .counterPartyId(nodeId)
                 .build();
 
-        var catalogFuture = fetcher.fetch(request.participantContextId(), catalogRequest, INITIAL_OFFSET, BATCH_SIZE);
-
-        return catalogFuture
-                .thenCompose(rootCatalog -> expandCatalog(request.participantContextId(), rootCatalog, request.protocol()))
-                .thenApply(catalog -> new CatalogUpdateResponse(request.participantContextId(), request.nodeUrl(), catalog));
+        return fetcher.fetch(participantContextId, catalogRequest, INITIAL_OFFSET, BATCH_SIZE)
+                .thenCompose(rootCatalog -> expandCatalog(participantContextId, rootCatalog, protocol));
     }
 
     /**
@@ -90,14 +94,11 @@ public class DspCatalogRequestAction implements CrawlerAction {
                         .findFirst()
                         .map(url -> {
                             var id = ofNullable(subCatalog.getParticipantId()).orElseGet(rootCatalog::getParticipantId);
-                            return new UpdateRequest(participantContextId, id, url, protocol);
+                            return fetch(participantContextId, id, url, protocol); //recurse into the sub-catalog
                         })
                         .orElse(null))
                 .filter(Objects::nonNull)
-                .map(this) //recursively call this.apply()
-                .map(CompletableFuture::join)
-                .map(ur -> (CatalogUpdateResponse) ur)
-                .map(CatalogUpdateResponse::getCatalog);
+                .map(CompletableFuture::join);
 
         var datasets = ofNullable(partitions.get(Dataset.class))
                 .map(ArrayList::new)

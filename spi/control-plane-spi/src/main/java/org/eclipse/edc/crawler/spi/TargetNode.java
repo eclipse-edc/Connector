@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
- * Represents an abstract crawl target, i.e. some endpoint, that a crawler can target using a specific {@link CrawlerAction}.
+ * Represents a crawl target, i.e. some endpoint that the catalog crawler can query using one of its supported protocols.
  * All {@link TargetNode} entries are maintained in a {@link TargetNodeDirectory}, scoped to the local participant context
  * (identified by {@code participantContextId}) on whose behalf the node is crawled.
  */
