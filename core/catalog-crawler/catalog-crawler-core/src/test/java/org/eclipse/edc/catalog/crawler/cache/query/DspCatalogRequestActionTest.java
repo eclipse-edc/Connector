@@ -22,10 +22,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemo
 import org.eclipse.edc.crawler.spi.model.UpdateRequest;
 import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,12 +43,11 @@ import static org.mockito.Mockito.when;
 
 class DspCatalogRequestActionTest {
 
+    private static final String PARTICIPANT_CONTEXT_ID = "participant-context-id";
     private final ProtocolRemoteMessageDispatcher messageDispatcher = mock();
     private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl(mock());
     private final ObjectMapper objectMapper = JsonMapperFactory.defaultJsonMapper();
-    private final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(
-            ParticipantContext.Builder.newInstance().id("participantContext").identity("identity").build());
-    private final DspCatalogRequestAction action = new DspCatalogRequestAction(messageDispatcher, participantContextSupplier,
+    private final DspCatalogRequestAction action = new DspCatalogRequestAction(messageDispatcher,
             mock(), objectMapper, typeTransformerRegistry, new TitaniumJsonLd(mock()));
 
     @BeforeEach
@@ -61,17 +57,18 @@ class DspCatalogRequestActionTest {
 
     @Test
     void apply_withFlatCatalog() {
-        var request = new UpdateRequest("test-node-id", "https://example.com/test-node-id", DATASPACE_PROTOCOL_HTTP_V_2025_1);
+        var request = new UpdateRequest(PARTICIPANT_CONTEXT_ID, "test-node-id", "https://example.com/test-node-id", DATASPACE_PROTOCOL_HTTP_V_2025_1);
 
         var catalog = toBytes(createCatalog("test-catalog-id"));
-        when(messageDispatcher.dispatch(any(), eq(byte[].class), any(CatalogRequestMessage.class)))
+        when(messageDispatcher.dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(byte[].class), any(CatalogRequestMessage.class)))
                 .thenReturn(completedFuture(catalog));
 
         assertThat(action.apply(request)).isCompletedWithValueMatching(updateResponse -> {
             if (updateResponse instanceof CatalogUpdateResponse cr) {
                 return cr.getCatalog() != null &&
                         cr.getCatalog().getId().equals("test-catalog-id") &&
-                        cr.getSource().equals("https://example.com/test-node-id");
+                        cr.getSource().equals("https://example.com/test-node-id") &&
+                        cr.getParticipantContextId().equals(PARTICIPANT_CONTEXT_ID);
             }
             return false;
         });
@@ -79,7 +76,7 @@ class DspCatalogRequestActionTest {
 
     @Test
     void apply_withOnlyNestedCatalog() {
-        var request = new UpdateRequest("test-node-id", "https://example.com/test-node-id", DATASPACE_PROTOCOL_HTTP_V_2025_1);
+        var request = new UpdateRequest(PARTICIPANT_CONTEXT_ID, "test-node-id", "https://example.com/test-node-id", DATASPACE_PROTOCOL_HTTP_V_2025_1);
 
         var rootCatalog = createCatalog("root-catalog-id");
         rootCatalog.getDatasets().clear();
@@ -103,7 +100,7 @@ class DspCatalogRequestActionTest {
 
     @Test
     void apply_withRootDatasets_andNestedCatalog() {
-        var request = new UpdateRequest("test-node-id", "https://example.com/test-node-id", DATASPACE_PROTOCOL_HTTP_V_2025_1);
+        var request = new UpdateRequest(PARTICIPANT_CONTEXT_ID, "test-node-id", "https://example.com/test-node-id", DATASPACE_PROTOCOL_HTTP_V_2025_1);
 
         var rootCatalog = createCatalog("root-catalog-id");
         var nestedCatalog = createCatalog("nested-catalog-id");

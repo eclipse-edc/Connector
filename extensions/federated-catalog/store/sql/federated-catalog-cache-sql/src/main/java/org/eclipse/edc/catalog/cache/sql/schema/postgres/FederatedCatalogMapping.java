@@ -22,6 +22,7 @@ public class FederatedCatalogMapping extends TranslationMapping {
 
     public FederatedCatalogMapping(FederatedCatalogCacheStatements statements) {
         add("id", statements.getIdColumn());
+        add("participantContextId", statements.getParticipantContextIdColumn());
         add("participantId", new JsonFieldTranslator(statements.getCatalogColumn()));
         add("properties", new PrefixedJsonFieldTranslator(statements.getCatalogColumn(), "properties"));
         add("datasets", new JsonFieldTranslator("datasets"));

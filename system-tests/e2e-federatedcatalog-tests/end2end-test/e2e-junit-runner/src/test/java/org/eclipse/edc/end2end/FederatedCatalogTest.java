@@ -153,6 +153,7 @@ class FederatedCatalogTest {
         var node = new TargetNode(
                 "connector", "did:web:" + UUID.randomUUID(),
                 "http://localhost:%s%s".formatted(CONNECTOR_PROTOCOL.port(), CONNECTOR_PROTOCOL.path() + "/" + V_2025_1_VERSION),
+                "test-catalog",
                 List.of(DATASPACE_PROTOCOL_HTTP_V_2025_1)
         );
         catalog.registerSystemExtension(ServiceExtension.class, new SeedNodeExtension(node));

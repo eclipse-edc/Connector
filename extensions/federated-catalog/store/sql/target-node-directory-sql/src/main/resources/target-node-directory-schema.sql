@@ -15,10 +15,12 @@
 -- only intended for and tested with Postgres!
 CREATE TABLE IF NOT EXISTS edc_target_node_directory
 (
-    id                      VARCHAR PRIMARY KEY NOT NULL,
+    id                      VARCHAR NOT NULL,
+    participant_context_id  VARCHAR NOT NULL,
     name                    VARCHAR NOT NULL,
     target_url              VARCHAR NOT NULL,
-    supported_protocols     JSON
+    supported_protocols     JSON,
+    PRIMARY KEY (participant_context_id, id)
 );
 
 COMMENT ON COLUMN edc_target_node_directory.supported_protocols IS 'List<String> serialized as JSON';

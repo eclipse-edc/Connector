@@ -22,30 +22,41 @@ import java.util.Collection;
 
 /**
  * Internal datastore where all the catalogs from all the other connectors are stored by the FederatedCatalogCache.
+ * <p>
+ * Every entry is owned by the local {@code participantContextId} that crawled it, so the same remote catalog can be
+ * cached independently for several participant contexts hosted by the same runtime.
  */
 @ExtensionPoint
 public interface FederatedCatalogCache {
 
     /**
-     * Adds an {@code ContractOffer} to the store
-     */
-    void save(Catalog catalog);
-
-    /**
-     * Queries the store for {@code ContractOffer}s
+     * Adds a {@link Catalog} to the store, owned by the given participant context.
      *
-     * @param query A list of criteria the asset must fulfill
-     * @return A collection of assets that are already in the store and that satisfy a given list of criteria.
+     * @param participantContextId the local participant context that crawled the catalog
+     * @param catalog              the catalog to store
      */
-    Collection<Catalog> query(QuerySpec query);
+    void save(String participantContextId, Catalog catalog);
 
     /**
-     * Deletes all entries from the cache that are marked as "expired"
+     * Queries the store for the {@link Catalog}s owned by the given participant context.
+     *
+     * @param participantContextId the local participant context whose catalogs should be queried
+     * @param query                A list of criteria the catalog must fulfill
+     * @return A collection of catalogs that are already in the store and that satisfy a given list of criteria.
      */
-    void deleteExpired();
+    Collection<Catalog> query(String participantContextId, QuerySpec query);
 
     /**
-     * Marks all entries as "expired", i.e. marks them for deletion
+     * Deletes all entries owned by the given participant context that are marked as "expired"
+     *
+     * @param participantContextId the local participant context whose expired entries should be deleted
      */
-    void expireAll();
+    void deleteExpired(String participantContextId);
+
+    /**
+     * Marks all entries owned by the given participant context as "expired", i.e. marks them for deletion
+     *
+     * @param participantContextId the local participant context whose entries should be marked for deletion
+     */
+    void expireAll(String participantContextId);
 }

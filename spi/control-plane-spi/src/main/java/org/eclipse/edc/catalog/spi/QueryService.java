@@ -22,10 +22,11 @@ import org.eclipse.edc.spi.result.ServiceResult;
 import java.util.Collection;
 
 /**
- * Accepts a {@link QuerySpec} and fetches a collection of {@link Asset} that conform to that query.
+ * Accepts a {@link QuerySpec} and fetches a collection of {@link Asset} that conform to that query, scoped to the
+ * catalogs owned by a particular participant context.
  */
 @FunctionalInterface
 public interface QueryService {
 
-    ServiceResult<Collection<Catalog>> getCatalog(QuerySpec query);
+    ServiceResult<Collection<Catalog>> getCatalog(String participantContextId, QuerySpec query);
 }

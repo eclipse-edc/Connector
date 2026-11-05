@@ -39,15 +39,15 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
 
 
     @Override
-    public SqlQueryStatement createQuery(QuerySpec querySpec) {
+    public SqlQueryStatement createQuery(String participantContextId, QuerySpec querySpec) {
         if (querySpec.containsAnyLeftOperand("datasets")) {
             var select = getSelectFromJsonArrayTemplate(getSelectStatement(), format("%s -> '%s'", getCatalogColumn(), "datasets"), DATASETS_ALIAS);
-            return new SqlQueryStatement(select, querySpec, new FederatedCatalogMapping(this), operatorTranslator);
+            return new SqlQueryStatement(select, scopedQuery(participantContextId, querySpec), new FederatedCatalogMapping(this), operatorTranslator);
         } else if (querySpec.containsAnyLeftOperand("dataServices")) {
             var select = getSelectFromJsonArrayTemplate(getSelectStatement(), format("%s -> '%s'", getCatalogColumn(), "dataServices"), DATA_SERVICES_ALIAS);
-            return new SqlQueryStatement(select, querySpec, new FederatedCatalogMapping(this), operatorTranslator);
+            return new SqlQueryStatement(select, scopedQuery(participantContextId, querySpec), new FederatedCatalogMapping(this), operatorTranslator);
         } else {
-            return super.createQuery(querySpec);
+            return super.createQuery(participantContextId, querySpec);
         }
     }
 }

@@ -20,13 +20,21 @@ import org.eclipse.edc.catalog.spi.FederatedCatalogCache;
 import org.eclipse.edc.crawler.spi.CrawlerActionRegistry;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
 import org.eclipse.edc.crawler.spi.TargetNodeFilter;
+import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
+
+import java.util.Collection;
+import java.util.List;
 
 import static java.util.Optional.ofNullable;
 
@@ -44,6 +52,8 @@ public class CatalogCrawlerCoreExtension implements ServiceExtension {
     private CrawlerActionRegistry crawlerActionRegistry;
     @Inject
     private TargetNodeDirectory directory;
+    @Inject
+    private ParticipantContextStore participantContextStore;
     @Inject(required = false)
     private TargetNodeFilter nodeFilter;
     @Inject(required = false)
@@ -59,14 +69,35 @@ public class CatalogCrawlerCoreExtension implements ServiceExtension {
 
         nodeFilter = ofNullable(nodeFilter).orElse(node -> !node.name().equals(context.getRuntimeId()));
 
+        var monitor = context.getMonitor().withPrefix(CatalogCrawlerManager.class.getSimpleName());
+
         manager = CatalogCrawlerManager.Builder.newInstance()
-                .monitor(context.getMonitor().withPrefix(CatalogCrawlerManager.class.getSimpleName()))
+                .monitor(monitor)
                 .configuration(catalogCrawlerConfiguration)
                 .store(store)
                 .nodeQueryAdapterRegistry(crawlerActionRegistry)
                 .nodeDirectory(directory)
                 .nodeFilterFunction(nodeFilter)
+                .participantContextsSupplier(() -> activeParticipantContextIds(monitor))
                 .build();
+    }
+
+    /**
+     * Returns the ids of all participant contexts that are not {@link ParticipantContextState#DEACTIVATED}, so the
+     * crawler crawls on behalf of each one using its own identity. Deactivated contexts are skipped because their
+     * identity is disabled. In classic/single-participant runtimes this returns the single registered participant
+     * context.
+     */
+    private Collection<String> activeParticipantContextIds(Monitor monitor) {
+        var result = participantContextStore.query(QuerySpec.max());
+        if (result.failed()) {
+            monitor.warning("Could not fetch participant contexts for crawling: " + result.getFailureDetail());
+            return List.of();
+        }
+        return result.getContent().stream()
+                .filter(participantContext -> participantContext.getStateAsEnum() != ParticipantContextState.DEACTIVATED)
+                .map(ParticipantContext::getParticipantContextId)
+                .toList();
     }
 
     @Override

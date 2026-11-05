@@ -18,7 +18,6 @@ import org.eclipse.edc.catalog.crawler.cache.query.DspCatalogRequestAction;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.crawler.spi.CrawlerActionRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -45,8 +44,6 @@ public class CatalogCrawlerActionExtension implements ServiceExtension {
     private TypeTransformerRegistry registry;
     @Inject
     private JsonLd jsonLdService;
-    @Inject
-    private SingleParticipantContextSupplier participantContextSupplier;
 
     @Override
     public String name() {
@@ -57,7 +54,7 @@ public class CatalogCrawlerActionExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var mapper = typeManager.getMapper(JSON_LD);
         var dspTransformerRegistry = registry.forContext(DSP_TRANSFORMER_CONTEXT_V_2025_1);
-        var adapter = new DspCatalogRequestAction(messageDispatcher, participantContextSupplier, context.getMonitor(), mapper, dspTransformerRegistry, jsonLdService);
+        var adapter = new DspCatalogRequestAction(messageDispatcher, context.getMonitor(), mapper, dspTransformerRegistry, jsonLdService);
         crawlerActionRegistry.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, adapter);
     }
 

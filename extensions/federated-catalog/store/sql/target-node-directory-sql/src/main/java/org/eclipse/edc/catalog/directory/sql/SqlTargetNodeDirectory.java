@@ -42,10 +42,10 @@ public class SqlTargetNodeDirectory extends AbstractSqlStore implements TargetNo
     }
 
     @Override
-    public List<TargetNode> getAll() {
+    public List<TargetNode> getAll(String participantContextId) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var query = statements.createQuery(QuerySpec.max());
+                var query = statements.createQuery(participantContextId, QuerySpec.max());
                 return queryExecutor.query(connection, true, this::mapResultSet, query.getQueryAsString(), query.getParameters()).toList();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
@@ -59,7 +59,7 @@ public class SqlTargetNodeDirectory extends AbstractSqlStore implements TargetNo
             try (var connection = getConnection()) {
                 var id = node.id();
 
-                if (findByIdInternal(connection, id) == null) {
+                if (findByIdInternal(connection, node.participantContextId(), id) == null) {
                     insertInternal(connection, id, node);
                 } else {
                     updateInternal(connection, id, node);
@@ -72,16 +72,16 @@ public class SqlTargetNodeDirectory extends AbstractSqlStore implements TargetNo
     }
 
     @Override
-    public TargetNode remove(String id) {
+    public TargetNode remove(String participantContextId, String id) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var existing = findByIdInternal(connection, id);
+                var existing = findByIdInternal(connection, participantContextId, id);
                 if (existing == null) {
                     return null;
                 }
 
                 var stmt = statements.getDeleteTemplate();
-                queryExecutor.execute(connection, stmt, id);
+                queryExecutor.execute(connection, stmt, participantContextId, id);
                 return existing;
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
@@ -89,9 +89,9 @@ public class SqlTargetNodeDirectory extends AbstractSqlStore implements TargetNo
         });
     }
 
-    private TargetNode findByIdInternal(Connection connection, String id) {
+    private TargetNode findByIdInternal(Connection connection, String participantContextId, String id) {
         var stmt = statements.getFindByIdTemplate();
-        return queryExecutor.single(connection, false, this::mapResultSet, stmt, id);
+        return queryExecutor.single(connection, false, this::mapResultSet, stmt, participantContextId, id);
     }
 
     private void insertInternal(Connection connection, String id, TargetNode targetNode) {
@@ -99,6 +99,7 @@ public class SqlTargetNodeDirectory extends AbstractSqlStore implements TargetNo
         queryExecutor.execute(connection,
                 stmt,
                 id,
+                targetNode.participantContextId(),
                 targetNode.name(),
                 targetNode.targetUrl(),
                 toJson(targetNode.supportedProtocols())
@@ -112,6 +113,7 @@ public class SqlTargetNodeDirectory extends AbstractSqlStore implements TargetNo
                 targetNode.name(),
                 targetNode.targetUrl(),
                 toJson(targetNode.supportedProtocols()),
+                targetNode.participantContextId(),
                 id
         );
     }
@@ -121,6 +123,7 @@ public class SqlTargetNodeDirectory extends AbstractSqlStore implements TargetNo
                 resultSet.getString(statements.getNameColumn()),
                 resultSet.getString(statements.getIdColumn()),
                 resultSet.getString(statements.getTargetUrlColumn()),
+                resultSet.getString(statements.getParticipantContextIdColumn()),
                 fromJson(resultSet.getString(statements.getSupportedProtocolsColumn()), new TypeReference<>() {
                 })
         );

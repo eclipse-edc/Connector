@@ -15,7 +15,9 @@
 -- only intended for and tested with Postgres!
 CREATE TABLE IF NOT EXISTS edc_federated_catalog
 (
-    id                    VARCHAR PRIMARY KEY NOT NULL,
-    catalog               JSON,
-    marked                BOOLEAN DEFAULT FALSE
+    id                     VARCHAR NOT NULL,
+    participant_context_id VARCHAR NOT NULL,
+    catalog                JSON,
+    marked                 BOOLEAN DEFAULT FALSE,
+    PRIMARY KEY (participant_context_id, id)
 );

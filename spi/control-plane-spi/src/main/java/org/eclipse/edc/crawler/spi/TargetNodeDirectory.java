@@ -19,27 +19,30 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import java.util.List;
 
 /**
- * A global list of all {@link TargetNode} entries, that are available to crawl in a data space, much like a "phone book" for catalog endpoints.
- * Each {@link TargetNode} is queryable using a particular protocol.
+ * A list of all {@link TargetNode} entries, that are available to crawl in a data space, much like a "phone book" for catalog endpoints.
+ * Each {@link TargetNode} is queryable using a particular protocol and is scoped to the local participant context on whose behalf it is crawled.
  */
 @ExtensionPoint
 public interface TargetNodeDirectory {
 
     /**
-     * Get all nodes.
+     * Get all nodes registered for the given participant context.
+     *
+     * @param participantContextId the local participant context whose nodes should be returned
      */
-    List<TargetNode> getAll();
+    List<TargetNode> getAll(String participantContextId);
 
     /**
-     * Inserts (="registers") a node into the directory.
+     * Inserts (="registers") a node into the directory. The node carries the owning participant context.
      */
     void insert(TargetNode node);
 
     /**
-     * Removes (="unregisters") a node from the directory by its ID.
+     * Removes (="unregisters") a node from the directory by its participant context and ID.
      *
-     * @param id ID of the node to be removed.
+     * @param participantContextId the local participant context that owns the node.
+     * @param id                   ID of the node to be removed.
      * @return TargetNode containing the removed node if it was found and removed, otherwise null.
      */
-    TargetNode remove(String id);
+    TargetNode remove(String participantContextId, String id);
 }

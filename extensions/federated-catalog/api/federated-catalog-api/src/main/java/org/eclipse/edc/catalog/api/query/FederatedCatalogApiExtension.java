@@ -15,10 +15,13 @@
 package org.eclipse.edc.catalog.api.query;
 
 import jakarta.json.Json;
+import org.eclipse.edc.api.auth.spi.AuthorizationService;
 import org.eclipse.edc.catalog.api.query.v4.CatalogsApiV4Controller;
+import org.eclipse.edc.catalog.api.query.v5.CatalogsApiV5Controller;
 import org.eclipse.edc.catalog.spi.QueryService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogV2025Transformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDataServiceTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDatasetTransformer;
@@ -36,6 +39,7 @@ import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_4;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_5;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_CONTEXT_2025_1;
 import static org.eclipse.edc.jsonld.spi.Namespaces.EDC_DSPACE_CONTEXT;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
@@ -47,6 +51,7 @@ public class FederatedCatalogApiExtension implements ServiceExtension {
     public static final String NAME = "Management API: Federated Catalog";
 
     public static final String FEDERATED_CATALOG_SCOPE_V4 = "FEDERATED_CATALOG_API" + ":" + MANAGEMENT_API_V_4;
+    public static final String FEDERATED_CATALOG_SCOPE_V5 = "FEDERATED_CATALOG_API" + ":" + MANAGEMENT_API_V_5;
 
     @Inject
     private WebService webService;
@@ -62,6 +67,10 @@ public class FederatedCatalogApiExtension implements ServiceExtension {
     private JsonObjectValidatorRegistry validatorRegistry;
     @Inject
     private ParticipantIdMapper participantIdMapper;
+    @Inject(required = false)
+    private SingleParticipantContextSupplier participantContextSupplier;
+    @Inject(required = false)
+    private AuthorizationService authorizationService;
 
     @Override
     public String name() {
@@ -78,10 +87,19 @@ public class FederatedCatalogApiExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectFromDistributionTransformer(jsonFactory));
         managementApiTransformerRegistry.register(new JsonObjectFromDataServiceTransformer(jsonFactory));
 
-        jsonLd.registerContext(DSPACE_CONTEXT_2025_1, FEDERATED_CATALOG_SCOPE_V4);
-        jsonLd.registerContext(EDC_DSPACE_CONTEXT, FEDERATED_CATALOG_SCOPE_V4);
 
-        webService.registerResource(ApiContext.MANAGEMENT, new CatalogsApiV4Controller(queryService, managementApiTransformerRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogsApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, FEDERATED_CATALOG_SCOPE_V4));
+        if (participantContextSupplier != null) {
+            jsonLd.registerContext(DSPACE_CONTEXT_2025_1, FEDERATED_CATALOG_SCOPE_V4);
+            jsonLd.registerContext(EDC_DSPACE_CONTEXT, FEDERATED_CATALOG_SCOPE_V4);
+            webService.registerResource(ApiContext.MANAGEMENT, new CatalogsApiV4Controller(queryService, managementApiTransformerRegistry, participantContextSupplier));
+            webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogsApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, FEDERATED_CATALOG_SCOPE_V4));
+        }
+
+        if (authorizationService != null) {
+            jsonLd.registerContext(DSPACE_CONTEXT_2025_1, FEDERATED_CATALOG_SCOPE_V5);
+            jsonLd.registerContext(EDC_DSPACE_CONTEXT, FEDERATED_CATALOG_SCOPE_V5);
+            webService.registerResource(ApiContext.MANAGEMENT, new CatalogsApiV5Controller(queryService, managementApiTransformerRegistry, authorizationService));
+            webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogsApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, FEDERATED_CATALOG_SCOPE_V5));
+        }
     }
 }

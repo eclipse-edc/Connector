@@ -21,6 +21,8 @@ import org.eclipse.edc.catalog.spi.QueryService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ApiTest;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogV2025Transformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDataServiceTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDatasetTransformer;
@@ -48,6 +50,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,11 +59,12 @@ import static org.mockito.Mockito.when;
 class FederatedCatalogApiControllerTest extends RestControllerTestBase {
 
     private static final String PATH = "/v4/catalogs/request";
+    private static final String PARTICIPANT_CONTEXT_ID = "participant-context-id";
     private final QueryService queryService = mock();
 
     @Test
     void queryApi_whenEmptyResult() {
-        when(queryService.getCatalog(any())).thenReturn(ServiceResult.success(emptyList()));
+        when(queryService.getCatalog(any(), any())).thenReturn(ServiceResult.success(emptyList()));
 
         baseRequest()
                 .contentType(JSON)
@@ -76,7 +80,7 @@ class FederatedCatalogApiControllerTest extends RestControllerTestBase {
     @Test
     void queryApi_whenResultsReturned() {
         var catalogs = range(0, 3).mapToObj(i -> createCatalog("catalog-" + i)).toList();
-        when(queryService.getCatalog(any())).thenReturn(ServiceResult.success(catalogs));
+        when(queryService.getCatalog(any(), any())).thenReturn(ServiceResult.success(catalogs));
 
         baseRequest()
                 .contentType(JSON)
@@ -91,7 +95,7 @@ class FederatedCatalogApiControllerTest extends RestControllerTestBase {
 
     @Test
     void queryApi_whenQueryUnsuccessful() {
-        when(queryService.getCatalog(any())).thenThrow(new RuntimeException("test exception"));
+        when(queryService.getCatalog(any(), any())).thenThrow(new RuntimeException("test exception"));
 
         baseRequest()
                 .contentType(JSON)
@@ -111,7 +115,7 @@ class FederatedCatalogApiControllerTest extends RestControllerTestBase {
                                 .dataset(Dataset.Builder.newInstance().id("sub2-normal-asset-" + i).build())
                                 .build())
                         .build()).toList();
-        when(queryService.getCatalog(any())).thenReturn(ServiceResult.success(catalogs));
+        when(queryService.getCatalog(any(), any())).thenReturn(ServiceResult.success(catalogs));
 
         var response = baseRequest()
                 .contentType(JSON)
@@ -135,7 +139,7 @@ class FederatedCatalogApiControllerTest extends RestControllerTestBase {
 
     @Test
     void queryApi_shouldUseEmptyQuerySpec_whenRequestBodyIsNull() {
-        when(queryService.getCatalog(any())).thenReturn(ServiceResult.success(emptyList()));
+        when(queryService.getCatalog(any(), any())).thenReturn(ServiceResult.success(emptyList()));
 
         baseRequest()
                 .contentType(JSON)
@@ -146,7 +150,7 @@ class FederatedCatalogApiControllerTest extends RestControllerTestBase {
                 .contentType(JSON)
                 .body("size()", is(0));
 
-        verify(queryService).getCatalog(QuerySpec.none());
+        verify(queryService).getCatalog(eq(PARTICIPANT_CONTEXT_ID), eq(QuerySpec.none()));
     }
 
     @Override
@@ -160,7 +164,9 @@ class FederatedCatalogApiControllerTest extends RestControllerTestBase {
         typeTransformerRegistry.register(new JsonObjectFromDistributionTransformer(factory));
         typeTransformerRegistry.register(new JsonObjectFromDataServiceTransformer(factory));
         typeTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
-        return new CatalogsApiV4Controller(queryService, typeTransformerRegistry);
+        SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(
+                ParticipantContext.Builder.newInstance().id(PARTICIPANT_CONTEXT_ID).identity("identity").build());
+        return new CatalogsApiV4Controller(queryService, typeTransformerRegistry, participantContextSupplier);
     }
 
     private RequestSpecification baseRequest() {

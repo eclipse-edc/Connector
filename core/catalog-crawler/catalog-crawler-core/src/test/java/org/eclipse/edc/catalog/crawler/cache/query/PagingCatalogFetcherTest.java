@@ -21,11 +21,8 @@ import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemo
 import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;
-import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.message.Range;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,10 +48,9 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 class PagingCatalogFetcherTest {
 
+    private static final String PARTICIPANT_CONTEXT_ID = "participant-context-id";
     private final ProtocolRemoteMessageDispatcher messageDispatcherMock = mock();
     private final ObjectMapper objectMapper = JsonMapperFactory.defaultJsonMapper();
-    private final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(
-            ParticipantContext.Builder.newInstance().id("participantContext").identity("identity").build());
     private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl(mock());
     private PagingCatalogFetcher fetcher;
 
@@ -62,7 +58,7 @@ class PagingCatalogFetcherTest {
     void setup() {
         registerTransformers(typeTransformerRegistry);
 
-        fetcher = new PagingCatalogFetcher(messageDispatcherMock, participantContextSupplier, mock(), objectMapper,
+        fetcher = new PagingCatalogFetcher(messageDispatcherMock, mock(), objectMapper,
                 typeTransformerRegistry, new TitaniumJsonLd(mock()));
     }
 
@@ -71,7 +67,7 @@ class PagingCatalogFetcherTest {
         var cat1 = createCatalog(5);
         var cat2 = createCatalog(5);
         var cat3 = createCatalog(3);
-        when(messageDispatcherMock.dispatch(any(), eq(byte[].class), any(CatalogRequestMessage.class)))
+        when(messageDispatcherMock.dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(byte[].class), any(CatalogRequestMessage.class)))
                 .thenReturn(completedFuture(toBytes(cat1)))
                 .thenReturn(completedFuture(toBytes(cat2)))
                 .thenReturn(completedFuture(toBytes(cat3)))
@@ -79,13 +75,13 @@ class PagingCatalogFetcherTest {
 
         var request = createRequest();
 
-        var catalog = fetcher.fetch(request, 0, 5);
+        var catalog = fetcher.fetch(PARTICIPANT_CONTEXT_ID, request, 0, 5);
         assertThat(catalog).isCompletedWithValueMatching(list -> list.getDatasets().size() == 13 &&
                 list.getDatasets().stream().allMatch(o -> o.getId().matches("(dataset-)\\d|1[0-3]")));
 
 
         var captor = forClass(CatalogRequestMessage.class);
-        verify(messageDispatcherMock, times(3)).dispatch(any(), eq(byte[].class), captor.capture());
+        verify(messageDispatcherMock, times(3)).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(byte[].class), captor.capture());
 
         // verify the sequence of requests
         assertThat(captor.getAllValues())
