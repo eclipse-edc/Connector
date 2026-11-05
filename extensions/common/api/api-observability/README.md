@@ -103,5 +103,5 @@ container definition:
             periodSeconds: 3
             httpGet:
               port: http
-              path: /api/startup
+              path: /api/check/startup
 ```
