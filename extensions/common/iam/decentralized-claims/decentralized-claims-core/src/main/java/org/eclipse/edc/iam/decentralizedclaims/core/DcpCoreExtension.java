@@ -28,7 +28,7 @@ import org.eclipse.edc.iam.decentralizedclaims.spi.verification.SignatureSuiteRe
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.VerifiableCredentialValidationServiceImpl;
-import org.eclipse.edc.iam.verifiablecredentials.rules.HasValidSubjectSchema;
+import org.eclipse.edc.iam.verifiablecredentials.rules.HasValidSchema;
 import org.eclipse.edc.iam.verifiablecredentials.rules.IsInValidityPeriod;
 import org.eclipse.edc.iam.verifiablecredentials.rules.IsNotRevoked;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
@@ -108,6 +108,14 @@ public class DcpCoreExtension implements ServiceExtension {
                     "If disabled, these are only checked when present.",
             defaultValue = "false")
     private boolean requirePresentationBinding;
+
+    @Setting(
+            key = "edc.iam.vc.validation.schema.subject-only",
+            description = "When set to true, the JSON schema referenced in a VC will be validated only " +
+                    "against the credential subjects instead of the credential itself.",
+            defaultValue = "false"
+    )
+    private boolean validateOnlyCredentialSubject;
 
     @Inject
     private SecureTokenService secureTokenService;
@@ -236,7 +244,7 @@ public class DcpCoreExtension implements ServiceExtension {
         var rules = List.of(
                 new IsInValidityPeriod(clock),
                 new IsNotRevoked(revocationServiceRegistry),
-                new HasValidSubjectSchema(typeManager.getMapper())
+                new HasValidSchema(typeManager.getMapper(), validateOnlyCredentialSubject)
         );
 
         var credentialValidationService = new VerifiableCredentialValidationServiceImpl(createPresentationVerifier(context), rules);

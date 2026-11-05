@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Cofinity-X - initial API and implementation
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - validate entire VC against JSON schema
  *
  */
 
@@ -31,8 +32,9 @@ import java.util.Objects;
  * Performs JSON Schema Validation of the credential subjects. Every credential subject must be validated against all
  * credential schemas, and all validations must succeed in order for this rule to pass.
  */
-public class HasValidSubjectSchema implements CredentialValidationRule {
+public class HasValidSchema implements CredentialValidationRule {
     private final ObjectMapper jsonMapper;
+    private final boolean validateOnlySubject;
     private final SchemaRegistry factory = SchemaRegistry.withDialects(List.of(Dialects.getDraft202012(), Dialects.getDraft4()),
             builder -> {
                 builder.schemaLoader(SchemaLoader.Builder::fetchRemoteResources)
@@ -40,31 +42,46 @@ public class HasValidSubjectSchema implements CredentialValidationRule {
             }
     );
 
-    public HasValidSubjectSchema(ObjectMapper jsonMapper) {
+    public HasValidSchema(ObjectMapper jsonMapper, boolean validateOnlySubject) {
         this.jsonMapper = jsonMapper;
+        this.validateOnlySubject = validateOnlySubject;
     }
-
 
     @Override
     public Result<Void> apply(VerifiableCredential verifiableCredential) {
         if (verifiableCredential.getCredentialSchema() == null || verifiableCredential.getCredentialSchema().isEmpty()) {
             return Result.success();
         }
+
+        // for backward compatibility, previously just the subjects were validated
+        if (validateOnlySubject) {
+            return verifiableCredential.getCredentialSchema().stream().filter(Objects::nonNull).map(schema -> {
+                var schemaUrl = schema.id();
+                var jsonSchema = factory.getSchema(SchemaLocation.of(schemaUrl));
+
+                // validate all subjects against the current schema
+                var validationMessages = verifiableCredential.getCredentialSubject().stream()
+                        .map(jsonMapper::writeValueAsString)
+                        .flatMap(json -> jsonSchema.validate(json, InputFormat.JSON).stream())
+                        .toList();
+                return validationMessages.isEmpty()
+                        ? Result.success()
+                        : Result.<Void>failure("Error validating CredentialSubject against schema: " + validationMessages);
+
+            }).reduce(Result::merge).orElseGet(Result::success);
+        }
+
         return verifiableCredential.getCredentialSchema().stream().filter(Objects::nonNull).map(schema -> {
             var schemaUrl = schema.id();
             // Returns the schema using the JsonSchemaFactory. The factory does some caching internally, so there is no need to cache again
             var jsonSchema = factory.getSchema(SchemaLocation.of(schemaUrl));
 
-            // validate all subjects against the current schema
-            var validationMessages = verifiableCredential.getCredentialSubject().stream()
-                    .map(jsonMapper::writeValueAsString)
-                    .flatMap(json -> jsonSchema.validate(json, InputFormat.JSON).stream())
-                    .toList();
+            // validate entire VC against the current schema
+            var validationMessages = jsonSchema.validate(jsonMapper.writeValueAsString(verifiableCredential), InputFormat.JSON);
             return validationMessages.isEmpty()
                     ? Result.success()
-                    : Result.<Void>failure("Error validating CredentialSubject against schema: " + validationMessages); // ValidationMessage overwrites toString()
+                    : Result.<Void>failure("Error validating credential against schema: " + validationMessages); // ValidationMessage overwrites toString()
 
         }).reduce(Result::merge).orElseGet(Result::success);
     }
-
 }
