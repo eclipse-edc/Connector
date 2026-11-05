@@ -3238,6 +3238,45 @@ paths:
                   $ref: "#/components/schemas/catalog-schema"
         "500":
           description: A query could not be completed due to an internal error
+  /v5/participants/{participantContextId}/catalogs/request:
+    post:
+      tags:
+      - Catalogs v5
+      description: Obtains all catalogs currently held by this cache instance for
+        the given participant context
+      operationId: requestCatalogsV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: flatten
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: boolean
+          default: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: "A list of catalogs is returned, potentially empty"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/catalog-schema"
+        "500":
+          description: A query could not be completed due to an internal error
   /v5/participants:
     get:
       tags:
