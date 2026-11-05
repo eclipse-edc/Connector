@@ -15,11 +15,9 @@
 package org.eclipse.edc.catalog.crawler.cache.query;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.catalog.spi.model.CatalogUpdateResponse;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
-import org.eclipse.edc.crawler.spi.model.UpdateRequest;
 import org.eclipse.edc.json.JsonMapperFactory;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -41,13 +39,15 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class DspCatalogRequestActionTest {
+class DspCatalogFetcherTest {
 
     private static final String PARTICIPANT_CONTEXT_ID = "participant-context-id";
+    private static final String NODE_ID = "test-node-id";
+    private static final String NODE_URL = "https://example.com/test-node-id";
     private final ProtocolRemoteMessageDispatcher messageDispatcher = mock();
     private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl(mock());
     private final ObjectMapper objectMapper = JsonMapperFactory.defaultJsonMapper();
-    private final DspCatalogRequestAction action = new DspCatalogRequestAction(messageDispatcher,
+    private final DspCatalogFetcher fetcher = new DspCatalogFetcher(messageDispatcher,
             mock(), objectMapper, typeTransformerRegistry, new TitaniumJsonLd(mock()));
 
     @BeforeEach
@@ -56,28 +56,17 @@ class DspCatalogRequestActionTest {
     }
 
     @Test
-    void apply_withFlatCatalog() {
-        var request = new UpdateRequest(PARTICIPANT_CONTEXT_ID, "test-node-id", "https://example.com/test-node-id", DATASPACE_PROTOCOL_HTTP_V_2025_1);
-
+    void fetch_withFlatCatalog() {
         var catalog = toBytes(createCatalog("test-catalog-id"));
         when(messageDispatcher.dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(byte[].class), any(CatalogRequestMessage.class)))
                 .thenReturn(completedFuture(catalog));
 
-        assertThat(action.apply(request)).isCompletedWithValueMatching(updateResponse -> {
-            if (updateResponse instanceof CatalogUpdateResponse cr) {
-                return cr.getCatalog() != null &&
-                        cr.getCatalog().getId().equals("test-catalog-id") &&
-                        cr.getSource().equals("https://example.com/test-node-id") &&
-                        cr.getParticipantContextId().equals(PARTICIPANT_CONTEXT_ID);
-            }
-            return false;
-        });
+        assertThat(fetcher.fetch(PARTICIPANT_CONTEXT_ID, NODE_ID, NODE_URL, DATASPACE_PROTOCOL_HTTP_V_2025_1))
+                .isCompletedWithValueMatching(result -> result != null && result.getId().equals("test-catalog-id"));
     }
 
     @Test
-    void apply_withOnlyNestedCatalog() {
-        var request = new UpdateRequest(PARTICIPANT_CONTEXT_ID, "test-node-id", "https://example.com/test-node-id", DATASPACE_PROTOCOL_HTTP_V_2025_1);
-
+    void fetch_withOnlyNestedCatalog() {
         var rootCatalog = createCatalog("root-catalog-id");
         rootCatalog.getDatasets().clear();
         var nestedCatalog = createCatalog("nested-catalog-id");
@@ -87,21 +76,15 @@ class DspCatalogRequestActionTest {
                 .thenReturn(completedFuture(toBytes(rootCatalog)))
                 .thenReturn(completedFuture(toBytes(nestedCatalog)));
 
-        assertThat(action.apply(request)).isCompletedWithValueMatching(updateResponse -> {
-            if (updateResponse instanceof CatalogUpdateResponse cr) {
-                return cr.getCatalog() != null &&
-                        cr.getCatalog().getId().equals("root-catalog-id") &&
-                        cr.getSource().equals("https://example.com/test-node-id") &&
-                        cr.getCatalog().getDatasets().stream().allMatch(dataset -> dataset.getId().equals("nested-catalog-id"));
-            }
-            return false;
-        }, "Contains nested catalog datasets");
+        assertThat(fetcher.fetch(PARTICIPANT_CONTEXT_ID, NODE_ID, NODE_URL, DATASPACE_PROTOCOL_HTTP_V_2025_1))
+                .isCompletedWithValueMatching(result -> result != null &&
+                        result.getId().equals("root-catalog-id") &&
+                        result.getDatasets().stream().allMatch(dataset -> dataset.getId().equals("nested-catalog-id")),
+                        "Contains nested catalog datasets");
     }
 
     @Test
-    void apply_withRootDatasets_andNestedCatalog() {
-        var request = new UpdateRequest(PARTICIPANT_CONTEXT_ID, "test-node-id", "https://example.com/test-node-id", DATASPACE_PROTOCOL_HTTP_V_2025_1);
-
+    void fetch_withRootDatasets_andNestedCatalog() {
         var rootCatalog = createCatalog("root-catalog-id");
         var nestedCatalog = createCatalog("nested-catalog-id");
         rootCatalog.getDatasets().add(nestedCatalog);
@@ -110,17 +93,13 @@ class DspCatalogRequestActionTest {
                 .thenReturn(completedFuture(toBytes(rootCatalog)))
                 .thenReturn(completedFuture(toBytes(nestedCatalog)));
 
-        assertThat(action.apply(request)).isCompletedWithValueMatching(updateResponse -> {
-            if (updateResponse instanceof CatalogUpdateResponse cr) {
-                return cr.getCatalog() != null &&
-                        cr.getCatalog().getId().equals("root-catalog-id") &&
-                        cr.getSource().equals("https://example.com/test-node-id") &&
-                        cr.getCatalog().getDatasets().stream()
+        assertThat(fetcher.fetch(PARTICIPANT_CONTEXT_ID, NODE_ID, NODE_URL, DATASPACE_PROTOCOL_HTTP_V_2025_1))
+                .isCompletedWithValueMatching(result -> result != null &&
+                        result.getId().equals("root-catalog-id") &&
+                        result.getDatasets().stream()
                                 .allMatch(dataset -> dataset.getId().equals("nested-catalog-id") ||
-                                        dataset.getId().equals("root-catalog-id-dataset"));
-            }
-            return false;
-        }, "Contains root catalog datasets plus nested catalog datasets");
+                                        dataset.getId().equals("root-catalog-id-dataset")),
+                        "Contains root catalog datasets plus nested catalog datasets");
     }
 
     private StatusResult<byte[]> toBytes(Catalog catalog) {

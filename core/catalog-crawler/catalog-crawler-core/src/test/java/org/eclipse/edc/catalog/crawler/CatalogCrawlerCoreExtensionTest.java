@@ -15,13 +15,17 @@
 package org.eclipse.edc.catalog.crawler;
 
 import org.eclipse.edc.catalog.spi.FederatedCatalogCache;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
 import org.eclipse.edc.crawler.spi.TargetNodeFilter;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
+import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,12 +49,21 @@ class CatalogCrawlerCoreExtensionTest {
         var monitor = mock(Monitor.class);
         when(monitor.withPrefix(anyString())).thenReturn(monitorWithPrefix);
 
+        var typeManager = mock(TypeManager.class);
+        when(typeManager.getMapper(anyString())).thenReturn(mock());
+        var transformerRegistry = mock(TypeTransformerRegistry.class);
+        when(transformerRegistry.forContext(anyString())).thenReturn(mock());
+
         context.registerService(TargetNodeDirectory.class, nodeDirectory);
         context.registerService(FederatedCatalogCache.class, store);
         context.registerService(ParticipantContextStore.class, mock());
         context.registerService(TargetNodeFilter.class, null);
         context.registerService(Monitor.class, monitor);
         context.registerService(HealthCheckService.class, healthCheckService);
+        context.registerService(ProtocolRemoteMessageDispatcher.class, mock());
+        context.registerService(TypeManager.class, typeManager);
+        context.registerService(TypeTransformerRegistry.class, transformerRegistry);
+        context.registerService(JsonLd.class, mock());
     }
 
     @Test

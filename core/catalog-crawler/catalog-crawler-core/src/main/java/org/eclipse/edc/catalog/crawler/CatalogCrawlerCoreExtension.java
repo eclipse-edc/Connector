@@ -14,29 +14,28 @@
 
 package org.eclipse.edc.catalog.crawler;
 
+import org.eclipse.edc.catalog.crawler.cache.query.DspCatalogFetcher;
 import org.eclipse.edc.catalog.crawler.logic.CatalogCrawlerManager;
 import org.eclipse.edc.catalog.spi.CatalogCrawlerConfiguration;
 import org.eclipse.edc.catalog.spi.FederatedCatalogCache;
-import org.eclipse.edc.crawler.spi.CrawlerActionRegistry;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
 import org.eclipse.edc.crawler.spi.TargetNodeFilter;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
-
-import java.util.Collection;
-import java.util.List;
+import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_TRANSFORMER_CONTEXT_V_2025_1;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(value = CatalogCrawlerCoreExtension.NAME)
 public class CatalogCrawlerCoreExtension implements ServiceExtension {
@@ -49,11 +48,17 @@ public class CatalogCrawlerCoreExtension implements ServiceExtension {
     @Inject
     private FederatedCatalogCache store;
     @Inject
-    private CrawlerActionRegistry crawlerActionRegistry;
-    @Inject
     private TargetNodeDirectory directory;
     @Inject
     private ParticipantContextStore participantContextStore;
+    @Inject
+    private ProtocolRemoteMessageDispatcher messageDispatcher;
+    @Inject
+    private TypeManager typeManager;
+    @Inject
+    private TypeTransformerRegistry transformerRegistry;
+    @Inject
+    private JsonLd jsonLdService;
     @Inject(required = false)
     private TargetNodeFilter nodeFilter;
     @Inject(required = false)
@@ -71,33 +76,18 @@ public class CatalogCrawlerCoreExtension implements ServiceExtension {
 
         var monitor = context.getMonitor().withPrefix(CatalogCrawlerManager.class.getSimpleName());
 
+        var catalogFetcher = new DspCatalogFetcher(messageDispatcher, monitor, typeManager.getMapper(JSON_LD),
+                transformerRegistry.forContext(DSP_TRANSFORMER_CONTEXT_V_2025_1), jsonLdService);
+
         manager = CatalogCrawlerManager.Builder.newInstance()
                 .monitor(monitor)
                 .configuration(catalogCrawlerConfiguration)
                 .store(store)
-                .nodeQueryAdapterRegistry(crawlerActionRegistry)
+                .catalogFetcher(catalogFetcher)
                 .nodeDirectory(directory)
                 .nodeFilterFunction(nodeFilter)
-                .participantContextsSupplier(() -> activeParticipantContextIds(monitor))
+                .participantContextStore(participantContextStore)
                 .build();
-    }
-
-    /**
-     * Returns the ids of all participant contexts that are not {@link ParticipantContextState#DEACTIVATED}, so the
-     * crawler crawls on behalf of each one using its own identity. Deactivated contexts are skipped because their
-     * identity is disabled. In classic/single-participant runtimes this returns the single registered participant
-     * context.
-     */
-    private Collection<String> activeParticipantContextIds(Monitor monitor) {
-        var result = participantContextStore.query(QuerySpec.max());
-        if (result.failed()) {
-            monitor.warning("Could not fetch participant contexts for crawling: " + result.getFailureDetail());
-            return List.of();
-        }
-        return result.getContent().stream()
-                .filter(participantContext -> participantContext.getStateAsEnum() != ParticipantContextState.DEACTIVATED)
-                .map(ParticipantContext::getParticipantContextId)
-                .toList();
     }
 
     @Override

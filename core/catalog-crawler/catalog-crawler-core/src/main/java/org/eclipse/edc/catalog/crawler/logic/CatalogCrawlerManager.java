@@ -14,26 +14,27 @@
 
 package org.eclipse.edc.catalog.crawler.logic;
 
+import org.eclipse.edc.catalog.crawler.cache.query.DspCatalogFetcher;
 import org.eclipse.edc.catalog.spi.CatalogConstants;
 import org.eclipse.edc.catalog.spi.CatalogCrawlerConfiguration;
 import org.eclipse.edc.catalog.spi.FederatedCatalogCache;
-import org.eclipse.edc.catalog.spi.model.CatalogUpdateResponse;
-import org.eclipse.edc.crawler.spi.CrawlerActionRegistry;
+import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.crawler.spi.TargetNode;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
 import org.eclipse.edc.crawler.spi.TargetNodeFilter;
-import org.eclipse.edc.crawler.spi.model.UpdateRequest;
-import org.eclipse.edc.crawler.spi.model.UpdateResponse;
+import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.QuerySpec;
 
 import java.net.ConnectException;
 import java.time.Duration;
-import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.catalog.spi.CatalogCrawlerConfiguration.CATALOG_CRAWLER_ENABLED_SETTING;
@@ -46,11 +47,11 @@ public class CatalogCrawlerManager {
     private Monitor monitor;
     private TargetNodeDirectory directory;
     private TargetNodeFilter nodeFilter;
-    private CrawlerActionRegistry crawlerActionRegistry;
+    private DspCatalogFetcher catalogFetcher;
     private ScheduledExecutorService crawlers;
     private CatalogCrawlerConfiguration configuration;
     private FederatedCatalogCache store;
-    private Supplier<Collection<String>> participantContextsSupplier;
+    private ParticipantContextStore participantContextStore;
     private ScheduledExecutorService scheduler;
 
     private CatalogCrawlerManager() {
@@ -93,7 +94,7 @@ public class CatalogCrawlerManager {
     }
 
     private void crawlCatalogs() {
-        var workItems = participantContextsSupplier.get().stream()
+        var workItems = activeParticipantContextIds().stream()
                 .flatMap(participantContextId -> {
                     store.deleteExpired(participantContextId);
                     store.expireAll(participantContextId);
@@ -116,19 +117,35 @@ public class CatalogCrawlerManager {
         scheduler.schedule(this::crawlCatalogs, configuration.periodSeconds(), TimeUnit.SECONDS);
     }
 
+    /**
+     * Returns the ids of all participant contexts that are not {@link ParticipantContextState#DEACTIVATED}, so the
+     * crawler crawls on behalf of each one using its own identity. Deactivated contexts are skipped because their
+     * identity is disabled. In classic/single-participant runtimes this returns the single registered participant
+     * context.
+     */
+    private List<String> activeParticipantContextIds() {
+        var result = participantContextStore.query(QuerySpec.max());
+        if (result.failed()) {
+            monitor.warning("Could not fetch participant contexts for crawling: " + result.getFailureDetail());
+            return List.of();
+        }
+        return result.getContent().stream()
+                .filter(participantContext -> participantContext.getStateAsEnum() != ParticipantContextState.DEACTIVATED)
+                .map(ParticipantContext::getParticipantContextId)
+                .toList();
+    }
+
     private Runnable createCrawler(TargetNodeRetryCount item) {
         return () -> {
             var targetNode = item.targetNode();
             var protocol = targetNode.supportedProtocols().stream().findFirst().orElse(null);
-            var adapter = crawlerActionRegistry.findForProtocol(protocol).stream().findFirst();
-            if (adapter.isEmpty()) {
-                monitor.warning(format("No protocol adapter found for protocol '%s'", protocol));
+            if (protocol == null) {
+                monitor.warning(format("Node [%s] does not declare any supported protocol, skipping", targetNode.id()));
                 return;
             }
 
-            var updateRequest = new UpdateRequest(targetNode.participantContextId(), targetNode.id(), targetNode.targetUrl(), protocol);
-            adapter.get().apply(updateRequest)
-                    .thenAccept(this::persist)
+            catalogFetcher.fetch(targetNode.participantContextId(), targetNode.id(), targetNode.targetUrl(), protocol)
+                    .thenAccept(catalog -> persist(targetNode.participantContextId(), targetNode.targetUrl(), catalog))
                     .whenComplete((v, throwable) -> onCompletion(item, throwable));
         };
     }
@@ -155,14 +172,9 @@ public class CatalogCrawlerManager {
         }
     }
 
-    private void persist(UpdateResponse updateResponse) {
-        if (updateResponse instanceof CatalogUpdateResponse catalogUpdateResponse) {
-            var catalog = catalogUpdateResponse.getCatalog();
-            catalog.getProperties().put(CatalogConstants.PROPERTY_ORIGINATOR, updateResponse.getSource());
-            store.save(catalogUpdateResponse.getParticipantContextId(), catalog);
-        } else {
-            monitor.warning("Expected a response of type %s but got %s. Will discard".formatted(CatalogUpdateResponse.class, updateResponse.getClass()));
-        }
+    private void persist(String participantContextId, String source, Catalog catalog) {
+        catalog.getProperties().put(CatalogConstants.PROPERTY_ORIGINATOR, source);
+        store.save(participantContextId, catalog);
     }
 
     private record TargetNodeRetryCount(int retries, TargetNode targetNode) {
@@ -186,8 +198,8 @@ public class CatalogCrawlerManager {
             return this;
         }
 
-        public Builder nodeQueryAdapterRegistry(CrawlerActionRegistry registry) {
-            instance.crawlerActionRegistry = registry;
+        public Builder catalogFetcher(DspCatalogFetcher catalogFetcher) {
+            instance.catalogFetcher = catalogFetcher;
             return this;
         }
 
@@ -211,17 +223,17 @@ public class CatalogCrawlerManager {
             return this;
         }
 
-        public Builder participantContextsSupplier(Supplier<Collection<String>> participantContextsSupplier) {
-            instance.participantContextsSupplier = participantContextsSupplier;
+        public Builder participantContextStore(ParticipantContextStore participantContextStore) {
+            instance.participantContextStore = participantContextStore;
             return this;
         }
 
         public CatalogCrawlerManager build() {
-            Objects.requireNonNull(instance.configuration, "ExecutionManager.Builder: Configuration cannot be null");
-            Objects.requireNonNull(instance.monitor, "ExecutionManager.Builder: Monitor cannot be null");
-            Objects.requireNonNull(instance.crawlerActionRegistry, "ExecutionManager.Builder: nodeQueryAdapterRegistry cannot be null");
-            Objects.requireNonNull(instance.directory, "ExecutionManager.Builder: nodeDirectory cannot be null");
-            Objects.requireNonNull(instance.participantContextsSupplier, "ExecutionManager.Builder: participantContextsSupplier cannot be null");
+            Objects.requireNonNull(instance.configuration, "CatalogCrawlerManager.Builder: Configuration cannot be null");
+            Objects.requireNonNull(instance.monitor, "CatalogCrawlerManager.Builder: Monitor cannot be null");
+            Objects.requireNonNull(instance.catalogFetcher, "CatalogCrawlerManager.Builder: catalogFetcher cannot be null");
+            Objects.requireNonNull(instance.directory, "CatalogCrawlerManager.Builder: nodeDirectory cannot be null");
+            Objects.requireNonNull(instance.participantContextStore, "CatalogCrawlerManager.Builder: participantContextStore cannot be null");
 
             instance.crawlers = Executors.newScheduledThreadPool(instance.configuration.numCrawlers());
 
