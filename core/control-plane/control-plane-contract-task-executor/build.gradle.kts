@@ -20,6 +20,8 @@ dependencies {
     api(project(":spi:control-plane-spi"))
     api(project(":spi:core-spi"))
     implementation(libs.opentelemetry.instrumentation.annotations)
+
+    testImplementation(libs.opentelemetry.api)
     testImplementation(project(":core:control-plane:control-plane-contract"))
     testImplementation(project(":core:control-plane:lib:control-plane-lib"))
 

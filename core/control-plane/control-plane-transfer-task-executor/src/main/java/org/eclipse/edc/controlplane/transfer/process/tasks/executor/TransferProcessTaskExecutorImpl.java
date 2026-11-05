@@ -35,6 +35,7 @@ import org.eclipse.edc.controlplane.transfer.spi.tasks.TransferProcessTaskPayloa
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
@@ -61,6 +62,7 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
     private TransferProcessors transferProcessors;
     private Monitor monitor;
     private Clock clock = Clock.systemUTC();
+    private Telemetry telemetry = new Telemetry();
 
     private TransferProcessTaskExecutorImpl() {
         registerStateHandlers();
@@ -128,13 +130,8 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
                 return StatusResult.success();
             }
 
-            StatusResult<Void> result;
-            if (pendingGuard.test(transferProcess)) {
-                monitor.debug("Holding '%s' for transfer process with id '%s' due matched guard".formatted(expectedState, transferId));
-                result = hold(transferProcess);
-            } else {
-                result = handler.function.apply(transferProcess);
-            }
+            // the task continues the trace of the transfer process, as the poll-based state machine does
+            var result = telemetry.executeWithTraceContext(() -> process(transferProcess, handler, expectedState), transferProcess);
             if (result.conflict()) {
                 // another writer has already moved the transfer process on, and the new state has its own task: drop this one
                 monitor.debug("Skipping transfer process with id '%s', it was changed concurrently: %s".formatted(transferProcess.getId(), result.getFailureDetail()));
@@ -143,6 +140,14 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
             return result;
         });
 
+    }
+
+    private StatusResult<Void> process(TransferProcess transferProcess, Handler handler, TransferProcessStates expectedState) {
+        if (pendingGuard.test(transferProcess)) {
+            monitor.debug("Holding '%s' for transfer process with id '%s' due matched guard".formatted(expectedState, transferProcess.getId()));
+            return hold(transferProcess);
+        }
+        return handler.function.apply(transferProcess);
     }
 
     /**
@@ -293,6 +298,11 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
 
         public Builder clock(Clock clock) {
             manager.clock = clock;
+            return this;
+        }
+
+        public Builder telemetry(Telemetry telemetry) {
+            manager.telemetry = telemetry;
             return this;
         }
     }

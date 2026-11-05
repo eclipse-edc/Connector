@@ -14,6 +14,10 @@
 
 package org.eclipse.edc.controlplane.transfer.process.tasks.executor;
 
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
+import io.opentelemetry.context.propagation.ContextPropagators;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
@@ -50,6 +54,7 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -64,7 +69,9 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -183,6 +190,47 @@ class TransferProcessTaskExecutorImplTest {
 
         assertThat(updatedProcess.getState()).isEqualTo(expectedState.code());
 
+    }
+
+    @Test
+    void handle_shouldProcessWithinTheTraceContextOfTheTransferProcess() {
+        var traceId = "4bf92f3577b34da6a3ce929d0e0e4736";
+        var telemetry = new Telemetry(() -> OpenTelemetry.propagating(ContextPropagators.create(W3CTraceContextPropagator.getInstance())));
+        var tracedExecutor = TransferProcessTaskExecutorImpl.Builder.newInstance()
+                .store(transferStore)
+                .pendingGuard(pendingGuard)
+                .transactionContext(transactionContext)
+                .monitor(monitor)
+                .clock(clock)
+                .taskService(taskService)
+                .transferProcessors(transferProcessors)
+                .telemetry(telemetry)
+                .build();
+        var transferProcess = TransferProcess.Builder.newInstance()
+                .id("transfer-123")
+                .type(CONSUMER)
+                .state(INITIAL.code())
+                .contractId("contractId")
+                .traceContext(Map.of("traceparent", "00-%s-00f067aa0ba902b7-01".formatted(traceId)))
+                .build();
+        when(transferStore.findById("transfer-123")).thenReturn(transferProcess);
+        when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
+        var traceIdDuringProcessing = new AtomicReference<String>();
+        when(dataFlowController.prepare(any(), any())).thenAnswer(i -> {
+            traceIdDuringProcessing.set(Span.current().getSpanContext().getTraceId());
+            return StatusResult.success(DataFlowResponse.Builder.newInstance().build());
+        });
+        var task = PrepareTransfer.Builder.newInstance()
+                .processId("transfer-123")
+                .processState(INITIAL.code())
+                .processType(CONSUMER.name())
+                .build();
+
+        var result = tracedExecutor.handle(task);
+
+        assertThat(result).isSucceeded();
+        assertThat(traceIdDuringProcessing.get()).isEqualTo(traceId);
+        assertThat(Span.current().getSpanContext().isValid()).isFalse();
     }
 
     @Test

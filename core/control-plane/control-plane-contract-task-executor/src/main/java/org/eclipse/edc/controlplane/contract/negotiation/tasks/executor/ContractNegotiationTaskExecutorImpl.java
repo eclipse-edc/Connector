@@ -38,6 +38,7 @@ import org.eclipse.edc.controlplane.tasks.TaskService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
@@ -60,6 +61,7 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
     protected Monitor monitor;
     protected TaskService taskService;
     protected NegotiationProcessors negotiationProcessors;
+    protected Telemetry telemetry = new Telemetry();
 
 
     private ContractNegotiationTaskExecutorImpl() {
@@ -130,13 +132,8 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
                 return StatusResult.success();
             }
 
-            StatusResult<Void> result;
-            if (pendingGuard.test(negotiation)) {
-                monitor.debug("Holding '%s' for contract negotiation with id '%s' due matched guard".formatted(expectedState, negotiationId));
-                result = invokeProcessor(negotiation, negotiationProcessors::processHeld);
-            } else {
-                result = handler.function.apply(negotiation);
-            }
+            // the task continues the trace of the contract negotiation, as the poll-based state machine does
+            var result = telemetry.executeWithTraceContext(() -> process(negotiation, handler, expectedState), negotiation);
             if (result.conflict()) {
                 // another writer has already moved the contract negotiation on, and the new state has its own task: drop this one
                 monitor.debug("Skipping contract negotiation with id '%s', it was changed concurrently: %s".formatted(negotiation.getId(), result.getFailureDetail()));
@@ -145,6 +142,14 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
             return result;
         });
 
+    }
+
+    private StatusResult<Void> process(ContractNegotiation negotiation, Handler handler, ContractNegotiationStates expectedState) {
+        if (pendingGuard.test(negotiation)) {
+            monitor.debug("Holding '%s' for contract negotiation with id '%s' due matched guard".formatted(expectedState, negotiation.getId()));
+            return invokeProcessor(negotiation, negotiationProcessors::processHeld);
+        }
+        return handler.function.apply(negotiation);
     }
 
     protected StatusResult<Void> handleSendAccept(ContractNegotiation negotiation) {
@@ -287,6 +292,11 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
 
         public Builder monitor(Monitor monitor) {
             this.manager.monitor = monitor;
+            return this;
+        }
+
+        public Builder telemetry(Telemetry telemetry) {
+            this.manager.telemetry = telemetry;
             return this;
         }
 
