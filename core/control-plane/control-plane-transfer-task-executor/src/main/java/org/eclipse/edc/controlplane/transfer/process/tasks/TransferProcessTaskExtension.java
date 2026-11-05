@@ -28,6 +28,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
@@ -55,6 +56,8 @@ public class TransferProcessTaskExtension implements ServiceExtension {
     private Clock clock;
     @Inject
     private TransferProcessObservable transferProcessObservable;
+    @Inject
+    private Telemetry telemetry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -71,6 +74,7 @@ public class TransferProcessTaskExtension implements ServiceExtension {
                 .taskService(taskService)
                 .transferProcessors(transferProcessors)
                 .clock(clock)
+                .telemetry(telemetry)
                 .build();
     }
 

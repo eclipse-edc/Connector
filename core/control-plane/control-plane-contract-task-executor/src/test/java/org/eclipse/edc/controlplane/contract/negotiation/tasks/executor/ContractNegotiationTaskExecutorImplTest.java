@@ -14,6 +14,10 @@
 
 package org.eclipse.edc.controlplane.contract.negotiation.tasks.executor;
 
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
+import io.opentelemetry.context.propagation.ContextPropagators;
 import org.eclipse.edc.connector.controlplane.contract.negotiation.NegotiationProcessorsImpl;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationProcessors;
@@ -49,6 +53,7 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -62,6 +67,8 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -358,6 +365,55 @@ class ContractNegotiationTaskExecutorImplTest {
         verify(negotiationStore).save(any());
     }
     
+    @Test
+    void handle_shouldProcessWithinTheTraceContextOfTheNegotiation() {
+        var traceId = "4bf92f3577b34da6a3ce929d0e0e4736";
+        var telemetry = new Telemetry(() -> OpenTelemetry.propagating(ContextPropagators.create(W3CTraceContextPropagator.getInstance())));
+        var tracedExecutor = ContractNegotiationTaskExecutorImpl.Builder.newInstance()
+                .store(negotiationStore)
+                .taskService(taskService)
+                .pendingGuard(pendingGuard)
+                .transactionContext(transactionContext)
+                .negotiationProcessors(negotiationProcessors)
+                .monitor(monitor)
+                .clock(clock)
+                .telemetry(telemetry)
+                .build();
+        var negotiation = ContractNegotiation.Builder.newInstance()
+                .id("negotiation-123")
+                .type(CONSUMER)
+                .state(REQUESTING.code())
+                .participantContextId("participant-123")
+                .protocol("DSP")
+                .counterPartyAddress("http://counter-party")
+                .counterPartyId("counter-party-id")
+                .contractOffer(ContractOffer.Builder.newInstance()
+                        .id("offer-123")
+                        .assetId("asset-123")
+                        .policy(Policy.Builder.newInstance().build())
+                        .build())
+                .traceContext(Map.of("traceparent", "00-%s-00f067aa0ba902b7-01".formatted(traceId)))
+                .build();
+        when(negotiationStore.findById("negotiation-123")).thenReturn(negotiation);
+        var traceIdDuringProcessing = new AtomicReference<String>();
+        var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
+        when(messageDispatcher.dispatch(any(), any(), any())).thenAnswer(i -> {
+            traceIdDuringProcessing.set(Span.current().getSpanContext().getTraceId());
+            return completedFuture(StatusResult.success(ack));
+        });
+        var task = SendRequestNegotiation.Builder.newInstance()
+                .processId("negotiation-123")
+                .processState(REQUESTING.code())
+                .processType(CONSUMER.name())
+                .build();
+
+        var result = tracedExecutor.handle(task);
+
+        assertThat(result.succeeded()).isTrue();
+        assertThat(traceIdDuringProcessing.get()).isEqualTo(traceId);
+        assertThat(Span.current().getSpanContext().isValid()).isFalse();
+    }
+
     private ContractNegotiation createContractNegotiation(String id, ContractNegotiationStates state) {
         return createContractNegotiation(id, state, CONSUMER);
     }

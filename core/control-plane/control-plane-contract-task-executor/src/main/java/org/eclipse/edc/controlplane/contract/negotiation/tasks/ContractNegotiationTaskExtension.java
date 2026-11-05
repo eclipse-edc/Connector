@@ -29,6 +29,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
@@ -57,6 +58,8 @@ public class ContractNegotiationTaskExtension implements ServiceExtension {
     private Clock clock;
     @Inject
     private ContractNegotiationObservable contractNegotiationObservable;
+    @Inject
+    private Telemetry telemetry;
 
 
     @Override
@@ -74,6 +77,7 @@ public class ContractNegotiationTaskExtension implements ServiceExtension {
                 .transactionContext(transactionContext)
                 .pendingGuard(negotiation -> pendingGuard.test(negotiation) || pendingGuardRegistry.test(negotiation))
                 .monitor(monitor)
+                .telemetry(telemetry)
                 .build();
     }
 }
