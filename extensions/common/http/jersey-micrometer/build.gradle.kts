@@ -19,6 +19,8 @@ plugins {
 dependencies {
     implementation(project(":extensions:common:http:jersey-core"))
     implementation(libs.micrometer)
+
+    testImplementation(project(":core:common:junit"))
 }
 
 
