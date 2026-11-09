@@ -86,6 +86,18 @@ class CatalogCrawlerManagerTest {
     }
 
     @Test
+    void shouldUseCounterPartyId_asCounterPartyIdentity() {
+        var node = new TargetNode("testnode", "catalog-1", "did:web:identity", "http://test.com", PARTICIPANT_CONTEXT_ID, List.of(TEST_PROTOCOL));
+        when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(node));
+        when(catalogFetcher.fetch(any(), any(), any(), any())).thenReturn(completedFuture(new Catalog()));
+
+        manager.start();
+
+        await().untilAsserted(() ->
+                verify(catalogFetcher).fetch(PARTICIPANT_CONTEXT_ID, "did:web:identity", "http://test.com", TEST_PROTOCOL));
+    }
+
+    @Test
     void shouldCrawlOnBehalfOfEachParticipantContext() {
         var otherParticipant = "other-participant-context-id";
         when(participantContextStore.query(any())).thenReturn(StoreResult.success(

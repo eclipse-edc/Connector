@@ -144,7 +144,7 @@ public class CatalogCrawlerManager {
                 return;
             }
 
-            catalogFetcher.fetch(targetNode.participantContextId(), targetNode.id(), targetNode.targetUrl(), protocol)
+            catalogFetcher.fetch(targetNode.participantContextId(), targetNode.counterPartyId(), targetNode.targetUrl(), protocol)
                     .thenAccept(catalog -> persist(targetNode.participantContextId(), targetNode.targetUrl(), catalog))
                     .whenComplete((v, throwable) -> onCompletion(item, throwable));
         };
