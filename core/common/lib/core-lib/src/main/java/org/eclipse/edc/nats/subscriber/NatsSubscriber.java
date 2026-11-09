@@ -9,12 +9,14 @@
  *
  *  Contributors:
  *       Metaform Systems, Inc. - initial API and implementation
+ *       Matthias Buchhorn - report a missing stream or consumer in the health check
  *
  */
 
 package org.eclipse.edc.nats.subscriber;
 
 import io.nats.client.Connection;
+import io.nats.client.JetStreamApiException;
 import io.nats.client.JetStreamSubscription;
 import io.nats.client.Message;
 import io.nats.client.Nats;
@@ -60,6 +62,11 @@ public abstract class NatsSubscriber {
      */
     public static final Duration DEFAULT_SHUTDOWN_TIMEOUT = Duration.ofSeconds(10);
 
+    /**
+     * How long {@link #isHealthy()} keeps its answer to whether the stream and the durable consumer exist.
+     */
+    public static final Duration DEFAULT_HEALTH_CHECK_INTERVAL = Duration.ofSeconds(10);
+
     private final AtomicBoolean active = new AtomicBoolean(false);
     private final AtomicBoolean started = new AtomicBoolean(false);
     private final AtomicBoolean running = new AtomicBoolean(false);
@@ -90,7 +97,12 @@ public abstract class NatsSubscriber {
     protected int retryLimit = 7;
     // externally contributed connect options (e.g. NKey authentication); the server URL is overwritten
     protected Options authenticationOptions;
+    protected Duration healthCheckInterval = DEFAULT_HEALTH_CHECK_INTERVAL;
     private Connection connection;
+    // the last answer to whether the stream and the durable consumer exist, and when it was given
+    private boolean streamAndConsumerExist = true;
+    private long streamAndConsumerCheckedAt;
+    private boolean streamAndConsumerChecked;
 
 
     public boolean isAutoCreateStream() {
@@ -171,8 +183,13 @@ public abstract class NatsSubscriber {
 
     /**
      * Tells if the subscriber is consuming messages. A subscriber that has not been started yet is considered healthy.
-     * Once started, it is healthy while its consumer loop runs and its connection is not closed for good, i.e. it has
-     * not given up reconnecting.
+     * Once started, it is healthy while its consumer loop runs, its connection is not closed for good, i.e. it has not
+     * given up reconnecting, and, while connected, its stream and its durable consumer exist.
+     * <p>
+     * A stream kept in memory, as {@link #prepare()} creates it, is gone after a restart of the NATS server, and so is
+     * its consumer: every message published to the subject is then refused until both are created again. The existence
+     * is checked at most once per health check interval; while the connection is not established it is not checked,
+     * since NATS cannot be asked.
      *
      * @return true if the subscriber is healthy, false otherwise.
      */
@@ -180,7 +197,47 @@ public abstract class NatsSubscriber {
         if (!started.get()) {
             return true;
         }
-        return running.get() && (connection == null || connection.getStatus() != Connection.Status.CLOSED);
+        if (!running.get()) {
+            return false;
+        }
+        if (connection == null) {
+            return true;
+        }
+        var status = connection.getStatus();
+        if (status == Connection.Status.CLOSED) {
+            return false;
+        }
+        return status != Connection.Status.CONNECTED || streamAndConsumerExist();
+    }
+
+    private synchronized boolean streamAndConsumerExist() {
+        var now = System.nanoTime();
+        if (streamAndConsumerChecked && now - streamAndConsumerCheckedAt < healthCheckInterval.toNanos()) {
+            return streamAndConsumerExist;
+        }
+        var exist = true;
+        try {
+            var jsm = connection.jetStreamManagement();
+            jsm.getStreamInfo(stream);
+            jsm.getConsumerInfo(stream, name);
+        } catch (JetStreamApiException e) {
+            // 404: the stream or the consumer does not exist; any other answer does not tell
+            exist = e.getErrorCode() != 404;
+        } catch (Exception e) {
+            // NATS did not answer, e.g. while it restarts: this does not tell either
+        }
+        if (exist != streamAndConsumerExist) {
+            if (exist) {
+                monitor.info("NATS subscriber %s: stream %s and consumer %s exist again".formatted(name, stream, name));
+            } else {
+                monitor.warning("NATS subscriber %s: stream %s or consumer %s does not exist, messages published to %s are refused until both are created again"
+                        .formatted(name, stream, name, subject));
+            }
+        }
+        streamAndConsumerExist = exist;
+        streamAndConsumerCheckedAt = now;
+        streamAndConsumerChecked = true;
+        return exist;
     }
 
     protected abstract StatusResult<Void> handleMessage(Message message);
@@ -495,6 +552,11 @@ public abstract class NatsSubscriber {
 
         public B authenticationOptions(Options authenticationOptions) {
             subscriber.authenticationOptions = authenticationOptions;
+            return self();
+        }
+
+        public B healthCheckInterval(Duration healthCheckInterval) {
+            subscriber.healthCheckInterval = healthCheckInterval;
             return self();
         }
 
