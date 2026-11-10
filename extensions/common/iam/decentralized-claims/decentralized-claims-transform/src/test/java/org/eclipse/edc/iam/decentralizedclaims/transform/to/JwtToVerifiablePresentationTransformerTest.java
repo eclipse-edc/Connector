@@ -239,6 +239,28 @@ class JwtToVerifiablePresentationTransformerTest {
         verify(context).reportProblem(contains("Presentations secured with JOSE MUST be of type"));
     }
 
+    @DisplayName("VCDM 2.0 JWT also contains a 'vp' claim")
+    @Test
+    void transform_vcdm20_withVpClaim() throws ParseException {
+        var claims = new JWTClaimsSet.Builder(SignedJWT.parse(plainPresentation()).getJWTClaimsSet())
+                .claim("vp", Map.of("type", List.of("VerifiablePresentation")))
+                .build();
+
+        assertThat(transformer.transform(unsignedJwt(claims), context)).isNull();
+        verify(context).reportProblem(contains("JWT is not a presentation of either VCDM 1.1"));
+    }
+
+    @DisplayName("VCDM 1.1 JWT also contains a 'vc' claim")
+    @Test
+    void transform_vcdm11_withVcClaim() throws ParseException {
+        var claims = new JWTClaimsSet.Builder(SignedJWT.parse(EXAMPLE_JWT_VP).getJWTClaimsSet())
+                .claim("vc", Map.of("type", List.of("VerifiableCredential")))
+                .build();
+
+        assertThat(transformer.transform(unsignedJwt(claims), context)).isNull();
+        verify(context).reportProblem(contains("JWT is not a presentation of either VCDM 1.1"));
+    }
+
     private String plainPresentation() throws ParseException {
         var envelopeId = SignedJWT.parse(TestData.EXAMPLE_ENVELOPED_PRESENTATION_WITH_HOLDER).getJWTClaimsSet().getStringClaim("id");
         return envelopeId.substring("data:application/vp+jwt,".length());

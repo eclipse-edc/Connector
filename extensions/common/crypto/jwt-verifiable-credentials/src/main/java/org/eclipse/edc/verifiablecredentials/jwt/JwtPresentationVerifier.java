@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Think-it GmbH - presentation format detection
  *
  */
 
@@ -16,7 +17,9 @@ package org.eclipse.edc.verifiablecredentials.jwt;
 
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.CredentialVerifier;
+import org.eclipse.edc.iam.decentralizedclaims.spi.verification.JwtPresentationFormat;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.VerifierContext;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
@@ -58,6 +61,8 @@ import java.util.Optional;
  *     </ul>
  *     <li>A VP is only verified, if it and all VCs it contains are verified</li>
  * </ul>
+ * A VP-JWT must be a VCDM 1.1 presentation as determined by {@link JwtPresentationFormat}, and the documents it contains
+ * must be credentials.
  *
  * <em>Note: VP-JWTs may only contain VCs also represented in JWT format. Mixing formats is not allowed.</em>
  */
@@ -84,9 +89,8 @@ public class JwtPresentationVerifier implements CredentialVerifier {
     @Override
     public boolean canHandle(String rawInput) {
         try {
-            var signedJwt = SignedJWT.parse(rawInput);
-            return signedJwt.getJWTClaimsSet().getClaims().containsKey("vp") ||
-                    signedJwt.getJWTClaimsSet().getClaims().containsKey("vc");
+            var claims = SignedJWT.parse(rawInput).getJWTClaimsSet().getClaims();
+            return isCredential(claims) || JwtPresentationFormat.of(claims) == CredentialFormat.VC1_0_JWT;
         } catch (ParseException e) {
             return false;
         }
@@ -110,15 +114,23 @@ public class JwtPresentationVerifier implements CredentialVerifier {
             // obtain the actual JSON structure
             var signedJwt = SignedJWT.parse(serializedJwt);
             var keyId = signedJwt.getHeader().getKeyID();
-            if (isCredential(signedJwt)) {
-                var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(Constants.JWT_VC_TOKEN_CONTEXT));
-                rules.add(new IssuerKeyIdValidationRule(keyId));
-                return tokenValidationService.validate(serializedJwt, publicKeyResolver, rules)
+            var claims = signedJwt.getJWTClaimsSet().getClaims();
+            if (isCredential(claims)) {
+                return tokenValidationService.validate(serializedJwt, publicKeyResolver, CredentialValidationRules.vcdm11(tokenValidationRulesRegistry, keyId))
                         .mapEmpty();
             }
 
-            if (!isPresentation(signedJwt)) {
+            if (!claims.containsKey(Constants.VP_CLAIM)) {
                 return Result.failure("Either '%s' or '%s' claim must be present in JWT.".formatted(Constants.VP_CLAIM, Constants.VC_CLAIM));
+            }
+
+            if (context.isCredentialExpected()) {
+                return Result.failure("Expected a credential, but the JWT contains a presentation.");
+            }
+
+            if (JwtPresentationFormat.of(claims) != CredentialFormat.VC1_0_JWT) {
+                return Result.failure("Not a valid VCDM 1.1 presentation: the JWT must not contain the '%s' claim or a VCDM 2.0 '@context' besides the '%s' claim."
+                        .formatted(Constants.VC_CLAIM, Constants.VP_CLAIM));
             }
 
             //we can be sure to have a presentation token
@@ -135,9 +147,13 @@ public class JwtPresentationVerifier implements CredentialVerifier {
                 return verificationResult.mapEmpty();
             }
 
-            // every VC is represented as another JWT, so we verify all of them
+            // every VC is represented as another JWT or as a JSON-LD document
+            var credentialContext = context.toBuilder()
+                    .audience(signedJwt.getJWTClaimsSet().getIssuer())
+                    .credentialExpected(true)
+                    .build();
             for (var token : rawCredentials) {
-                verificationResult = verificationResult.merge(context.toBuilder().audience(signedJwt.getJWTClaimsSet().getIssuer()).build().verify(token));
+                verificationResult = verificationResult.merge(credentialContext.verify(token));
             }
 
         } catch (ParseException e) {
@@ -161,12 +177,8 @@ public class JwtPresentationVerifier implements CredentialVerifier {
 
     }
 
-    private boolean isCredential(SignedJWT jwt) throws ParseException {
-        return jwt.getJWTClaimsSet().getClaims().containsKey(Constants.VC_CLAIM);
-    }
-
-    private boolean isPresentation(SignedJWT jwt) throws ParseException {
-        return jwt.getJWTClaimsSet().getClaims().containsKey(Constants.VP_CLAIM);
+    private boolean isCredential(Map<String, Object> claims) {
+        return claims.containsKey(Constants.VC_CLAIM) && !claims.containsKey(Constants.VP_CLAIM);
     }
 
     @SuppressWarnings("unchecked")

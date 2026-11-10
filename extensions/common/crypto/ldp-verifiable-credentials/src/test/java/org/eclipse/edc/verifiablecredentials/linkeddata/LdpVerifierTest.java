@@ -350,6 +350,31 @@ class LdpVerifierTest {
             }
 
             @Test
+            void verify_nestedPresentation_shouldFail() throws JOSEException {
+                var vpKey = new ECKeyGenerator(Curve.P_384)
+                        .keyID("vp-sign-key")
+                        .generate();
+                var verificationMethod = methodResolver.publish(VP_HOLDER + "#key-1", vpKey);
+                var nestedVp = LdpCreationUtils.signDocument(TestData.VP_CONTENT_TEMPLATE.formatted(""), vpKey, generateEmbeddedProof(verificationMethod), testDocLoader);
+                var rawVp = LdpCreationUtils.signDocument(TestData.VP_CONTENT_TEMPLATE.formatted(nestedVp), vpKey, generateEmbeddedProof(verificationMethod), testDocLoader);
+
+                assertThat(ldpVerifier.verify(rawVp, context)).isFailed()
+                        .detail().contains("Expected a credential");
+            }
+
+            @Test
+            void verify_credentialExpected_shouldFail() throws JOSEException {
+                var vpKey = new ECKeyGenerator(Curve.P_384)
+                        .keyID("vp-sign-key")
+                        .generate();
+                var verificationMethod = methodResolver.publish(VP_HOLDER + "#key-1", vpKey);
+                var rawVp = LdpCreationUtils.signDocument(TestData.VP_CONTENT_TEMPLATE.formatted(""), vpKey, generateEmbeddedProof(verificationMethod), testDocLoader);
+
+                assertThat(ldpVerifier.verify(rawVp, context.toBuilder().credentialExpected(true).build())).isFailed()
+                        .detail().contains("Expected a credential");
+            }
+
+            @Test
             void verify_credentialProofPurposeNotAssertionMethod() throws JOSEException {
                 var nameKey = new ECKeyGenerator(Curve.P_256)
                         .keyID("vc-sign-key1")

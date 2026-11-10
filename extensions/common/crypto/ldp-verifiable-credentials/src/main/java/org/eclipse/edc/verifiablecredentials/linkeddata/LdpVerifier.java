@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Think-it GmbH - nested credential verification
  *
  */
 
@@ -67,10 +68,8 @@ public class LdpVerifier implements CredentialVerifier {
     private TypeManager typeManager;
     private String typeContext = JSON_LD;
     private SignatureSuiteRegistry suiteRegistry;
-    private Map<String, Object> params;
     private Collection<MethodResolver> methodResolvers = new ArrayList<>(List.of(new HttpMethodResolver()));
     private DocumentLoader loader;
-    private URI base;
     private Clock clock = Clock.systemUTC();
     private boolean requireBinding;
 
@@ -120,10 +119,6 @@ public class LdpVerifier implements CredentialVerifier {
                 return failure("Could not verify VP-LDP: %s | message: %s".formatted(e.getCode(), e.getMessage()));
             }
         });
-    }
-
-    public URI getBase() {
-        return base;
     }
 
     private VerificationMethod resolveMethod(URI id, Proof proof, DocumentLoader loader) throws DocumentError {
@@ -217,40 +212,44 @@ public class LdpVerifier implements CredentialVerifier {
     private Result<Void> verifyExpanded(JsonObject expanded, VerifierContext context, JsonStructure ldContext) throws VerificationError, DocumentError {
 
         if (isCredential(expanded)) {
-            // data integrity validation
             return verifyProofs(expanded, ldContext);
+        }
 
-        } else if (isPresentation(expanded)) {
-            // verify presentation proofs
-            var presentationValidation = verifyProofs(expanded, ldContext)
-                    .compose(v -> verifyBinding(expanded, context.getAudience()));
-            if (!presentationValidation.succeeded()) {
-                return presentationValidation.mapFailure();
-            }
+        if (context.isCredentialExpected()) {
+            return failure("Expected a credential, but the document is not of type %s".formatted(VcVocab.CREDENTIAL_TYPE.uri()));
+        }
 
-            // verify embedded credentials
-
-            // verifiableCredentials
-            var credentials = new ArrayList<JsonObject>();
-            for (var credential : Presentation.getCredentials(expanded)) {
-
-                if (JsonUtils.isNotObject(credential)) {
-                    return failure("Presentation contained an invalid 'verifiableCredential' object!");
-                }
-                credentials.add(credential.asJsonObject());
-            }
-
-            return credentials.stream()
-                    .map(expCred -> context.verify(expCred.toString()))
-                    .reduce(Result::merge)
-                    .orElse(success()); // "no credentials" is still valid according to https://www.w3.org/TR/vc-data-model/#presentations-0
-
-        } else {
+        if (!isPresentation(expanded)) {
             return failure("%s: %s".formatted(ErrorType.Unknown, Term.TYPE));
         }
+
+        // verify presentation proofs
+        var presentationValidation = verifyProofs(expanded, ldContext)
+                .compose(v -> verifyBinding(expanded, context.getAudience()));
+        if (!presentationValidation.succeeded()) {
+            return presentationValidation.mapFailure();
+        }
+
+        // verify embedded credentials
+
+        // verifiableCredentials
+        var credentials = new ArrayList<JsonObject>();
+        for (var credential : Presentation.getCredentials(expanded)) {
+
+            if (JsonUtils.isNotObject(credential)) {
+                return failure("Presentation contained an invalid 'verifiableCredential' object!");
+            }
+            credentials.add(credential.asJsonObject());
+        }
+
+        var credentialContext = context.toBuilder().credentialExpected(true).build();
+        return credentials.stream()
+                .map(expCred -> credentialContext.verify(expCred.toString()))
+                .reduce(Result::merge)
+                .orElse(success()); // "no credentials" is still valid according to https://www.w3.org/TR/vc-data-model/#presentations-0
     }
 
-    private Result<Void> verifyProofs(JsonObject expanded, JsonStructure context) throws VerificationError, DocumentError {
+    private Result<Void> verifyProofs(JsonObject expanded, JsonStructure context) throws DocumentError {
 
         // get proofs - throws an exception if there is no proof, never null nor an
         // empty collection
@@ -408,16 +407,6 @@ public class LdpVerifier implements CredentialVerifier {
             return this;
         }
 
-        public Builder params(Map<String, Object> params) {
-            this.verifier.params = params;
-            return this;
-        }
-
-        public Builder param(String key, Object object) {
-            this.verifier.params.put(key, object);
-            return this;
-        }
-
         public Builder methodResolvers(Collection<MethodResolver> resolvers) {
             this.verifier.methodResolvers = resolvers;
             return this;
@@ -440,16 +429,6 @@ public class LdpVerifier implements CredentialVerifier {
 
         public Builder jsonLd(JsonLd jsonLd) {
             this.verifier.jsonLd = jsonLd;
-            return this;
-        }
-
-        /**
-         * If set, this overrides the input document's IRI.
-         *
-         * @return the processor instance
-         */
-        public Builder base(URI base) {
-            this.verifier.base = base;
             return this;
         }
 

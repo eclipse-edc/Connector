@@ -10,6 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Cofinity-X - updates for VCDM 2.0
+ *       Think-it GmbH - presentation format detection
  *
  */
 
@@ -18,6 +19,8 @@ package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.iam.decentralizedclaims.spi.verification.JwtPresentationFormat;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.DataModelVersion;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation;
@@ -64,7 +67,11 @@ public class JwtToVerifiablePresentationTransformer extends AbstractJwtTransform
             var builder = VerifiablePresentation.Builder.newInstance();
             var signedJwt = SignedJWT.parse(jsonWebToken);
             var claimsSet = signedJwt.getJWTClaimsSet();
-            if (isVcDataModel2_0(claimsSet)) {
+            var format = JwtPresentationFormat.of(claimsSet.getClaims());
+            if (format == null) {
+                context.reportProblem("JWT is not a presentation of either VCDM 1.1 (with a '%s' claim) or VCDM 2.0 (with the VCDM 2.0 '@context'), but has to be exactly one of them."
+                        .formatted(VP_CLAIM));
+            } else if (format == CredentialFormat.VC2_0_JOSE) {
                 return parseVcdm20Presentation(claimsSet, builder, context);
             } else {
 

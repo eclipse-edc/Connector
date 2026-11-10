@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Metaform Systems, Inc. - initial API and implementation
+ *       Think-it GmbH - presentation format detection
  *
  */
 
@@ -17,7 +18,9 @@ package org.eclipse.edc.verifiablecredentials.jwt;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.CredentialVerifier;
+import org.eclipse.edc.iam.decentralizedclaims.spi.verification.JwtPresentationFormat;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.VerifierContext;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
@@ -26,7 +29,6 @@ import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.CredentialIssuerKeyIdValidationRule;
-import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerKeyIdValidationRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.PresentationHolderKeyIdValidationRule;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,6 +54,7 @@ import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VP_CLAIM;
  * This verifier verifies a JWT that contains a Verifiable Presentation (VP) as JSON payload that conforms to the
  * Verifiable Credentials Data Model (VCDM) 2.0 specification. Both enveloped presentations and simple VP tokens are supported.
  * Every presentation JWT, and the envelope around it, must be signed with a key of the presentation's {@code holder}.
+ * The JWT must be a VCDM 2.0 presentation as determined by {@link JwtPresentationFormat}.
  */
 public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
     private static final String VP_JWT_TYPE = "vp+jwt";
@@ -80,11 +83,7 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
     public boolean canHandle(String rawInput) {
         try {
             var jwtClaimsSet = SignedJWT.parse(rawInput).getJWTClaimsSet();
-            if (jwtClaimsSet.getClaims().containsKey(VP_CLAIM)) { // VCDM1.1
-                return false;
-            }
-
-            return presentationType(jwtClaimsSet) != null;
+            return JwtPresentationFormat.of(jwtClaimsSet.getClaims()) == CredentialFormat.VC2_0_JOSE && presentationType(jwtClaimsSet) != null;
 
         } catch (ParseException e) {
             return false;
@@ -96,12 +95,19 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
         try {
             var jwt = SignedJWT.parse(rawInput);
             var jwtClaimsSet = jwt.getJWTClaimsSet();
+            if (verifierContext.isCredentialExpected()) {
+                return Result.failure("Expected a credential, but the JWT contains a presentation.");
+            }
             if (jwtClaimsSet.getClaim(TYPE) == null) {
                 return Result.failure("Not a valid VP token - missing the 'type' claim");
             }
             var type = presentationType(jwtClaimsSet);
             if (type == null) {
                 return Result.failure("Not a valid VP token - unknown type '%s'".formatted(jwtClaimsSet.getClaim(TYPE)));
+            }
+            if (JwtPresentationFormat.of(jwtClaimsSet.getClaims()) != CredentialFormat.VC2_0_JOSE) {
+                return Result.failure("Not a valid VCDM 2.0 presentation: the JWT must have the VCDM 2.0 '@context', and must not contain the '%s' or '%s' claim."
+                        .formatted(VP_CLAIM, VC_CLAIM));
             }
 
             warnIfUntyped(jwt);
@@ -235,9 +241,7 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
     private List<TokenValidationRule> credentialValidationRules(SignedJWT credential) throws ParseException {
         var keyId = credential.getHeader().getKeyID();
         if (credential.getJWTClaimsSet().getClaims().containsKey(VC_CLAIM)) {
-            var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(Constants.JWT_VC_TOKEN_CONTEXT));
-            rules.add(new IssuerKeyIdValidationRule(keyId));
-            return rules;
+            return CredentialValidationRules.vcdm11(tokenValidationRulesRegistry, keyId);
         }
         return List.of(new CredentialIssuerKeyIdValidationRule(keyId));
     }

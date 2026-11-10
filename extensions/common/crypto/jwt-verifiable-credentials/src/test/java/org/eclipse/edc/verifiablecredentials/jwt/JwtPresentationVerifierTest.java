@@ -42,6 +42,7 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.sql.Date;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -68,6 +69,8 @@ import static org.mockito.Mockito.when;
 
 @ComponentTest
 class JwtPresentationVerifierTest {
+
+    private static final String VC_V2_CONTEXT = "https://www.w3.org/ns/credentials/v2";
 
     private final PublicKeyResolver publicKeyResolverMock = mock();
     private final TokenValidationService tokenValidationService = new TokenValidationServiceImpl();
@@ -285,6 +288,61 @@ class JwtPresentationVerifierTest {
     void canHandle_vcdm20_rejects() {
         assertThat(verifier.canHandle(VP_ENVELOPED_JOSE_ENVELOPED_CREDENTIAL)).isFalse();
         assertThat(verifier.canHandle(VP_SIMPLE_JOSE_ENVELOPED_CREDENTIAL)).isFalse();
+    }
+
+    @DisplayName("Verifies that the verifier rejects JWTs that are a VCDM 1.1 presentation and something else")
+    @Test
+    void canHandle_mixedFormat_rejects() {
+        var vp = asMap(VP_CONTENT_TEMPLATE.formatted(""));
+        var vcdm20Presentation = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", vp, "@context", List.of(VC_V2_CONTEXT)));
+        var credential = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", vp, "vc", asMap(VC_CONTENT_DEGREE_EXAMPLE)));
+
+        assertThat(verifier.canHandle(vcdm20Presentation)).isFalse();
+        assertThat(verifier.canHandle(credential)).isFalse();
+    }
+
+    @DisplayName("VP-JWT that also has the VCDM 2.0 context - expect a failure")
+    @Test
+    void verifyPresentation_vcdm20Context_fails() {
+        var vcJwt = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID,
+                Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt + "\"")), "@context", List.of(VC_V2_CONTEXT)));
+
+        var context = VerifierContext.Builder.newInstance()
+                .verifier(verifier)
+                .audience(MY_OWN_DID)
+                .build();
+        var result = verifier.verify(vpJwt, context);
+        assertThat(result).isFailed().detail().contains("Not a valid VCDM 1.1 presentation");
+    }
+
+    @DisplayName("VP-JWT that also has a \"vc\" claim - expect a failure")
+    @Test
+    void verifyPresentation_vcClaim_fails() {
+        var vcJwt = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", VC_CONTENT_DEGREE_EXAMPLE));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID,
+                Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt + "\"")), "vc", asMap(VC_CONTENT_DEGREE_EXAMPLE)));
+
+        var context = VerifierContext.Builder.newInstance()
+                .verifier(verifier)
+                .audience(MY_OWN_DID)
+                .build();
+        var result = verifier.verify(vpJwt, context);
+        assertThat(result).isFailed().detail().contains("Not a valid VCDM 1.1 presentation");
+    }
+
+    @DisplayName("VP-JWT with a nested VP-JWT - expect a failure")
+    @Test
+    void verifyPresentation_nestedPresentation_fails() {
+        var nestedVpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", VP_HOLDER_ID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(""))));
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted("\"" + nestedVpJwt + "\""))));
+
+        var context = VerifierContext.Builder.newInstance()
+                .verifier(verifier)
+                .audience(MY_OWN_DID)
+                .build();
+        var result = verifier.verify(vpJwt, context);
+        assertThat(result).isFailed().detail().contains("Expected a credential, but the JWT contains a presentation.");
     }
 
     @Test
