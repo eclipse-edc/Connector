@@ -81,7 +81,7 @@ public class HashicorpVaultConfig {
     }
 
     public String getHealthCheckPath() {
-        return healthCheckPath;
+        return trimSurroundingSlashes(healthCheckPath);
     }
 
     public String getSecretsEnginePath() {
@@ -105,11 +105,21 @@ public class HashicorpVaultConfig {
     }
 
     public String getSecretPath() {
-        return secretPath;
+        return trimSurroundingSlashes(secretPath);
     }
 
     public String getFolderPath() {
-        return folderPath;
+        return trimSurroundingSlashes(folderPath);
+    }
+
+    private String trimSurroundingSlashes(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        var start = value.startsWith("/") ? 1 : 0;
+        var end = value.endsWith("/") ? value.length() - 1 : value.length();
+        return start <= end ? value.substring(start, end) : "";
     }
 
     public static class Builder {

@@ -22,7 +22,6 @@ import okhttp3.Request;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
-import org.eclipse.edc.vault.hashicorp.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -79,18 +78,15 @@ public class HashicorpVaultHealthService {
 
     @NotNull
     private HttpUrl getHealthCheckUrl() {
-        var vaultHealthPath = settings.getHealthCheckPath();
-        var isVaultHealthStandbyOk = settings.getHealthStandbyOk();
-
         // by setting 'standbyok' and/or 'perfstandbyok' the vault will return an active
         // status
         // code instead of the standby status codes
 
         return HttpUrl.parse(settings.getVaultUrl())
                 .newBuilder()
-                .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultHealthPath))
-                .addQueryParameter("standbyok", isVaultHealthStandbyOk ? "true" : "false")
-                .addQueryParameter("perfstandbyok", isVaultHealthStandbyOk ? "true" : "false")
+                .addPathSegments(settings.getHealthCheckPath())
+                .addQueryParameter("standbyok", Boolean.toString(settings.getHealthStandbyOk()))
+                .addQueryParameter("perfstandbyok", Boolean.toString(settings.getHealthStandbyOk()))
                 .build();
     }
 
