@@ -10,6 +10,7 @@ maven/mavencentral/com.apicatalog/titanium-json-ld/1.7.0, Apache-2.0, approved, 
 maven/mavencentral/com.apicatalog/titanium-rdf-api/1.0.0, Apache-2.0, approved, #20245
 maven/mavencentral/com.apicatalog/titanium-rdf-n-quads/1.0.2, Apache-2.0, approved, #20243
 maven/mavencentral/com.ethlo.time/itu/1.14.0, Apache-2.0, approved, #19505
+maven/mavencentral/com.ethlo.time/itu/1.17.0, Apache-2.0, approved, #32305
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.19.2, Apache-2.0, approved, #21911
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.20, Apache-2.0, approved, #23056
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.21, Apache-2.0, approved, #25587
@@ -64,6 +65,7 @@ maven/mavencentral/com.jayway.jsonpath/json-path/2.10.0, Apache-2.0, approved, c
 maven/mavencentral/com.networknt/json-schema-validator/1.5.9, Apache-2.0 AND Unicode-TOU, approved, #15630
 maven/mavencentral/com.networknt/json-schema-validator/3.0.7, Apache-2.0 AND Unicode-3.0, approved, #26454
 maven/mavencentral/com.networknt/json-schema-validator/3.0.8, Apache-2.0 AND Unicode-3.0, approved, #26454
+maven/mavencentral/com.networknt/json-schema-validator/3.0.9, Apache-2.0 AND Unicode-3.0, approved, #26454
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.10, Apache-2.0, approved, #31349
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.9, Apache-2.0, approved, #28183
 maven/mavencentral/com.puppycrawl.tools/checkstyle/12.3.0, LGPL-2.1-or-later, approved, #26456
@@ -201,7 +203,7 @@ maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-api/1.2.1, Apache-2.0, appro
 maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-system/1.2.1, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-tck/1.2.1, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-testcases/1.2.1, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dps/dps-tck/1.3.2, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dps/dps-tck/1.3.3, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-api/1.0.2, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-catalog/1.0.2, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-contract-negotiation/1.0.2, Apache-2.0, approved, technology.dataspacetck
@@ -300,7 +302,7 @@ maven/mavencentral/org.slf4j/slf4j-api/1.7.32, MIT, approved, CQ13368
 maven/mavencentral/org.slf4j/slf4j-api/1.7.36, MIT, approved, CQ13368
 maven/mavencentral/org.slf4j/slf4j-api/2.0.17, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.18, MIT, approved, #5915
-maven/mavencentral/org.slf4j/slf4j-api/2.0.19, MIT, approved, #5915
+maven/mavencentral/org.slf4j/slf4j-api/2.0.20, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.9, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-nop/2.0.18, MIT, approved, #10370
 maven/mavencentral/org.slf4j/slf4j-simple/2.0.17, MIT, approved, #10372
@@ -322,11 +324,11 @@ maven/mavencentral/org.yaml/snakeyaml/2.3, Apache-2.0 AND (Apache-2.0 OR BSD-3-C
 maven/mavencentral/org.yaml/snakeyaml/2.4, Apache-2.0, approved, #19469
 maven/mavencentral/org.yaml/snakeyaml/2.5, Apache-2.0, approved, #23100
 maven/mavencentral/tools.jackson.core/jackson-core/3.2.4, BSD-2-Clause AND MIT AND BSL-1.0 AND Apache-2.0, approved, #30552
-maven/mavencentral/tools.jackson.core/jackson-databind/3.2.1, Apache-2.0, approved, #30564
+maven/mavencentral/tools.jackson.core/jackson-databind/3.1.8, Apache-2.0, approved, #26439
 maven/mavencentral/tools.jackson.core/jackson-databind/3.2.2, Apache-2.0, approved, #30563
 maven/mavencentral/tools.jackson.core/jackson-databind/3.2.3, Apache-2.0, approved, #30563
 maven/mavencentral/tools.jackson.core/jackson-databind/3.2.4, Apache-2.0, approved, #30563
-maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-yaml/3.2.1, Apache-2.0, approved, #29717
+maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-yaml/3.1.8, Apache-2.0, approved, #26517
 maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-yaml/3.2.4, Apache-2.0, approved, #29717
 maven/mavencentral/tools.jackson.datatype/jackson-datatype-jakarta-jsonp/3.2.1, Apache-2.0, approved, #30565
 maven/mavencentral/tools.jackson.datatype/jackson-datatype-jakarta-jsonp/3.2.2, Apache-2.0, approved, #30565
