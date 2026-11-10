@@ -99,6 +99,7 @@ public class SqlTargetNodeDirectory extends AbstractSqlStore implements TargetNo
         queryExecutor.execute(connection,
                 stmt,
                 id,
+                targetNode.counterPartyId(),
                 targetNode.participantContextId(),
                 targetNode.name(),
                 targetNode.targetUrl(),
@@ -110,6 +111,7 @@ public class SqlTargetNodeDirectory extends AbstractSqlStore implements TargetNo
         var stmt = statements.getUpdateTemplate();
         queryExecutor.execute(connection,
                 stmt,
+                targetNode.counterPartyId(),
                 targetNode.name(),
                 targetNode.targetUrl(),
                 toJson(targetNode.supportedProtocols()),
@@ -122,6 +124,7 @@ public class SqlTargetNodeDirectory extends AbstractSqlStore implements TargetNo
         return new TargetNode(
                 resultSet.getString(statements.getNameColumn()),
                 resultSet.getString(statements.getIdColumn()),
+                resultSet.getString(statements.getCounterPartyIdColumn()),
                 resultSet.getString(statements.getTargetUrlColumn()),
                 resultSet.getString(statements.getParticipantContextIdColumn()),
                 fromJson(resultSet.getString(statements.getSupportedProtocolsColumn()), new TypeReference<>() {

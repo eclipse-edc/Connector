@@ -28,6 +28,10 @@ public interface TargetNodeStatements extends SqlStatements {
         return "id";
     }
 
+    default String getCounterPartyIdColumn() {
+        return "counter_party_id";
+    }
+
     default String getParticipantContextIdColumn() {
         return "participant_context_id";
     }

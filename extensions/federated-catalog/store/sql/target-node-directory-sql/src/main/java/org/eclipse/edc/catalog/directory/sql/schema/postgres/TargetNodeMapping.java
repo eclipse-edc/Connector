@@ -22,6 +22,7 @@ public class TargetNodeMapping extends TranslationMapping {
 
     public TargetNodeMapping(TargetNodeStatements statements) {
         add("id", statements.getIdColumn());
+        add("counterPartyId", statements.getCounterPartyIdColumn());
         add("participantContextId", statements.getParticipantContextIdColumn());
         add("name", statements.getNameColumn());
         add("targetUrl", statements.getTargetUrlColumn());

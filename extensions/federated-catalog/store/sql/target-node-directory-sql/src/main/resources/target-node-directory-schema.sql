@@ -16,6 +16,7 @@
 CREATE TABLE IF NOT EXISTS edc_target_node_directory
 (
     id                      VARCHAR NOT NULL,
+    counter_party_id        VARCHAR,
     participant_context_id  VARCHAR NOT NULL,
     name                    VARCHAR NOT NULL,
     target_url              VARCHAR NOT NULL,

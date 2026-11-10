@@ -73,6 +73,33 @@ public abstract class TargetNodeDirectoryTestBase {
         }
 
         @Test
+        void insert_withCounterPartyId_shouldPersistCounterPartyId() {
+            var node = new TargetNode(UUID.randomUUID().toString(), UUID.randomUUID().toString(), "did:web:counterparty",
+                    "http://example.com", PARTICIPANT_CONTEXT_ID, List.of());
+
+            getStore().insert(node);
+
+            assertThat(getStore().getAll(PARTICIPANT_CONTEXT_ID))
+                    .hasSize(1)
+                    .allSatisfy(n -> {
+                        assertThat(n).usingRecursiveComparison().isEqualTo(node);
+                        assertThat(n.counterPartyId()).isEqualTo("did:web:counterparty");
+                    });
+        }
+
+        @Test
+        void insert_withoutCounterPartyId_shouldFallbackToId() {
+            var id = UUID.randomUUID().toString();
+            var node = createTargetNode(id);
+
+            getStore().insert(node);
+
+            assertThat(getStore().getAll(PARTICIPANT_CONTEXT_ID))
+                    .hasSize(1)
+                    .allSatisfy(n -> assertThat(n.counterPartyId()).isEqualTo(id));
+        }
+
+        @Test
         void insert_sameIdDifferentParticipant_shouldBeIsolated() {
             var id = UUID.randomUUID().toString();
             var node = createTargetNode(id, PARTICIPANT_CONTEXT_ID);

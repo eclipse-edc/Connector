@@ -33,6 +33,7 @@ public abstract class BaseSqlDialectStatements implements TargetNodeStatements {
     @Override
     public String getUpdateTemplate() {
         return executeStatement()
+                .column(getCounterPartyIdColumn())
                 .column(getNameColumn())
                 .column(getTargetUrlColumn())
                 .jsonColumn(getSupportedProtocolsColumn())
@@ -43,6 +44,7 @@ public abstract class BaseSqlDialectStatements implements TargetNodeStatements {
     public String getInsertTemplate() {
         return executeStatement()
                 .column(getIdColumn())
+                .column(getCounterPartyIdColumn())
                 .column(getParticipantContextIdColumn())
                 .column(getNameColumn())
                 .column(getTargetUrlColumn())
