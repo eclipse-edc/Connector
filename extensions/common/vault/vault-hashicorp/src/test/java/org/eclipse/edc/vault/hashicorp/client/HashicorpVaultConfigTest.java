@@ -15,18 +15,25 @@
 package org.eclipse.edc.vault.hashicorp.client;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.support.ParameterDeclarations;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig.VAULT_TOKEN_RENEW_BUFFER_DEFAULT;
 import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig.VAULT_TOKEN_TTL_DEFAULT;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class HashicorpVaultConfigTest {
 
-    private static final String TOKEN = "token";
     private static final String URL = "https://test.com/vault";
     private static final String HEALTH_CHECK_PATH = "/healthcheck/path";
     private static final String SECRET_PATH = "/secret/path";
@@ -39,11 +46,11 @@ class HashicorpVaultConfigTest {
                 VAULT_TOKEN_RENEW_BUFFER_DEFAULT));
         assertThat(settings.getVaultUrl()).isEqualTo(URL);
         assertThat(settings.getHealthCheckEnabled()).isEqualTo(true);
-        assertThat(settings.getHealthCheckPath()).isEqualTo(HEALTH_CHECK_PATH);
+        assertThat(settings.getHealthCheckPath()).isEqualTo("healthcheck/path");
         assertThat(settings.getHealthStandbyOk()).isEqualTo(true);
         assertThat(settings.getTtl()).isEqualTo(VAULT_TOKEN_TTL_DEFAULT);
         assertThat(settings.getRenewBuffer()).isEqualTo(VAULT_TOKEN_RENEW_BUFFER_DEFAULT);
-        assertThat(settings.getSecretPath()).isEqualTo(SECRET_PATH);
+        assertThat(settings.getSecretPath()).isEqualTo("secret/path");
         assertThat(settings.getFolderPath()).isNull();
     }
 
@@ -87,6 +94,36 @@ class HashicorpVaultConfigTest {
         assertThat(throwable.getMessage()).isEqualTo("Vault token renew buffer value must be less than ttl value");
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(PathsToTrimProvider.class)
+    void getHealthCheckPath_shouldTrimLeadingAndTrailingSlash(String raw, String expected) {
+        var settings = builderWithDefaults().healthCheckPath(raw).build();
+
+        assertThat(settings.getHealthCheckPath()).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(PathsToTrimProvider.class)
+    void getSecretPath_shouldTrimLeadingAndTrailingSlash(String raw, String expected) {
+        var settings = builderWithDefaults().secretPath(raw).build();
+
+        assertThat(settings.getSecretPath()).isEqualTo(expected);
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(PathsToTrimProvider.class)
+    void getFolderPath_shouldTrimLeadingAndTrailingSlash(String raw, String expected) {
+        var settings = builderWithDefaults().folderPath(raw).build();
+
+        assertThat(settings.getFolderPath()).isEqualTo(expected);
+    }
+
+    private HashicorpVaultConfig.Builder builderWithDefaults() {
+        return HashicorpVaultConfig.Builder.newInstance()
+                .vaultUrl(URL)
+                .ttl(VAULT_TOKEN_TTL_DEFAULT);
+    }
+
     private HashicorpVaultConfig createSettings(String url,
                                                 String healthCheckPath,
                                                 long ttl,
@@ -100,5 +137,18 @@ class HashicorpVaultConfigTest {
                 .renewBuffer(renewBuffer)
                 .secretPath(SECRET_PATH)
                 .build();
+    }
+
+    private static class PathsToTrimProvider implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) {
+            return Stream.of(
+                    arguments("/path", "path"),                 // leading slash
+                    arguments("path/", "path"),                 // trailing slash
+                    arguments("/path/", "path"),                // both
+                    arguments("/nested/path/", "nested/path"),  // nested, inner slashes kept
+                    arguments("path", "path")                   // already trimmed
+            );
+        }
     }
 }

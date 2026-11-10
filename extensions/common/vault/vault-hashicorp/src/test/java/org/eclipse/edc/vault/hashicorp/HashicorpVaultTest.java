@@ -57,7 +57,8 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 class HashicorpVaultTest {
 
-    public static final String DEFAULT_FOLDERPATH = "baz";
+    private static final String DEFAULT_FOLDER_PATH = "baz";
+
     @RegisterExtension
     static WireMockExtension wireMock = WireMockExtension.newInstance()
             .options(wireMockConfig().dynamicPort())
@@ -68,13 +69,14 @@ class HashicorpVaultTest {
     private final HashicorpVaultTokenProviderFactory tokenProviderFactory = resource -> tokenProvider;
     private final EdcHttpClient httpClient = new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock());
     private final ObjectMapper mapper = new ObjectMapper();
+
     private HashicorpVault vault;
 
     @BeforeEach
     void setup() {
         var vaultConfig = HashicorpVaultConfig.Builder.newInstance()
                 .vaultUrl(wireMock.baseUrl())
-                .folderPath(DEFAULT_FOLDERPATH)
+                .folderPath(DEFAULT_FOLDER_PATH)
                 .secretPath("v1/secret")
                 .healthCheckPath("/healthcheck")
                 .ttl(10)
@@ -99,6 +101,28 @@ class HashicorpVaultTest {
         var secret = vault.resolveSecret("foo");
         assertThat(secret).isEqualTo("bar");
         verifyNoInteractions(participantContextConfig);
+    }
+
+    @Test
+    void resolveSecret_whenKeyContainsColon_shouldSingleEncode() {
+        wireMock.stubFor(get(urlPathMatching("/v1/secret/data/baz/.*"))
+                .willReturn(okJson("""
+                        {
+                            "data": {
+                                "data": {
+                                    "content": "bar"
+                                }
+                            }
+                        }
+                        """)));
+
+        var secret = vault.resolveSecret("did:web:example");
+
+        assertThat(secret).isEqualTo("bar");
+        var requestUrl = wireMock.getAllServeEvents().get(0).getRequest().getUrl();
+        assertThat(requestUrl)
+                .contains("did%3Aweb%3Aexample")
+                .doesNotContain("%253A");
     }
 
     @Test
@@ -161,7 +185,7 @@ class HashicorpVaultTest {
 
     @Test
     void resolveSecret_forPartition_vaultConfigNotFound() {
-        wireMock.stubFor(get(urlPathMatching("/v1/secret/data/" + DEFAULT_FOLDERPATH + "/bizz.*"))
+        wireMock.stubFor(get(urlPathMatching("/v1/secret/data/" + DEFAULT_FOLDER_PATH + "/bizz.*"))
                 .willReturn(okJson("""
                         {
                             "data": {
@@ -178,7 +202,7 @@ class HashicorpVaultTest {
         var secret = vault.resolveSecret("partition1", "bizz");
         assertThat(secret).isEqualTo("bar");
         verify(participantContextConfig).getSensitiveString("partition1", VAULT_CONFIG);
-        wireMock.verify(getRequestedFor(urlPathMatching("/v1/secret/data/" + DEFAULT_FOLDERPATH + "/bizz.*")));
+        wireMock.verify(getRequestedFor(urlPathMatching("/v1/secret/data/" + DEFAULT_FOLDER_PATH + "/bizz.*")));
     }
 
     @Test
@@ -299,7 +323,7 @@ class HashicorpVaultTest {
 
         var defaultVaultConfig = HashicorpVaultConfig.Builder.newInstance()
                 .vaultUrl(wireMock.baseUrl())
-                .folderPath(DEFAULT_FOLDERPATH)
+                .folderPath(DEFAULT_FOLDER_PATH)
                 .secretPath("v1/secret")
                 .allowFallback(false) // should trigger the exception
                 .healthCheckPath("/healthcheck")

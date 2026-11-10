@@ -25,7 +25,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
-import org.eclipse.edc.vault.hashicorp.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import tools.jackson.core.JacksonException;
@@ -78,14 +77,9 @@ class HashicorpVaultClient {
         try (var response = httpClient.execute(request)) {
 
             if (response.isSuccessful()) {
-
                 var responseBody = response.body();
-                if (responseBody != null) {
-                    // using JsonNode here because it makes traversing down the tree null-safe
-                    var payload = objectMapper.readValue(responseBody.string(), JsonNode.class);
-                    return payload.path("data").path("data").get(VAULT_DATA_ENTRY_NAME).asText();
-                }
-                monitor.debug("Secret response body is empty");
+                var payload = objectMapper.readValue(responseBody.string(), JsonNode.class);
+                return payload.path("data").path("data").get(VAULT_DATA_ENTRY_NAME).asString();
 
             } else {
                 if (response.code() == 404) {
@@ -113,7 +107,7 @@ class HashicorpVaultClient {
 
         try (var response = httpClient.execute(request)) {
             if (response.isSuccessful()) {
-                return response.body() == null ? Result.failure("Setting secret returned empty body") : Result.success();
+                return Result.success();
             } else {
                 return Result.failure("Failed to set secret with status %d".formatted(response.code()));
             }
@@ -131,7 +125,9 @@ class HashicorpVaultClient {
                 .build();
 
         try (var response = httpClient.execute(request)) {
-            return response.isSuccessful() || response.code() == 404 ? Result.success() : Result.failure("Failed to destroy secret with status %d".formatted(response.code()));
+            return response.isSuccessful() || response.code() == 404
+                    ? Result.success()
+                    : Result.failure("Failed to destroy secret with status %d".formatted(response.code()));
         } catch (IOException e) {
             return Result.failure("Failed to destroy secret with reason: %s".formatted(e.getMessage()));
         }
@@ -139,25 +135,21 @@ class HashicorpVaultClient {
 
 
     private HttpUrl getSecretUrl(String key, String entryType) {
-        key = URLEncoder.encode(key, StandardCharsets.UTF_8);
-
-        // restore '/' characters to allow subdirectories
-        var sanitizedKey = key.replace("%2F", "/");
-
-        var vaultApiPath = vaultConfig.getSecretPath();
-        var folderPath = vaultConfig.getFolderPath();
+        var sanitizedKey = URLEncoder.encode(key, StandardCharsets.UTF_8)
+                .replace("%2F", "/"); // restore '/' characters to allow subdirectories
 
         var builder = HttpUrl.parse(vaultConfig.getVaultUrl())
                 .newBuilder()
-                .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultApiPath))
+                .addPathSegments(vaultConfig.getSecretPath())
                 .addPathSegment(entryType);
 
+        var folderPath = vaultConfig.getFolderPath();
         if (folderPath != null) {
-            builder.addPathSegments(PathUtil.trimLeadingOrEndingSlash(folderPath));
+            builder.addPathSegments(folderPath);
         }
 
         return builder
-                .addPathSegments(sanitizedKey)
+                .addEncodedPathSegments(sanitizedKey)
                 .build();
     }
 
