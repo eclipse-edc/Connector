@@ -127,12 +127,10 @@ public class LdpVerifier implements CredentialVerifier {
             throw new DocumentError(ErrorType.Missing, "ProofVerificationId");
         }
 
-        // find the method id resolver
-        final Optional<MethodResolver> resolver = methodResolvers.stream()
+        var resolver = methodResolvers.stream()
                 .filter(r -> r.isAccepted(id))
                 .findFirst();
 
-        // try to resolve the method
         if (resolver.isPresent()) {
             return resolver.get().resolve(id, loader, proof);
         }

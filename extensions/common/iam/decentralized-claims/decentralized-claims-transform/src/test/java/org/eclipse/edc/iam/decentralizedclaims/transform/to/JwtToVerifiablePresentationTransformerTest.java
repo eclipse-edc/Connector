@@ -261,6 +261,20 @@ class JwtToVerifiablePresentationTransformerTest {
         verify(context).reportProblem(contains("JWT is not a presentation of either VCDM 1.1"));
     }
 
+    @DisplayName("EnvelopedVerifiablePresentation contains a VP token that is not a VCDM 2.0 presentation")
+    @Test
+    void transform_vcdm20_envelopedNotVcdm20Presentation() throws ParseException {
+        var innerClaims = new JWTClaimsSet.Builder(SignedJWT.parse(plainPresentation()).getJWTClaimsSet())
+                .claim("vp", Map.of("type", List.of("VerifiablePresentation")))
+                .build();
+        var envelope = new JWTClaimsSet.Builder(SignedJWT.parse(TestData.EXAMPLE_ENVELOPED_PRESENTATION_WITH_HOLDER).getJWTClaimsSet())
+                .claim("id", "data:application/vp+jwt," + unsignedJwt(innerClaims))
+                .build();
+
+        assertThat(transformer.transform(unsignedJwt(envelope), context)).isNull();
+        verify(context).reportProblem(contains("The VP token of an EnvelopedVerifiablePresentation must be a VCDM 2.0 presentation"));
+    }
+
     private String plainPresentation() throws ParseException {
         var envelopeId = SignedJWT.parse(TestData.EXAMPLE_ENVELOPED_PRESENTATION_WITH_HOLDER).getJWTClaimsSet().getStringClaim("id");
         return envelopeId.substring("data:application/vp+jwt,".length());

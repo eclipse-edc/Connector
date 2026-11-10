@@ -114,7 +114,13 @@ public class JwtToVerifiablePresentationTransformer extends AbstractJwtTransform
             var idClaim = claimsSet.getStringClaim(VERIFIABLE_CREDENTIAL_PROPERTY_ID);
             if (idClaim != null && idClaim.startsWith(DATA_URL_VP_JWT)) {
                 var vpToken = idClaim.substring(DATA_URL_VP_JWT.length());
-                return parseVpClaims(SignedJWT.parse(vpToken).getJWTClaimsSet(), builder, context);
+                var vpClaims = SignedJWT.parse(vpToken).getJWTClaimsSet();
+                var vpTypes = listOrReturn(vpClaims.getClaim(TYPE_PROPERTY), Object::toString);
+                if (JwtPresentationFormat.of(vpClaims.getClaims()) != CredentialFormat.VC2_0_JOSE || !vpTypes.contains(VERIFIABLE_PRESENTATION_TYPE)) {
+                    context.reportProblem("The VP token of an EnvelopedVerifiablePresentation must be a VCDM 2.0 presentation of type '%s'".formatted(VERIFIABLE_PRESENTATION_TYPE));
+                    return null;
+                }
+                return parseVpClaims(vpClaims, builder, context);
             } else {
                 context.reportProblem("EnvelopedVerifiablePresentation objects must have their VP token encoded in the 'id' property: \"id\":\"data:application/vp+jwt,<VPTOKEN>\"");
                 return null;

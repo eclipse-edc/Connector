@@ -36,6 +36,8 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -329,6 +331,31 @@ class JwtPresentationVerifierTest {
                 .build();
         var result = verifier.verify(vpJwt, context);
         assertThat(result).isFailed().detail().contains("Not a valid VCDM 1.1 presentation");
+    }
+
+    @DisplayName("VP-JWT whose \"vp\" claim is a JSON string - is parsed and verified")
+    @Test
+    void verifyPresentation_vpClaimIsString() {
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", VP_CONTENT_TEMPLATE.formatted("")));
+
+        var context = VerifierContext.Builder.newInstance()
+                .verifier(verifier)
+                .audience(MY_OWN_DID)
+                .build();
+        assertThat(verifier.verify(vpJwt, context)).isSucceeded();
+    }
+
+    @DisplayName("VP-JWT whose \"vp\" claim is neither a JSON object nor a JSON string - expect a failure")
+    @ParameterizedTest
+    @ValueSource(strings = { "not json", "[]" })
+    void verifyPresentation_vpClaimNotAnObject(String vpClaim) {
+        var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", vpClaim));
+
+        var context = VerifierContext.Builder.newInstance()
+                .verifier(verifier)
+                .audience(MY_OWN_DID)
+                .build();
+        assertThat(verifier.verify(vpJwt, context)).isFailed().detail().contains("The 'vp' claim must be a JSON object.");
     }
 
     @DisplayName("VP-JWT with a nested VP-JWT - expect a failure")
