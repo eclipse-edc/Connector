@@ -24,6 +24,7 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAVAILABLE;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNEXPECTED;
 
 /**
@@ -105,6 +106,14 @@ public class ServiceResult<T> extends AbstractResult<T, ServiceFailure, ServiceR
 
     public static <T> ServiceResult<T> unauthorized(String message) {
         return new ServiceResult<>(null, new ServiceFailure(List.of(message), UNAUTHORIZED));
+    }
+
+    /**
+     * The request could not be processed now, but the same request may succeed later, e.g. because the entity is
+     * being modified by another process.
+     */
+    public static <T> ServiceResult<T> unavailable(String message) {
+        return new ServiceResult<>(null, new ServiceFailure(List.of(message), UNAVAILABLE));
     }
 
     public ServiceFailure.Reason reason() {

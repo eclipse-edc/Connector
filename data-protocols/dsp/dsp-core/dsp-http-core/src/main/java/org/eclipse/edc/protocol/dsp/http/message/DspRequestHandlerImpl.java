@@ -296,6 +296,8 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
             case UNAUTHORIZED -> Response.Status.UNAUTHORIZED;
             case CONFLICT -> Response.Status.CONFLICT;
             case NOT_FOUND -> Response.Status.NOT_FOUND;
+            // a 5xx tells the counter-party to retry the message, a 4xx ends its negotiation or transfer process
+            case UNAVAILABLE -> Response.Status.SERVICE_UNAVAILABLE;
             default -> Response.Status.BAD_REQUEST;
         };
     }

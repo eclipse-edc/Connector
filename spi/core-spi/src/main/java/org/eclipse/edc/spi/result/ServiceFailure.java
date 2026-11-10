@@ -32,6 +32,11 @@ public class ServiceFailure extends Failure {
     }
 
     public enum Reason {
-        NOT_FOUND, CONFLICT, BAD_REQUEST, UNAUTHORIZED, UNEXPECTED
+        NOT_FOUND, CONFLICT, BAD_REQUEST, UNAUTHORIZED, UNEXPECTED,
+        /**
+         * The request could not be processed now, e.g. because the entity is being modified by another process or a
+         * service the request depends on is not reachable. The same request may succeed later.
+         */
+        UNAVAILABLE
     }
 }

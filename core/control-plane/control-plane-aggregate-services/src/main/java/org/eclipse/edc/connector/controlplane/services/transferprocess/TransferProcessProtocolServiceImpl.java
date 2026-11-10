@@ -43,6 +43,7 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -319,7 +320,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
         return transferProcessStore
                 .findByIdAndLease(message.getProcessId())
-                .flatMap(ServiceResult::from)
+                .flatMap(this::leaseResult)
                 .compose(transferProcess -> {
                     if (transferProcess.shouldIgnoreIncomingMessage(message.getId())) {
                         transferProcessStore.breakLease(transferProcess);
@@ -329,6 +330,17 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                     return action.apply(transferProcess)
                             .onFailure(f -> transferProcessStore.breakLease(transferProcess));
                 });
+    }
+
+    /**
+     * A transfer process that is leased is being modified, e.g. by an earlier delivery of the same message: the
+     * counter-party can retry, and the retry is ignored if the earlier delivery has been processed in the meantime.
+     */
+    private ServiceResult<TransferProcess> leaseResult(StoreResult<TransferProcess> leaseResult) {
+        if (leaseResult.failed() && leaseResult.reason() == StoreFailure.Reason.ALREADY_LEASED) {
+            return ServiceResult.unavailable(leaseResult.getFailureDetail());
+        }
+        return ServiceResult.from(leaseResult);
     }
 
     private @Nullable TransferProcess findForCorrelationId(ParticipantContext participantContext, String correlationId) {

@@ -87,6 +87,7 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAVAILABLE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -651,6 +652,27 @@ class ContractNegotiationProtocolServiceImplTest {
             verify(store, never()).save(any());
             verifyNoInteractions(listener);
         }
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(NotifyArguments.class)
+    <M extends ProtocolRemoteMessage> void notify_shouldReturnUnavailable_whenNegotiationIsLeased(MethodCall<M> methodCall, M message) {
+        var tokenRepresentation = tokenRepresentation();
+        var validatableOffer = createValidatableConsumerOffer();
+        when(consumerOfferResolver.resolveOffer(any(), any())).thenReturn(ServiceResult.success(validatableOffer));
+        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message)))
+                .thenReturn(ServiceResult.success(participantAgent()));
+        when(store.findById(any())).thenReturn(createContractNegotiationOffered());
+        when(store.findByIdAndLease(any())).thenReturn(StoreResult.alreadyLeased("leased"));
+        when(validationService.validateInitialOffer(any(ParticipantAgent.class), isA(ValidatableConsumerOffer.class)))
+                .thenReturn(Result.success());
+
+        var result = methodCall.call(service, participantContext, message, tokenRepresentation);
+
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAVAILABLE);
+        verify(store, never()).save(any());
+        verify(store, never()).breakLease(any());
+        verifyNoInteractions(listener);
     }
 
     @ParameterizedTest

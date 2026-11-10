@@ -53,4 +53,13 @@ class ServiceResultTest {
     void fromFailure_withSuccessResult() {
         assertThatThrownBy(() -> ServiceResult.fromFailure(StoreResult.success())).isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void unavailable() {
+        var result = ServiceResult.unavailable("leased");
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.reason()).isEqualTo(ServiceFailure.Reason.UNAVAILABLE);
+        assertThat(result.getFailureDetail()).isEqualTo("leased");
+    }
 }
