@@ -26,6 +26,7 @@ import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
@@ -59,6 +60,8 @@ public class CatalogCrawlerCoreExtension implements ServiceExtension {
     private TypeTransformerRegistry transformerRegistry;
     @Inject
     private JsonLd jsonLdService;
+    @Inject
+    private EventRouter eventRouter;
     @Inject(required = false)
     private TargetNodeFilter nodeFilter;
     @Inject(required = false)
@@ -87,6 +90,7 @@ public class CatalogCrawlerCoreExtension implements ServiceExtension {
                 .nodeDirectory(directory)
                 .nodeFilterFunction(nodeFilter)
                 .participantContextStore(participantContextStore)
+                .eventRouter(eventRouter)
                 .build();
     }
 

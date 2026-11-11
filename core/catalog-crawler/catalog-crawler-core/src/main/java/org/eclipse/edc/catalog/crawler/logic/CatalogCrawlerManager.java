@@ -22,9 +22,11 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.crawler.spi.TargetNode;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
 import org.eclipse.edc.crawler.spi.TargetNodeFilter;
+import org.eclipse.edc.crawler.spi.event.TargetNodeCrawled;
 import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
+import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 
@@ -32,6 +34,7 @@ import java.net.ConnectException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -52,6 +55,7 @@ public class CatalogCrawlerManager {
     private CatalogCrawlerConfiguration configuration;
     private FederatedCatalogCache store;
     private ParticipantContextStore participantContextStore;
+    private EventRouter eventRouter;
     private ScheduledExecutorService scheduler;
 
     private CatalogCrawlerManager() {
@@ -108,6 +112,7 @@ public class CatalogCrawlerManager {
             monitor.debug("No node to crawl, to disable the crawler, please configure the '%s' setting accordingly. Next execution in %s"
                     .formatted(CATALOG_CRAWLER_ENABLED_SETTING, Duration.ofSeconds(configuration.periodSeconds())));
         } else {
+            // note: crawling each node emits a single event, because crawling is done in parallel
             workItems.stream().map(this::createCrawler).forEach(crawler -> crawlers.execute(crawler));
 
             monitor.debug("catalog crawling completed: %d entries evaluated. Next execution in %s"
@@ -170,6 +175,27 @@ public class CatalogCrawlerManager {
                 crawlers.schedule(createCrawler(new TargetNodeRetryCount(retries, targetNode)), configuration.retryDelaySeconds(), TimeUnit.SECONDS);
             }
         }
+
+        publishCrawled(targetNode, throwable);
+    }
+
+    /**
+     * Notifies subscribers that the node has been crawled, a non-null throwable meaning that crawling it failed.
+     */
+    private void publishCrawled(TargetNode targetNode, Throwable throwable) {
+        var event = TargetNodeCrawled.Builder.newInstance()
+                .nodeId(targetNode.id())
+                .success(throwable == null);
+
+        if (throwable != null) {
+            var cause = throwable;
+            if (throwable instanceof CompletionException && throwable.getCause() != null) {
+                cause = throwable.getCause();
+            }
+            event.errorMessage(cause.getMessage() != null ? cause.getMessage() : "Crawling the node failed with an unknown error");
+        }
+
+        eventRouter.publish(event.build());
     }
 
     private void persist(String participantContextId, String source, Catalog catalog) {
@@ -228,12 +254,18 @@ public class CatalogCrawlerManager {
             return this;
         }
 
+        public Builder eventRouter(EventRouter eventRouter) {
+            instance.eventRouter = eventRouter;
+            return this;
+        }
+
         public CatalogCrawlerManager build() {
             Objects.requireNonNull(instance.configuration, "CatalogCrawlerManager.Builder: Configuration cannot be null");
             Objects.requireNonNull(instance.monitor, "CatalogCrawlerManager.Builder: Monitor cannot be null");
             Objects.requireNonNull(instance.catalogFetcher, "CatalogCrawlerManager.Builder: catalogFetcher cannot be null");
             Objects.requireNonNull(instance.directory, "CatalogCrawlerManager.Builder: nodeDirectory cannot be null");
             Objects.requireNonNull(instance.participantContextStore, "CatalogCrawlerManager.Builder: participantContextStore cannot be null");
+            Objects.requireNonNull(instance.eventRouter, "CatalogCrawlerManager.Builder: eventRouter cannot be null");
 
             instance.crawlers = Executors.newScheduledThreadPool(instance.configuration.numCrawlers());
 

@@ -21,15 +21,18 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.crawler.spi.TargetNode;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
 import org.eclipse.edc.crawler.spi.TargetNodeFilter;
+import org.eclipse.edc.crawler.spi.event.TargetNodeCrawled;
 import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContextState;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.net.ConnectException;
 import java.util.List;
@@ -38,6 +41,7 @@ import java.util.concurrent.CompletionException;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -45,6 +49,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -61,6 +66,7 @@ class CatalogCrawlerManagerTest {
     private final DspCatalogFetcher catalogFetcher = mock();
     private final FederatedCatalogCache store = mock();
     private final ParticipantContextStore participantContextStore = mock();
+    private final EventRouter eventRouter = mock();
 
     private CatalogCrawlerManager manager = createManagerBuilder().build();
 
@@ -95,6 +101,83 @@ class CatalogCrawlerManagerTest {
 
         await().untilAsserted(() ->
                 verify(catalogFetcher).fetch(PARTICIPANT_CONTEXT_ID, "did:web:identity", "http://test.com", TEST_PROTOCOL));
+    }
+
+    @Test
+    void shouldPublishEvent_whenCrawlSucceeds() {
+        var node = createNode();
+        when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(node));
+        when(catalogFetcher.fetch(any(), any(), any(), any())).thenReturn(completedFuture(new Catalog()));
+
+        manager.start();
+
+        var captor = ArgumentCaptor.forClass(TargetNodeCrawled.class);
+        await().untilAsserted(() -> verify(eventRouter).publish(captor.capture()));
+        assertThat(captor.getValue()).satisfies(event -> {
+            assertThat(event.getNodeId()).isEqualTo(node.id());
+            assertThat(event.isSuccess()).isTrue();
+            assertThat(event.getErrorMessage()).isNull();
+        });
+    }
+
+    @Test
+    void shouldPublishEvent_whenCrawlFails() {
+        var node = createNode();
+        when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(node));
+        when(catalogFetcher.fetch(any(), any(), any(), any())).thenReturn(failedFuture(new EdcException("unexpected exception")));
+
+        manager.start();
+
+        var captor = ArgumentCaptor.forClass(TargetNodeCrawled.class);
+        await().untilAsserted(() -> verify(eventRouter, atLeastOnce()).publish(captor.capture()));
+        assertThat(captor.getValue()).satisfies(event -> {
+            assertThat(event.getNodeId()).isEqualTo(node.id());
+            assertThat(event.isSuccess()).isFalse();
+            assertThat(event.getErrorMessage()).isEqualTo("unexpected exception");
+        });
+    }
+
+    @Test
+    void shouldPublishEventWithGenericMessage_whenFailureHasNoMessage() {
+        when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(createNode()));
+        when(catalogFetcher.fetch(any(), any(), any(), any())).thenReturn(failedFuture(new RuntimeException()));
+
+        manager.start();
+
+        var captor = ArgumentCaptor.forClass(TargetNodeCrawled.class);
+        await().untilAsserted(() -> verify(eventRouter, atLeastOnce()).publish(captor.capture()));
+        assertThat(captor.getValue()).satisfies(event -> {
+            assertThat(event.isSuccess()).isFalse();
+            assertThat(event.getErrorMessage()).isEqualTo("Crawling the node failed with an unknown error");
+        });
+    }
+
+    @Test
+    void shouldPublishEvent_whenCatalogCannotBeStored() {
+        var node = createNode();
+        when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(node));
+        when(catalogFetcher.fetch(any(), any(), any(), any())).thenReturn(completedFuture(new Catalog()));
+        doThrow(new EdcException("cannot store")).when(store).save(any(), any());
+
+        manager.start();
+
+        var captor = ArgumentCaptor.forClass(TargetNodeCrawled.class);
+        await().untilAsserted(() -> verify(eventRouter, atLeastOnce()).publish(captor.capture()));
+        assertThat(captor.getValue()).satisfies(event -> {
+            assertThat(event.isSuccess()).isFalse();
+            assertThat(event.getErrorMessage()).isEqualTo("cannot store");
+        });
+    }
+
+    @Test
+    void shouldNotPublishEvent_whenNodeIsSkipped() {
+        when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(
+                new TargetNode("testnode", "did:web:" + UUID.randomUUID(), "http://test.com", PARTICIPANT_CONTEXT_ID, List.of())));
+
+        manager.start();
+
+        await().untilAsserted(() -> verify(monitorMock).warning(startsWith("Node")));
+        verifyNoInteractions(eventRouter);
     }
 
     @Test
@@ -168,6 +251,8 @@ class CatalogCrawlerManagerTest {
         await().untilAsserted(() -> verify(monitorMock).severe(startsWith("The following Node has errored out more than")));
         // one initial attempt plus maxRetries, then the node is discarded
         verify(catalogFetcher, times(maxRetries + 1)).fetch(any(), any(), any(), any());
+        // every failed attempt is notified
+        await().untilAsserted(() -> verify(eventRouter, times(maxRetries + 1)).publish(isA(TargetNodeCrawled.class)));
     }
 
     @Test
@@ -226,6 +311,7 @@ class CatalogCrawlerManagerTest {
                 .catalogFetcher(catalogFetcher)
                 .store(store)
                 .participantContextStore(participantContextStore)
+                .eventRouter(eventRouter)
                 .monitor(monitorMock);
     }
 
