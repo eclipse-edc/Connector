@@ -3662,6 +3662,14 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A ParticipantContext with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
         "409":
           description: "Can't create the ParticipantContext, because a object with\
             \ the same ID already exists"
@@ -3713,7 +3721,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/api-error-schema"
         "404":
-          description: A ParticipantContext config with the given ID does not exist.
+          description: A ParticipantContext with the given ID does not exist.
           content:
             application/json:
               schema:
