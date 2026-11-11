@@ -85,6 +85,7 @@ import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.f
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAVAILABLE;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -236,6 +237,25 @@ class TransferProcessProtocolServiceImplTest {
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
         verify(store, never()).save(any());
+        verifyNoInteractions(listener);
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(NotifyArguments.class)
+    <M extends ProtocolRemoteMessage> void notify_shouldReturnUnavailable_whenTransferProcessIsLeased(MethodCall<M> methodCall, M message) {
+        var tokenRepresentation = tokenRepresentation();
+
+        when(store.findById(any())).thenReturn(transferProcessBuilder().build());
+        when(store.findByIdAndLease(any())).thenReturn(StoreResult.alreadyLeased("leased"));
+        when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(contractAgreement());
+        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
+        when(validationService.validateRequest(any(ParticipantAgent.class), any(ContractAgreement.class))).thenReturn(Result.success());
+
+        var result = methodCall.call(service, participantContext, message, tokenRepresentation);
+
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAVAILABLE);
+        verify(store, never()).save(any());
+        verify(store, never()).breakLease(any());
         verifyNoInteractions(listener);
     }
 

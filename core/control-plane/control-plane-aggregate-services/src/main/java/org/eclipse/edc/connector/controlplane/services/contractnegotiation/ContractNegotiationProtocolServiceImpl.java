@@ -43,6 +43,8 @@ import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.result.StoreFailure;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -203,7 +205,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                                                            ParticipantAgent agent, Function<ContractNegotiation, ServiceResult<ContractNegotiation>> action) {
         var leaseNegotiation = store.findByIdAndLease(message.getProcessId());
         if (leaseNegotiation.failed()) {
-            return ServiceResult.from(leaseNegotiation.mapFailure());
+            return leaseFailure(leaseNegotiation);
         }
 
         var negotiation = leaseNegotiation.getContent();
@@ -364,6 +366,17 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
         } else {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be terminated"));
         }
+    }
+
+    /**
+     * A negotiation that is leased is being modified, e.g. by an earlier delivery of the same message: the
+     * counter-party can retry, and the retry is ignored if the earlier delivery has been processed in the meantime.
+     */
+    private ServiceResult<ContractNegotiation> leaseFailure(StoreResult<ContractNegotiation> leaseResult) {
+        if (leaseResult.reason() == StoreFailure.Reason.ALREADY_LEASED) {
+            return ServiceResult.unavailable(leaseResult.getFailureDetail());
+        }
+        return ServiceResult.from(leaseResult.mapFailure());
     }
 
     private ServiceResult<ParticipantAgent> verifyRequest(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, Policy policy, ProtocolRemoteMessage message) {

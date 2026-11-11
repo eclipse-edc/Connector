@@ -52,6 +52,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_TERM;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -615,6 +616,24 @@ class DspRequestHandlerImplTest {
                 assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID_TERM)).isEqualTo("processId");
                 assertThat(error.get(DSPACE_PROPERTY_REASON_TERM)).isNotNull();
             });
+        }
+
+        @Test
+        void shouldReturnServiceUnavailable_whenServiceIsUnavailable() {
+            ServiceCall<TestProcessRemoteMessage, Object> serviceCall = (ctx, m, t) -> ServiceResult.unavailable("leased");
+            var message = TestProcessRemoteMessage.Builder.newInstance().providerPid("providerPid").consumerPid("processId").build();
+            var request = postDspRequestBuilder().processId("processId").serviceCall(serviceCall).build();
+            var jsonError = error("503", "Failure", request.getProcessId());
+
+            when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
+            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
+            when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
+
+            var result = handler.updateResource(request);
+
+            assertThat(result.getStatus()).isEqualTo(503);
+            verify(transformerRegistry).transform(argThat(error -> error instanceof TestError testError && "503".equals(testError.getCode())), eq(JsonObject.class));
         }
 
         @Test

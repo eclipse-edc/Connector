@@ -30,6 +30,7 @@ dependencies {
     testImplementation(project(":core:control-plane:control-plane-catalog"))
     testImplementation(project(":core:control-plane:control-plane-contract"))
     testImplementation(project(":core:control-plane:control-plane-core"))
+    testImplementation(project(":core:control-plane:lib:control-plane-lib"))
     testImplementation(project(":core:control-plane:control-plane-contract-manager"))
     testImplementation(project(":core:control-plane:control-plane-transfer-manager"))
     testImplementation(project(":core:control-plane:control-plane-transfer"))

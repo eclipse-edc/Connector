@@ -52,6 +52,12 @@ public class ServiceResultHandler {
      *     <td>BAD_REQUEST</td> <td>InvalidRequestException</td>
      *   </tr>
      *   <tr>
+     *     <td>UNAUTHORIZED</td> <td>NotAuthorizedException</td>
+     *   </tr>
+     *   <tr>
+     *     <td>UNAVAILABLE</td> <td>ServiceUnavailableException</td>
+     *   </tr>
+     *   <tr>
      *     <td>other</td> <td>EdcException</td>
      *   </tr>
      *   <caption>Mapping from failure reason to exception</caption>
@@ -70,6 +76,7 @@ public class ServiceResultHandler {
             case BAD_REQUEST -> new InvalidRequestException(failure.getMessages());
             case UNAUTHORIZED -> new NotAuthorizedException(failure.getFailureDetail());
             case UNEXPECTED -> new EdcException(failure.getFailureDetail());
+            case UNAVAILABLE -> new ServiceUnavailableException(failure.getFailureDetail());
         };
     }
 

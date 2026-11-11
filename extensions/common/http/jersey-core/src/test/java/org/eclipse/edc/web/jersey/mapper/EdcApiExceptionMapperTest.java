@@ -23,6 +23,7 @@ import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.NotAuthorizedException;
 import org.eclipse.edc.web.spi.exception.ObjectConflictException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
+import org.eclipse.edc.web.spi.exception.ServiceUnavailableException;
 import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -91,7 +92,8 @@ class EdcApiExceptionMapperTest {
                     Arguments.of(new NotAuthorizedException(), 403),
                     Arguments.of(new InvalidRequestException(List.of("detail")), 400),
                     Arguments.of(new ValidationFailureException(List.of(violation("error", "path"))), 400),
-                    Arguments.of(new BadGatewayException("something happened"), 502)
+                    Arguments.of(new BadGatewayException("something happened"), 502),
+                    Arguments.of(new ServiceUnavailableException("try again later"), 503)
             );
         }
     }
