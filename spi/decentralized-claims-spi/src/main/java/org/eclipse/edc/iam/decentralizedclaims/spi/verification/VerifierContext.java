@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Think-it GmbH - nested credential verification
  *
  */
 
@@ -20,14 +21,15 @@ import org.eclipse.edc.spi.result.Result;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * The context in which a {@link CredentialVerifier} verifies its input. It delegates the verification of nested
+ * documents, e.g. the credentials of a presentation, to the first verifier that can handle them.
+ */
 public class VerifierContext {
 
     private final List<CredentialVerifier> verifiers = new ArrayList<>();
     private String audience;
-
-    public List<CredentialVerifier> getVerifiers() {
-        return verifiers;
-    }
+    private boolean credentialExpected;
 
     public Result<Void> verify(String rawInput) {
         return verifiers.stream().filter(cv -> cv.canHandle(rawInput))
@@ -40,10 +42,20 @@ public class VerifierContext {
         return audience;
     }
 
+    /**
+     * Whether the input is expected to be a credential, e.g. when verifying the credentials contained in a presentation.
+     *
+     * @return true if the input must be a credential
+     */
+    public boolean isCredentialExpected() {
+        return credentialExpected;
+    }
+
     public Builder toBuilder() {
         return new Builder()
                 .verifiers(verifiers)
-                .audience(audience);
+                .audience(audience)
+                .credentialExpected(credentialExpected);
     }
 
     public static class Builder {
@@ -69,6 +81,11 @@ public class VerifierContext {
 
         public Builder audience(String audience) {
             this.context.audience = audience;
+            return this;
+        }
+
+        public Builder credentialExpected(boolean credentialExpected) {
+            this.context.credentialExpected = credentialExpected;
             return this;
         }
 
