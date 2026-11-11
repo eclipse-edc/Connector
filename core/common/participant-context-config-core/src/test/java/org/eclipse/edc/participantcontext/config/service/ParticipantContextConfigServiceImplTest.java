@@ -21,10 +21,15 @@ import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextC
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigEntry;
 import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantContextConfigValidatorRegistry;
+import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Violation;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -55,7 +60,17 @@ public class ParticipantContextConfigServiceImplTest {
 
     private final ParticipantContextConfigValidatorRegistry validatorRegistry = new ParticipantContextConfigValidatorRegistryImpl(false);
 
-    private final ParticipantContextConfigService service = new ParticipantContextConfigServiceImpl(registry, "any", store, new NoopTransactionContext(), clock, validatorRegistry);
+    private final ParticipantContextStore participantContextStore = mock();
+
+    private final ParticipantContextConfigService service = new ParticipantContextConfigServiceImpl(registry, "any", store, participantContextStore, new NoopTransactionContext(), clock, validatorRegistry);
+
+    @BeforeEach
+    void setUp() {
+        when(participantContextStore.findByIdForUpdate(anyString())).thenAnswer(a -> StoreResult.success(ParticipantContext.Builder.newInstance()
+                .id(a.getArgument(0))
+                .identity("identity")
+                .build()));
+    }
 
 
     @Test
@@ -157,6 +172,47 @@ public class ParticipantContextConfigServiceImplTest {
 
         assertThat(service.merge(patch)).isFailed().detail().contains("Failed to encrypt entries");
         verify(store, never()).merge(any());
+    }
+
+    @Test
+    void merge_shouldReturnNotFound_whenParticipantContextDoesNotExist() {
+        when(participantContextStore.findByIdForUpdate("participantContext")).thenReturn(StoreResult.notFound("not found"));
+
+        var patch = ParticipantContextConfiguration.Builder.newInstance()
+                .participantContextId("participantContext")
+                .entries(Map.of("key", "value"))
+                .build();
+
+        // a late patch, e.g. after the participant context was deleted, must not create an orphaned configuration
+        assertThat(service.merge(patch)).isFailed()
+                .satisfies(f -> assertThat(f.getReason()).isEqualTo(ServiceFailure.Reason.NOT_FOUND));
+        verify(store, never()).merge(any());
+    }
+
+    @Test
+    void merge_shouldLockParticipantContext() {
+        var patch = ParticipantContextConfiguration.Builder.newInstance()
+                .participantContextId("participantContext")
+                .entries(Map.of("key", "value"))
+                .build();
+
+        assertThat(service.merge(patch)).isSucceeded();
+
+        verify(participantContextStore).findByIdForUpdate("participantContext");
+    }
+
+    @Test
+    void save_shouldReturnNotFound_whenParticipantContextDoesNotExist() {
+        when(participantContextStore.findByIdForUpdate("participantContext")).thenReturn(StoreResult.notFound("not found"));
+
+        var config = ParticipantContextConfiguration.Builder.newInstance()
+                .participantContextId("participantContext")
+                .entries(Map.of("key", "value"))
+                .build();
+
+        assertThat(service.save(config)).isFailed()
+                .satisfies(f -> assertThat(f.getReason()).isEqualTo(ServiceFailure.Reason.NOT_FOUND));
+        verify(store, never()).save(any());
     }
 
     @Test

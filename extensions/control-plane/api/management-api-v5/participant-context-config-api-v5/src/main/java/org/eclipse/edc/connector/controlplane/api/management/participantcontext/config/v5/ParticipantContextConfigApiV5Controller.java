@@ -64,7 +64,7 @@ public class ParticipantContextConfigApiV5Controller implements ParticipantConte
                 .build();
 
         configService.save(config)
-                .orElseThrow(exceptionMapper(ParticipantContextConfiguration.class, config.getParticipantContextId()));
+                .orElseThrow(exceptionMapper(ParticipantContext.class, config.getParticipantContextId()));
 
     }
 
@@ -80,7 +80,7 @@ public class ParticipantContextConfigApiV5Controller implements ParticipantConte
                 .build();
 
         configService.merge(config)
-                .orElseThrow(exceptionMapper(ParticipantContextConfiguration.class, config.getParticipantContextId()));
+                .orElseThrow(exceptionMapper(ParticipantContext.class, config.getParticipantContextId()));
 
     }
 

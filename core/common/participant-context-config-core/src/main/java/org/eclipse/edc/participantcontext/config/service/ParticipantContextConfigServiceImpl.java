@@ -21,6 +21,7 @@ import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextC
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigView;
 import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantContextConfigValidatorRegistry;
+import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -37,15 +38,17 @@ public class ParticipantContextConfigServiceImpl implements ParticipantContextCo
     private final EncryptionAlgorithmRegistry encryptionRegistry;
     private final String encryptionAlgorithm;
     private final ParticipantContextConfigStore configStore;
+    private final ParticipantContextStore participantContextStore;
     private final TransactionContext transactionContext;
     private final Clock clock;
     private final ParticipantContextConfigValidatorRegistry validatorRegistry;
 
     public ParticipantContextConfigServiceImpl(EncryptionAlgorithmRegistry encryptionRegistry, String encryptionAlgorithm, ParticipantContextConfigStore configStore,
-                                               TransactionContext transactionContext, Clock clock, ParticipantContextConfigValidatorRegistry validatorRegistry) {
+                                               ParticipantContextStore participantContextStore, TransactionContext transactionContext, Clock clock, ParticipantContextConfigValidatorRegistry validatorRegistry) {
         this.encryptionRegistry = encryptionRegistry;
         this.encryptionAlgorithm = encryptionAlgorithm;
         this.configStore = configStore;
+        this.participantContextStore = participantContextStore;
         this.transactionContext = transactionContext;
         this.clock = clock;
         this.validatorRegistry = validatorRegistry;
@@ -60,6 +63,10 @@ public class ParticipantContextConfigServiceImpl implements ParticipantContextCo
             var validation = validatorRegistry.validateWrite(config, ParticipantConfigView.of(config));
             if (validation.failed()) {
                 return ServiceResult.badRequest(validation.getFailureMessages());
+            }
+            var participantContext = lockParticipantContext(config.getParticipantContextId());
+            if (participantContext.failed()) {
+                return participantContext;
             }
             return encryptEntries(config)
                     .onSuccess(configStore::save)
@@ -77,6 +84,12 @@ public class ParticipantContextConfigServiceImpl implements ParticipantContextCo
             if (validation.failed()) {
                 return ServiceResult.badRequest(validation.getFailureMessages());
             }
+            // a configuration is only written for an existing participant context: otherwise a late writer would create
+            // an orphaned configuration, e.g. for a participant context deleted after a failed provisioning
+            var participantContext = lockParticipantContext(config.getParticipantContextId());
+            if (participantContext.failed()) {
+                return participantContext;
+            }
             var now = clock.millis();
             // the patch is handed to the store as-is: applying it has to happen atomically inside the store, otherwise
             // concurrent merges would read the same base and clobber each other's entries
@@ -88,6 +101,13 @@ public class ParticipantContextConfigServiceImpl implements ParticipantContextCo
                     .onSuccess(configStore::merge)
                     .mapEmpty();
         });
+    }
+
+    /**
+     * Loads the participant context with a row lock, so that it cannot be deleted while its configuration is written.
+     */
+    private ServiceResult<Void> lockParticipantContext(String participantContextId) {
+        return ServiceResult.from(participantContextStore.findByIdForUpdate(participantContextId)).mapEmpty();
     }
 
     private static boolean hasNullValue(Map<String, String> map) {

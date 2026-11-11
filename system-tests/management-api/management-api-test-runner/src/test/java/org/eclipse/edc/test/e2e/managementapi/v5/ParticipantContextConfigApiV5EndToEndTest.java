@@ -61,8 +61,9 @@ public class ParticipantContextConfigApiV5EndToEndTest {
         }
 
         @Test
-        void set(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service) {
+        void set(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service, ParticipantContextService pcService) {
             var participantContextId = "test-user";
+            createParticipant(pcService, participantContextId);
 
             var entries = Map.of("key1", "value1", "key2", "value2");
 
@@ -153,8 +154,9 @@ public class ParticipantContextConfigApiV5EndToEndTest {
         }
 
         @Test
-        void validate_whenValid(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service) {
+        void validate_whenValid(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service, ParticipantContextService pcService) {
             var participantContextId = "test-user";
+            createParticipant(pcService, participantContextId);
             service.save(ParticipantContextConfiguration.Builder.newInstance().participantContextId(participantContextId)
                     .entries(Map.of("key", "value"))
                     .build());
@@ -200,8 +202,9 @@ public class ParticipantContextConfigApiV5EndToEndTest {
         }
 
         @Test
-        void patch_shouldMergeEntries(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service) {
+        void patch_shouldMergeEntries(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service, ParticipantContextService pcService) {
             var participantContextId = "test-user";
+            createParticipant(pcService, participantContextId);
 
             service.save(ParticipantContextConfiguration.Builder.newInstance().participantContextId(participantContextId)
                     .entries(Map.of("key1", "value1", "key2", "value2"))
@@ -231,8 +234,9 @@ public class ParticipantContextConfigApiV5EndToEndTest {
         }
 
         @Test
-        void patch_shouldRemoveEntry_whenValueIsNull(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service) {
+        void patch_shouldRemoveEntry_whenValueIsNull(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service, ParticipantContextService pcService) {
             var participantContextId = "test-user";
+            createParticipant(pcService, participantContextId);
 
             service.save(ParticipantContextConfiguration.Builder.newInstance().participantContextId(participantContextId)
                     .entries(Map.of("key1", "value1", "key2", "value2"))
@@ -287,8 +291,9 @@ public class ParticipantContextConfigApiV5EndToEndTest {
         }
 
         @Test
-        void patch_shouldCreateConfig_whenConfigDoesNotExist(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service) {
+        void patch_shouldCreateConfig_whenConfigDoesNotExist(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service, ParticipantContextService pcService) {
             var participantContextId = "user-without-config";
+            createParticipant(pcService, participantContextId);
 
             var body = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -313,8 +318,52 @@ public class ParticipantContextConfigApiV5EndToEndTest {
         }
 
         @Test
-        void get(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService srv) {
+        void patch_shouldReturnNotFound_whenParticipantContextDoesNotExist(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service) {
+            var participantContextId = "unknown-participant";
+
+            var body = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "ParticipantContextConfig")
+                    .add("entries", createObjectBuilder(Map.of("key1", "value1")))
+                    .build()
+                    .toString();
+
+            context.baseRequest(authServer.createAdminToken())
+                    .contentType(ContentType.JSON)
+                    .body(body)
+                    .patch("/v5/participants/" + participantContextId + "/config")
+                    .then()
+                    .statusCode(404);
+
+            // no orphaned configuration is created
+            assertThat(service.get(participantContextId).succeeded()).isFalse();
+        }
+
+        @Test
+        void set_shouldReturnNotFound_whenParticipantContextDoesNotExist(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service) {
+            var participantContextId = "unknown-participant";
+
+            var body = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "ParticipantContextConfig")
+                    .add("entries", createObjectBuilder(Map.of("key1", "value1")))
+                    .build()
+                    .toString();
+
+            context.baseRequest(authServer.createAdminToken())
+                    .contentType(ContentType.JSON)
+                    .body(body)
+                    .put("/v5/participants/" + participantContextId + "/config")
+                    .then()
+                    .statusCode(404);
+
+            assertThat(service.get(participantContextId).succeeded()).isFalse();
+        }
+
+        @Test
+        void get(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService srv, ParticipantContextService pcService) {
             var participantContextId = "test-user";
+            createParticipant(pcService, participantContextId);
             var entries = Map.of("key1", "value1", "key2", "value2");
 
             srv.save(ParticipantContextConfiguration.Builder.newInstance().participantContextId(participantContextId)
