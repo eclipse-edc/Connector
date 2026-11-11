@@ -157,10 +157,10 @@ public class DspNegotiationApi2025EndToEndTest {
                 .post(basePath + "/negotiations/" + id + "/termination")
                 .then()
                 .log().ifError()
-                .statusCode(401)
+                .statusCode(404)
                 .contentType(JSON)
                 .body("'@type'", equalTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR_TERM))
-                .body("code", equalTo("401"))
+                .body("code", equalTo("404"))
                 .body("reason[0]", equalTo("Unauthorized."))
                 .body("'@context'", equalTo(context));
     }

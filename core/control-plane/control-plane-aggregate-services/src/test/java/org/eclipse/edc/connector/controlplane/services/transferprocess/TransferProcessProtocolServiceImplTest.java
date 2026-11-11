@@ -83,7 +83,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
-import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAVAILABLE;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -558,7 +557,7 @@ class TransferProcessProtocolServiceImplTest {
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
             verify(store, never()).save(any());
             verifyNoInteractions(listener);
         }
@@ -644,7 +643,7 @@ class TransferProcessProtocolServiceImplTest {
         }
 
         @Test
-        void shouldReturnConflict_whenStatusIsNotValid() {
+        void shouldReturnBadRequest_whenStatusIsNotValid() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
             var transferProcess = transferProcess(REQUESTED, UUID.randomUUID().toString());
@@ -665,7 +664,7 @@ class TransferProcessProtocolServiceImplTest {
 
             var result = service.notifyCompleted(participantContext, message, tokenRepresentation);
 
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
             verify(store).breakLease(transferProcess);
             verifyNoInteractions(listener);
         }
@@ -732,7 +731,7 @@ class TransferProcessProtocolServiceImplTest {
         }
 
         @Test
-        void shouldReturnConflict_whenTransferProcessCannotBeTerminated() {
+        void shouldReturnBadRequest_whenTransferProcessCannotBeTerminated() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
             var transferProcess = transferProcess(COMPLETED, UUID.randomUUID().toString());
@@ -755,7 +754,7 @@ class TransferProcessProtocolServiceImplTest {
 
             var result = service.notifyTerminated(participantContext, message, tokenRepresentation);
 
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
             // state didn't change
             verify(store).breakLease(transferProcess);
             verifyNoInteractions(listener);
@@ -857,7 +856,7 @@ class TransferProcessProtocolServiceImplTest {
         }
 
         @Test
-        void shouldReturnConflict_whenTransferCannotBeStarted() {
+        void shouldReturnBadRequest_whenTransferCannotBeStarted() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
             var transferProcess = transferProcess(TERMINATING, UUID.randomUUID().toString());
@@ -878,7 +877,7 @@ class TransferProcessProtocolServiceImplTest {
 
             var result = service.notifyStarted(participantContext, message, tokenRepresentation);
 
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
             verify(store).breakLease(transferProcess);
             verifyNoInteractions(listener);
         }
@@ -1040,7 +1039,7 @@ class TransferProcessProtocolServiceImplTest {
         }
 
         @Test
-        void shouldReturnConflict_whenStatusIsNotSuspendedNorResumed() {
+        void shouldReturnBadRequest_whenStatusIsNotSuspendedNorResumed() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
             var message = TransferStartMessage.Builder.newInstance()
@@ -1063,7 +1062,7 @@ class TransferProcessProtocolServiceImplTest {
 
             var result = service.notifyStarted(participantContext, message, tokenRepresentation);
 
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
             verify(store).breakLease(transferProcess);
         }
     }
@@ -1100,7 +1099,7 @@ class TransferProcessProtocolServiceImplTest {
         }
 
         @Test
-        void shouldReturnConflict_whenDataFlowCannotBeSuspended() {
+        void shouldReturnBadRequest_whenDataFlowCannotBeSuspended() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
             var message = TransferSuspensionMessage.Builder.newInstance()
@@ -1123,13 +1122,13 @@ class TransferProcessProtocolServiceImplTest {
 
             var result = service.notifySuspended(participantContext, message, tokenRepresentation);
 
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
             verify(store).breakLease(transferProcess);
             verifyNoInteractions(listener);
         }
 
         @Test
-        void shouldReturnConflict_whenTransferProcessCannotBeSuspended() {
+        void shouldReturnBadRequest_whenTransferProcessCannotBeSuspended() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
             var transferProcess = transferProcess(TERMINATING, UUID.randomUUID().toString());
@@ -1152,7 +1151,7 @@ class TransferProcessProtocolServiceImplTest {
 
             var result = service.notifySuspended(participantContext, message, tokenRepresentation);
 
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
             verify(store).breakLease(transferProcess);
             verifyNoInteractions(listener);
         }
@@ -1241,7 +1240,7 @@ class TransferProcessProtocolServiceImplTest {
 
         @ParameterizedTest
         @ArgumentsSource(NotifyArguments.class)
-        <M extends ProcessRemoteMessage> void notify_shouldReturnConflict_whenFinalState(MethodCall<M> methodCall, M message,
+        <M extends ProcessRemoteMessage> void notify_shouldReturnBadRequest_whenFinalState(MethodCall<M> methodCall, M message,
                                                                                          TransferProcess.Type type) {
             var transferProcess = transferProcessBuilder().state(COMPLETED.code()).type(type).build();
             when(protocolTokenValidator.verify(any(), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
@@ -1255,7 +1254,7 @@ class TransferProcessProtocolServiceImplTest {
             var result = methodCall.call(service, participantContext, message, tokenRepresentation());
 
             assertThat(result).isFailed().satisfies(failure -> {
-                assertThat(failure.getReason()).isEqualTo(CONFLICT);
+                assertThat(failure.getReason()).isEqualTo(BAD_REQUEST);
             });
             verifyNoInteractions(listener);
         }

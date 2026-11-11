@@ -84,7 +84,6 @@ import static org.eclipse.edc.connector.controlplane.services.contractnegotiatio
 import static org.eclipse.edc.connector.controlplane.services.contractnegotiation.ContractNegotiationProtocolServiceImplTest.TestFunctions.createPolicy;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
-import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAVAILABLE;
@@ -927,7 +926,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
         @ParameterizedTest
         @ArgumentsSource(NotifyArguments.class)
-        <M extends ProcessRemoteMessage> void notify_shouldReturnConflict_whenFinalizedState(MethodCall<M> methodCall, M message,
+        <M extends ProcessRemoteMessage> void notify_shouldReturnBadRequest_whenFinalizedState(MethodCall<M> methodCall, M message,
                                                                                              ContractNegotiation.Type type) {
             var offer = contractOffer();
             var negotiation = contractNegotiationBuilder().state(FINALIZED.code()).type(type).contractOffer(offer).build();
@@ -945,14 +944,14 @@ class ContractNegotiationProtocolServiceImplTest {
             var result = methodCall.call(service, participantContext, message, tokenRepresentation());
 
             assertThat(result).isFailed().satisfies(failure -> {
-                assertThat(failure.getReason()).isEqualTo(CONFLICT);
+                assertThat(failure.getReason()).isEqualTo(BAD_REQUEST);
             });
             verifyNoInteractions(listener);
         }
 
         @ParameterizedTest
         @ArgumentsSource(NotifyArguments.class)
-        <M extends ProcessRemoteMessage> void notify_shouldReturnConflict_whenTerminatedState(MethodCall<M> methodCall, M message,
+        <M extends ProcessRemoteMessage> void notify_shouldReturnBadRequest_whenTerminatedState(MethodCall<M> methodCall, M message,
                                                                                               ContractNegotiation.Type type) {
             var offer = contractOffer();
             var negotiation = contractNegotiationBuilder().state(TERMINATED.code()).type(type).contractOffer(offer).build();
@@ -970,7 +969,7 @@ class ContractNegotiationProtocolServiceImplTest {
             var result = methodCall.call(service, participantContext, message, tokenRepresentation());
 
             assertThat(result).isFailed().satisfies(failure -> {
-                assertThat(failure.getReason()).isEqualTo(CONFLICT);
+                assertThat(failure.getReason()).isEqualTo(BAD_REQUEST);
             });
             verifyNoInteractions(listener);
         }

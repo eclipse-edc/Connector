@@ -154,10 +154,10 @@ public class DspTransferApi2025EndToEndTest {
                 .get(basePath + "/transfers/" + id)
                 .then()
                 .log().ifError()
-                .statusCode(401)
+                .statusCode(404)
                 .contentType(JSON)
                 .body("'@type'", equalTo(DSPACE_TYPE_TRANSFER_ERROR_TERM))
-                .body("code", equalTo("401"))
+                .body("code", equalTo("404"))
                 .body("reason[0]", equalTo("Unauthorized."))
                 .body("'@context'", equalTo(context));
 
