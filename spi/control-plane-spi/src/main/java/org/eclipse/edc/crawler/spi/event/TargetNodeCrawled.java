@@ -24,10 +24,12 @@ import tools.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.Objects;
 
 /**
- * Emitted every time the catalog crawler has crawled a {@link TargetNode},
+ * Emitted when the catalog crawler has crawled a {@link TargetNode},
  * regardless of the outcome: {@link #isSuccess()}
  * tells whether the catalog was fetched and cached, and if it was not,
  * {@link #getErrorMessage()} contains the reason.
+ * A failure is only emitted once it is terminal, i.e. after all retries
+ * have been exhausted, so a failed attempt that is retried emits nothing.
  */
 @JsonDeserialize(builder = TargetNodeCrawled.Builder.class)
 public class TargetNodeCrawled extends Event {

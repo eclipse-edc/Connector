@@ -125,11 +125,12 @@ class CatalogCrawlerManagerTest {
         var node = createNode();
         when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(node));
         when(catalogFetcher.fetch(any(), any(), any(), any())).thenReturn(failedFuture(new EdcException("unexpected exception")));
+        manager = createManagerBuilder().configuration(noRetries()).build();
 
         manager.start();
 
         var captor = ArgumentCaptor.forClass(TargetNodeCrawled.class);
-        await().untilAsserted(() -> verify(eventRouter, atLeastOnce()).publish(captor.capture()));
+        await().untilAsserted(() -> verify(eventRouter).publish(captor.capture()));
         assertThat(captor.getValue()).satisfies(event -> {
             assertThat(event.getNodeId()).isEqualTo(node.id());
             assertThat(event.isSuccess()).isFalse();
@@ -141,11 +142,12 @@ class CatalogCrawlerManagerTest {
     void shouldPublishEventWithGenericMessage_whenFailureHasNoMessage() {
         when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(createNode()));
         when(catalogFetcher.fetch(any(), any(), any(), any())).thenReturn(failedFuture(new RuntimeException()));
+        manager = createManagerBuilder().configuration(noRetries()).build();
 
         manager.start();
 
         var captor = ArgumentCaptor.forClass(TargetNodeCrawled.class);
-        await().untilAsserted(() -> verify(eventRouter, atLeastOnce()).publish(captor.capture()));
+        await().untilAsserted(() -> verify(eventRouter).publish(captor.capture()));
         assertThat(captor.getValue()).satisfies(event -> {
             assertThat(event.isSuccess()).isFalse();
             assertThat(event.getErrorMessage()).isEqualTo("Crawling the node failed with an unknown error");
@@ -158,11 +160,12 @@ class CatalogCrawlerManagerTest {
         when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(node));
         when(catalogFetcher.fetch(any(), any(), any(), any())).thenReturn(completedFuture(new Catalog()));
         doThrow(new EdcException("cannot store")).when(store).save(any(), any());
+        manager = createManagerBuilder().configuration(noRetries()).build();
 
         manager.start();
 
         var captor = ArgumentCaptor.forClass(TargetNodeCrawled.class);
-        await().untilAsserted(() -> verify(eventRouter, atLeastOnce()).publish(captor.capture()));
+        await().untilAsserted(() -> verify(eventRouter).publish(captor.capture()));
         assertThat(captor.getValue()).satisfies(event -> {
             assertThat(event.isSuccess()).isFalse();
             assertThat(event.getErrorMessage()).isEqualTo("cannot store");
@@ -251,8 +254,31 @@ class CatalogCrawlerManagerTest {
         await().untilAsserted(() -> verify(monitorMock).severe(startsWith("The following Node has errored out more than")));
         // one initial attempt plus maxRetries, then the node is discarded
         verify(catalogFetcher, times(maxRetries + 1)).fetch(any(), any(), any(), any());
-        // every failed attempt is notified
-        await().untilAsserted(() -> verify(eventRouter, times(maxRetries + 1)).publish(isA(TargetNodeCrawled.class)));
+        // the failure is only notified once, after the retries have been exhausted
+        var captor = ArgumentCaptor.forClass(TargetNodeCrawled.class);
+        await().untilAsserted(() -> verify(eventRouter).publish(captor.capture()));
+        assertThat(captor.getValue().isSuccess()).isFalse();
+        verifyNoMoreInteractions(eventRouter);
+    }
+
+    @Test
+    void shouldOnlyPublishSuccess_whenRetrySucceeds() {
+        // retry immediately, and use a long period so the next crawl cycle cannot interfere
+        var manager = createManagerBuilder()
+                .configuration(new CatalogCrawlerConfiguration(true, 1, 3600, 0, 2, 0))
+                .build();
+        when(nodeDirectoryMock.getAll(PARTICIPANT_CONTEXT_ID)).thenReturn(List.of(createNode()));
+        when(catalogFetcher.fetch(any(), any(), any(), any()))
+                .thenReturn(failedFuture(new EdcException("unexpected exception")))
+                .thenReturn(completedFuture(new Catalog()));
+
+        manager.start();
+
+        var captor = ArgumentCaptor.forClass(TargetNodeCrawled.class);
+        await().untilAsserted(() -> verify(eventRouter).publish(captor.capture()));
+        assertThat(captor.getValue().isSuccess()).isTrue();
+        verify(catalogFetcher, times(2)).fetch(any(), any(), any(), any());
+        verifyNoMoreInteractions(eventRouter);
     }
 
     @Test
@@ -301,6 +327,13 @@ class CatalogCrawlerManagerTest {
 
     private CatalogCrawlerConfiguration enabledCrawler() {
         return new CatalogCrawlerConfiguration(true, 5, 20, 0, 5, 5);
+    }
+
+    /**
+     * A failed crawl is never retried, and the period is long enough to keep the next crawl cycle out of the test.
+     */
+    private CatalogCrawlerConfiguration noRetries() {
+        return new CatalogCrawlerConfiguration(true, 1, 3600, 0, 0, 0);
     }
 
     @NotNull

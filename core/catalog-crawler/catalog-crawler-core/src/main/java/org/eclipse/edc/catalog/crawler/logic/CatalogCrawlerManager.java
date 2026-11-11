@@ -159,6 +159,7 @@ public class CatalogCrawlerManager {
         var targetNode = item.targetNode();
         if (throwable == null) {
             monitor.debug(format("Node [%s] is done", targetNode.id()));
+            publishCrawled(targetNode, null);
         } else {
 
             if (throwable.getCause() instanceof ConnectException connectException) {
@@ -170,13 +171,13 @@ public class CatalogCrawlerManager {
             var retries = item.retries() + 1;
             if (retries > configuration.maxRetries()) {
                 monitor.severe(format("The following Node has errored out more than %d times. We'll discard it now: [%s]", configuration.maxRetries(), item));
+                // the failure is only notified once it is terminal, i.e. there are no retries left
+                publishCrawled(targetNode, throwable);
             } else {
                 monitor.debug(format("The following Node has errored out. Will re-queue after a delay of %s seconds: [%s]", configuration.retryDelaySeconds(), item));
                 crawlers.schedule(createCrawler(new TargetNodeRetryCount(retries, targetNode)), configuration.retryDelaySeconds(), TimeUnit.SECONDS);
             }
         }
-
-        publishCrawled(targetNode, throwable);
     }
 
     /**
