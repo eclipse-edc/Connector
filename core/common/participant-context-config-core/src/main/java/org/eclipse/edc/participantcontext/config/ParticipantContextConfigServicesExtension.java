@@ -21,6 +21,7 @@ import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.participantcontext.spi.config.validation.ParticipantContextConfigValidatorRegistry;
+import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -57,6 +58,9 @@ public class ParticipantContextConfigServicesExtension implements ServiceExtensi
     private ParticipantContextConfigStore configStore;
 
     @Inject
+    private ParticipantContextStore participantContextStore;
+
+    @Inject
     private TransactionContext transactionContext;
 
     @Inject
@@ -72,7 +76,7 @@ public class ParticipantContextConfigServicesExtension implements ServiceExtensi
 
     @Provider
     public ParticipantContextConfigService participantContextConfigService() {
-        return new ParticipantContextConfigServiceImpl(encryptionRegistry, encryptionAlgorithm, configStore, transactionContext, clock, participantContextConfigValidatorRegistry());
+        return new ParticipantContextConfigServiceImpl(encryptionRegistry, encryptionAlgorithm, configStore, participantContextStore, transactionContext, clock, participantContextConfigValidatorRegistry());
     }
 
     @Provider
