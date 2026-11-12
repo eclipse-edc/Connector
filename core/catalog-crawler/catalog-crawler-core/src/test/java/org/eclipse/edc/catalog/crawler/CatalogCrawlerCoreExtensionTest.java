@@ -21,6 +21,7 @@ import org.eclipse.edc.crawler.spi.TargetNodeFilter;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
+import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
@@ -64,6 +65,7 @@ class CatalogCrawlerCoreExtensionTest {
         context.registerService(TypeManager.class, typeManager);
         context.registerService(TypeTransformerRegistry.class, transformerRegistry);
         context.registerService(JsonLd.class, mock());
+        context.registerService(EventRouter.class, mock());
     }
 
     @Test
