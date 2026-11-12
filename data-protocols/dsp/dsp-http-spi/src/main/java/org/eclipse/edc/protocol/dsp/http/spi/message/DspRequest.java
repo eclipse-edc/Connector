@@ -55,6 +55,10 @@ public class DspRequest<I, R, E extends ErrorMessage> {
         return resultClass;
     }
 
+    public Class<E> getErrorClass() {
+        return errorClass;
+    }
+
     public ServiceCall<I, R> getServiceCall() {
         return serviceCall;
     }

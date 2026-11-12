@@ -19,9 +19,11 @@ package org.eclipse.edc.protocol.dsp.http.message;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogError;
 import org.eclipse.edc.controlplane.ErrorMessage;
 import org.eclipse.edc.controlplane.ProcessRemoteMessage;
 import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
+import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
@@ -229,24 +231,19 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     }
 
     private <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response forFailure(ServiceFailure failure, PostDspRequest<I, R, E> request) {
-        return forFailure(failure, request.getProtocol(), request.getErrorProvider().get().processId(request.getProcessId()));
+        return forStatus(getHttpStatus(failure, request), failure.getMessages(), request);
     }
 
     private <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response forFailure(ServiceFailure failure, GetDspRequest<I, R, E> request) {
-        return forFailure(failure, request.getProtocol(), request.getErrorProvider().get().processId(request.getId()));
-    }
-
-    private <E extends ErrorMessage> Response forFailure(ServiceFailure failure, String protocol, ErrorMessage.Builder<E, ?> builder) {
-        var code = getHttpStatus(failure);
-        return forStatus(code, protocol, failure.getMessages(), builder);
+        return forStatus(getHttpStatus(failure, request), failure.getMessages(), request);
     }
 
     private <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response unauthorized(GetDspRequest<I, R, E> request) {
-        return forStatus(Response.Status.UNAUTHORIZED, List.of(UNAUTHORIZED), request);
+        return forStatus(unauthorizedStatus(request), List.of(UNAUTHORIZED), request);
     }
 
     private <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response unauthorized(PostDspRequest<I, R, E> request) {
-        return forStatus(Response.Status.UNAUTHORIZED, List.of(UNAUTHORIZED), request);
+        return forStatus(unauthorizedStatus(request), List.of(UNAUTHORIZED), request);
     }
 
     private <I extends ProtocolRemoteMessage, R, E extends ErrorMessage> Response badRequest(GetDspRequest<I, R, E> request) {
@@ -291,14 +288,24 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     }
 
     @NotNull
-    private Response.Status getHttpStatus(ServiceFailure failure) {
+    private Response.Status getHttpStatus(ServiceFailure failure, DspRequest<?, ?, ?> request) {
         return switch (failure.getReason()) {
-            case UNAUTHORIZED -> Response.Status.UNAUTHORIZED;
+            case UNAUTHORIZED -> unauthorizedStatus(request);
             case CONFLICT -> Response.Status.CONFLICT;
             case NOT_FOUND -> Response.Status.NOT_FOUND;
             // a 5xx tells the counter-party to retry the message, a 4xx ends its negotiation or transfer process
             case UNAVAILABLE -> Response.Status.SERVICE_UNAVAILABLE;
             default -> Response.Status.BAD_REQUEST;
         };
+    }
+
+    /**
+     * The DSP bindings of the contract negotiation and transfer process protocols require a 404 for a client that is
+     * not authorized, which does not tell whether the process exists. The catalog binding only requires an appropriate
+     * code, so it keeps the more explicit 401.
+     */
+    @NotNull
+    private Response.Status unauthorizedStatus(DspRequest<?, ?, ?> request) {
+        return CatalogError.class.equals(request.getErrorClass()) ? Response.Status.UNAUTHORIZED : Response.Status.NOT_FOUND;
     }
 }

@@ -164,7 +164,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
         var validationResult = contractValidationService.validateAgreement(context.participantAgent(), context.agreement());
         if (validationResult.failed()) {
-            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "agreement not found or not valid"));
+            return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "agreement not found or not valid"));
         }
 
         var existingTransferProcess = findForCorrelationId(participantContext, message.getConsumerPid());
@@ -234,7 +234,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                     .map(i -> transferProcess);
         }
 
-        return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be started"));
+        return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be started"));
     }
 
     @NotNull
@@ -246,7 +246,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             return ServiceResult.from(update(transferProcess).onSuccess(i -> observable.invokeForEach(l -> l.completingRequested(transferProcess))))
                     .map(i -> transferProcess);
         } else {
-            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be completed"));
+            return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be completed"));
         }
     }
 
@@ -259,7 +259,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             return ServiceResult.from(update(transferProcess).onSuccess(i -> observable.invokeForEach(l -> l.suspendingRequested(transferProcess))))
                     .map(i -> transferProcess);
         } else {
-            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be suspended"));
+            return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be suspended"));
         }
     }
 
@@ -271,7 +271,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             return ServiceResult.from(update(transferProcess).onSuccess(i -> observable.invokeForEach(l -> l.terminatingRequested(transferProcess))))
                     .map(i -> transferProcess);
         } else {
-            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be terminated"));
+            return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be terminated"));
         }
     }
 

@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.http.message;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogError;
 import org.eclipse.edc.controlplane.ErrorMessage;
 import org.eclipse.edc.controlplane.ProcessRemoteMessage;
 import org.eclipse.edc.jsonld.spi.Namespaces;
@@ -122,9 +123,9 @@ class DspRequestHandlerImplTest {
         }
 
         @Test
-        void shouldReturnUnauthorized_whenTokenIsNull() {
+        void shouldReturnNotFound_whenTokenIsNull() {
             var request = getDspRequestBuilder().token(null).serviceCall((ctx, m, t) -> ServiceResult.success()).build();
-            var jsonError = error("401", "unauthorized");
+            var jsonError = error("404", "unauthorized");
             var message = new TestProcessRemoteMessage();
 
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
@@ -133,28 +134,65 @@ class DspRequestHandlerImplTest {
 
             var result = handler.getResource(request);
 
-            assertThat(result.getStatus()).isEqualTo(401);
+            assertThat(result.getStatus()).isEqualTo(404);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE_TERM)).isEqualTo("401");
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_TERM)).isEqualTo("404");
                 assertThat(error.get(DSPACE_PROPERTY_REASON_TERM)).isNotNull();
             });
         }
 
         @Test
+        void shouldReturnUnauthorized_whenCatalogRequestTokenIsNull() {
+            var request = catalogDspRequestBuilder().token(null).build();
+
+            when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
+            when(transformerRegistry.transform(isA(CatalogError.class), eq(JsonObject.class))).thenReturn(Result.success(Json.createObjectBuilder().build()));
+
+            var result = handler.getResource(request);
+
+            assertThat(result.getStatus()).isEqualTo(401);
+            verify(transformerRegistry).transform(argThat(error -> error instanceof CatalogError catalogError && "401".equals(catalogError.getCode())), eq(JsonObject.class));
+        }
+
+        @Test
+        void shouldReturnUnauthorized_whenCatalogRequestTokenIsNotValid() {
+            var request = catalogDspRequestBuilder().serviceCall((ctx, m, t) -> ServiceResult.unauthorized("unauthorized")).build();
+
+            when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
+            when(transformerRegistry.transform(isA(CatalogError.class), eq(JsonObject.class))).thenReturn(Result.success(Json.createObjectBuilder().build()));
+
+            var result = handler.getResource(request);
+
+            assertThat(result.getStatus()).isEqualTo(401);
+        }
+
+        @Test
+        void shouldReturnNotFound_whenTokenIsNotValid_andSetErrorCode() {
+            var request = getDspRequestBuilder().serviceCall((ctx, m, t) -> ServiceResult.unauthorized("unauthorized")).build();
+
+            when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
+            when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(Json.createObjectBuilder().build()));
+
+            handler.getResource(request);
+
+            verify(transformerRegistry).transform(argThat(error -> error instanceof TestError testError && "404".equals(testError.getCode())), eq(JsonObject.class));
+        }
+
+        @Test
         void shouldFail_whenTokenIsNotValid() {
             var request = getDspRequestBuilder().serviceCall((ctx, m, t) -> ServiceResult.unauthorized("unauthorized")).build();
-            var jsonError = error("401", "unauthorized");
+            var jsonError = error("404", "unauthorized");
 
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
             when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
 
             var result = handler.getResource(request);
 
-            assertThat(result.getStatus()).isEqualTo(401);
+            assertThat(result.getStatus()).isEqualTo(404);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE_TERM)).isEqualTo("401");
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_TERM)).isEqualTo("404");
                 assertThat(error.get(DSPACE_PROPERTY_REASON_TERM)).isNotNull();
             });
         }
@@ -214,8 +252,18 @@ class DspRequestHandlerImplTest {
 
             var result = handler.getResource(request);
 
-            assertThat(result.getStatus()).isEqualTo(401);
+            assertThat(result.getStatus()).isEqualTo(404);
 
+        }
+
+        private GetDspRequest.Builder<TestProcessRemoteMessage, Object, CatalogError> catalogDspRequestBuilder() {
+            return GetDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class, CatalogError.class)
+                    .token("token")
+                    .id("id")
+                    .serviceCall((ctx, i, c) -> ServiceResult.success())
+                    .errorProvider(CatalogError.Builder::newInstance)
+                    .participantContextProvider(participantContextSupplier)
+                    .protocol(protocol);
         }
 
         private GetDspRequest.Builder<TestProcessRemoteMessage, Object, TestError> getDspRequestBuilder() {
@@ -264,19 +312,19 @@ class DspRequestHandlerImplTest {
         }
 
         @Test
-        void shouldReturnUnauthorized_whenTokenIsNull() {
+        void shouldReturnNotFound_whenTokenIsNull() {
             var request = postDspRequestBuilder().token(null).serviceCall((ctx, m, t) -> ServiceResult.success()).build();
-            var jsonError = error("401", "unauthorized", request.getProcessId());
+            var jsonError = error("404", "unauthorized", request.getProcessId());
 
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
             when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
 
             var result = handler.createResource(request);
 
-            assertThat(result.getStatus()).isEqualTo(401);
+            assertThat(result.getStatus()).isEqualTo(404);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE_TERM)).isEqualTo("401");
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_TERM)).isEqualTo("404");
                 assertThat(error.get(DSPACE_PROPERTY_REASON_TERM)).isNotNull();
             });
         }
@@ -285,7 +333,7 @@ class DspRequestHandlerImplTest {
         void shouldFail_whenTokenIsNotValid() {
             var request = postDspRequestBuilder().serviceCall((ctx, m, t) -> ServiceResult.unauthorized("unauthorized")).build();
             var message = mock(TestProcessRemoteMessage.class);
-            var jsonError = error("401", "Failure", request.getProcessId());
+            var jsonError = error("404", "Failure", request.getProcessId());
 
 
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
@@ -295,10 +343,10 @@ class DspRequestHandlerImplTest {
 
             var result = handler.createResource(request);
 
-            assertThat(result.getStatus()).isEqualTo(401);
+            assertThat(result.getStatus()).isEqualTo(404);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE_TERM)).isEqualTo("401");
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_TERM)).isEqualTo("404");
                 assertThat(error.get(DSPACE_PROPERTY_REASON_TERM)).isNotNull();
             });
         }
@@ -357,7 +405,7 @@ class DspRequestHandlerImplTest {
 
             var result = handler.createResource(request);
 
-            assertThat(result.getStatus()).isEqualTo(401);
+            assertThat(result.getStatus()).isEqualTo(404);
 
         }
 
@@ -474,7 +522,7 @@ class DspRequestHandlerImplTest {
                     .serviceCall((ctx, m, t) -> ServiceResult.unauthorized("unauthorized"))
                     .build();
             var message = TestProcessRemoteMessage.Builder.newInstance().providerPid("providerPid").consumerPid("processId").build();
-            var jsonError = error("401", "unauthorized", request.getProcessId());
+            var jsonError = error("404", "unauthorized", request.getProcessId());
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(TestProcessRemoteMessage.class))).thenReturn(Result.success(message));
@@ -482,17 +530,17 @@ class DspRequestHandlerImplTest {
 
             var result = handler.updateResource(request);
 
-            assertThat(result.getStatus()).isEqualTo(401);
+            assertThat(result.getStatus()).isEqualTo(404);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE_TERM)).isEqualTo("401");
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_TERM)).isEqualTo("404");
                 assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID_TERM)).isEqualTo("processId");
                 assertThat(error.get(DSPACE_PROPERTY_REASON_TERM)).isNotNull();
             });
         }
 
         @Test
-        void shouldReturnUnauthorized_whenTokenIsNull() {
+        void shouldReturnNotFound_whenTokenIsNull() {
             var jsonMessage = Json.createObjectBuilder().build();
             var request = postDspRequestBuilder()
                     .token(null)
@@ -501,16 +549,16 @@ class DspRequestHandlerImplTest {
                     .serviceCall((ctx, m, t) -> ServiceResult.unauthorized("unauthorized"))
                     .build();
 
-            var jsonError = error("401", "unauthorized", request.getProcessId());
+            var jsonError = error("404", "unauthorized", request.getProcessId());
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
             when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
 
             var result = handler.updateResource(request);
 
-            assertThat(result.getStatus()).isEqualTo(401);
+            assertThat(result.getStatus()).isEqualTo(404);
             assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
                 assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE_TERM)).isEqualTo("401");
+                assertThat(error.getString(DSPACE_PROPERTY_CODE_TERM)).isEqualTo("404");
                 assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID_TERM)).isEqualTo("processId");
                 assertThat(error.get(DSPACE_PROPERTY_REASON_TERM)).isNotNull();
             });
@@ -649,7 +697,7 @@ class DspRequestHandlerImplTest {
 
             var result = handler.updateResource(request);
 
-            assertThat(result.getStatus()).isEqualTo(401);
+            assertThat(result.getStatus()).isEqualTo(404);
 
         }
 

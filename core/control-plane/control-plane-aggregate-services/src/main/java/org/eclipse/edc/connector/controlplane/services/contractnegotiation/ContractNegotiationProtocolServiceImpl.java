@@ -274,7 +274,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                     .map(i -> negotiation);
         }
 
-        return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be requested"));
+        return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be requested"));
     }
 
     private ServiceResult<ContractNegotiation> offeredAction(ContractOfferMessage message, ContractNegotiation negotiation) {
@@ -287,7 +287,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                     .map(i -> negotiation);
         }
 
-        return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be offered"));
+        return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be offered"));
     }
 
     @NotNull
@@ -298,7 +298,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
             return update(negotiation).onSuccess(i -> observable.invokeForEach(l -> l.accepted(negotiation)))
                     .map(i -> negotiation);
         } else {
-            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be accepted"));
+            return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be accepted"));
         }
     }
 
@@ -325,7 +325,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
             return update(negotiation).onSuccess(i -> observable.invokeForEach(l -> l.agreed(negotiation)))
                     .map(i -> negotiation);
         } else {
-            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be agreed"));
+            return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be agreed"));
         }
     }
 
@@ -339,7 +339,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
             return update(negotiation).onSuccess(i -> observable.invokeForEach(l -> l.verified(negotiation)))
                     .map(i -> negotiation);
         } else {
-            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be verified"));
+            return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be verified"));
         }
     }
 
@@ -351,7 +351,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
             return update(negotiation).onSuccess(i -> observable.invokeForEach(l -> l.finalized(negotiation)))
                     .map(i -> negotiation);
         } else {
-            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be finalized"));
+            return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be finalized"));
         }
 
     }
@@ -364,7 +364,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
             return update(negotiation).onSuccess(i -> observable.invokeForEach(l -> l.terminated(negotiation)))
                     .map(i -> negotiation);
         } else {
-            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be terminated"));
+            return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be terminated"));
         }
     }
 
