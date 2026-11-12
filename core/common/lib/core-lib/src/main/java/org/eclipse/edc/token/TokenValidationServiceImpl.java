@@ -20,7 +20,6 @@ import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationService;
@@ -45,25 +44,17 @@ public class TokenValidationServiceImpl implements TokenValidationService {
                 return signatureVerification.mapFailure();
             }
 
-            var tokenBuilder = ClaimToken.Builder.newInstance();
+            var tokenBuilder = ClaimToken.Builder.newInstance()
+                    .headers(signedJwt.getHeader().toJSONObject());
             signedJwt.getJWTClaimsSet().getClaims().entrySet().stream()
                     .filter(entry -> entry.getValue() != null)
                     .forEach(entry -> tokenBuilder.claim(entry.getKey(), entry.getValue()));
 
             var claimToken = tokenBuilder.build();
 
-
-            var errors = rules.stream()
-                    .map(r -> r.checkRule(claimToken, additional))
-                    .reduce(Result::merge)
-                    .stream()
-                    .filter(AbstractResult::failed)
-                    .flatMap(r -> r.getFailureMessages().stream())
-                    .toList();
-
-
-            if (!errors.isEmpty()) {
-                return Result.failure(errors);
+            var rulesResult = TokenValidationRule.allOf(rules).checkRule(claimToken, additional);
+            if (rulesResult.failed()) {
+                return rulesResult.mapFailure();
             }
 
             return Result.success(claimToken);

@@ -60,6 +60,7 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.jwt.Vcdm20JosePresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerEqualsSubjectRule;
+import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerKeyIdValidationRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.SubJwkIsNullRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.TokenNotNullRule;
 import org.eclipse.edc.verifiablecredentials.linkeddata.DidMethodResolver;
@@ -186,6 +187,7 @@ public class DcpCoreExtension implements ServiceExtension {
 
         // add all rules for validating VerifiableCredential JWTs
         rulesRegistry.addRule(JWT_VC_TOKEN_CONTEXT, new HasSubjectRule());
+        rulesRegistry.addRule(JWT_VC_TOKEN_CONTEXT, new IssuerKeyIdValidationRule());
 
         // add all rules for validating VerifiablePresentation JWTs
         rulesRegistry.addRule(JWT_VP_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, 5, !requirePresentationBinding));

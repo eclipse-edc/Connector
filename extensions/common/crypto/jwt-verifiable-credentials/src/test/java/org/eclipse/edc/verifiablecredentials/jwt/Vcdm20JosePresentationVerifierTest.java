@@ -31,23 +31,19 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.VerifierContext;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
-import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
 import org.eclipse.edc.token.TokenValidationServiceImpl;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
-import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
-import org.eclipse.edc.token.spi.TokenValidationService;
-import org.eclipse.edc.verifiablecredentials.jwt.rules.CredentialIssuerKeyIdValidationRule;
+import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerKeyIdValidationRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentMatchers;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
@@ -61,31 +57,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestFunctions.createPublicKey;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class Vcdm20JosePresentationVerifierTest {
     private static final String HOLDER_DID = "did:web:holder.example.com";
     private static final String HOLDER_KEY_ID = HOLDER_DID + "#key-1";
+    private static final String CREDENTIAL_ISSUER_DID = "did:web:issuer.example.com";
+    private static final String CREDENTIAL_ISSUER_KEY_ID = CREDENTIAL_ISSUER_DID + "#key-1";
     private static final String V2_CONTEXT = "\"@context\": [\"https://www.w3.org/ns/credentials/v2\"]";
-    private final TokenValidationService tokenValidationService = mock();
     private final PublicKeyResolver publicKeyResolver = mock();
     private final Monitor monitor = mock();
-    private final Vcdm20JosePresentationVerifier verifier = new Vcdm20JosePresentationVerifier(monitor, tokenValidationService, new TokenValidationRulesRegistryImpl(), publicKeyResolver, false);
+    private final Vcdm20JosePresentationVerifier verifier = new Vcdm20JosePresentationVerifier(monitor, new TokenValidationServiceImpl(), new TokenValidationRulesRegistryImpl(), publicKeyResolver, false);
 
     @BeforeEach
     void setUp() {
-        when(tokenValidationService.validate(anyString(), any())).thenReturn(Result.success(
-                ClaimToken.Builder.newInstance().build()
-        ));
-        when(tokenValidationService.validate(anyString(), any(), anyList())).thenReturn(Result.success(
-                ClaimToken.Builder.newInstance().build()
-        ));
+        // the JWTs are not signed, their signature check is skipped for keys that resolve to null
+        when(publicKeyResolver.resolveKey(any())).thenReturn(Result.success(null));
     }
 
     @ParameterizedTest
@@ -113,18 +106,24 @@ class Vcdm20JosePresentationVerifierTest {
         assertThat(verifier.canHandle("not a jwt")).isFalse();
     }
 
+    @Test
+    @DisplayName("canHandle should not verify the signature")
+    void canHandle_doesNotVerifySignature() {
+        assertThat(verifier.canHandle(TestConstants.VP_SIMPLE_JOSE_ENVELOPED_CREDENTIAL)).isTrue();
+
+        verifyNoInteractions(publicKeyResolver);
+    }
 
     @Test
     @DisplayName("verify should succeed for enveloped JOSE credential")
     void verify_enveloped() {
-        assertThat(verifier.verify(TestConstants.VP_ENVELOPED_JOSE_ENVELOPED_CREDENTIAL, mock())).isSucceeded();
+        assertThat(verifier.verify(envelope(vpToken(envelopedCredential(credential()))), mock())).isSucceeded();
     }
 
     @Test
     @DisplayName("verify should succeed for simple JOSE enveloped credential")
     void verify_simple() {
-        assertThat(verifier.verify(TestConstants.VP_SIMPLE_JOSE_ENVELOPED_CREDENTIAL, mock())).isSucceeded();
-
+        assertThat(verifier.verify(vpToken(envelopedCredential(credential())), mock())).isSucceeded();
     }
 
     @Test
@@ -144,27 +143,28 @@ class Vcdm20JosePresentationVerifierTest {
     void verify_credentialExpected() {
         var context = VerifierContext.Builder.newInstance().credentialExpected(true).build();
 
-        assertThat(verifier.verify(TestConstants.VP_SIMPLE_JOSE_ENVELOPED_CREDENTIAL, context)).isFailed()
+        assertThat(verifier.verify(vpToken(), context)).isFailed()
                 .detail().contains("Expected a credential, but the JWT contains a presentation.");
     }
 
     @Test
-    @DisplayName("verify should fail when token validation service fails")
+    @DisplayName("verify should fail when the presentation's key cannot be resolved")
     void verify_tokenValidationFailed_expectFailure() {
-        when(tokenValidationService.validate(anyString(), any(), anyList())).thenReturn(Result.failure("test-failure"));
-        assertThat(verifier.verify(TestConstants.VP_ENVELOPED_JOSE_ENVELOPED_CREDENTIAL, mock())).isFailed()
+        when(publicKeyResolver.resolveKey(HOLDER_KEY_ID)).thenReturn(Result.failure("test-failure"));
+
+        assertThat(verifier.verify(envelope(vpToken()), mock())).isFailed()
                 .detail().contains("test-failure");
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { TestConstants.VP_SIMPLE_JOSE_ENVELOPED_CREDENTIAL, TestConstants.VP_ENVELOPED_JOSE_ENVELOPED_CREDENTIAL })
+    @ValueSource(booleans = { false, true })
     @DisplayName("verify should fail when one of multiple VCs is invalid")
-    void verify_multipleVc_oneInvalid(String vpToken) {
-        when(tokenValidationService.validate(anyString(), any(PublicKeyResolver.class), ArgumentMatchers.<List<TokenValidationRule>>argThat(rules -> rules.stream().anyMatch(CredentialIssuerKeyIdValidationRule.class::isInstance))))
-                .thenReturn(Result.success(ClaimToken.Builder.newInstance().build())) // first VC
-                .thenReturn(Result.failure("test-failure")); // second VC
+    void verify_multipleVc_oneInvalid(boolean enveloped) {
+        var invalidKeyId = CREDENTIAL_ISSUER_DID + "#key-2";
+        when(publicKeyResolver.resolveKey(invalidKeyId)).thenReturn(Result.failure("test-failure"));
+        var vpToken = vpToken(envelopedCredential(credential()) + ", " + envelopedCredential(credential(invalidKeyId)));
 
-        assertThat(verifier.verify(vpToken, mock())).isFailed()
+        assertThat(verifier.verify(enveloped ? envelope(vpToken) : vpToken, mock())).isFailed()
                 .detail().contains("test-failure");
     }
 
@@ -184,24 +184,21 @@ class Vcdm20JosePresentationVerifierTest {
     @Test
     @DisplayName("verify should succeed for VP token whose type is a list")
     void verify_vpToken_typeList() {
-        var token = jwt("{\"@context\": [\"https://www.w3.org/ns/credentials/v2\"], \"type\":[\"VerifiablePresentation\"],\"verifiableCredential\":[{\"type\":\"EnvelopedVerifiableCredential\",\"id\":\"data:application/vc+jwt,%s\"}]}"
-                .formatted(TestConstants.RANDOM_JWT));
+        var token = presentation("\"type\": [\"VerifiablePresentation\"], \"verifiableCredential\": [%s]".formatted(envelopedCredential(credential())));
         assertThat(verifier.verify(token, mock())).isSucceeded();
     }
 
     @Test
     @DisplayName("verify should succeed, but log a warning, for a VP token without a 'typ' header")
     void verify_vpTokenWithoutTyp_shouldWarn() {
-        var token = jwt("{\"@context\": [\"https://www.w3.org/ns/credentials/v2\"], \"type\":\"VerifiablePresentation\",\"verifiableCredential\":[]}");
-
-        assertThat(verifier.verify(token, mock())).isSucceeded();
+        assertThat(verifier.verify(vpToken(), mock())).isSucceeded();
         verify(monitor).warning(contains("no 'typ' header"));
     }
 
     @Test
     @DisplayName("verify should not log a warning for a VP token with a 'typ' header")
     void verify_vpTokenWithTyp_shouldNotWarn() {
-        var token = jwt("{\"alg\":\"ES256\",\"typ\":\"vp+jwt\"}", "{\"@context\": [\"https://www.w3.org/ns/credentials/v2\"], \"type\":\"VerifiablePresentation\",\"verifiableCredential\":[]}");
+        var token = jwt(typedHeader(), "{%s, \"type\": \"VerifiablePresentation\", \"holder\": \"%s\", \"verifiableCredential\": []}".formatted(V2_CONTEXT, HOLDER_DID));
 
         assertThat(verifier.verify(token, mock())).isSucceeded();
         verify(monitor, never()).warning(anyString());
@@ -210,8 +207,7 @@ class Vcdm20JosePresentationVerifierTest {
     @Test
     @DisplayName("verify should log a warning for an enveloped VP token without a 'typ' header")
     void verify_envelopedVpTokenWithoutTyp_shouldWarn() {
-        var vpToken = jwt("{\"@context\": [\"https://www.w3.org/ns/credentials/v2\"], \"type\":\"VerifiablePresentation\",\"verifiableCredential\":[]}");
-        var envelope = jwt("{\"alg\":\"ES256\",\"typ\":\"vp+jwt\"}", "{\"@context\": [\"https://www.w3.org/ns/credentials/v2\"], \"type\":\"EnvelopedVerifiablePresentation\",\"id\":\"data:application/vp+jwt,%s\"}".formatted(vpToken));
+        var envelope = jwt(typedHeader(), "{%s, \"type\": \"EnvelopedVerifiablePresentation\", \"id\": \"data:application/vp+jwt,%s\"}".formatted(V2_CONTEXT, vpToken()));
 
         assertThat(verifier.verify(envelope, mock())).isSucceeded();
         verify(monitor).warning(contains("no 'typ' header"));
@@ -226,14 +222,15 @@ class Vcdm20JosePresentationVerifierTest {
     @Test
     @DisplayName("verify should fail for enveloped presentation missing id claim")
     void verify_envelopedPresentation_missingId_expectFailure() {
-        assertThat(verifier.verify(jwt("{\"@context\": [\"https://www.w3.org/ns/credentials/v2\"], \"type\":\"EnvelopedVerifiablePresentation\"}"), mock())).isFailed()
-                .detail().contains("No enveloped credential found in 'id' claim");
+        var token = presentationJwt(HOLDER_KEY_ID, "{%s, \"type\": \"EnvelopedVerifiablePresentation\"}".formatted(V2_CONTEXT));
+        assertThat(verifier.verify(token, mock())).isFailed()
+                .detail().contains("No enveloped presentation found in 'id' claim");
     }
 
     @Test
     @DisplayName("verify should fail for enveloped presentation with incorrect prefix")
     void verify_envelopedPresentation_incorrectPrefix_expectFailure() {
-        var token = jwt("{\"@context\": [\"https://www.w3.org/ns/credentials/v2\"], \"type\":\"EnvelopedVerifiablePresentation\",\"id\":\"wrongprefix,somedata\"}");
+        var token = presentationJwt(HOLDER_KEY_ID, "{%s, \"type\": \"EnvelopedVerifiablePresentation\", \"id\": \"wrongprefix,somedata\"}".formatted(V2_CONTEXT));
         assertThat(verifier.verify(token, mock())).isFailed()
                 .detail().contains("Incorrect presentation envelope");
     }
@@ -241,7 +238,7 @@ class Vcdm20JosePresentationVerifierTest {
     @Test
     @DisplayName("verify should fail for VP token with wrong credential type")
     void verify_vpToken_wrongCredentialType_expectFailure() {
-        var token = jwt("{\"@context\": [\"https://www.w3.org/ns/credentials/v2\"], \"type\":\"VerifiablePresentation\",\"verifiableCredential\":[{\"type\":\"WrongType\",\"id\":\"data:application/vc+jwt,x\"}]}");
+        var token = vpToken("{\"type\": \"WrongType\", \"id\": \"data:application/vc+jwt,x\"}");
         assertThat(verifier.verify(token, mock())).isFailed()
                 .detail().contains("Incorrect 'type' field in verifiable credential");
     }
@@ -249,7 +246,7 @@ class Vcdm20JosePresentationVerifierTest {
     @Test
     @DisplayName("verify should fail for VP token with non-string credential id")
     void verify_vpToken_nonStringCredentialId_expectFailure() {
-        var token = jwt("{\"@context\": [\"https://www.w3.org/ns/credentials/v2\"], \"type\":\"VerifiablePresentation\",\"verifiableCredential\":[{\"type\":\"EnvelopedVerifiableCredential\",\"id\":12345}]}");
+        var token = vpToken("{\"type\": \"EnvelopedVerifiableCredential\", \"id\": 12345}");
         assertThat(verifier.verify(token, mock())).isFailed()
                 .detail().contains("No enveloped credential found in 'id' claim");
     }
@@ -257,14 +254,13 @@ class Vcdm20JosePresentationVerifierTest {
     @Test
     @DisplayName("verify should succeed for VP token with empty credential list")
     void verify_vpToken_emptyCredentialList() {
-        var token = jwt("{\"@context\": [\"https://www.w3.org/ns/credentials/v2\"], \"type\":\"VerifiablePresentation\",\"verifiableCredential\":[]}");
-        assertThat(verifier.verify(token, mock())).isSucceeded();
+        assertThat(verifier.verify(vpToken(), mock())).isSucceeded();
     }
 
     @Test
     @DisplayName("verify should fail for VP token missing verifiableCredential claim")
     void verify_vpToken_missingCredentialClaim_expectFailure() {
-        var token = jwt("{\"@context\": [\"https://www.w3.org/ns/credentials/v2\"], \"type\":\"VerifiablePresentation\"}");
+        var token = presentation("\"type\": \"VerifiablePresentation\"");
         assertThat(verifier.verify(token, mock())).isFailed()
                 .detail().contains("No verifiable credential found in 'verifiableCredential' claim");
     }
@@ -272,7 +268,7 @@ class Vcdm20JosePresentationVerifierTest {
     @Test
     @DisplayName("verify should fail for credential envelope with incorrect prefix")
     void verify_credentialEnvelope_incorrectPrefix_expectFailure() {
-        var token = jwt("{\"@context\": [\"https://www.w3.org/ns/credentials/v2\"], \"type\":\"VerifiablePresentation\",\"verifiableCredential\":[{\"type\":\"EnvelopedVerifiableCredential\",\"id\":\"wrongprefix,x\"}]}");
+        var token = vpToken("{\"type\": \"EnvelopedVerifiableCredential\", \"id\": \"wrongprefix,x\"}");
         assertThat(verifier.verify(token, mock())).isFailed()
                 .detail().contains("Incorrect credential envelope");
     }
@@ -351,14 +347,6 @@ class Vcdm20JosePresentationVerifierTest {
 
             assertThat(verifier.verify(envelope, mock())).isFailed()
                     .detail().contains("Not a valid VP token - expected type 'VerifiablePresentation', but was 'EnvelopedVerifiablePresentation'");
-        }
-
-        private String presentation(String claims) {
-            return presentationJwt(HOLDER_KEY_ID, "{%s, \"holder\": \"%s\", %s}".formatted(V2_CONTEXT, HOLDER_DID, claims));
-        }
-
-        private String envelope(String presentation) {
-            return presentationJwt(HOLDER_KEY_ID, "{%s, \"type\": \"EnvelopedVerifiablePresentation\", \"id\": \"data:application/vp+jwt,%s\"}".formatted(V2_CONTEXT, presentation));
         }
     }
 
@@ -454,7 +442,8 @@ class Vcdm20JosePresentationVerifierTest {
         private static final String ISSUER_KEY_ID = ISSUER_DID + "#key-1";
         private static final String ATTACKER_KEY_ID = "did:web:attacker.example.com#key-1";
         private static final String LOOKALIKE_KEY_ID = "did:web:issuer-example.com#key-1";
-        private final Vcdm20JosePresentationVerifier verifier = new Vcdm20JosePresentationVerifier(monitor, new TokenValidationServiceImpl(), new TokenValidationRulesRegistryImpl(), publicKeyResolver, false);
+        private final TokenValidationRulesRegistry rulesRegistry = new TokenValidationRulesRegistryImpl();
+        private final Vcdm20JosePresentationVerifier verifier = new Vcdm20JosePresentationVerifier(monitor, new TokenValidationServiceImpl(), rulesRegistry, publicKeyResolver, false);
         private final VerifierContext context = VerifierContext.Builder.newInstance().verifier(verifier).build();
         private ECKey issuerKey;
         private ECKey attackerKey;
@@ -465,6 +454,9 @@ class Vcdm20JosePresentationVerifierTest {
             issuerKey = new ECKeyGenerator(Curve.P_256).keyID(ISSUER_KEY_ID).generate();
             attackerKey = new ECKeyGenerator(Curve.P_256).keyID(ATTACKER_KEY_ID).generate();
             lookalikeKey = new ECKeyGenerator(Curve.P_256).keyID(LOOKALIKE_KEY_ID).generate();
+
+            // registered by the DcpCoreExtension
+            rulesRegistry.addRule(Constants.JWT_VC_TOKEN_CONTEXT, new IssuerKeyIdValidationRule());
 
             // the presentation JWTs are not signed, their signature check is skipped for keys that resolve to null
             when(publicKeyResolver.resolveKey(any())).thenReturn(Result.success(null));
@@ -699,6 +691,40 @@ class Vcdm20JosePresentationVerifierTest {
         private String envelope(String keyId, String vpToken) {
             return presentationJwt(keyId, "{\"@context\": [\"https://www.w3.org/ns/credentials/v2\"], \"type\": \"EnvelopedVerifiablePresentation\", \"id\": \"data:application/vp+jwt,%s\"}".formatted(vpToken));
         }
+    }
+
+    /**
+     * A VP token signed by the holder, that contains the given enveloped credentials.
+     */
+    private static String vpToken(String... envelopedCredentials) {
+        return presentation("\"type\": \"VerifiablePresentation\", \"verifiableCredential\": [%s]".formatted(String.join(", ", envelopedCredentials)));
+    }
+
+    private static String presentation(String claims) {
+        return presentationJwt(HOLDER_KEY_ID, "{%s, \"holder\": \"%s\", %s}".formatted(V2_CONTEXT, HOLDER_DID, claims));
+    }
+
+    private static String envelope(String presentation) {
+        return presentationJwt(HOLDER_KEY_ID, "{%s, \"type\": \"EnvelopedVerifiablePresentation\", \"id\": \"data:application/vp+jwt,%s\"}".formatted(V2_CONTEXT, presentation));
+    }
+
+    private static String credential() {
+        return credential(CREDENTIAL_ISSUER_KEY_ID);
+    }
+
+    /**
+     * A credential issued by {@link #CREDENTIAL_ISSUER_DID}, signed with the given key.
+     */
+    private static String credential(String keyId) {
+        return presentationJwt(keyId, "{%s, \"type\": [\"VerifiableCredential\"], \"issuer\": \"%s\"}".formatted(V2_CONTEXT, CREDENTIAL_ISSUER_DID));
+    }
+
+    private static String envelopedCredential(String credential) {
+        return "{\"type\": \"EnvelopedVerifiableCredential\", \"id\": \"data:application/vc+jwt,%s\"}".formatted(credential);
+    }
+
+    private static String typedHeader() {
+        return "{\"alg\":\"ES256\",\"typ\":\"vp+jwt\",\"kid\":\"%s\"}".formatted(HOLDER_KEY_ID);
     }
 
     private static String presentationJwt(String keyId, String payloadJson) {

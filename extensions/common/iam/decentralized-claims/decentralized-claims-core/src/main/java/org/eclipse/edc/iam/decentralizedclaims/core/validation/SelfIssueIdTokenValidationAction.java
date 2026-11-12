@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.core.validation;
 
-import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.decentralizedclaims.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
@@ -26,7 +25,6 @@ import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerKeyIdValidationRule;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.function.Function;
 
@@ -53,16 +51,10 @@ public class SelfIssueIdTokenValidationAction implements TokenValidationAction {
 
     @Override
     public Result<ClaimToken> validate(String participantContextId, TokenRepresentation tokenRepresentation) {
-        try {
-            var signedJwt = SignedJWT.parse(tokenRepresentation.getToken());
-            var keyId = signedJwt.getHeader().getKeyID();
-            var rules = new ArrayList<>(rulesRegistry.getRules(DCP_SELF_ISSUED_TOKEN_CONTEXT));
-            rules.add(new IssuerKeyIdValidationRule(keyId));
-            rules.add(new AudienceValidationRule(didConfigProvider.apply(participantContextId)));
-            rules.add(new CapabilityInvocationValidationRule(keyId, didResolverRegistry));
-            return tokenValidationService.validate(tokenRepresentation, didPublicKeyResolver, rules);
-        } catch (ParseException e) {
-            return Result.failure("Error parsing JWT: " + e.getMessage());
-        }
+        var rules = new ArrayList<>(rulesRegistry.getRules(DCP_SELF_ISSUED_TOKEN_CONTEXT));
+        rules.add(new IssuerKeyIdValidationRule());
+        rules.add(new AudienceValidationRule(didConfigProvider.apply(participantContextId)));
+        rules.add(new CapabilityInvocationValidationRule(didResolverRegistry));
+        return tokenValidationService.validate(tokenRepresentation, didPublicKeyResolver, rules);
     }
 }

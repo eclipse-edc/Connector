@@ -33,6 +33,7 @@ import org.eclipse.edc.token.TokenValidationServiceImpl;
 import org.eclipse.edc.token.rules.HasSubjectRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
+import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerKeyIdValidationRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,6 +52,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.Result.success;
+import static org.eclipse.edc.verifiablecredentials.jwt.Constants.JWT_VC_TOKEN_CONTEXT;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.JWT_VP_TOKEN_CONTEXT;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.CENTRAL_ISSUER_DID;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.CENTRAL_ISSUER_KEY_ID;
@@ -104,6 +106,7 @@ class JwtPresentationVerifierTest {
 
         // those rules would normally get registered in an extension
         ruleRegistry.addRule(JWT_VP_TOKEN_CONTEXT, new HasSubjectRule());
+        ruleRegistry.addRule(JWT_VC_TOKEN_CONTEXT, new IssuerKeyIdValidationRule());
 
         when(typeManager.getMapper("test")).thenReturn(mapper);
     }
@@ -277,6 +280,17 @@ class JwtPresentationVerifierTest {
                 .build();
         var result = verifier.verify(vpJwt, context);
         assertThat(result).isFailed().detail().contains("Token audience claim (aud -> [invalid-vp-audience]) did not contain expected audience: did:web:myself");
+    }
+
+    @Test
+    @DisplayName("canHandle should not verify the signature")
+    void canHandle_doesNotVerifySignature() throws JOSEException {
+        var forgedKey = new ECKeyGenerator(Curve.P_256).keyID(VP_HOLDER_ID + "#" + PRESENTER_KEY_ID).generate();
+        var vpJwt = JwtCreationUtils.createJwt(forgedKey, VP_HOLDER_ID, "degreePres", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(""))));
+
+        assertThat(verifier.canHandle(vpJwt)).isTrue();
+        assertThat(verifier.verify(vpJwt, VerifierContext.Builder.newInstance().verifier(verifier).audience(MY_OWN_DID).build()))
+                .isFailed().detail().contains("JWT signature not valid");
     }
 
     @DisplayName("Verifies that the verifier can handle VCDM 1.1 JWTs")
