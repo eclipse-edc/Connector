@@ -303,4 +303,47 @@ class ResultTest {
         assertThat(result.getContent()).isNull();
         assertThat(result).isFailed().messages().contains("fail1", "fail2");
     }
+
+    @Test
+    void retryableFailure_isKept_whenMapped() {
+        Result<String> failure = Result.retryableFailure("unreachable");
+
+        Result<Integer> mappedFailure = failure.mapFailure();
+        Result<Integer> mapped = failure.map(String::length);
+        Result<Integer> mappedEmpty = failure.mapEmpty();
+        Result<Integer> composed = failure.compose(it -> Result.success(it.length()));
+
+        assertThat(failure.isRetryable()).isTrue();
+        assertThat(mappedFailure.isRetryable()).isTrue();
+        assertThat(mapped.isRetryable()).isTrue();
+        assertThat(mappedEmpty.isRetryable()).isTrue();
+        assertThat(composed.isRetryable()).isTrue();
+        assertThat(failure.getFailureMessages()).containsExactly("unreachable");
+    }
+
+    @Test
+    void isRetryable_isFalse_whenSucceededOrPlainFailure() {
+        assertThat(Result.success("content").isRetryable()).isFalse();
+        assertThat(Result.failure("rejected").isRetryable()).isFalse();
+    }
+
+    @Test
+    void merge_isRetryable_whenAllFailuresAreRetryable() {
+        var merged = Result.retryableFailure("first").merge(Result.retryableFailure("second"));
+
+        assertThat(merged.isRetryable()).isTrue();
+        assertThat(merged.getFailureMessages()).containsExactly("first", "second");
+    }
+
+    @Test
+    void merge_isRetryable_whenOtherSucceeded() {
+        assertThat(Result.retryableFailure("first").merge(Result.success()).isRetryable()).isTrue();
+        assertThat(Result.success().merge(Result.retryableFailure("second")).isRetryable()).isTrue();
+    }
+
+    @Test
+    void merge_isNotRetryable_whenAnyFailureIsNotRetryable() {
+        assertThat(Result.retryableFailure("first").merge(Result.failure("second")).isRetryable()).isFalse();
+        assertThat(Result.failure("first").merge(Result.retryableFailure("second")).isRetryable()).isFalse();
+    }
 }

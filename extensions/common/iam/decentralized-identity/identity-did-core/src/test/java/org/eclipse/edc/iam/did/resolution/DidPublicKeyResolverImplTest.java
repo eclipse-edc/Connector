@@ -36,6 +36,7 @@ import java.util.Objects;
 import java.util.Scanner;
 
 import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -143,6 +144,25 @@ class DidPublicKeyResolverImplTest {
 
         assertThat(result).isFailed();
         verify(resolverRegistry).resolve(DID_URL);
+    }
+
+    @Test
+    void resolve_shouldBeRetryable_whenDidCouldNotBeResolved() {
+        when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.retryableFailure("DID document not reachable"));
+
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
+
+        assertThat(result).isFailed();
+        assertThat(result.isRetryable()).isTrue();
+    }
+
+    @Test
+    void resolve_shouldNotBeRetryable_whenDidNotFound() {
+        when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.failure("Not found"));
+
+        var result = resolver.resolveKey(DID_URL + "#" + KEYID);
+
+        assertThat(result.isRetryable()).isFalse();
     }
 
     @Test

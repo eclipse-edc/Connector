@@ -138,6 +138,46 @@ class TokenValidationServiceImplTest {
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactlyInAnyOrder("test-failure1", "test-failure2");
+        assertThat(result.isRetryable()).isFalse();
+    }
+
+    @Test
+    void validationFailure_shouldBeRetryable_whenFailedRulesCouldNotBeChecked() throws JOSEException {
+        var claims = createClaims(now);
+        var r1 = mock(TokenValidationRule.class);
+        var r2 = mock(TokenValidationRule.class);
+        when(r1.checkRule(any(), any())).thenReturn(Result.retryableFailure("DID not reachable"));
+        when(r2.checkRule(any(), any())).thenReturn(Result.success());
+
+        var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()), publicKeyResolver, r1, r2);
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.isRetryable()).isTrue();
+        assertThat(result.getFailureMessages()).containsExactly("DID not reachable");
+    }
+
+    @Test
+    void validationFailure_shouldNotBeRetryable_whenAnyRuleFailed() throws JOSEException {
+        var claims = createClaims(now);
+        var r1 = mock(TokenValidationRule.class);
+        var r2 = mock(TokenValidationRule.class);
+        when(r1.checkRule(any(), any())).thenReturn(Result.retryableFailure("DID not reachable"));
+        when(r2.checkRule(any(), any())).thenReturn(Result.failure("token expired"));
+
+        var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()), publicKeyResolver, r1, r2);
+
+        assertThat(result.isRetryable()).isFalse();
+        assertThat(result.getFailureMessages()).containsExactly("DID not reachable", "token expired");
+    }
+
+    @Test
+    void validationFailure_shouldBeRetryable_whenPublicKeyCouldNotBeResolved() throws JOSEException {
+        when(publicKeyResolver.resolveKey(any())).thenReturn(Result.retryableFailure("DID not reachable"));
+        var ruleMock = mock(TokenValidationRule.class);
+
+        var result = tokenValidationService.validate(createJwt("unknown-key", createClaims(now), key.toPrivateKey()), publicKeyResolver, ruleMock);
+
+        assertThat(result.isRetryable()).isTrue();
     }
 
     @Test

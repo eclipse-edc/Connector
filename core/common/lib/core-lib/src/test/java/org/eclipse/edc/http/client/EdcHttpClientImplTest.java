@@ -209,6 +209,33 @@ class EdcHttpClientImplTest {
                 .first().asString()
                 .matches(it -> it.startsWith("Failed to connect to"))
                 .matches(it -> !it.contains("AuthTest"));
+        assertThat(result.isRetryable()).isTrue();
+    }
+
+    @Test
+    void execute_shouldReturnRetryableFailure_whenRetriesForStatusAreExhausted() {
+        var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
+        server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(503)));
+        var request = new Request.Builder().url("http://localhost:" + server.getPort()).build();
+
+        var result = client.execute(request, List.of(retryWhenStatusNot2xxOr4xx()), handleResponse());
+
+        assertThat(result.isRetryable()).isTrue();
+    }
+
+    @Test
+    void execute_shouldReturnFailure_whenMappingFunctionThrows() {
+        var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
+        server.stubFor(get(anyUrl()).willReturn(ok()));
+        var request = new Request.Builder().url("http://localhost:" + server.getPort()).build();
+
+        Result<String> result = client.execute(request, response -> {
+            throw new IllegalStateException("cannot map");
+        });
+
+        assertThat(result).matches(Result::failed);
+        assertThat(result.isRetryable()).isFalse();
+        assertThat(result.getFailureDetail()).isEqualTo("cannot map");
     }
 
     @Nested

@@ -17,6 +17,7 @@ package org.eclipse.edc.keys;
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.RetryableFailure;
 
 import java.security.PublicKey;
 
@@ -41,7 +42,11 @@ public abstract class AbstractPublicKeyResolver implements PublicKeyResolver {
                                 return Result.success(publicKey);
                             } else return Result.failure("The specified resource did not contain public key material.");
                         }))
-                .recover(f -> Result.failure("No public key could be resolved for key-ID '%s': %s".formatted(id, f.getFailureDetail())));
+                .recover(f -> {
+                    var message = "No public key could be resolved for key-ID '%s': %s".formatted(id, f.getFailureDetail());
+                    // keep telling apart a key that could not be resolved now (e.g. DID document not reachable)
+                    return f instanceof RetryableFailure ? Result.retryableFailure(message) : Result.failure(message);
+                });
 
     }
 
