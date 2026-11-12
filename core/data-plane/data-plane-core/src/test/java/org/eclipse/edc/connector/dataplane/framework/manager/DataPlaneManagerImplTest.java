@@ -30,6 +30,7 @@ import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.ResponseFailure;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -93,6 +94,7 @@ import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
@@ -118,6 +120,7 @@ class DataPlaneManagerImplTest {
     private final ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager = mock();
     private final ProvisionerManager provisionerManager = mock();
     private final String runtimeId = UUID.randomUUID().toString();
+    private final Monitor monitor = mock();
     private DataPlaneManager manager;
 
     @BeforeEach
@@ -132,7 +135,7 @@ class DataPlaneManagerImplTest {
                 .endpointDataReferenceServiceRegistry(endpointDataReferenceServiceRegistry)
                 .resourceDefinitionGeneratorManager(resourceDefinitionGeneratorManager)
                 .provisionerManager(provisionerManager)
-                .monitor(mock())
+                .monitor(monitor)
                 .runtimeId(runtimeId)
                 .waitStrategy(() -> 10000L)
                 .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
@@ -1205,6 +1208,53 @@ class DataPlaneManagerImplTest {
                 assertThat(storedDataFlow.getStateCount()).isEqualTo(0);
                 assertThat(storedDataFlow.getUpdatedAt()).isGreaterThan(updatedAt);
             });
+        }
+    }
+
+    @Nested
+    class StartedFlowMaintenance {
+
+        @Test
+        void shouldRenewLeaseWithoutRetryDelayOrLogging() {
+            var updatedAt = System.currentTimeMillis() - 1000;
+            var dataFlow = dataFlowBuilder().runtimeId(runtimeId).state(STARTED.code())
+                    .stateCount(10).stateTimestamp(System.currentTimeMillis() + 60000).updatedAt(updatedAt).build();
+            when(store.nextNotLeased(anyInt(), startedFlowOwnedByThisRuntime()))
+                    .thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+
+            manager.start();
+
+            try {
+                await().untilAsserted(() -> verify(store).save(dataFlow));
+                assertThat(dataFlow.getState()).isEqualTo(STARTED.code());
+                assertThat(dataFlow.getStateCount()).isEqualTo(10);
+                assertThat(dataFlow.getRuntimeId()).isEqualTo(runtimeId);
+                assertThat(dataFlow.getUpdatedAt()).isGreaterThan(updatedAt);
+                verify(monitor, never()).debug(contains("retry #"));
+                verifyNoInteractions(transferService, transferProcessApiClient, endpointDataReferenceServiceRegistry);
+            } finally {
+                manager.stop();
+            }
+        }
+
+        @Test
+        void shouldRecoverAbandonedPullFlowWithoutRetryDelayOrLogging() {
+            var dataFlow = dataFlowBuilder().runtimeId("previous-runtime").state(STARTED.code())
+                    .transferType(new TransferType("any", PULL))
+                    .stateCount(10).stateTimestamp(System.currentTimeMillis() + 60000).build();
+            when(store.nextNotLeased(anyInt(), startedFlowOwnedByAnotherRuntime()))
+                    .thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+
+            manager.start();
+
+            try {
+                await().untilAsserted(() -> verify(store).save(dataFlow));
+                assertThat(dataFlow.getState()).isEqualTo(STARTED.code());
+                assertThat(dataFlow.getRuntimeId()).isEqualTo(runtimeId);
+                verify(monitor, never()).debug(contains("retry #"));
+            } finally {
+                manager.stop();
+            }
         }
     }
 

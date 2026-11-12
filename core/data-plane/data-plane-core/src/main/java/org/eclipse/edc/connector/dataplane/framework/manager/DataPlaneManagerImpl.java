@@ -557,10 +557,16 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
             return store.nextNotLeased(batchSize, filter);
         };
 
-        return ProcessorImpl.Builder.newInstance(entitiesSupplier, entityRetryProcessConfiguration, clock, monitor)
+        var builder = ProcessorImpl.Builder.newInstance(entitiesSupplier, entityRetryProcessConfiguration, clock, monitor)
                 .process(telemetry.contextPropagationMiddleware(function))
-                .onNotProcessed(this::breakLease)
-                .build();
+                .onNotProcessed(this::breakLease);
+
+        // Lease renewal and abandoned-flow recovery are maintenance, not retries of a failed operation.
+        if (state == STARTED) {
+            builder.withoutRetry();
+        }
+
+        return builder.build();
     }
 
     public static class Builder extends AbstractStateEntityManager.Builder<DataFlow, DataPlaneStore, DataPlaneManagerImpl, Builder> {

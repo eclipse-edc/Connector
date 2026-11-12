@@ -34,6 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -92,6 +93,25 @@ class ProcessorImplTest {
         assertThat(count).isEqualTo(0);
         verify(monitor).debug(contains("not be attempted before"));
         verify(onNotProcessed).accept(entity);
+    }
+
+    @Test
+    void shouldProcessWithoutDelayOrRetryLogging_whenRetryDisabled() {
+        var entity = TestEntity.Builder.newInstance().id("id").stateTimestamp(shouldDelayTime).stateCount(10).build();
+        Consumer<TestEntity> onNotProcessed = mock();
+        Function<TestEntity, CompletableFuture<StatusResult<Void>>> process = mock();
+        when(process.apply(entity)).thenReturn(CompletableFuture.completedFuture(StatusResult.success()));
+        var processor = ProcessorImpl.Builder.newInstance(() -> List.of(entity), configuration, clock, monitor)
+                .withoutRetry()
+                .process(process)
+                .onNotProcessed(onNotProcessed)
+                .build();
+
+        assertThat(processor.process()).isEqualTo(1);
+        assertThat(processor.process()).isEqualTo(1);
+
+        verify(process, times(2)).apply(entity);
+        verifyNoInteractions(monitor, onNotProcessed);
     }
 
     @Test

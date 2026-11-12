@@ -52,6 +52,7 @@ public class ProcessorImpl<E extends StatefulEntity<E>> implements Processor {
     private final Monitor monitor;
     private Function<E, CompletableFuture<StatusResult<Void>>> process;
     private Guard<E> guard = Guard.noop();
+    private boolean retryEnabled = true;
     private Consumer<E> onNotProcessed = e -> {};
 
     private ProcessorImpl(Supplier<Collection<E>> entitiesSupplier, EntityRetryProcessConfiguration entityRetryProcessConfiguration, Clock clock, Monitor monitor) {
@@ -70,7 +71,7 @@ public class ProcessorImpl<E extends StatefulEntity<E>> implements Processor {
     }
 
     private @NotNull Boolean process(E entity) {
-        if (isRetry(entity)) {
+        if (retryEnabled && isRetry(entity)) {
             var delay = delayMillis(entity);
             if (delay > 0) {
                 monitor.debug(String.format("Entity %s %s retry #%d will not be attempted before %d ms.", entity.getId(), entity.getClass().getSimpleName(), entity.getStateCount() - 1, delay));
@@ -116,6 +117,16 @@ public class ProcessorImpl<E extends StatefulEntity<E>> implements Processor {
                                                                            EntityRetryProcessConfiguration entityRetryProcessConfiguration,
                                                                            Clock clock, Monitor monitor) {
             return new Builder<>(entitiesSupplier, entityRetryProcessConfiguration, clock, monitor);
+        }
+
+        /**
+         * Disables retry delays and retry logging for periodic maintenance that does not represent a failed operation.
+         *
+         * @return the builder.
+         */
+        public Builder<E> withoutRetry() {
+            processor.retryEnabled = false;
+            return this;
         }
 
         public Builder<E> process(Function<E, CompletableFuture<StatusResult<Void>>> process) {
