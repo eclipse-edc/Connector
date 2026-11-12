@@ -34,6 +34,15 @@ allprojects {
     apply(plugin = edcBuildId)
     apply(plugin = "org.eclipse.edc.autodoc")
 
+    // the edc-build plugin registers the Sonatype snapshots repository before Maven Central without any content
+    // filter, so every third-party dependency is looked up there first. That gets rate-limited (HTTP 429), which
+    // makes Gradle disable the repository and fail resolution. Restrict it to snapshot versions only.
+    repositories.withType<MavenArtifactRepository>().configureEach {
+        if (url.toString().contains("/maven-snapshots")) {
+            mavenContent { snapshotsOnly() }
+        }
+    }
+
     configure<org.eclipse.edc.plugins.edcbuild.extensions.BuildExtension> {
         pom {
             scmUrl.set(edcScmUrl)
