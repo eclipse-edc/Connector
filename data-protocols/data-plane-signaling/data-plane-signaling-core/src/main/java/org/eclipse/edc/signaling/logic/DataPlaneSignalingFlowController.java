@@ -51,7 +51,18 @@ import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.q
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
- * Data plane signaling implementation of the DataFlowController
+ * Data plane signaling implementation of the DataFlowController.
+ * <p>
+ * A signal that could not be delivered, or that the data plane could not process (5xx), fails with
+ * {@code ERROR_RETRY} and is retried by the transfer process state machine. Known limitations of a retried
+ * {@code prepare} / {@code start}:
+ * <ul>
+ *     <li>the data plane is selected again, so with several data planes matching the transfer, the retry may go to
+ *     another one than the failed attempt, which may have created a data flow anyway;</li>
+ *     <li>if an attempt created the data flow but its response was lost (e.g. it timed out), the data plane rejects the
+ *     request sent again, by the HTTP client or by the state machine, for the existing data flow, and the transfer
+ *     process fails.</li>
+ * </ul>
  */
 public class DataPlaneSignalingFlowController implements DataFlowController {
 
