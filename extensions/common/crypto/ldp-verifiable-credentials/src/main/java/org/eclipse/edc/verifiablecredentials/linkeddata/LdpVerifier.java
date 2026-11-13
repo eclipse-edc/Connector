@@ -280,7 +280,7 @@ public class LdpVerifier implements CredentialVerifier {
             var signatureSuite = findSuite(proofTypes, expandedProof);
 
             if (signatureSuite == null) {
-                return failure("No SignatureSuite found for proof type(s) '%s'.".formatted(String.join(",")));
+                return failure("No SignatureSuite found for proof type(s) '%s'.".formatted(String.join(",", proofTypes)));
             }
 
             var proof = signatureSuite.getProof(expandedProof, loader);

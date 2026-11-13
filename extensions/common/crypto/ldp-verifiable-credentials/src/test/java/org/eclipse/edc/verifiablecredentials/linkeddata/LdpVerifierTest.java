@@ -321,6 +321,22 @@ class LdpVerifierTest {
             }
 
             @Test
+            void verify_noSignatureSuiteForProofType_shouldFailNamingTheProofType() throws JOSEException {
+                var vpKey = new ECKeyGenerator(Curve.P_384)
+                        .keyID("vp-sign-key")
+                        .generate();
+                var input = TestData.VP_CONTENT_TEMPLATE.formatted("");
+                var proof = proofBuilder(methodResolver.publish(VP_HOLDER + "#key-1", vpKey))
+                        .proofPurpose(URI.create("https://w3id.org/security#authentication"))
+                        .build();
+                var rawVp = LdpCreationUtils.signDocument(input, vpKey, proof, testDocLoader);
+                when(suiteRegistry.getAllSuites()).thenReturn(List.of());
+
+                assertThat(ldpVerifier.verify(rawVp, context)).isFailed()
+                        .detail().isEqualTo("No SignatureSuite found for proof type(s) 'https://w3id.org/security#JsonWebSignature2020'.");
+            }
+
+            @Test
             void verify_signedByOtherDid_shouldFail() throws JOSEException {
                 // a key of another DID, published in that DID's document, signs a presentation for the holder
                 var attackerKey = new ECKeyGenerator(Curve.P_384)
