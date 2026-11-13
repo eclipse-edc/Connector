@@ -14,6 +14,9 @@
 
 package org.eclipse.edc.spi.iam;
 
+import com.nimbusds.jose.HeaderParameterNames;
+import org.jetbrains.annotations.Nullable;
+
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
@@ -29,6 +32,7 @@ import static java.time.ZoneOffset.UTC;
  */
 public class ClaimToken {
     private final Map<String, Object> claims = new HashMap<>();
+    private final Map<String, Object> headers = new HashMap<>();
 
     private ClaimToken() {
     }
@@ -96,6 +100,38 @@ public class ClaimToken {
         return Instant.ofEpochSecond(epochSecond).atOffset(UTC).toInstant();
     }
 
+    /**
+     * Returns the headers of the token, e.g. the JOSE header of a JWT.
+     */
+    public Map<String, Object> getHeaders() {
+        return headers;
+    }
+
+    /**
+     * Get the header value by name
+     *
+     * @param headerName the name of the header
+     * @return the header value, null if it does not exist
+     */
+    public Object getHeader(String headerName) {
+        return headers.get(headerName);
+    }
+
+    /**
+     * Get the header value by name cast to {@link String}
+     *
+     * @param headerName the name of the header
+     * @return the header value, null if it does not exist
+     */
+    public String getStringHeader(String headerName) {
+        return Optional.of(headers).map(it -> it.get(headerName)).map(String.class::cast).orElse(null);
+    }
+
+    @Nullable
+    public String getKeyId() {
+        return getStringHeader(HeaderParameterNames.KEY_ID);
+    }
+
     public static class Builder {
         private final ClaimToken token;
 
@@ -114,6 +150,16 @@ public class ClaimToken {
 
         public Builder claims(Map<String, Object> map) {
             token.claims.putAll(map);
+            return this;
+        }
+
+        public Builder header(String key, Object value) {
+            token.headers.put(key, value);
+            return this;
+        }
+
+        public Builder headers(Map<String, Object> map) {
+            token.headers.putAll(map);
             return this;
         }
 

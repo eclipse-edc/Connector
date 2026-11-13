@@ -50,6 +50,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.PARTICIPANT_DID;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.TestFunctions.createToken;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -116,7 +117,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
 
         var result = verifier.validate(PARTICIPANT_CONTEXT_ID, TokenRepresentation.Builder.newInstance().token("token").build());
 
-        assertThat(result).isFailed().messages().anyMatch(m -> m.contains("Error parsing JWT"));
+        assertThat(result).isFailed().messages().anySatisfy(m -> assertThat(m).contains("Failed to decode token"));
     }
 
     @Test

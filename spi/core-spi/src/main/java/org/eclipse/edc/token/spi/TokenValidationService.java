@@ -30,6 +30,12 @@ import java.util.List;
 public interface TokenValidationService {
 
     /**
+     * A {@link PublicKeyResolver} that resolves no key for any ID. Tokens validated with it are parsed and checked by
+     * the validation rules, but their signature is not verified.
+     */
+    PublicKeyResolver NO_SIGNATURE_VERIFICATION = id -> Result.success(null);
+
+    /**
      * Validates the token and offers possibility for additional information for validations.
      *
      * @param tokenRepresentation A token representation including the token to verify.
@@ -61,7 +67,9 @@ public interface TokenValidationService {
      * @param publicKeyResolver A {@link PublicKeyResolver} to obtain the public key with which to verify the token
      * @param rules             token validation rules that apply to the token
      * @return Result of the validation.
+     * @deprecated it has no production use, and maintaining a vararg variation of the method is not worth it.
      */
+    @Deprecated(since = "1.0.0")
     default Result<ClaimToken> validate(@NotNull String token, PublicKeyResolver publicKeyResolver, TokenValidationRule... rules) {
         var tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(token)

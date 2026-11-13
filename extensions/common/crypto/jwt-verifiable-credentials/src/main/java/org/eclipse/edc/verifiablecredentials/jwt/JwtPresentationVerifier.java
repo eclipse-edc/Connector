@@ -15,13 +15,13 @@
 
 package org.eclipse.edc.verifiablecredentials.jwt;
 
-import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.CredentialVerifier;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.JwtPresentationFormat;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.VerifierContext;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
+import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
+import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.token.rules.AudienceValidationRule;
@@ -33,7 +33,6 @@ import org.eclipse.edc.verifiablecredentials.jwt.rules.PresentationFormatRule;
 import org.jetbrains.annotations.Nullable;
 import tools.jackson.core.JacksonException;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -42,8 +41,9 @@ import java.util.Map;
 /**
  * Computes the cryptographic integrity of a VerifiablePresentation when it's represented as JWT. Internally, for the actual
  * cryptographic computation it uses the generic {@link TokenValidationService} together with {@link TokenValidationRule} objects
- * taken from a {@link TokenValidationRulesRegistry}. The main task of <em>this</em> class is to read the JWT,
- * determine whether it's a VP or a VC and parse the contents.
+ * taken from a {@link TokenValidationRulesRegistry}. The main task of <em>this</em> class is to provide the rule that,
+ * on the token parsed and verified by the {@link TokenValidationService}, determines whether it's a VP or a VC and
+ * validates its contents.
  * <p>
  * In order to be successfully verified, a VP-JWT must contain a "vp" claim, that contains a JSON structure containing a
  * "verifiableCredentials" object.
@@ -87,58 +87,74 @@ public class JwtPresentationVerifier implements CredentialVerifier {
     }
 
 
+    /**
+     * Determines whether the input is a JWT that is either a credential or a VCDM 1.1 presentation. Only the format is
+     * checked, the signature is verified by {@link #verify(String, VerifierContext)}.
+     */
     @Override
     public boolean canHandle(String rawInput) {
-        try {
-            var claims = SignedJWT.parse(rawInput).getJWTClaimsSet().getClaims();
-            return isCredential(claims) || JwtPresentationFormat.of(claims) == CredentialFormat.VC1_0_JWT;
-        } catch (ParseException e) {
-            return false;
-        }
+        return tokenValidationService.validate(rawInput, TokenValidationService.NO_SIGNATURE_VERIFICATION, List.of(isCredentialOrVcdm1_1presentation()))
+                .succeeded();
     }
 
     /**
      * Verifies the presentation by checking the cryptographic integrity as well as the presence of mandatory claims in the JWT.
+     * The JWT is parsed and its signature verified once by the {@link TokenValidationService}, then a single
+     * {@link TokenValidationRule} determines whether it is a credential or a presentation and validates it accordingly.
      *
      * @param serializedJwt The serialized JWT presentation to be verified.
      * @return A Result object representing the verification result, containing specific error messages in case of failure.
      */
     @Override
     public Result<Void> verify(String serializedJwt, VerifierContext context) {
+        return tokenValidationService.validate(serializedJwt, publicKeyResolver, List.of(verifiableDocumentRule(context)))
+                .mapEmpty();
+    }
 
-        try {
-            var signedJwt = SignedJWT.parse(serializedJwt);
-            var keyId = signedJwt.getHeader().getKeyID();
-            var jwtClaimsSet = signedJwt.getJWTClaimsSet();
-            var claims = jwtClaimsSet.getClaims();
+    /**
+     * Returns the rule that accepts the token if it is a credential or a VCDM 1.1 presentation.
+     */
+    private TokenValidationRule isCredentialOrVcdm1_1presentation() {
+        return (claimToken, additional) -> {
+            var claims = claimToken.getClaims();
+            return isCredential(claims) || JwtPresentationFormat.of(claims) == CredentialFormat.VC1_0_JWT
+                    ? Result.success()
+                    : Result.failure("Neither a credential nor a VCDM 1.1 presentation");
+        };
+    }
+
+    /**
+     * Returns the rule that validates the token as either a credential or a presentation, depending on its claims.
+     */
+    private TokenValidationRule verifiableDocumentRule(VerifierContext context) {
+        return (claimToken, additional) -> {
+            var claims = claimToken.getClaims();
 
             if (isCredential(claims)) {
-                return validateAsCredential(serializedJwt, keyId);
+                var rules = tokenValidationRulesRegistry.getRules(Constants.JWT_VC_TOKEN_CONTEXT);
+                return TokenValidationRule.allOf(rules).checkRule(claimToken, additional);
             }
 
             if (context.isCredentialExpected()) {
                 return Result.failure("Expected a credential, but the JWT contains a presentation.");
             }
 
-            if (isPresentation(jwtClaimsSet)) {
-                return validateAsPresentation(serializedJwt, keyId, context, jwtClaimsSet);
+            if (isPresentation(claims)) {
+                return validateAsPresentation(claimToken, additional, context);
             }
 
             return Result.failure("Either '%s' or '%s' claim must be present in JWT.".formatted(Constants.VP_CLAIM, Constants.VC_CLAIM));
-
-        } catch (ParseException e) {
-            return Result.failure("Cannot parse JWT: " + e.getMessage());
-        }
+        };
     }
 
-    private Result<Void> validateAsPresentation(String serializedJwt, String keyId, VerifierContext context, JWTClaimsSet claimsSet) {
-        var verificationResult = tokenValidationService.validate(serializedJwt, publicKeyResolver, vpValidationRules(context.getAudience(), keyId));
+    private Result<Void> validateAsPresentation(ClaimToken claimToken, @Nullable Map<String, Object> additional, VerifierContext context) {
+        var verificationResult = TokenValidationRule.allOf(vpValidationRules(context.getAudience())).checkRule(claimToken, additional);
         if (verificationResult.failed()) {
             // the credentials of a presentation that is not valid are not verified
-            return verificationResult.mapFailure();
+            return verificationResult;
         }
 
-        var vpClaim = vpClaim(claimsSet.getClaim(Constants.VP_CLAIM));
+        var vpClaim = vpClaim(claimToken.getClaim(Constants.VP_CLAIM));
         if (vpClaim == null) {
             return Result.failure("The '%s' claim must be a JSON object.".formatted(Constants.VP_CLAIM));
         }
@@ -152,19 +168,13 @@ public class JwtPresentationVerifier implements CredentialVerifier {
             return Result.success();
         }
 
-        // every VC is represented as another JWT or as a JSON-LD document
+        // every VC is represented as another JWT or as a JSON-LD document, each one is verified (and its signature checked) on its own
         var credentialContext = context.toBuilder()
-                .audience(claimsSet.getIssuer())
+                .audience(claimToken.getStringClaim(JwtRegisteredClaimNames.ISSUER))
                 .credentialExpected(true)
                 .build();
 
         return rawCredentials.stream().map(credentialContext::verify).reduce(Result.success(), Result::merge);
-    }
-
-    private Result<Void> validateAsCredential(String serializedJwt, String keyId) {
-        var rules = CredentialValidationRules.vcdm11(tokenValidationRulesRegistry, keyId);
-        return tokenValidationService.validate(serializedJwt, publicKeyResolver, rules)
-                .mapEmpty();
     }
 
     /**
@@ -184,9 +194,9 @@ public class JwtPresentationVerifier implements CredentialVerifier {
         return vpClaim instanceof Map<?, ?> map ? (Map<String, Object>) map : null;
     }
 
-    private List<TokenValidationRule> vpValidationRules(String audience, String keyId) {
+    private List<TokenValidationRule> vpValidationRules(String audience) {
         var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(Constants.JWT_VP_TOKEN_CONTEXT));
-        rules.add(new IssuerKeyIdValidationRule(keyId));
+        rules.add(new IssuerKeyIdValidationRule());
         rules.add(new PresentationFormatRule(CredentialFormat.VC1_0_JWT));
         if (audience != null) {
             rules.add(new AudienceValidationRule(audience));
@@ -199,8 +209,8 @@ public class JwtPresentationVerifier implements CredentialVerifier {
         return claims.containsKey(Constants.VC_CLAIM) && !claims.containsKey(Constants.VP_CLAIM);
     }
 
-    private boolean isPresentation(JWTClaimsSet jwtClaimsSet) {
-        return jwtClaimsSet.getClaim(Constants.VP_CLAIM) != null;
+    private boolean isPresentation(Map<String, Object> claims) {
+        return claims.get(Constants.VP_CLAIM) != null;
     }
 
     private List<String> extractCredentials(Object credentialsObject) {

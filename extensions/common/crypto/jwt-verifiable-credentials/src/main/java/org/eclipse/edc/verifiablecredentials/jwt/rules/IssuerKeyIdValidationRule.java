@@ -31,16 +31,15 @@ import java.util.Map;
  * where {@code iss} usually are DIDs, and the {@code key-id} is an arbitrary string.
  */
 public class IssuerKeyIdValidationRule implements TokenValidationRule {
-    private final String keyId;
 
-    public IssuerKeyIdValidationRule(String tokenKeyIdHeader) {
-        this.keyId = tokenKeyIdHeader;
+    public IssuerKeyIdValidationRule() {
     }
 
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
         var iss = toVerify.getStringClaim(JwtRegisteredClaimNames.ISSUER);
         // keyID MUST be a composite of the issuer and the key-id in the form <ISSUER>#<keyID>
+        var keyId = toVerify.getKeyId();
         return iss != null && keyId != null && keyId.startsWith(iss + "#") ? Result.success() : Result.failure("kid header '%s' expected to correlate to 'iss' claim ('%s'), but it did not.".formatted(keyId, iss));
     }
 }

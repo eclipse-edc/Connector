@@ -26,10 +26,11 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 class IssuerKeyIdValidationRuleTest {
 
     private static final String ISSUER = "did:web:issuer.example.com";
+    private final IssuerKeyIdValidationRule rule = new IssuerKeyIdValidationRule();
 
     @Test
     void kidBelongsToIss() {
-        assertThat(new IssuerKeyIdValidationRule(ISSUER + "#key-1").checkRule(token(ISSUER), Map.of()))
+        assertThat(rule.checkRule(token(ISSUER, ISSUER + "#key-1"), Map.of()))
                 .isSucceeded();
     }
 
@@ -42,24 +43,27 @@ class IssuerKeyIdValidationRuleTest {
             "did:web:issuer.example.com:path#key-1"
     })
     void kidDoesNotBelongToIss(String keyId) {
-        assertThat(new IssuerKeyIdValidationRule(keyId).checkRule(token(ISSUER), Map.of()))
+        assertThat(rule.checkRule(token(ISSUER, keyId), Map.of()))
                 .isFailed()
                 .detail().isEqualTo("kid header '%s' expected to correlate to 'iss' claim ('%s'), but it did not.".formatted(keyId, ISSUER));
     }
 
     @Test
     void noKid() {
-        assertThat(new IssuerKeyIdValidationRule(null).checkRule(token(ISSUER), Map.of()))
-                .isFailed();
+        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("iss", ISSUER).build(), Map.of()))
+                .isFailed()
+                .detail().isEqualTo("kid header 'null' expected to correlate to 'iss' claim ('%s'), but it did not.".formatted(ISSUER));
     }
 
     @Test
     void noIss() {
-        assertThat(new IssuerKeyIdValidationRule("null#key-1").checkRule(ClaimToken.Builder.newInstance().build(), Map.of()))
+        var token = ClaimToken.Builder.newInstance().header("kid", "null#key-1").build();
+
+        assertThat(rule.checkRule(token, Map.of()))
                 .isFailed();
     }
 
-    private ClaimToken token(String iss) {
-        return ClaimToken.Builder.newInstance().claim("iss", iss).build();
+    private ClaimToken token(String iss, String keyId) {
+        return ClaimToken.Builder.newInstance().claim("iss", iss).header("kid", keyId).build();
     }
 }

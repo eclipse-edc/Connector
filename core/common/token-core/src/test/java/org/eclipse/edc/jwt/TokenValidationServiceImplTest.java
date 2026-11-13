@@ -35,9 +35,11 @@ import java.security.PrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import static com.nimbusds.jwt.JWTClaimNames.EXPIRATION_TIME;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -69,21 +71,38 @@ class TokenValidationServiceImplTest {
         var claims = createClaims(now);
         var ruleMock = mock(TokenValidationRule.class);
         when(ruleMock.checkRule(any(), any())).thenReturn(Result.success());
+        var jwt = createJwt(publicKeyId, claims, key.toPrivateKey());
 
-        var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()), publicKeyResolver);
+        var result = tokenValidationService.validate(jwt, publicKeyResolver, emptyList());
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getClaims())
                 .containsEntry("foo", "bar")
                 .hasEntrySatisfying(EXPIRATION_TIME, value -> assertThat((Date) value).isCloseTo(now, 1000));
+        assertThat(result.getContent().getHeaders())
+                .containsEntry("kid", publicKeyId)
+                .containsEntry("alg", "RS256");
+    }
+
+    @Test
+    void validationSuccess_rulesReceiveHeaders() throws JOSEException {
+        var claims = createClaims(now);
+        var jwt = createJwt(publicKeyId, claims, key.toPrivateKey());
+        TokenValidationRule rule = (token, additional) ->
+                publicKeyId.equals(token.getKeyId()) ? Result.success() : Result.failure("kid not available");
+
+        var result = tokenValidationService.validate(jwt, publicKeyResolver, List.of(rule));
+
+        assertThat(result.succeeded()).isTrue();
     }
 
     @Test
     void validationFailure_cannotResolvePublicKey() throws JOSEException {
         var claims = createClaims(now);
         var ruleMock = mock(TokenValidationRule.class);
+        var jwt = createJwt("unknown-key", claims, key.toPrivateKey());
 
-        var result = tokenValidationService.validate(createJwt("unknown-key", claims, key.toPrivateKey()), publicKeyResolver, ruleMock);
+        var result = tokenValidationService.validate(jwt, publicKeyResolver, List.of(ruleMock));
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactly("not found");
@@ -95,8 +114,9 @@ class TokenValidationServiceImplTest {
         var claims = createClaims(now);
         var ruleMock = mock(TokenValidationRule.class);
         when(ruleMock.checkRule(any(), any())).thenReturn(Result.failure("Rule validation failed!"));
+        var jwt = createJwt(publicKeyId, claims, key.toPrivateKey());
 
-        var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()), publicKeyResolver, ruleMock);
+        var result = tokenValidationService.validate(jwt, publicKeyResolver, List.of(ruleMock));
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactly("Rule validation failed!");
@@ -112,8 +132,9 @@ class TokenValidationServiceImplTest {
         when(r1.checkRule(any(), any())).thenReturn(Result.failure("test-failure1"));
         when(r2.checkRule(any(), any())).thenReturn(Result.success());
         when(r3.checkRule(any(), any())).thenReturn(Result.failure("test-failure2"));
+        var jwt = createJwt(publicKeyId, claims, key.toPrivateKey());
 
-        var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()), publicKeyResolver, r1, r2, r3);
+        var result = tokenValidationService.validate(jwt, publicKeyResolver, List.of(r1, r2, r3));
 
         assertThat(result.failed()).isTrue();
         assertThat(result.getFailureMessages()).containsExactlyInAnyOrder("test-failure1", "test-failure2");
@@ -122,8 +143,9 @@ class TokenValidationServiceImplTest {
     @Test
     void shouldNotVerifySignature_whenPublicKeyIsNull() throws JOSEException {
         var claims = createClaims(now);
+        var jwt = createJwt(publicKeyId, claims, key.toPrivateKey());
 
-        var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()), id -> Result.success(null));
+        var result = tokenValidationService.validate(jwt, TokenValidationService.NO_SIGNATURE_VERIFICATION, emptyList());
 
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent().getClaims())

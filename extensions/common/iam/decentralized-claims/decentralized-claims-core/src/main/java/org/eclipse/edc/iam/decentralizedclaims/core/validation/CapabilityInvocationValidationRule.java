@@ -31,11 +31,9 @@ import java.util.Map;
  */
 public class CapabilityInvocationValidationRule implements TokenValidationRule {
 
-    private final String keyId;
     private final DidResolverRegistry didResolverRegistry;
 
-    public CapabilityInvocationValidationRule(String keyId, DidResolverRegistry didResolverRegistry) {
-        this.keyId = keyId;
+    public CapabilityInvocationValidationRule(DidResolverRegistry didResolverRegistry) {
         this.didResolverRegistry = didResolverRegistry;
     }
 
@@ -52,7 +50,8 @@ public class CapabilityInvocationValidationRule implements TokenValidationRule {
         }
 
         var capabilityInvocations = didResult.getContent().getCapabilityInvocation();
-        if (capabilityInvocations.stream().anyMatch(keyId::equals)) {
+        var keyId = toVerify.getKeyId();
+        if (keyId != null && capabilityInvocations.contains(keyId)) {
             return Result.success();
         }
         return Result.failure("The key '%s' is not listed in the 'capabilityInvocation' section of the DID document '%s'".formatted(keyId, iss));

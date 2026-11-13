@@ -174,7 +174,7 @@ public class Oauth2CredentialsSignalingAuthorization implements SignalingAuthori
                     .map(jwkSource -> JwksPublicKeyResolver.create(keyParserRegistry, monitor, jwkSource));
         }
 
-        return Result.success(keyId -> Result.success(null));
+        return Result.success(TokenValidationService.NO_SIGNATURE_VERIFICATION);
     }
 
     private Result<JWKSet> parseJwks(Object jwks) {

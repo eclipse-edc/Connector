@@ -30,8 +30,9 @@ import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.security.signature.jws2020.Jws2020ProofDraft;
 import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.eclipse.edc.security.signature.jws2020.TestDocumentLoader;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.token.TokenValidationServiceImpl;
+import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtCreationUtils;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
@@ -72,13 +73,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.endsWith;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class MultiFormatPresentationVerifierTest {
-    public static final String INVALID_SIGNATURE = "Invalid signature";
+    public static final String INVALID_SIGNATURE = "JWT signature not valid";
     private static final SignatureSuiteRegistry SIGNATURE_SUITE_REGISTRY = mock();
     private static final ObjectMapper MAPPER = JsonMapperFactory.defaultJsonMapper();
     private static final Jws2020SignatureSuite JWS_SIGNATURE_SUITE = new Jws2020SignatureSuite(MAPPER);
@@ -103,8 +103,8 @@ class MultiFormatPresentationVerifierTest {
         jsonLd.registerCachedDocument("https://www.w3.org/2018/credentials/v1", Thread.currentThread().getContextClassLoader().getResource("credentials.v1.json").toURI());
         jsonLd.registerCachedDocument("https://www.w3.org/2018/credentials/examples/v1", Thread.currentThread().getContextClassLoader().getResource("examples.v1.json").toURI());
 
-        vpSigningKey = new ECKeyGenerator(Curve.P_256).keyID(PRESENTER_KEY_ID).generate();
-        vcSigningKey = new ECKeyGenerator(Curve.P_256).keyID(CENTRAL_ISSUER_KEY_ID).generate();
+        vpSigningKey = new ECKeyGenerator(Curve.P_256).keyID(VP_HOLDER_ID + "#" + PRESENTER_KEY_ID).generate();
+        vcSigningKey = new ECKeyGenerator(Curve.P_256).keyID(CENTRAL_ISSUER_DID + "#" + CENTRAL_ISSUER_KEY_ID).generate();
     }
 
     @BeforeEach
@@ -112,8 +112,10 @@ class MultiFormatPresentationVerifierTest {
         when(publicKeyResolverMock.resolveKey(endsWith(PRESENTER_KEY_ID))).thenReturn(success(createPublicKey(vpSigningKey.toPublicJWK())));
         when(publicKeyResolverMock.resolveKey(endsWith(CENTRAL_ISSUER_KEY_ID))).thenReturn(success(createPublicKey(vcSigningKey.toPublicJWK())));
 
+        // the presentation verifier validates the JWT through a rule, so the real service is needed to run it
+        var realTokenValidationService = new TokenValidationServiceImpl();
         when(tokenValidationService.validate(anyString(), any(PublicKeyResolver.class), anyList()))
-                .thenReturn(Result.success(null));
+                .thenAnswer(i -> realTokenValidationService.validate(i.getArgument(0, String.class), i.getArgument(1), i.<List<TokenValidationRule>>getArgument(2)));
 
 
         var ldpVerifier = LdpVerifier.Builder.newInstance()
@@ -232,9 +234,6 @@ class MultiFormatPresentationVerifierTest {
             var spoofedKey = new ECKeyGenerator(Curve.P_256).keyID(CENTRAL_ISSUER_KEY_ID).generate();
             var vcJwt1 = JwtCreationUtils.createJwt(spoofedKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", TestData.VC_CONTENT_DEGREE_EXAMPLE));
 
-            when(tokenValidationService.validate(eq(vcJwt1), any(PublicKeyResolver.class), anyList()))
-                    .thenReturn(Result.failure("Invalid signature"));
-
             var vpContent = VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"");
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(vpContent)));
 
@@ -251,9 +250,6 @@ class MultiFormatPresentationVerifierTest {
 
             // create first VC-JWT (signed by the central issuer)
             var vcJwt2 = JwtCreationUtils.createJwt(spoofedKey, CENTRAL_ISSUER_DID, "isoCred", VP_HOLDER_ID, Map.of("vc", TestData.VC_CONTENT_CERTIFICATE_EXAMPLE));
-
-            when(tokenValidationService.validate(eq(vcJwt2), any(PublicKeyResolver.class), anyList()))
-                    .thenReturn(Result.failure("Invalid signature"));
 
             // create VP-JWT (signed by the presenter) that contains the VP as a claim
             var vpContent = "\"%s\", \"%s\"".formatted(vcJwt1, vcJwt2);
@@ -320,9 +316,6 @@ class MultiFormatPresentationVerifierTest {
             var spoofedKey = new ECKeyGenerator(Curve.P_256).keyID(CENTRAL_ISSUER_KEY_ID).generate();
 
             var vcJwt1 = JwtCreationUtils.createJwt(spoofedKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", TestData.VC_CONTENT_DEGREE_EXAMPLE));
-            when(tokenValidationService.validate(eq(vcJwt1), any(PublicKeyResolver.class), anyList()))
-                    .thenReturn(Result.failure("Invalid signature"));
-
             var nameCredential = createNameCredential();
             var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
 
@@ -333,7 +326,7 @@ class MultiFormatPresentationVerifierTest {
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(vpContent))));
 
             assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.VC1_0_JWT, null), MY_OWN_DID))
-                    .isFailed().detail().contains("Invalid signature");
+                    .isFailed().detail().contains(INVALID_SIGNATURE);
         }
 
         @DisplayName("contains no VCs")

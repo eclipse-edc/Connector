@@ -36,7 +36,7 @@ class CapabilityInvocationValidationRuleTest {
 
     @Test
     void keyInCapabilityInvocation() {
-        var rule = new CapabilityInvocationValidationRule(KEY_ID, resolverRegistry);
+        var rule = new CapabilityInvocationValidationRule(resolverRegistry);
         when(resolverRegistry.resolve(ISSUER)).thenReturn(Result.success(didDocument(List.of(KEY_ID))));
 
         assertThat(rule.checkRule(claimToken(ISSUER), Map.of())).isSucceeded();
@@ -44,7 +44,7 @@ class CapabilityInvocationValidationRuleTest {
 
     @Test
     void keyNotInCapabilityInvocation() {
-        var rule = new CapabilityInvocationValidationRule(KEY_ID, resolverRegistry);
+        var rule = new CapabilityInvocationValidationRule(resolverRegistry);
         when(resolverRegistry.resolve(ISSUER)).thenReturn(Result.success(didDocument(List.of("did:web:consumer#other-key"))));
 
         assertThat(rule.checkRule(claimToken(ISSUER), Map.of())).isFailed()
@@ -54,7 +54,7 @@ class CapabilityInvocationValidationRuleTest {
 
     @Test
     void emptyCapabilityInvocation() {
-        var rule = new CapabilityInvocationValidationRule(KEY_ID, resolverRegistry);
+        var rule = new CapabilityInvocationValidationRule(resolverRegistry);
         when(resolverRegistry.resolve(ISSUER)).thenReturn(Result.success(didDocument(List.of())));
 
         assertThat(rule.checkRule(claimToken(ISSUER), Map.of())).isFailed();
@@ -62,7 +62,7 @@ class CapabilityInvocationValidationRuleTest {
 
     @Test
     void issuerClaimMissing() {
-        var rule = new CapabilityInvocationValidationRule(KEY_ID, resolverRegistry);
+        var rule = new CapabilityInvocationValidationRule(resolverRegistry);
         var token = ClaimToken.Builder.newInstance().build();
 
         assertThat(rule.checkRule(token, Map.of())).isFailed()
@@ -72,7 +72,7 @@ class CapabilityInvocationValidationRuleTest {
 
     @Test
     void didResolutionFails() {
-        var rule = new CapabilityInvocationValidationRule(KEY_ID, resolverRegistry);
+        var rule = new CapabilityInvocationValidationRule(resolverRegistry);
         when(resolverRegistry.resolve(ISSUER)).thenReturn(Result.failure("DID not found"));
 
         assertThat(rule.checkRule(claimToken(ISSUER), Map.of())).isFailed()
@@ -80,8 +80,19 @@ class CapabilityInvocationValidationRuleTest {
                 .contains("DID not found");
     }
 
+    @Test
+    void kidHeaderMissing() {
+        var rule = new CapabilityInvocationValidationRule(resolverRegistry);
+        when(resolverRegistry.resolve(ISSUER)).thenReturn(Result.success(didDocument(List.of(KEY_ID))));
+        var token = ClaimToken.Builder.newInstance().claim("iss", ISSUER).build();
+
+        assertThat(rule.checkRule(token, Map.of())).isFailed()
+                .detail()
+                .isEqualTo("The key 'null' is not listed in the 'capabilityInvocation' section of the DID document 'did:web:consumer'");
+    }
+
     private ClaimToken claimToken(String iss) {
-        return ClaimToken.Builder.newInstance().claim("iss", iss).build();
+        return ClaimToken.Builder.newInstance().claim("iss", iss).header("kid", KEY_ID).build();
     }
 
     private DidDocument didDocument(List<String> capabilityInvocations) {
