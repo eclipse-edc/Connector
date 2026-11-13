@@ -39,6 +39,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static java.util.Collections.emptyMap;
+import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
@@ -96,24 +97,29 @@ public class DataPlaneSignalingClient {
                     var response = httpClient.execute(builder.build(), r -> handleResponse(r, extractBody));
                     if (response.succeeded()) {
                         return StatusResult.success(response.getContent());
-                    } else {
-                        return StatusResult.fatalError(response.getFailureDetail());
                     }
+                    // a signal that could not be delivered (timeout, I/O error) or that the data plane could not process
+                    // (5xx) is retried by the state machine, a rejected one (4xx) is final
+                    return StatusResult.failure(response.isRetryable() ? ERROR_RETRY : FATAL_ERROR, response.getFailureDetail());
                 });
     }
 
     private <T> Result<T> handleResponse(Response response, Function<ResponseBody, Result<T>> handleResponseBody) {
         try (var responseBody = response.body()) {
             if (!response.isSuccessful()) {
-                return Result.failure("Data-plane responded with %d - %s. Response body: %s"
+                return failure(response, "Data-plane responded with %d - %s. Response body: %s"
                         .formatted(response.code(), response.message(), responseBody.string()));
             }
             return handleResponseBody.apply(responseBody);
 
         } catch (IOException e) {
-            return Result.failure("Data-plane responded with %d - %s. Cannot read response body: %s"
+            return failure(response, "Data-plane responded with %d - %s. Cannot read response body: %s"
                     .formatted(response.code(), response.message(), e.getMessage()));
         }
+    }
+
+    private <T> Result<T> failure(Response response, String message) {
+        return response.code() >= 500 ? Result.retryableFailure(message) : Result.failure(message);
     }
 
     private Result<Void> discardResponseBody(ResponseBody responseBody) {
@@ -139,7 +145,8 @@ public class DataPlaneSignalingClient {
                     if (it.succeeded()) {
                         return StatusResult.success(it.getContent());
                     } else {
-                        return StatusResult.failure(FATAL_ERROR, it.getFailureDetail());
+                        // e.g. the authorization server could not be reached
+                        return StatusResult.failure(it.isRetryable() ? ERROR_RETRY : FATAL_ERROR, it.getFailureDetail());
                     }
                 });
     }

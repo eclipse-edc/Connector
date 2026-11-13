@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.Authorizati
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DataFlowTerminateMessage;
 import org.eclipse.edc.signaling.spi.authorization.Header;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorization;
@@ -32,6 +33,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.noContent;
@@ -43,6 +45,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
+import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
+import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -112,7 +117,23 @@ class DataPlaneSignalingClientTest {
             var result = createClient(dataPlane(profile)).terminate("flow-id", message);
 
             assertThat(result.failed()).isTrue();
+            assertThat(result.getFailure().status()).isEqualTo(FATAL_ERROR);
             assertThat(result.getFailureMessages()).anyMatch(msg -> msg.contains("token endpoint unreachable"));
+            server.verify(0, postRequestedFor(anyUrl()));
+        }
+
+        @Test
+        void shouldFailWithRetry_whenAuthorizationCouldNotBeObtained() {
+            var profile = new AuthorizationProfile("oauth2", Map.of());
+            var authorization = mock(SignalingAuthorization.class);
+            when(authorizationRegistry.findByType("oauth2")).thenReturn(authorization);
+            when(authorization.evaluate(profile)).thenReturn(Result.retryableFailure("token endpoint unreachable"));
+            var message = DataFlowTerminateMessage.Builder.newInstance().messageId(UUID.randomUUID().toString()).build();
+
+            var result = createClient(dataPlane(profile)).terminate("flow-id", message);
+
+            assertThat(result.failed()).isTrue();
+            assertThat(result.getFailure().status()).isEqualTo(ERROR_RETRY);
             server.verify(0, postRequestedFor(anyUrl()));
         }
 
@@ -122,14 +143,38 @@ class DataPlaneSignalingClientTest {
     class HandleResponse {
 
         @Test
-        void shouldFail_whenDataPlaneRespondsWithErrorStatus() {
+        void shouldFailWithRetry_whenDataPlaneRespondsWithServerError() {
             server.stubFor(post(anyUrl()).willReturn(serverError()));
             var client = createClient(dataPlane());
 
             var result = client.prepare(DataFlowPrepareMessage.Builder.newInstance().build());
 
             assertThat(result.failed()).isTrue();
+            assertThat(result.getFailure().status()).isEqualTo(ERROR_RETRY);
             assertThat(result.getFailureMessages()).anyMatch(msg -> msg.contains("500"));
+            server.verify(1, postRequestedFor(anyUrl()));
+        }
+
+        @Test
+        void shouldFailWithoutRetry_whenDataPlaneRejectsTheSignal() {
+            server.stubFor(post(anyUrl()).willReturn(aResponse().withStatus(409).withBody("{\"error\":\"Data flow with id flow-id already exists\"}")));
+            var client = createClient(dataPlane());
+
+            var result = client.start(DataFlowStartMessage.Builder.newInstance().build());
+
+            assertThat(result.failed()).isTrue();
+            assertThat(result.getFailure().status()).isEqualTo(FATAL_ERROR);
+            assertThat(result.getFailureMessages()).anyMatch(msg -> msg.contains("409"));
+        }
+
+        @Test
+        void shouldFailWithRetry_whenDataPlaneIsNotReachable() {
+            var client = createClient(DataPlaneInstance.Builder.newInstance().url("http://localhost:" + getFreePort()).build());
+
+            var result = client.start(DataFlowStartMessage.Builder.newInstance().build());
+
+            assertThat(result.failed()).isTrue();
+            assertThat(result.getFailure().status()).isEqualTo(ERROR_RETRY);
         }
 
         @Test
