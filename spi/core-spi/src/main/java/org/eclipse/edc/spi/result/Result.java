@@ -49,6 +49,20 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
         return new Result<>(null, new Failure(failures));
     }
 
+    /**
+     * A failure of an operation that could not be completed, and that may succeed later, see {@link RetryableFailure}.
+     */
+    public static <T> Result<T> retryableFailure(String failure) {
+        return retryableFailure(List.of(failure));
+    }
+
+    /**
+     * A failure of an operation that could not be completed, and that may succeed later, see {@link RetryableFailure}.
+     */
+    public static <T> Result<T> retryableFailure(List<String> failures) {
+        return new Result<>(null, new RetryableFailure(failures));
+    }
+
 
     /**
      * Runs the block provided by the {@link Supplier} and wrap the return into a Result
@@ -77,7 +91,7 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
     /**
      * Returns a {@link Collector} that collects {@link Result} instances into a single {@link Result} containing a
      * {@link List} of all successful contents, or a failure with all failure messages if any of the collected Results
-     * is a failure.
+     * is a failure. The failure is never a {@link RetryableFailure}.
      */
     public static <T> Collector<Result<T>, ?, Result<List<T>>> collector() {
         return Collector.of(
@@ -92,7 +106,8 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
      * Merges this result with another one. If both Results are successful, a new one is created with no content. If
      * either this result or {@code other} is a failure, the merged result will be a {@code failure()} and will contain
      * all failure messages, no content. If both results are failures, the merged result will contain failure messages
-     * of {@code this} result, then the failure messages of {@code other}.
+     * of {@code this} result, then the failure messages of {@code other}. The merged failure is a
+     * {@link RetryableFailure} only if every failed result is one.
      */
     public <R> Result<R> merge(Result<?> other) {
         if (succeeded() && other.succeeded()) {
@@ -101,8 +116,18 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
             var messages = new ArrayList<String>();
             messages.addAll(Optional.ofNullable(getFailure()).map(Failure::getMessages).orElse(Collections.emptyList()));
             messages.addAll(Optional.ofNullable(other.getFailure()).map(Failure::getMessages).orElse(Collections.emptyList()));
-            return Result.failure(messages);
+            var retryable = (succeeded() || isRetryable()) && (other.succeeded() || other.isRetryable());
+            return retryable ? Result.retryableFailure(messages) : Result.failure(messages);
         }
+    }
+
+    /**
+     * Whether this result is a failure of an operation that could not be completed, and that may succeed later.
+     *
+     * @return true if failed with a {@link RetryableFailure}, false otherwise.
+     */
+    public boolean isRetryable() {
+        return failed() && getFailure() instanceof RetryableFailure;
     }
 
     /**

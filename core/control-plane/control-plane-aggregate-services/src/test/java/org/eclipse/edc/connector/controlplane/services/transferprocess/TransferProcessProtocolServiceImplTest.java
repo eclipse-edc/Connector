@@ -241,6 +241,22 @@ class TransferProcessProtocolServiceImplTest {
 
     @ParameterizedTest
     @ArgumentsSource(NotifyArguments.class)
+    <M extends ProtocolRemoteMessage> void notify_shouldReturnUnavailable_whenTokenValidationIsUnavailable(MethodCall<M> methodCall, M message) {
+        var tokenRepresentation = tokenRepresentation();
+
+        when(store.findById(any())).thenReturn(transferProcessBuilder().build());
+        when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(contractAgreement());
+        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.unavailable("unavailable"));
+
+        var result = methodCall.call(service, participantContext, message, tokenRepresentation);
+
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAVAILABLE);
+        verify(store, never()).findByIdAndLease(any());
+        verifyNoInteractions(listener);
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(NotifyArguments.class)
     <M extends ProtocolRemoteMessage> void notify_shouldReturnUnavailable_whenTransferProcessIsLeased(MethodCall<M> methodCall, M message) {
         var tokenRepresentation = tokenRepresentation();
 

@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.eclipse.edc.spi.result.Result.failure;
+import static org.eclipse.edc.spi.result.Result.retryableFailure;
 import static org.eclipse.edc.spi.result.Result.success;
 
 public class DefaultCredentialServiceClient implements CredentialServiceClient {
@@ -93,11 +94,15 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
                 var presentationResponse = typeManager.getMapper(typeContext).readValue(body, JsonObject.class);
                 return parseResponse(presentationResponse);
             }
-            return failure("Presentation Query failed: HTTP %s, message: %s".formatted(response.code(), body));
+            var message = "Presentation Query failed: HTTP %s, message: %s".formatted(response.code(), body);
+            // A server error or a connection failure means the presentation could not be obtained now, which the
+            // caller can tell apart from a rejected query. The request is deliberately not retried here: the
+            // presentation is requested while the counter-party's message is being processed, which can retry it.
+            return response.code() >= 500 ? retryableFailure(message) : failure(message);
 
         } catch (IOException e) {
             monitor.warning("Error requesting VP", e);
-            return failure("Error requesting VP: %s".formatted(e.getMessage()));
+            return retryableFailure("Error requesting VP: %s".formatted(e.getMessage()));
         }
     }
 

@@ -157,8 +157,32 @@ class DcpIdentityServiceTest {
             var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext());
 
             assertThat(result).isFailed().detail().isEqualTo("test-failure");
+            assertThat(result.isRetryable()).isFalse();
             verifyNoInteractions(credentialValidationServiceMock);
             verify(presentationRequestServiceMock).requestPresentation(any(), any(), any(), any(), isA(List.class));
+        }
+
+        @Test
+        void shouldBeRetryable_whenPresentationCouldNotBeObtained() {
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class)))
+                    .thenReturn(Result.retryableFailure("credential service not reachable"));
+            var token = TestFunctions.createToken();
+
+            var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext());
+
+            assertThat(result).isFailed().detail().isEqualTo("credential service not reachable");
+            assertThat(result.isRetryable()).isTrue();
+        }
+
+        @Test
+        void shouldBeRetryable_whenTokenCouldNotBeValidated() {
+            when(actionMock.validate(any(), any())).thenReturn(Result.retryableFailure("DID document not reachable"));
+            var token = TestFunctions.createToken();
+
+            var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext());
+
+            assertThat(result.isRetryable()).isTrue();
+            verifyNoInteractions(presentationRequestServiceMock);
         }
 
         @Test

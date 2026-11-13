@@ -76,6 +76,12 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
 
         var tokenValidation = identityService.verifyJwtToken(participantContext.getId(), tokenRepresentation, verificationContext);
         if (tokenValidation.failed()) {
+            if (tokenValidation.isRetryable()) {
+                // the token could not be verified now (e.g. the counter-party's credential service is not reachable):
+                // a 4xx would end the counter-party's process, while the same request may be verified later
+                monitor.warning("Token verification could not be completed: %s".formatted(tokenValidation.getFailureDetail()));
+                return ServiceResult.unavailable("Token verification could not be completed");
+            }
             monitor.debug(() -> "Unauthorized: %s".formatted(tokenValidation.getFailureDetail()));
             return ServiceResult.unauthorized("Unauthorized");
         }

@@ -289,7 +289,20 @@ class DefaultCredentialServiceClientTest {
             var res = client.requestPresentation(CS_URL, "foo", List.of());
             assertThat(res.failed()).isTrue();
             assertThat(res.getFailureDetail()).isEqualTo("Presentation Query failed: HTTP %s, message: Test failure".formatted(httpCode));
+            // a server error may be gone later, a rejected query is final
+            assertThat(res.isRetryable()).isEqualTo(httpCode >= 500);
             verify(httpClientMock).execute(argThat(rq -> rq.url().toString().endsWith(PRESENTATION_QUERY)));
+        }
+
+        @Test
+        void requestPresentation_csNotReachable() throws IOException {
+            when(httpClientMock.execute(any())).thenThrow(new IOException("connection refused"));
+
+            var res = client.requestPresentation(CS_URL, "foo", List.of());
+
+            assertThat(res.failed()).isTrue();
+            assertThat(res.isRetryable()).isTrue();
+            assertThat(res.getFailureDetail()).contains("connection refused");
         }
 
         @DisplayName("CS returns an empty array, because no VC was found")

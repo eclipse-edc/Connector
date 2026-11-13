@@ -42,6 +42,7 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -302,6 +303,10 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private ServiceResult<ClaimTokenContext> verifyRequest(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, ProtocolRemoteMessage message, ContractAgreement contractAgreement) {
         var result = protocolTokenValidator.verify(participantContext, tokenRepresentation, contractAgreement.getPolicy(), message);
         if (result.failed()) {
+            if (result.reason() == ServiceFailure.Reason.UNAVAILABLE) {
+                // the verification could not be completed, the counter-party can retry
+                return result.mapFailure();
+            }
             monitor.debug(() -> "Verification Failed: %s".formatted(result.getFailureDetail()));
             return ServiceResult.notFound("Not found");
         }

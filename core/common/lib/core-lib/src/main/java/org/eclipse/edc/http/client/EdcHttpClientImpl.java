@@ -67,9 +67,22 @@ public class EdcHttpClientImpl implements EdcHttpClient {
     @Override
     public <T> Result<T> execute(Request request, List<FallbackFactory> fallbacks, Function<Response, Result<T>> mappingFunction) {
         try (var response = execute(request, fallbacks)) {
+            return handleResponse(request, response, mappingFunction);
+        } catch (Throwable e) {
+            // the call could not be completed (e.g. connection failure, or retries exhausted), it may succeed later
+            monitor.severe("HTTP client exception caught for request [%s, %s]".formatted(request.method(), request.url()), e);
+            return Result.retryableFailure(e.getMessage());
+        }
+    }
+
+    /**
+     * Maps the response, a failure of the mapping function is not retryable: the same response would fail again.
+     */
+    private <T> Result<T> handleResponse(Request request, Response response, Function<Response, Result<T>> mappingFunction) {
+        try {
             return mappingFunction.apply(response);
         } catch (Throwable e) {
-            monitor.severe("HTTP client exception caught for request [%s, %s]".formatted(request.method(), request.url()), e);
+            monitor.severe("HTTP client exception caught while mapping the response of request [%s, %s]".formatted(request.method(), request.url()), e);
             return Result.failure(e.getMessage());
         }
     }

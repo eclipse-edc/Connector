@@ -41,6 +41,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAVAILABLE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -98,11 +99,22 @@ class ProtocolTokenValidatorImplTest {
 
     @Test
     void shouldReturnUnauthorized_whenTokenIsNotValid() {
+        when(dataspaceProfileContextRegistry.getProfile(any())).thenReturn(createDataspaceProfileContext("participantId"));
         when(identityService.verifyJwtToken(any(), any(), any())).thenReturn(Result.failure("failure"));
 
         var result = validator.verify(participantContext, TokenRepresentation.Builder.newInstance().build(), Policy.Builder.newInstance().build(), new TestMessage());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
+    }
+
+    @Test
+    void shouldReturnUnavailable_whenVerificationCouldNotBeCompleted() {
+        when(dataspaceProfileContextRegistry.getProfile(any())).thenReturn(createDataspaceProfileContext("participantId"));
+        when(identityService.verifyJwtToken(any(), any(), any())).thenReturn(Result.retryableFailure("credential service not reachable"));
+
+        var result = validator.verify(participantContext, TokenRepresentation.Builder.newInstance().build(), Policy.Builder.newInstance().build(), new TestMessage());
+
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAVAILABLE);
     }
 
     @Test

@@ -52,6 +52,8 @@ public class TokenValidationServiceImpl implements TokenValidationService {
 
             var claimToken = tokenBuilder.build();
 
+            // allOf merges the rule results: the failure stays retryable when every failed rule could not be checked
+            // (e.g. the DID document was not reachable), and may pass later
             var rulesResult = TokenValidationRule.allOf(rules).checkRule(claimToken, additional);
             if (rulesResult.failed()) {
                 return rulesResult.mapFailure();
