@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions.createCredentialBuilder;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions.createPresentationBuilder;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions.createPresentationContainer;
@@ -265,6 +266,51 @@ class VerifiableCredentialValidationServiceImplTest {
 
         assertThat(result).isFailed().detail().isEqualTo("base rule failed");
         verify(baseRule).apply(credential);
+    }
+
+    @Test
+    void verify_shouldBeRetryable_whenBaseRuleCouldNotBeChecked() {
+        CredentialValidationRule revocationRule = mock();
+        when(revocationRule.apply(any())).thenReturn(Result.retryableFailure("status list not reachable"));
+        CredentialValidationRule otherRule = mock();
+        when(otherRule.apply(any())).thenReturn(success());
+        var service = new VerifiableCredentialValidationServiceImpl(verifier, List.of(revocationRule, otherRule));
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
+
+        var result = service.validate(List.of(trustedPresentation()), EXPECTED_AUDIENCE, createProfile());
+
+        assertThat(result).isFailed().detail().isEqualTo("status list not reachable");
+        assertThat(result.isRetryable()).isTrue();
+    }
+
+    @Test
+    void verify_shouldNotBeRetryable_whenAnotherBaseRuleFailed() {
+        CredentialValidationRule revocationRule = mock();
+        when(revocationRule.apply(any())).thenReturn(Result.retryableFailure("status list not reachable"));
+        CredentialValidationRule expiryRule = mock();
+        when(expiryRule.apply(any())).thenReturn(Result.failure("credential expired"));
+        var service = new VerifiableCredentialValidationServiceImpl(verifier, List.of(revocationRule, expiryRule));
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
+
+        var result = service.validate(List.of(trustedPresentation()), EXPECTED_AUDIENCE, createProfile());
+
+        assertThat(result).isFailed();
+        assertThat(result.isRetryable()).isFalse();
+    }
+
+    private VerifiablePresentationContainer trustedPresentation() {
+        var credential = createCredentialBuilder()
+                .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                        .id(CONSUMER_DID)
+                        .claim("some-claim", "some-val")
+                        .build()))
+                .build();
+        var presentation = createPresentationBuilder()
+                .holder(CONSUMER_DID)
+                .type("VerifiablePresentation")
+                .credentials(List.of(credential))
+                .build();
+        return new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
     }
 
     private DataspaceProfileContext createProfile() {
