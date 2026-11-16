@@ -49,6 +49,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static java.util.Collections.singleton;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.verifiablecredentials.TestData.StatusList2021.STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_INTERMEDIATE;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status.STATUS_LIST_CREDENTIAL;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status.STATUS_LIST_INDEX;
@@ -151,9 +152,26 @@ class StatusList2021RevocationServiceTest {
                 Map.of(STATUS_LIST_PURPOSE, "revocation",
                         STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
                         STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort())));
-        assertThat(revocationService.checkValidity(credential)).isFailed()
+        var result = revocationService.checkValidity(credential);
+        assertThat(result.isRetryable()).isFalse();
+        assertThat(result).isFailed()
                 .detail()
                 .matches("Failed to download status list credential .* 415 Unsupported Media Type");
+    }
+
+    @Test
+    void checkValidity_serverErrorPersists_shouldFailWithRetryableFailure() {
+        clientAndServer.stubFor(get("/credentials/status/3").willReturn(aResponse().withStatus(503)));
+        var credential = new CredentialStatus("test-id", "StatusList2021Entry",
+                Map.of(STATUS_LIST_PURPOSE, "revocation",
+                        STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                        STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort())));
+
+        var result = revocationService.checkValidity(credential);
+
+        // the status list could not be obtained now, a later check may succeed
+        assertThat(result).isFailed();
+        assertThat(result.isRetryable()).isTrue();
     }
 
     @ParameterizedTest

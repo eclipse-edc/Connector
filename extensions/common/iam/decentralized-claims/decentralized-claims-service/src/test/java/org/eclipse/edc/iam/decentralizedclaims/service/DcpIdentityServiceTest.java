@@ -198,6 +198,19 @@ class DcpIdentityServiceTest {
         }
 
         @Test
+        void shouldBeRetryable_whenCredentialStatusCouldNotBeChecked() {
+            when(credentialValidationServiceMock.validate(anyList(), anyString(), any()))
+                    .thenReturn(Result.retryableFailure("status list not reachable"));
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class))).thenReturn(success(List.of(createPresentationContainer())));
+            var token = TestFunctions.createToken();
+
+            var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext());
+
+            assertThat(result).isFailed().detail().isEqualTo("status list not reachable");
+            assertThat(result.isRetryable()).isTrue();
+        }
+
+        @Test
         void jwtTokenNotValid() {
             when(actionMock.validate(any(), any())).thenReturn(failure("test failure"));
             var token = TestFunctions.createToken();

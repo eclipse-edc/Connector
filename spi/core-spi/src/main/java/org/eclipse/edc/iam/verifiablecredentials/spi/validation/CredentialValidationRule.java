@@ -18,26 +18,18 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Interface for a rule that is being applied to a {@link VerifiableCredential}, and returns {@link Result#success()} or {@link Result#failure(String)}.
  */
 public interface CredentialValidationRule extends Function<VerifiableCredential, Result<Void>> {
-    default CredentialValidationRule and(CredentialValidationRule other) {
-        return t -> {
-            var thisResult = this.apply(t);
-            var otherResult = other.apply(t);
 
-            var thisFailureMessages = thisResult.failed() ? thisResult.getFailureMessages().stream() : Stream.<String>empty();
-            var otherFailureMessages = otherResult.failed() ? otherResult.getFailureMessages().stream() : Stream.<String>empty();
-            var totalFailureMessages = Stream.concat(thisFailureMessages, otherFailureMessages).collect(Collectors.toList());
-            if (totalFailureMessages.isEmpty()) {
-                return Result.success();
-            } else {
-                return Result.failure(totalFailureMessages);
-            }
-        };
+    /**
+     * Combines this rule with another one: both are applied, and the failure messages of both are reported. The
+     * combined failure is a {@link org.eclipse.edc.spi.result.RetryableFailure} only if every failed rule could not be
+     * checked (e.g. a status list could not be downloaded), see {@link Result#merge(Result)}.
+     */
+    default CredentialValidationRule and(CredentialValidationRule other) {
+        return t -> this.apply(t).merge(other.apply(t));
     }
 }

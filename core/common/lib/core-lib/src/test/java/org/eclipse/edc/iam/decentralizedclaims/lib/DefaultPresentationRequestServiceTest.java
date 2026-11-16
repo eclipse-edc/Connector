@@ -79,12 +79,14 @@ class DefaultPresentationRequestServiceTest {
     }
 
     @Test
-    void requestPresentation_creatingSiTokenFails_shouldReturnFailure() {
+    void requestPresentation_creatingSiTokenFails_shouldReturnRetryableFailure() {
         when(secureTokenService.createToken(any(), any(), any())).thenReturn(Result.failure("error"));
 
         var result = service.requestPresentation(participantContextId, did, counterPartyDid, counterPartyToken, scopes);
 
         assertThat(result).isFailed();
+        // our own token could not be created, which says nothing about the counter-party's token
+        assertThat(result.isRetryable()).isTrue();
 
         verifyNoInteractions(credentialServiceUrlResolver);
         verifyNoInteractions(credentialServiceClient);
@@ -118,5 +120,6 @@ class DefaultPresentationRequestServiceTest {
         var result = service.requestPresentation(participantContextId, did, counterPartyDid, counterPartyToken, scopes);
 
         assertThat(result).isFailed();
+        assertThat(result.isRetryable()).isFalse();
     }
 }

@@ -64,7 +64,9 @@ public class DefaultPresentationRequestService implements PresentationRequestSer
                 EXPIRATION_TIME, Instant.now().plus(5, ChronoUnit.MINUTES).getEpochSecond());
         var siToken = secureTokenService.createToken(participantContextId, siTokenClaims, null);
         if (siToken.failed()) {
-            return siToken.mapFailure();
+            // our own token could not be created (e.g. the vault or the STS is not reachable): this says nothing about
+            // the counter-party's token, and the same request may be verified later
+            return Result.retryableFailure(siToken.getFailureMessages());
         }
         var siTokenString = siToken.getContent().getToken();
 

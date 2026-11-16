@@ -136,6 +136,9 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
                 statusListCredentialCache.evict(credentialUrl);
             }
             return Result.success(statusListCredentialCache.get(credentialUrl));
+        } catch (StatusListUnavailableException ex) {
+            // the status list could not be obtained now: the status is undetermined, and a later check may succeed
+            return Result.retryableFailure(ex.getMessage());
         } catch (IllegalArgumentException | EdcException ex) {
             // reported as a failure rather than thrown, so that callers can treat the status as undetermined
             return Result.failure(ex.getMessage());
@@ -196,14 +199,16 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
             }
             throw new IllegalArgumentException("Failed to download status list credential from " + credentialUrl + ": " + response.code() + " " + response.message());
         } catch (EdcHttpClientException e) {
-            // all retries are exhausted. The exception message would carry the entire response body, so only the status
-            // code is reported, if there was a response at all
+            // all retries are exhausted (server error, or no response at all). The exception message would carry the
+            // entire response body, so only the status code is reported, if there was a response at all
             var reason = e.getStatusCode() > 0 ? String.valueOf(e.getStatusCode()) : e.getMessage();
-            throw new IllegalArgumentException("Failed to download status list credential from " + credentialUrl + ": " + reason);
-        } catch (IOException | JacksonException e) {
-            // the response body could not be read, e.g. because it is not a status list credential, or a value of it is
-            // malformed
+            throw new StatusListUnavailableException("Failed to download status list credential from " + credentialUrl + ": " + reason);
+        } catch (JacksonException e) {
+            // the response body is not a status list credential, or a value of it is malformed
             throw new EdcException("Failed to read status list credential from " + credentialUrl + ": " + e.getMessage(), e);
+        } catch (IOException e) {
+            // the connection failed, or the response body could not be read
+            throw new StatusListUnavailableException("Failed to download status list credential from " + credentialUrl + ": " + e.getMessage());
         }
     }
 
@@ -222,5 +227,15 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
         var claims = result.getContent();
         var vc = Optional.ofNullable(claims.getClaim(VC_CLAIM)).orElseGet(claims::getClaims);
         return objectMapper.convertValue(vc, credentialClass);
+    }
+
+    /**
+     * The status list credential could not be obtained now, e.g. because its host is not reachable or answers with a
+     * server error. Unlike a status list that is not found or malformed, a later attempt may succeed.
+     */
+    private static class StatusListUnavailableException extends EdcException {
+        StatusListUnavailableException(String message) {
+            super(message);
+        }
     }
 }

@@ -59,6 +59,7 @@ public class JtiValidationRule implements TokenValidationRule {
             return Result.failure("The JWT id '%s' was already used.".formatted(jti));
         }
         monitor.warning("Failed to store the JWT id '%s': %s".formatted(jti, result.getFailureDetail()));
-        return Result.failure(result.getFailureDetail());
+        // the token could not be checked, which says nothing about the token itself
+        return Result.retryableFailure(result.getFailureDetail());
     }
 }

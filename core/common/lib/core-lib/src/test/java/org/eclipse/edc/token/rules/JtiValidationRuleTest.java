@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -61,7 +62,9 @@ class JtiValidationRuleTest {
     void checkRule_whenAlreadyUsed_shouldFail() {
         when(store.storeEntry(any())).thenReturn(StoreResult.alreadyExists("foobar"));
 
-        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("jti", "test-id").build(), Map.of())).isFailed()
+        var result = rule.checkRule(ClaimToken.Builder.newInstance().claim("jti", "test-id").build(), Map.of());
+        assertThat(result.isRetryable()).isFalse();
+        assertThat(result).isFailed()
                 .detail().isEqualTo("The JWT id 'test-id' was already used.");
         verify(store).storeEntry(any());
         verifyNoMoreInteractions(store);
@@ -71,7 +74,9 @@ class JtiValidationRuleTest {
     void checkRule_whenStoreFails_shouldFail() {
         when(store.storeEntry(any())).thenReturn(StoreResult.generalError("foobar"));
 
-        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("jti", "test-id").build(), Map.of())).isFailed()
+        var result = rule.checkRule(ClaimToken.Builder.newInstance().claim("jti", "test-id").build(), Map.of());
+        assertThat(result.isRetryable()).isTrue();
+        assertThat(result).isFailed()
                 .detail().isEqualTo("foobar");
     }
 

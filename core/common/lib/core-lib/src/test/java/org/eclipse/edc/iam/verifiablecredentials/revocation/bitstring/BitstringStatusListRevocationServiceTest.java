@@ -64,6 +64,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static java.util.Collections.singleton;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.verifiablecredentials.TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_ARRAY_SUBJECT_TEMPLATE;
 import static org.eclipse.edc.iam.verifiablecredentials.TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListCredential.BITSTRING_STATUSLIST_CREDENTIAL;
@@ -127,7 +128,10 @@ class BitstringStatusListRevocationServiceTest {
                             STATUS_LIST_INDEX, REVOKED_INDEX,
                             STATUS_LIST_SIZE, 1,
                             STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
-            assertThat(revocationService.checkValidity(credential)).isFailed()
+            var result = revocationService.checkValidity(credential);
+            // a definite outcome, retrying would not change it
+            assertThat(result.isRetryable()).isFalse();
+            assertThat(result).isFailed()
                     .detail().isEqualTo("Credential status is 'revocation', status at index 10 is '1'");
         }
 
@@ -229,7 +233,10 @@ class BitstringStatusListRevocationServiceTest {
                             STATUS_LIST_INDEX, REVOKED_INDEX,
                             STATUS_LIST_SIZE, 1,
                             STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
-            assertThat(revocationService.checkValidity(credential)).isFailed()
+            var result = revocationService.checkValidity(credential);
+            // a definite outcome, retrying would not change it
+            assertThat(result.isRetryable()).isFalse();
+            assertThat(result).isFailed()
                     .detail()
                     .matches("Failed to download status list credential .* 415 Unsupported Media Type");
             // a client error is not retried
@@ -268,7 +275,10 @@ class BitstringStatusListRevocationServiceTest {
                             STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
                             STATUS_LIST_SIZE, 1,
                             STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
-            assertThat(revocationService.checkValidity(credential)).isFailed()
+            var result = revocationService.checkValidity(credential);
+            // the status list could not be obtained now, a later check may succeed
+            assertThat(result.isRetryable()).isTrue();
+            assertThat(result).isFailed()
                     .detail()
                     .matches("Failed to download status list credential from .*: " + status);
             // the initial attempt, plus the two retries of the default retry policy
@@ -285,7 +295,10 @@ class BitstringStatusListRevocationServiceTest {
                             STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
                             STATUS_LIST_SIZE, 1,
                             STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
-            assertThat(revocationService.checkValidity(credential)).isFailed()
+            var result = revocationService.checkValidity(credential);
+            // a definite outcome, retrying would not change it
+            assertThat(result.isRetryable()).isFalse();
+            assertThat(result).isFailed()
                     .detail()
                     .matches("Failed to download status list credential from .*: " + status + " .*");
             server.verify(1, getRequestedFor(urlEqualTo("/credentials/status/3")));
@@ -300,7 +313,10 @@ class BitstringStatusListRevocationServiceTest {
                             STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
                             STATUS_LIST_SIZE, 1,
                             STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
-            assertThat(revocationService.checkValidity(credential)).isFailed()
+            var result = revocationService.checkValidity(credential);
+            // the status list could not be obtained now, a later check may succeed
+            assertThat(result.isRetryable()).isTrue();
+            assertThat(result).isFailed()
                     .detail()
                     .startsWith("Failed to download status list credential");
         }
@@ -315,7 +331,10 @@ class BitstringStatusListRevocationServiceTest {
                             STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
                             STATUS_LIST_SIZE, 1,
                             STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
-            assertThat(revocationService.checkValidity(credential)).isFailed()
+            var result = revocationService.checkValidity(credential);
+            // a definite outcome, retrying would not change it
+            assertThat(result.isRetryable()).isFalse();
+            assertThat(result).isFailed()
                     .detail()
                     .startsWith("Failed to read status list credential from http://localhost:%d/credentials/status/3".formatted(server.getPort()));
             server.verify(1, getRequestedFor(urlEqualTo("/credentials/status/3")));
@@ -327,7 +346,10 @@ class BitstringStatusListRevocationServiceTest {
                     .replace("\"validFrom\": \"2021-04-05T14:27:40Z\"", "\"validFrom\": \"not a date\"");
             server.stubFor(get("/credentials/status/3").willReturn(ok(bitstringCredential)));
 
-            assertThat(revocationService.checkValidity(statusListEntry(NOT_REVOKED_INDEX))).isFailed()
+            var result = revocationService.checkValidity(statusListEntry(NOT_REVOKED_INDEX));
+            // a definite outcome, retrying would not change it
+            assertThat(result.isRetryable()).isFalse();
+            assertThat(result).isFailed()
                     .detail()
                     .startsWith("Failed to read status list credential from http://localhost:%d/credentials/status/3".formatted(server.getPort()));
         }
@@ -337,7 +359,10 @@ class BitstringStatusListRevocationServiceTest {
         void checkValidity_responseContainsNoCredential_shouldFail(String body) {
             server.stubFor(get("/credentials/status/3").willReturn(ok(body)));
 
-            assertThat(revocationService.checkValidity(statusListEntry(NOT_REVOKED_INDEX))).isFailed()
+            var result = revocationService.checkValidity(statusListEntry(NOT_REVOKED_INDEX));
+            // a definite outcome, retrying would not change it
+            assertThat(result.isRetryable()).isFalse();
+            assertThat(result).isFailed()
                     .detail()
                     .isEqualTo("Failed to read status list credential from http://localhost:%d/credentials/status/3: it contains no credentialSubject".formatted(server.getPort()));
         }
