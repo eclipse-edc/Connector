@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationRequestMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
@@ -42,12 +43,14 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -56,7 +59,13 @@ import java.util.function.Function;
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTING;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.OFFERING;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTING;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.VERIFYING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.isFinal;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
 
 public class ContractNegotiationProtocolServiceImpl implements ContractNegotiationProtocolService {
 
@@ -107,6 +116,12 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                                     .build();
 
                             if (message.getProviderPid() == null) {
+                                var existing = findRequestedBy(participantContext, message.getConsumerPid(), agent.getIdentity());
+                                if (existing != null) {
+                                    // the consumer sent its initial request again, e.g. because the acknowledgement got
+                                    // lost: it gets the negotiation the first request created, instead of a second one
+                                    return ServiceResult.success(existing);
+                                }
                                 var negotiation = createNegotiation(participantContext, message, agent.getIdentity(), PROVIDER, message.getCallbackAddress());
                                 return requestedAction(message, negotiation, contractOffer, agent);
                             }
@@ -274,7 +289,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                     .map(i -> negotiation);
         }
 
-        return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be requested"));
+        return rejectOrRetryLater(message, negotiation, "negotiation cannot be requested", PROVIDER, OFFERING);
     }
 
     private ServiceResult<ContractNegotiation> offeredAction(ContractOfferMessage message, ContractNegotiation negotiation) {
@@ -287,7 +302,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                     .map(i -> negotiation);
         }
 
-        return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be offered"));
+        return rejectOrRetryLater(message, negotiation, "negotiation cannot be offered", CONSUMER, REQUESTING);
     }
 
     @NotNull
@@ -298,7 +313,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
             return update(negotiation).onSuccess(i -> observable.invokeForEach(l -> l.accepted(negotiation)))
                     .map(i -> negotiation);
         } else {
-            return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be accepted"));
+            return rejectOrRetryLater(message, negotiation, "negotiation cannot be accepted", PROVIDER, OFFERING);
         }
     }
 
@@ -325,7 +340,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
             return update(negotiation).onSuccess(i -> observable.invokeForEach(l -> l.agreed(negotiation)))
                     .map(i -> negotiation);
         } else {
-            return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be agreed"));
+            return rejectOrRetryLater(message, negotiation, "negotiation cannot be agreed", CONSUMER, REQUESTING, ACCEPTING);
         }
     }
 
@@ -339,7 +354,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
             return update(negotiation).onSuccess(i -> observable.invokeForEach(l -> l.verified(negotiation)))
                     .map(i -> negotiation);
         } else {
-            return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be verified"));
+            return rejectOrRetryLater(message, negotiation, "negotiation cannot be verified", PROVIDER, AGREEING);
         }
     }
 
@@ -351,7 +366,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
             return update(negotiation).onSuccess(i -> observable.invokeForEach(l -> l.finalized(negotiation)))
                     .map(i -> negotiation);
         } else {
-            return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be finalized"));
+            return rejectOrRetryLater(message, negotiation, "negotiation cannot be finalized", CONSUMER, VERIFYING);
         }
 
     }
@@ -377,6 +392,37 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
             return ServiceResult.unavailable(leaseResult.getFailureDetail());
         }
         return ServiceResult.from(leaseResult.mapFailure());
+    }
+
+    /**
+     * Rejects a message that is not valid in the current state of the negotiation, unless the negotiation is still in
+     * the state in which it sends its own preceding message: the counter-party's message then arrived before the
+     * acknowledgement of that message (e.g. the acknowledgement was lost or is still on its way), and it can be
+     * processed once the negotiation moved on, so the counter-party can retry it.
+     */
+    private ServiceResult<ContractNegotiation> rejectOrRetryLater(ProtocolRemoteMessage message, ContractNegotiation negotiation, String reason,
+                                                                  ContractNegotiation.Type type, ContractNegotiationStates... sendingStates) {
+        if (negotiation.getType() == type && negotiation.currentStateIsOneOf(sendingStates)) {
+            return ServiceResult.unavailable(format("Cannot process %s yet because the negotiation is %s", message.getClass().getSimpleName(), negotiation.stateAsString()));
+        }
+        return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), reason));
+    }
+
+    /**
+     * The provider negotiation created by an initial request of the given consumer, identified by its consumerPid. The
+     * consumerPid is chosen by the consumer, so the counter-party must match too.
+     */
+    private @Nullable ContractNegotiation findRequestedBy(ParticipantContext participantContext, String consumerPid, String counterPartyIdentity) {
+        var query = queryByParticipantContextId(participantContext.getId())
+                .filter(Criterion.criterion("correlationId", "=", consumerPid))
+                .build();
+        try (var negotiations = store.queryNegotiations(query)) {
+            return negotiations
+                    .filter(negotiation -> negotiation.getType() == PROVIDER)
+                    .filter(negotiation -> counterPartyIdentity.equals(negotiation.getCounterPartyId()))
+                    .findFirst()
+                    .orElse(null);
+        }
     }
 
     private ServiceResult<ParticipantAgent> verifyRequest(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, Policy policy, ProtocolRemoteMessage message) {

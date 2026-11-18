@@ -57,6 +57,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.VERIFYING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.isFinal;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
@@ -141,6 +142,35 @@ class ContractNegotiationRetriedMessageTest {
 
         assertThat(store.findById(CONSUMER_PID).stateAsString()).isEqualTo(FINALIZED.name());
         assertThat(store.findById(PROVIDER_PID).stateAsString()).isEqualTo(FINALIZED.name());
+    }
+
+    @Test
+    void shouldFinalize_whenFinalizationArrivesBeforeTheConsumerReceivedTheAcknowledgementOfItsVerification() {
+        // ids of their own: the processes saved by setUp can't be overwritten with a new version
+        var consumerPid = "late-consumerPid";
+        var providerPid = "late-providerPid";
+        // the consumer sent its verification, but has not received the acknowledgement yet, when the provider finalizes
+        store.save(negotiation(consumerPid, providerPid, CONSUMER, VERIFYING.code(), consumer.getId()));
+        store.save(negotiation(providerPid, consumerPid, PROVIDER, FINALIZING.code(), "provider-context"));
+
+        providerProcessors.processFinalizing(store.findById(providerPid)).join();
+
+        // the consumer answers that it isn't ready yet: the provider keeps on finalizing instead of terminating
+        assertThat(store.findById(providerPid).stateAsString()).describedAs("provider error: %s, consumer state: %s", store.findById(providerPid).getErrorDetail(), store.findById(consumerPid).stateAsString()).isEqualTo(FINALIZING.name());
+        assertThat(store.findById(consumerPid).stateAsString()).isEqualTo(VERIFYING.name());
+
+        // then the consumer receives the acknowledgement of its verification
+        var verifying = store.findById(consumerPid);
+        verifying.transitionVerified();
+        store.save(verifying);
+
+        // and the provider's next attempt is accepted
+        providerProcessors.processFinalizing(store.findById(providerPid)).join();
+
+        assertThat(store.findById(providerPid).stateAsString())
+                .describedAs("provider error: %s", store.findById(providerPid).getErrorDetail())
+                .isEqualTo(FINALIZED.name());
+        assertThat(store.findById(consumerPid).stateAsString()).isEqualTo(FINALIZED.name());
     }
 
     private void runProviderToFinalState() {

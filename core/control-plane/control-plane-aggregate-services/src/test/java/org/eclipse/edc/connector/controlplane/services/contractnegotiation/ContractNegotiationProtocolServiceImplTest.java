@@ -43,6 +43,7 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -62,6 +63,7 @@ import org.junit.jupiter.params.support.ParameterDeclarations;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -72,17 +74,23 @@ import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTED;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.OFFERED;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.OFFERING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.VERIFYING;
 import static org.eclipse.edc.connector.controlplane.services.contractnegotiation.ContractNegotiationProtocolServiceImplTest.TestFunctions.contractOffer;
 import static org.eclipse.edc.connector.controlplane.services.contractnegotiation.ContractNegotiationProtocolServiceImplTest.TestFunctions.createContractDefinition;
 import static org.eclipse.edc.connector.controlplane.services.contractnegotiation.ContractNegotiationProtocolServiceImplTest.TestFunctions.createPolicy;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
@@ -168,6 +176,67 @@ class ContractNegotiationProtocolServiceImplTest {
             verify(listener).requested(any());
             verify(validationService).validateInitialOffer(participantAgent, validatableOffer);
             verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
+
+        @Test
+        void shouldReturnExistingNegotiation_whenInitialRequestIsRepeated() {
+            var existing = contractNegotiationBuilder().id("providerPid").type(PROVIDER).state(REQUESTED.code())
+                    .correlationId("consumerPid").counterPartyId("counterPartyId").build();
+            when(store.queryNegotiations(any())).thenAnswer(i -> Stream.of(existing));
+
+            var result = notifyInitialRequest("counterPartyId");
+
+            assertThat(result).isSucceeded().isSameAs(existing);
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+            var query = ArgumentCaptor.forClass(QuerySpec.class);
+            verify(store).queryNegotiations(query.capture());
+            assertThat(query.getValue().getFilterExpression()).contains(
+                    criterion("participantContextId", "=", participantContext.getId()),
+                    criterion("correlationId", "=", "consumerPid"));
+        }
+
+        @Test
+        void shouldInitiateNegotiation_whenExistingNegotiationBelongsToAnotherCounterParty() {
+            var existing = contractNegotiationBuilder().id("providerPid").type(PROVIDER).state(REQUESTED.code())
+                    .correlationId("consumerPid").counterPartyId("anotherCounterPartyId").build();
+            when(store.queryNegotiations(any())).thenAnswer(i -> Stream.of(existing));
+
+            var result = notifyInitialRequest("counterPartyId");
+
+            assertThat(result).isSucceeded().isNotSameAs(existing);
+            verify(store).save(argThat(negotiation -> !negotiation.getId().equals("providerPid")));
+        }
+
+        @Test
+        void shouldInitiateNegotiation_whenExistingNegotiationIsConsumerSide() {
+            var existing = contractNegotiationBuilder().id("consumerSideId").type(CONSUMER).state(REQUESTED.code())
+                    .correlationId("consumerPid").counterPartyId("counterPartyId").build();
+            when(store.queryNegotiations(any())).thenAnswer(i -> Stream.of(existing));
+
+            var result = notifyInitialRequest("counterPartyId");
+
+            assertThat(result).isSucceeded().isNotSameAs(existing);
+            verify(store).save(argThat(negotiation -> negotiation.getType() == PROVIDER));
+        }
+
+        private ServiceResult<ContractNegotiation> notifyInitialRequest(String counterPartyIdentity) {
+            var participantAgent = new ParticipantAgent(counterPartyIdentity, Map.of(), emptyMap());
+            var tokenRepresentation = tokenRepresentation();
+            var contractOffer = contractOffer();
+            var message = ContractRequestMessage.Builder.newInstance()
+                    .callbackAddress("callbackAddress")
+                    .protocol("protocol")
+                    .contractOffer(contractOffer)
+                    .consumerPid("consumerPid")
+                    .build();
+            var validatableOffer = ValidatableConsumerOffer.Builder.newInstance().offerId(ContractOfferId.create("any", "any"))
+                    .accessPolicy(createPolicy()).contractPolicy(createPolicy()).contractDefinition(createContractDefinition()).build();
+            when(consumerOfferResolver.resolveOffer(participantContext.getId(), contractOffer.getId())).thenReturn(ServiceResult.success(validatableOffer));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(validationService.validateInitialOffer(participantAgent, validatableOffer)).thenReturn(Result.success());
+
+            return service.notifyRequested(participantContext, message, tokenRepresentation);
         }
 
         @Test
@@ -950,6 +1019,33 @@ class ContractNegotiationProtocolServiceImplTest {
         }
 
         @ParameterizedTest
+        @ArgumentsSource(NotReadyYetArguments.class)
+        <M extends ProcessRemoteMessage> void notify_shouldReturnUnavailable_whenNegotiationIsStillSendingItsOwnMessage(
+                MethodCall<M> methodCall, M message, ContractNegotiation.Type type, ContractNegotiationStates sendingState) {
+            var offer = contractOffer();
+            var negotiation = contractNegotiationBuilder().state(sendingState.code()).type(type).contractOffer(offer).build();
+            var validatableOffer = createValidatableConsumerOffer();
+            when(consumerOfferResolver.resolveOffer(any(), any())).thenReturn(ServiceResult.success(validatableOffer));
+            when(protocolTokenValidator.verify(any(), any(), any(), eq(message)))
+                    .thenReturn(ServiceResult.success(participantAgent()));
+            when(store.findById(any())).thenReturn(negotiation);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+            when(validationService.validateRequest(any(ParticipantAgent.class), any(ContractNegotiation.class))).thenReturn(Result.success());
+            when(validationService.validateInitialOffer(any(ParticipantAgent.class), any(ValidatableConsumerOffer.class)))
+                    .thenAnswer(i -> Result.success());
+            when(validationService.validateConfirmed(any(ParticipantAgent.class), any(), any())).thenAnswer(i -> Result.success(negotiation));
+
+            var result = methodCall.call(service, participantContext, message, tokenRepresentation());
+
+            // the message arrived before the acknowledgement of the negotiation's own message: the counter-party retries it
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAVAILABLE);
+            assertThat(negotiation.getState()).isEqualTo(sendingState.code());
+            verify(store, never()).save(any());
+            verify(store).breakLease(negotiation);
+            verifyNoInteractions(listener);
+        }
+
+        @ParameterizedTest
         @ArgumentsSource(NotifyArguments.class)
         <M extends ProcessRemoteMessage> void notify_shouldReturnBadRequest_whenTerminatedState(MethodCall<M> methodCall, M message,
                                                                                               ContractNegotiation.Type type) {
@@ -972,6 +1068,42 @@ class ContractNegotiationProtocolServiceImplTest {
                 assertThat(failure.getReason()).isEqualTo(BAD_REQUEST);
             });
             verifyNoInteractions(listener);
+        }
+    }
+
+    /**
+     * The messages of {@link NotifyArguments}, each with the sending states in which it arrives before the
+     * acknowledgement of the receiver's own preceding message.
+     */
+    private static class NotReadyYetArguments implements ArgumentsProvider {
+
+        @Override
+        public @NonNull Stream<? extends Arguments> provideArguments(@NonNull ParameterDeclarations parameters, @NonNull ExtensionContext context) {
+            return new NotifyArguments().provideArguments(parameters, context)
+                    .flatMap(arguments -> {
+                        var values = arguments.get();
+                        return sendingStates(values[1]).stream()
+                                .map(state -> Arguments.of(values[0], values[1], values[2], state));
+                    });
+        }
+
+        private static List<ContractNegotiationStates> sendingStates(Object message) {
+            if (message instanceof ContractRequestMessage) {
+                return List.of(OFFERING);
+            }
+            if (message instanceof ContractOfferMessage) {
+                return List.of(REQUESTING);
+            }
+            if (message instanceof ContractAgreementMessage) {
+                return List.of(REQUESTING, ACCEPTING);
+            }
+            if (message instanceof ContractAgreementVerificationMessage) {
+                return List.of(AGREEING);
+            }
+            if (message instanceof ContractNegotiationEventMessage event) {
+                return event.getType() == ContractNegotiationEventMessage.Type.ACCEPTED ? List.of(OFFERING) : List.of(VERIFYING);
+            }
+            return List.of();
         }
     }
 

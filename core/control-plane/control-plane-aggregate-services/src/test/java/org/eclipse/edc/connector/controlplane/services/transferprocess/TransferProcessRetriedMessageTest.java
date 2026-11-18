@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -57,7 +58,10 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentMatchers.any;
@@ -95,6 +99,7 @@ class TransferProcessRetriedMessageTest {
         when(tokenValidator.verify(any(), any(), any(), any())).thenReturn(ServiceResult.success(new ParticipantAgent("provider", emptyMap(), emptyMap())));
         DataAddressStore dataAddressStore = mock();
         when(dataAddressStore.remove(any())).thenReturn(StoreResult.success());
+        when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("no data address"));
         PolicyArchive policyArchive = mock();
         when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().assigner("provider").assignee("consumer").build());
 
@@ -132,18 +137,51 @@ class TransferProcessRetriedMessageTest {
         assertThat(store.findById(CONSUMER_PID).stateAsString()).isEqualTo(COMPLETING_REQUESTED.name());
     }
 
+    @Test
+    void shouldStart_whenStartArrivesBeforeTheConsumerReceivedTheAcknowledgementOfItsRequest() {
+        // ids of their own: the processes saved by setUp can't be overwritten with a new version
+        var consumerPid = "late-consumerPid";
+        var providerPid = "late-providerPid";
+        // the consumer sent its request, but has not received the acknowledgement yet, when the provider starts
+        store.save(transferProcess(consumerPid, providerPid, CONSUMER, REQUESTING.code(), consumer.getId()));
+        store.save(transferProcess(providerPid, consumerPid, PROVIDER, STARTING.code(), "provider-context"));
+
+        providerProcessors.processStarting(store.findById(providerPid)).join();
+
+        // the consumer answers that it isn't ready yet: the provider keeps on starting instead of terminating
+        assertThat(store.findById(providerPid).stateAsString()).describedAs("provider error: %s, consumer state: %s", store.findById(providerPid).getErrorDetail(), store.findById(consumerPid).stateAsString()).isEqualTo(STARTING.name());
+        assertThat(store.findById(consumerPid).stateAsString()).isEqualTo(REQUESTING.name());
+
+        // then the consumer receives the acknowledgement of its request
+        var requesting = store.findById(consumerPid);
+        requesting.transitionRequested();
+        store.save(requesting);
+
+        // and the provider's next attempt is accepted
+        providerProcessors.processStarting(store.findById(providerPid)).join();
+
+        assertThat(store.findById(providerPid).stateAsString())
+                .describedAs("provider error: %s", store.findById(providerPid).getErrorDetail())
+                .isEqualTo(STARTED.name());
+        assertThat(store.findById(consumerPid).stateAsString()).isEqualTo(STARTUP_REQUESTED.name());
+    }
+
     /**
      * Delivers the provider's messages to the consumer's protocol service, and maps its failures like
      * {@code DspHttpRemoteMessageDispatcherImpl} maps the HTTP status codes the counter-party answers with.
      */
     private CompletableFuture<StatusResult<Object>> deliver(ProtocolRemoteMessage message) {
-        if (!(message instanceof TransferCompletionMessage completion)) {
+        ServiceResult<TransferProcess> result;
+        if (message instanceof TransferCompletionMessage completion) {
+            if (firstCompletion == null) {
+                firstCompletion = completion;
+            }
+            result = consumerService.notifyCompleted(consumer, completion, token());
+        } else if (message instanceof TransferStartMessage start) {
+            result = consumerService.notifyStarted(consumer, start, token());
+        } else {
             throw new IllegalArgumentException("unexpected message " + message.getClass().getSimpleName());
         }
-        if (firstCompletion == null) {
-            firstCompletion = completion;
-        }
-        var result = consumerService.notifyCompleted(consumer, completion, token());
         if (result.succeeded()) {
             return completedFuture(StatusResult.success(null));
         }

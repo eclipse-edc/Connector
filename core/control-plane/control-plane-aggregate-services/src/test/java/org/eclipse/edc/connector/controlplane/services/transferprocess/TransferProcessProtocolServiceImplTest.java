@@ -71,9 +71,11 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING_REQUESTED;
@@ -899,6 +901,36 @@ class TransferProcessProtocolServiceImplTest {
         }
 
         @Test
+        void shouldReturnUnavailable_whenConsumerIsStillRequesting() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            // the acknowledgement of the transfer request has not been received yet
+            var transferProcess = transferProcessBuilder().id(UUID.randomUUID().toString()).state(REQUESTING.code()).type(CONSUMER).build();
+            var message = TransferStartMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .build();
+            var agreement = contractAgreement();
+
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+
+            var result = service.notifyStarted(participantContext, message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAVAILABLE);
+            assertThat(transferProcess.getState()).isEqualTo(REQUESTING.code());
+            verify(store, never()).save(any());
+            verify(store).breakLease(transferProcess);
+            verifyNoInteractions(listener);
+        }
+
+        @Test
         void shouldReturnBadRequest_whenCounterPartyUnauthorized() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
@@ -1168,6 +1200,38 @@ class TransferProcessProtocolServiceImplTest {
             var result = service.notifySuspended(participantContext, message, tokenRepresentation);
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+            verify(store).breakLease(transferProcess);
+            verifyNoInteractions(listener);
+        }
+
+        @Test
+        void shouldReturnUnavailable_whenProviderIsStillStarting() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            // the acknowledgement of the transfer start has not been received yet
+            var transferProcess = transferProcessBuilder().id(UUID.randomUUID().toString()).state(STARTING.code()).type(PROVIDER).build();
+            var agreement = contractAgreement();
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById(any())).thenReturn(transferProcess);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+
+            var result = service.notifySuspended(participantContext, message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAVAILABLE);
+            assertThat(transferProcess.getState()).isEqualTo(STARTING.code());
+            verify(store, never()).save(any());
             verify(store).breakLease(transferProcess);
             verifyNoInteractions(listener);
         }
