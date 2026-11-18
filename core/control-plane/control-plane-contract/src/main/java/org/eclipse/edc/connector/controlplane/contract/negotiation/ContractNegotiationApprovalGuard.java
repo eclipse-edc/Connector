@@ -39,7 +39,8 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
  * <p>
  * The counterparty is represented by a {@link ParticipantAgent} rebuilt from the negotiation's counterparty id and the
  * claims captured when the contract request was received. The negotiated {@link Asset} and the {@link ContractDefinition}
- * that offered it are looked up and passed to the policy context, null if they are not available anymore.
+ * that offered it are passed to the policy context, null if they are not available anymore. They are looked up lazily,
+ * so a contract policy without approval constraints does not cause any lookup.
  */
 public class ContractNegotiationApprovalGuard implements ContractNegotiationPendingGuard {
 
@@ -69,8 +70,9 @@ public class ContractNegotiationApprovalGuard implements ContractNegotiationPend
         var claims = negotiation.getClaims() == null ? Map.<String, Object>of() : negotiation.getClaims();
         var agent = new ParticipantAgent(negotiation.getCounterPartyId(), claims, Map.of());
         var participantContextId = negotiation.getParticipantContextId();
+
         var context = new ApprovalContractNegotiationPolicyContext(participantContextId, agent,
-                findAsset(participantContextId, offer), findContractDefinition(participantContextId, offer));
+                () -> findAsset(participantContextId, offer), () -> findContractDefinition(participantContextId, offer));
         var result = policyEngine.evaluate(offer.getPolicy(), context);
         if (result.failed()) {
             monitor.debug(() -> "Contract negotiation %s needs manual approval: %s".formatted(negotiation.getId(), result.getFailureDetail()));
