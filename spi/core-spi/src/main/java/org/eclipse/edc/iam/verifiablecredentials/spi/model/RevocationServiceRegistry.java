@@ -32,11 +32,12 @@ public interface RevocationServiceRegistry {
 
     /**
      * Checks the revocation status of a {@link VerifiableCredential}. If no {@link RevocationListService} was registered for a particular
-     * type, the implementation must return {@link Result#success()}. If the credential does not contain any credentialStatus,
-     * the result is {@link Result#success()} as well.
+     * type, the implementation should return a failure, because the status can't be checked; implementations may allow this to be
+     * relaxed by configuration. If the credential does not contain any credentialStatus, the result is {@link Result#success()}.
      *
      * @param credential The VC
-     * @return {@link Result#success()} if the VC does not contain a {@link CredentialStatus}, or if all {@link CredentialStatus} objects are valid (= not revoked, not suspended), {@link Result#failure(String)} otherwise.
+     * @return {@link Result#success()} if the VC does not contain a {@link CredentialStatus}, or if all {@link CredentialStatus} objects are valid (= not revoked, not suspended),
+     *         {@link Result#failure(String)} otherwise.
      */
     Result<Void> checkValidity(VerifiableCredential credential);
 

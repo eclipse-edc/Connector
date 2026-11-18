@@ -32,9 +32,27 @@ import static java.util.Optional.ofNullable;
 public class RevocationServiceRegistryImpl implements RevocationServiceRegistry {
     private final Map<String, RevocationListService> entries = new HashMap<>();
     private final Monitor monitor;
+    private final boolean ignoreUnknownStatusTypes;
 
+    /**
+     * Creates a registry that rejects credentials whose {@code credentialStatus} type has no registered {@link RevocationListService}.
+     *
+     * @param monitor the monitor
+     */
     public RevocationServiceRegistryImpl(Monitor monitor) {
+        this(monitor, false);
+    }
+
+    /**
+     * Creates a registry.
+     *
+     * @param monitor                  the monitor
+     * @param ignoreUnknownStatusTypes if {@code true}, a {@code credentialStatus} whose type has no registered {@link RevocationListService}
+     *                                 is not checked and is considered valid; if {@code false}, the credential is rejected.
+     */
+    public RevocationServiceRegistryImpl(Monitor monitor, boolean ignoreUnknownStatusTypes) {
         this.monitor = monitor;
+        this.ignoreUnknownStatusTypes = ignoreUnknownStatusTypes;
     }
 
     @Override
@@ -74,8 +92,11 @@ public class RevocationServiceRegistryImpl implements RevocationServiceRegistry 
     private Result<Void> checkRevocation(CredentialStatus credentialStatus) {
         var service = entries.get(credentialStatus.type());
         if (service == null) {
-            monitor.warning("No revocation service registered for type '%s', will not check revocation.".formatted(credentialStatus.type()));
-            return Result.success();
+            if (ignoreUnknownStatusTypes) {
+                monitor.warning("No revocation service registered for type '%s', will not check revocation.".formatted(credentialStatus.type()));
+                return Result.success();
+            }
+            return Result.failure("No revocation service registered for credential status type '%s'".formatted(credentialStatus.type()));
         }
         return service.checkValidity(credentialStatus);
     }

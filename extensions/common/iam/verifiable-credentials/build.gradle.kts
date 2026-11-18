@@ -24,6 +24,7 @@ dependencies {
     implementation(libs.jsonschema)
 
     testImplementation(project(":core:common:junit-base"))
+    testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":spi:core-spi")))
 }
 
