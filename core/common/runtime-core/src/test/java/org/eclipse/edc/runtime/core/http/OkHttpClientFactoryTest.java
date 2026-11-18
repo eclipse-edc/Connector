@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.runtime.core.http;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import okhttp3.EventListener;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
@@ -26,10 +27,22 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.ArgumentMatcher;
 
 import java.io.IOException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.temporaryRedirect;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -43,6 +56,16 @@ class OkHttpClientFactoryTest {
 
     private static final String HTTP_URL = "http://localhost:11111";
     private static final String HTTPS_URL = "https://localhost:11111";
+
+    @RegisterExtension
+    static WireMockExtension httpsServer = WireMockExtension.newInstance()
+            .options(wireMockConfig().httpDisabled(true).dynamicHttpsPort())
+            .build();
+
+    @RegisterExtension
+    static WireMockExtension httpServer = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
     private final Monitor monitor = mock();
     private final EventListener eventListener = mock();
 
@@ -71,6 +94,33 @@ class OkHttpClientFactoryTest {
         assertThatThrownBy(() -> call(okHttpClient, HTTP_URL)).isInstanceOf(EdcException.class);
         assertThatCode(() -> call(okHttpClient, HTTPS_URL)).doesNotThrowAnyException();
         verify(monitor, never()).info(argThat(messageContains("HTTPS enforcement")));
+    }
+
+    @Test
+    void shouldNotFollowRedirectToHttp_whenHttpsEnforced() throws Exception {
+        var configuration = mock(OkHttpClientConfiguration.class);
+        when(configuration.isEnforceHttps()).thenReturn(true);
+        stubRedirectFromHttpsToHttp();
+
+        var okHttpClient = trustingAllCertificates(OkHttpClientFactory.create(configuration, eventListener, monitor));
+
+        try (var response = okHttpClient.newCall(new Request.Builder().url(httpsServer.url("/redirect")).build()).execute()) {
+            assertThat(response.code()).isEqualTo(302);
+        }
+        httpServer.verify(0, anyRequestedFor(anyUrl()));
+    }
+
+    @Test
+    void shouldFollowRedirectToHttp_whenHttpsNotEnforced() throws Exception {
+        var configuration = mock(OkHttpClientConfiguration.class);
+        stubRedirectFromHttpsToHttp();
+
+        var okHttpClient = trustingAllCertificates(OkHttpClientFactory.create(configuration, eventListener, monitor));
+
+        try (var response = okHttpClient.newCall(new Request.Builder().url(httpsServer.url("/redirect")).build()).execute()) {
+            assertThat(response.code()).isEqualTo(200);
+        }
+        httpServer.verify(1, anyRequestedFor(anyUrl()));
     }
 
     @Test
@@ -111,6 +161,35 @@ class OkHttpClientFactoryTest {
 
         assertThat(okHttpClient.dispatcher().getMaxRequests()).isEqualTo(64);
         assertThat(okHttpClient.dispatcher().getMaxRequestsPerHost()).isEqualTo(5);
+    }
+
+    private void stubRedirectFromHttpsToHttp() {
+        httpsServer.stubFor(get("/redirect").willReturn(temporaryRedirect(httpServer.url("/target"))));
+        httpServer.stubFor(get("/target").willReturn(ok()));
+    }
+
+    // the https server uses a self-signed certificate
+    private OkHttpClient trustingAllCertificates(OkHttpClient client) throws Exception {
+        var trustAll = new X509TrustManager() {
+            @Override
+            public void checkClientTrusted(X509Certificate[] chain, String authType) {
+            }
+
+            @Override
+            public void checkServerTrusted(X509Certificate[] chain, String authType) {
+            }
+
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[0];
+            }
+        };
+        var sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, new TrustManager[]{ trustAll }, new SecureRandom());
+        return client.newBuilder()
+                .sslSocketFactory(sslContext.getSocketFactory(), trustAll)
+                .hostnameVerifier((hostname, session) -> true)
+                .build();
     }
 
     @NotNull

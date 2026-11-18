@@ -23,6 +23,7 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
+    testImplementation(libs.wiremock)
 }
 
 
