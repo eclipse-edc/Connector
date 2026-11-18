@@ -15,8 +15,14 @@
 package org.eclipse.edc.iam.decentralizedclaims.core;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
+import org.eclipse.edc.iam.decentralizedclaims.core.defaults.InMemoryCredentialVerifierRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.service.DcpIdentityService;
+import org.eclipse.edc.iam.decentralizedclaims.service.verification.MultiFormatPresentationVerifier;
 import org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenService;
+import org.eclipse.edc.iam.decentralizedclaims.spi.verification.CredentialVerifier;
+import org.eclipse.edc.iam.decentralizedclaims.spi.verification.CredentialVerifierRegistry;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.junit.extensions.TestExtensionContext;
@@ -28,13 +34,17 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
+import org.eclipse.edc.token.TokenValidationServiceImpl;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.rules.HasSubjectRule;
 import org.eclipse.edc.token.rules.JtiValidationRule;
 import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
+import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
+import org.eclipse.edc.verifiablecredentials.jwt.Vcdm20JosePresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerEqualsSubjectRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerKeyIdValidationRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.SubJwkIsNullRule;
@@ -52,6 +62,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.DCP_SELF_ISSUED_TOKEN_CONTEXT;
 import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.PARTICIPANT_DID;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.JWT_VC_TOKEN_CONTEXT;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
@@ -66,6 +77,7 @@ class DcpCoreExtensionTest {
     private final JtiValidationStore storeMock = mock();
     private final TypeTransformerRegistry transformerRegistry = mock();
     private final TokenValidationRulesRegistry rulesRegistry = new TokenValidationRulesRegistryImpl();
+    private final CredentialVerifierRegistry credentialVerifierRegistry = new InMemoryCredentialVerifierRegistry();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
@@ -75,6 +87,47 @@ class DcpCoreExtensionTest {
         context.registerService(ExecutorInstrumentation.class, ExecutorInstrumentation.noop());
         context.registerService(TypeTransformerRegistry.class, transformerRegistry);
         context.registerService(TokenValidationRulesRegistry.class, rulesRegistry);
+        context.registerService(CredentialVerifierRegistry.class, credentialVerifierRegistry);
+    }
+
+    @Test
+    void initialize_shouldRegisterJwtVerifiersOnly(DcpCoreExtension extension, ServiceExtensionContext context) {
+        extension.initialize(context);
+
+        assertThat(credentialVerifierRegistry.getVerifiers())
+                .extracting(CredentialVerifier::getClass)
+                .containsExactly(JwtPresentationVerifier.class, Vcdm20JosePresentationVerifier.class);
+    }
+
+    @Test
+    void presentationVerifier_shouldRejectLinkedDataPresentation_byDefault(ServiceExtensionContext context, ObjectFactory objectFactory) {
+        context.registerService(TokenValidationService.class, new TokenValidationServiceImpl());
+        var extension = objectFactory.constructInstance(DcpCoreExtension.class);
+        extension.initialize(context);
+        var verifier = extension.createPresentationVerifier(context);
+
+        var ldpPresentation = """
+                {
+                  "@context": ["https://www.w3.org/2018/credentials/v1"],
+                  "type": ["VerifiablePresentation"],
+                  "holder": "did:web:holder"
+                }
+                """;
+        var result = verifier.verifyPresentation(new VerifiablePresentationContainer(ldpPresentation, CredentialFormat.VC1_0_LD, null), "did:web:verifier");
+
+        assertThat(result).isFailed().detail().contains("No verifier could handle the input data");
+    }
+
+    @Test
+    void presentationVerifier_shouldUseVerifiersRegisteredLater(DcpCoreExtension extension, ServiceExtensionContext context) {
+        extension.initialize(context);
+        var verifier = extension.createPresentationVerifier(context);
+        CredentialVerifier additional = mock();
+
+        credentialVerifierRegistry.register(additional);
+
+        assertThat(verifier).isInstanceOfSatisfying(MultiFormatPresentationVerifier.class,
+                v -> assertThat(v.getVerifiers()).contains(additional));
     }
 
     @Test

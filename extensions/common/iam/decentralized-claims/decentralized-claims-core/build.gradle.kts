@@ -9,9 +9,7 @@ dependencies {
 
     implementation(project(":core:common:lib:core-lib"))
     implementation(project(":core:control-plane:lib:control-plane-lib"))
-    implementation(project(":extensions:common:crypto:lib:jws2020-lib"))
     implementation(project(":extensions:common:crypto:jwt-verifiable-credentials"))
-    implementation(project(":extensions:common:crypto:ldp-verifiable-credentials"))
     implementation(project(":extensions:common:iam:decentralized-claims:decentralized-claims-service"))
     implementation(project(":extensions:common:iam:decentralized-claims:decentralized-claims-transform"))
     implementation(project(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:decentralized-claims-sts-remote-client"))

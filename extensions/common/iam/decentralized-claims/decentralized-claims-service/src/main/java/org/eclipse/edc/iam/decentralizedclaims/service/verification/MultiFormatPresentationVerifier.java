@@ -15,30 +15,43 @@
 package org.eclipse.edc.iam.decentralizedclaims.service.verification;
 
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.CredentialVerifier;
+import org.eclipse.edc.iam.decentralizedclaims.spi.verification.CredentialVerifierRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.VerifierContext;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 public class MultiFormatPresentationVerifier implements PresentationVerifier {
 
-    private final List<CredentialVerifier> verifiers;
+    private final Supplier<List<CredentialVerifier>> verifiers;
+
+    /**
+     * Verifies presentations with the verifiers registered in the {@link CredentialVerifierRegistry} at the time of
+     * the verification, so that verifiers registered by other extensions are included.
+     *
+     * @param registry the registry of the verifiers
+     */
+    public MultiFormatPresentationVerifier(CredentialVerifierRegistry registry) {
+        this.verifiers = registry::getVerifiers;
+    }
 
     public MultiFormatPresentationVerifier(CredentialVerifier... verifiers) {
-        this.verifiers = List.of(verifiers);
+        var list = List.of(verifiers);
+        this.verifiers = () -> list;
     }
 
     public List<CredentialVerifier> getVerifiers() {
-        return verifiers;
+        return verifiers.get();
     }
 
     @Override
     public Result<Void> verifyPresentation(VerifiablePresentationContainer container, String audience) {
         var ctx = VerifierContext.Builder.newInstance()
                 .audience(audience)
-                .verifiers(this.verifiers)
+                .verifiers(verifiers.get())
                 .build();
         return ctx.verify(container.rawVp());
     }
