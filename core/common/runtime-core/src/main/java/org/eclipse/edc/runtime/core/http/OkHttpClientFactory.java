@@ -67,6 +67,9 @@ public class OkHttpClientFactory {
 
         if (configuration.isEnforceHttps()) {
             builder.addInterceptor(new EnforceHttps());
+            // redirects are followed by OkHttp after the application interceptors ran: don't follow the ones that
+            // change the scheme (e.g. https -> http), the redirect response is returned to the caller instead
+            builder.followSslRedirects(false);
         } else {
             monitor.info("HTTPS enforcement it not enabled, please enable it in a production environment");
         }
