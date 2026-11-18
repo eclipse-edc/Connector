@@ -17,12 +17,14 @@ package org.eclipse.edc.iam.decentralizedclaims.core;
 
 import org.eclipse.edc.controlplane.iam.AudienceResolver;
 import org.eclipse.edc.iam.decentralizedclaims.core.defaults.DefaultDcpParticipantIdExtractionFunction;
+import org.eclipse.edc.iam.decentralizedclaims.core.defaults.InMemoryCredentialVerifierRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.core.defaults.InMemorySignatureSuiteRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.core.scope.DcpScopeExtractorRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.core.scope.defaults.InMemoryDcpScopeStore;
 import org.eclipse.edc.iam.decentralizedclaims.spi.ClaimTokenCreatorFunction;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.store.DcpScopeStore;
+import org.eclipse.edc.iam.decentralizedclaims.spi.verification.CredentialVerifierRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -48,6 +50,11 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public SignatureSuiteRegistry createSignatureSuiteRegistry() {
         return new InMemorySignatureSuiteRegistry();
+    }
+
+    @Provider(isDefault = true)
+    public CredentialVerifierRegistry createCredentialVerifierRegistry() {
+        return new InMemoryCredentialVerifierRegistry();
     }
 
     @Provider(isDefault = true)

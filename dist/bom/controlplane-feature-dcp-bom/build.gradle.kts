@@ -17,12 +17,11 @@ plugins {
 }
 
 dependencies {
-    // DCP dependencies, JWT and LDP
+    // DCP dependencies. Only JWT credentials are supported by default, Linked-Data (LDP) credentials can be added
+    // with the "decentralized-claims-ldp" extension
     api(project(":spi:core-spi"))
 
-    api(project(":extensions:common:crypto:ldp-verifiable-credentials"))
     api(project(":extensions:common:crypto:jwt-verifiable-credentials"))
-    api(project(":extensions:common:crypto:lib:jws2020-lib"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-core"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-service"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-transform"))

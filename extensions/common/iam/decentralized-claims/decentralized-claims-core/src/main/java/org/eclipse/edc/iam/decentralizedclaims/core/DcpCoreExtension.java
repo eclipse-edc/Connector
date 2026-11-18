@@ -24,7 +24,7 @@ import org.eclipse.edc.iam.decentralizedclaims.spi.ClaimTokenCreatorFunction;
 import org.eclipse.edc.iam.decentralizedclaims.spi.DcpParticipantAgentServiceExtension;
 import org.eclipse.edc.iam.decentralizedclaims.spi.PresentationRequestService;
 import org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenService;
-import org.eclipse.edc.iam.decentralizedclaims.spi.verification.SignatureSuiteRegistry;
+import org.eclipse.edc.iam.decentralizedclaims.spi.verification.CredentialVerifierRegistry;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.VerifiableCredentialValidationServiceImpl;
@@ -44,7 +44,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.security.signature.jws2020.Jws2020SignatureSuite;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -63,8 +62,6 @@ import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerEqualsSubjectRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerKeyIdValidationRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.SubJwkIsNullRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.TokenNotNullRule;
-import org.eclipse.edc.verifiablecredentials.linkeddata.DidMethodResolver;
-import org.eclipse.edc.verifiablecredentials.linkeddata.LdpVerifier;
 
 import java.net.URISyntaxException;
 import java.time.Clock;
@@ -84,6 +81,13 @@ import static org.eclipse.edc.verifiablecredentials.jwt.Constants.JWT_VP_TOKEN_C
 public class DcpCoreExtension implements ServiceExtension {
 
     public static final String DCP_SELF_ISSUED_TOKEN_CONTEXT = "dcp-si";
+    /**
+     * The JsonWebSignature2020 suite is only used to verify Linked-Data presentations, which are not supported by
+     * default anymore.
+     *
+     * @deprecated the suite is registered by the DCP LDP verifier extension.
+     */
+    @Deprecated(since = "1.0.0")
     public static final String JSON_2020_SIGNATURE_SUITE = "JsonWebSignature2020";
     public static final long DEFAULT_CLEANUP_PERIOD_SECONDS = 60;
 
@@ -123,7 +127,7 @@ public class DcpCoreExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
     @Inject
-    private SignatureSuiteRegistry signatureSuiteRegistry;
+    private CredentialVerifierRegistry credentialVerifierRegistry;
     @Inject
     private JsonLd jsonLd;
     @Inject
@@ -206,6 +210,11 @@ public class DcpCoreExtension implements ServiceExtension {
         if (participantAgentServiceExtension != null) {
             participantAgentService.register(participantAgentServiceExtension);
         }
+
+        // the supported presentation formats: VCDM 1.1 JWT and VCDM 2.0 JOSE. Other formats, e.g. Linked-Data
+        // presentations, are only accepted if an extension registers a verifier for them
+        credentialVerifierRegistry.register(new JwtPresentationVerifier(typeManager, JSON_LD, tokenValidationService, rulesRegistry, didPublicKeyResolver));
+        credentialVerifierRegistry.register(new Vcdm20JosePresentationVerifier(monitor, tokenValidationService, rulesRegistry, didPublicKeyResolver, requirePresentationBinding));
     }
 
     @Override
@@ -233,11 +242,6 @@ public class DcpCoreExtension implements ServiceExtension {
         }
     }
 
-    @Override
-    public void prepare() {
-        signatureSuiteRegistry.register(JSON_2020_SIGNATURE_SUITE, new Jws2020SignatureSuite(typeManager.getMapper(JSON_LD)));
-    }
-
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
         var didConfigProvider = new DidConfigProvider(participantContextConfig, context.getMonitor());
@@ -258,21 +262,7 @@ public class DcpCoreExtension implements ServiceExtension {
     @Provider
     public PresentationVerifier createPresentationVerifier(ServiceExtensionContext context) {
         if (presentationVerifier == null) {
-
-            var jwtVerifier = new JwtPresentationVerifier(typeManager, JSON_LD, tokenValidationService, rulesRegistry, didPublicKeyResolver);
-            var ldpVerifier = LdpVerifier.Builder.newInstance()
-                    .signatureSuites(signatureSuiteRegistry)
-                    .jsonLd(jsonLd)
-                    .typeManager(typeManager)
-                    .typeContext(JSON_LD)
-                    .methodResolver(new DidMethodResolver(didResolverRegistry))
-                    .clock(clock)
-                    .requireBinding(requirePresentationBinding)
-                    .build();
-
-            var joseVerifier = new Vcdm20JosePresentationVerifier(monitor, tokenValidationService, rulesRegistry, didPublicKeyResolver, requirePresentationBinding);
-
-            presentationVerifier = new MultiFormatPresentationVerifier(jwtVerifier, ldpVerifier, joseVerifier);
+            presentationVerifier = new MultiFormatPresentationVerifier(credentialVerifierRegistry);
         }
         return presentationVerifier;
     }
