@@ -34,6 +34,8 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 import java.util.List;
 
 import static org.eclipse.edc.iam.verifiablecredentials.RevocationServiceRegistryExtension.NAME;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.BITSTRING_STATUS_LIST_PREFIX;
+import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLIST_2021_PREFIX;
 
 @Extension(value = NAME)
 public class RevocationServiceRegistryExtension implements ServiceExtension {
@@ -51,6 +53,12 @@ public class RevocationServiceRegistryExtension implements ServiceExtension {
             description = "A comma-separated list of accepted content types of the revocation list credential.",
             defaultValue = "*/*")
     private String contentTypes;
+    @Setting(
+            key = "edc.iam.credential.revocation.unknowntypes.ignore",
+            description = "If true, a credentialStatus whose type has no registered revocation service is not checked and the credential is " +
+                    "considered not revoked. If false (default), such credentials are rejected.",
+            defaultValue = "false")
+    private boolean ignoreUnknownStatusTypes;
 
     @Inject
     private TypeManager typeManager;
@@ -68,12 +76,19 @@ public class RevocationServiceRegistryExtension implements ServiceExtension {
 
     @Provider
     public RevocationServiceRegistry createRevocationListService(ServiceExtensionContext context) {
-        var revocationServiceRegistry = new RevocationServiceRegistryImpl(context.getMonitor());
+        var revocationServiceRegistry = new RevocationServiceRegistryImpl(context.getMonitor(), ignoreUnknownStatusTypes);
         var acceptedContentTypes = List.of(contentTypes.split(","));
-        revocationServiceRegistry.addService(StatusList2021Status.TYPE, new StatusList2021RevocationService(typeManager.getMapper(),
-                revocationCacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver));
-        revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new BitstringStatusListRevocationService(typeManager.getMapper(),
-                revocationCacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver));
+
+        var statusList2021Service = new StatusList2021RevocationService(typeManager.getMapper(),
+                revocationCacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver);
+        // register both the compact and the expanded type
+        revocationServiceRegistry.addService(StatusList2021Status.TYPE, statusList2021Service);
+        revocationServiceRegistry.addService(STATUSLIST_2021_PREFIX + StatusList2021Status.TYPE, statusList2021Service);
+
+        var bitstringStatusListService = new BitstringStatusListRevocationService(typeManager.getMapper(),
+                revocationCacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver);
+        revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, bitstringStatusListService);
+        revocationServiceRegistry.addService(BITSTRING_STATUS_LIST_PREFIX + BitstringStatusListStatus.TYPE, bitstringStatusListService);
         return revocationServiceRegistry;
     }
 

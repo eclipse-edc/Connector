@@ -57,13 +57,37 @@ class RevocationServiceRegistryImplTest {
     }
 
     @Test
-    void checkValidity_noServiceFound_shouldReturnSuccess() {
+    void checkValidity_noServiceFound_shouldReturnFailure() {
+        var mockService = mock(RevocationListService.class);
+        registry.addService("test-type", mockService);
+
+        var cred = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "not-exist", Map.of())).build();
+        assertThat(registry.checkValidity(cred)).isFailed().detail().contains("not-exist");
+        verifyNoInteractions(mockService);
+    }
+
+    @Test
+    void checkValidity_noServiceFound_whenIgnoreUnknownStatusTypes_shouldReturnSuccess() {
+        var lenientRegistry = new RevocationServiceRegistryImpl(mock(), true);
+        var mockService = mock(RevocationListService.class);
+        lenientRegistry.addService("test-type", mockService);
+
+        var cred = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "not-exist", Map.of())).build();
+        assertThat(lenientRegistry.checkValidity(cred)).isSucceeded();
+        verifyNoInteractions(mockService);
+    }
+
+    @Test
+    void checkValidity_oneKnownOneUnknown_shouldReturnFailure() {
         var mockService = mock(RevocationListService.class);
         registry.addService("test-type", mockService);
         when(mockService.checkValidity(any(CredentialStatus.class))).thenReturn(Result.success());
 
-        var cred = TestFunctions.createCredentialBuilder().credentialStatus(new CredentialStatus("test-id", "not-exist", Map.of())).build();
-        assertThat(registry.checkValidity(cred)).isSucceeded();
+        var cred = TestFunctions.createCredentialBuilder()
+                .credentialStatus(new CredentialStatus("test-id", "test-type", Map.of()))
+                .credentialStatus(new CredentialStatus("test-id-2", "not-exist", Map.of()))
+                .build();
+        assertThat(registry.checkValidity(cred)).isFailed();
     }
 
     @Test
