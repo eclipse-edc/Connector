@@ -56,7 +56,10 @@ import java.util.function.Function;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
 
@@ -235,7 +238,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                     .map(i -> transferProcess);
         }
 
-        return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be started"));
+        return rejectOrRetryLater(message, transferProcess, "transfer cannot be started", CONSUMER, REQUESTING);
     }
 
     @NotNull
@@ -260,7 +263,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             return ServiceResult.from(update(transferProcess).onSuccess(i -> observable.invokeForEach(l -> l.suspendingRequested(transferProcess))))
                     .map(i -> transferProcess);
         } else {
-            return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be suspended"));
+            return rejectOrRetryLater(message, transferProcess, "transfer cannot be suspended", PROVIDER, STARTING);
         }
     }
 
@@ -298,6 +301,20 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             return ServiceResult.notFound(format("No transfer process with id %s found", transferProcess.getId()));
         }
         return ServiceResult.success(new TransferMessageContext(agreement, transferProcess));
+    }
+
+    /**
+     * Rejects a message that is not valid in the current state of the transfer process, unless the transfer process is
+     * still in the state in which it sends its own preceding message: the counter-party's message then arrived before
+     * the acknowledgement of that message (e.g. the acknowledgement was lost or is still on its way), and it can be
+     * processed once the transfer process moved on, so the counter-party can retry it.
+     */
+    private ServiceResult<TransferProcess> rejectOrRetryLater(TransferRemoteMessage message, TransferProcess transferProcess, String reason,
+                                                              TransferProcess.Type type, TransferProcessStates... sendingStates) {
+        if (transferProcess.getType() == type && transferProcess.currentStateIsOneOf(sendingStates)) {
+            return ServiceResult.unavailable(format("Cannot process %s yet because the transfer process is %s", message.getClass().getSimpleName(), transferProcess.stateAsString()));
+        }
+        return ServiceResult.badRequest(format("Cannot process %s because %s", message.getClass().getSimpleName(), reason));
     }
 
     private ServiceResult<ClaimTokenContext> verifyRequest(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, ProtocolRemoteMessage message, ContractAgreement contractAgreement) {
