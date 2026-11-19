@@ -66,10 +66,14 @@ class HashicorpVaultClient {
     }
 
     @Nullable String resolveSecret(String key) {
-
         var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
+        if (requestUri.failed()) {
+            monitor.warning("Failed to get secret: %s".formatted(requestUri.getFailureDetail()));
+            return null;
+        }
+
         var request = new Request.Builder()
-                .url(requestUri)
+                .url(requestUri.getContent())
                 .header(VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
                 .get()
                 .build();
@@ -95,12 +99,14 @@ class HashicorpVaultClient {
     }
 
     Result<Void> storeSecret(String key, String value) {
-
         var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
+        if (requestUri.failed()) {
+            return Result.failure("Failed to set secret: %s".formatted(requestUri.getFailureDetail()));
+        }
 
         var requestPayload = Map.of("data", Map.of(VAULT_DATA_ENTRY_NAME, value));
         var request = new Request.Builder()
-                .url(requestUri)
+                .url(requestUri.getContent())
                 .header(VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
                 .post(jsonBody(requestPayload))
                 .build();
@@ -118,8 +124,12 @@ class HashicorpVaultClient {
 
     Result<Void> deleteSecret(String key) {
         var requestUri = getSecretUrl(key, VAULT_SECRET_METADATA_PATH);
+        if (requestUri.failed()) {
+            return Result.failure("Failed to destroy secret: %s".formatted(requestUri.getFailureDetail()));
+        }
+
         var request = new Request.Builder()
-                .url(requestUri)
+                .url(requestUri.getContent())
                 .header(VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
                 .delete()
                 .build();
@@ -134,7 +144,15 @@ class HashicorpVaultClient {
     }
 
 
-    private HttpUrl getSecretUrl(String key, String entryType) {
+    /**
+     * Builds the URL of a secret. The key may contain '/' to address secrets in subdirectories of the configured folder,
+     * and every path segment must be valid.
+     */
+    private Result<HttpUrl> getSecretUrl(String key, String entryType) {
+        if (containsDotSegment(key)) {
+            return Result.failure("Invalid secret key");
+        }
+
         var sanitizedKey = URLEncoder.encode(key, StandardCharsets.UTF_8)
                 .replace("%2F", "/"); // restore '/' characters to allow subdirectories
 
@@ -148,9 +166,18 @@ class HashicorpVaultClient {
             builder.addPathSegments(folderPath);
         }
 
-        return builder
+        return Result.success(builder
                 .addEncodedPathSegments(sanitizedKey)
-                .build();
+                .build());
+    }
+
+    private boolean containsDotSegment(String key) {
+        for (var segment : key.split("/", -1)) {
+            if (segment.equals(".") || segment.equals("..")) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private RequestBody jsonBody(Object body) {

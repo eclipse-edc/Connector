@@ -340,6 +340,71 @@ class HashicorpVaultTest {
         wireMock.verify(0, deleteRequestedFor(urlPathMatching("/v1/secret/metadata/baz/foo.*")));
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "../foo/bar",
+            "a/../../foo/bar",
+            "../../foo/bar/baz",
+            "../../../../foo/bar",
+            "./secret",
+            "a/./secret",
+            "..",
+            "foo/.."
+    })
+    void anyRequest_whenKeyContainsDotSegment_shouldFail(String key) {
+        wireMock.stubFor(get(urlPathMatching("/.*")).willReturn(okJson("""
+                {
+                    "data": {
+                        "data": {
+                            "content": "bar"
+                        }
+                    }
+                }
+                """)));
+        wireMock.stubFor(post(urlPathMatching("/.*")).willReturn(okJson("{}")));
+        wireMock.stubFor(delete(urlPathMatching("/.*")).willReturn(status(204)));
+        when(participantContextConfig.getSensitiveString("partition1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(participantVaultConfig())));
+
+        assertThat(vault.resolveSecret("partition1", key)).isNull();
+        assertThat(vault.storeSecret("partition1", key, "value")).isFailed();
+        assertThat(vault.deleteSecret("partition1", key)).isFailed();
+        assertThat(vault.resolveSecret(key)).isNull();
+        assertThat(vault.storeSecret(key, "value")).isFailed();
+        assertThat(vault.deleteSecret(key)).isFailed();
+
+        assertThat(wireMock.getAllServeEvents()).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "sub/folder/secret", "..secret", "secret..", "a..b/c", "%2e%2e/secret", "..%2Fsecret", "..\\secret" })
+    void resolveSecret_whenKeyContainsDotsInSegment_shouldSucceed(String key) {
+        wireMock.stubFor(get(urlPathMatching("/.*")).willReturn(okJson("""
+                {
+                    "data": {
+                        "data": {
+                            "content": "bar"
+                        }
+                    }
+                }
+                """)));
+        when(participantContextConfig.getSensitiveString("partition1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(participantVaultConfig())));
+
+        assertThat(vault.resolveSecret("partition1", key)).isEqualTo("bar");
+
+        assertThat(wireMock.getAllServeEvents()).singleElement()
+                .satisfies(event -> assertThat(event.getRequest().getUrl()).startsWith("/v1/participants/data/participant1/"));
+    }
+
+    private HashicorpVaultConfig participantVaultConfig() {
+        return HashicorpVaultConfig.Builder.newInstance()
+                .vaultUrl(wireMock.baseUrl())
+                .folderPath("participant1/")
+                .secretPath("v1/participants")
+                .healthCheckPath("/healthcheck")
+                .ttl(10)
+                .build();
+    }
+
     private String asJson(Object obj) {
         try {
             return mapper.writeValueAsString(obj);
