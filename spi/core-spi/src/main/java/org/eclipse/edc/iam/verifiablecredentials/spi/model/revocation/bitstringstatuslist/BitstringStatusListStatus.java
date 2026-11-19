@@ -66,10 +66,10 @@ public class BitstringStatusListStatus {
                 .map(Object::toString)
                 .orElseThrow(() -> new IllegalArgumentException(missingProperty(STATUS_LIST_PURPOSE)));
 
-        var size = ofNullable(status.getProperty(BITSTRING_STATUS_LIST_PREFIX, STATUS_LIST_SIZE))
+        var size = ofNullable(status.getProperty(BITSTRING_STATUS_LIST_PREFIX, BITSTRING_STATUS_LIST_SIZE_LITERAL))
                 .map(Object::toString)
                 .map(Integer::parseInt);
-        var statusMessages = status.getProperty(BITSTRING_STATUS_LIST_PREFIX, STATUS_LIST_MESSAGES);
+        var statusMessages = status.getProperty(BITSTRING_STATUS_LIST_PREFIX, BITSTRING_STATUS_LIST_MESSAGE_LITERAL);
 
         if (size.isEmpty() && statusMessages != null) {
             throw new IllegalArgumentException("statusSize must be specified and > 1 if statusMessage is present.");
@@ -83,7 +83,7 @@ public class BitstringStatusListStatus {
         instance.statusMessage = extractStatusMessage(statusMessages, instance.statusSize);
 
         //noinspection unchecked
-        instance.statusReference = ofNullable(status.getProperty(BITSTRING_STATUS_LIST_PREFIX, STATUS_LIST_REFERENCE))
+        instance.statusReference = ofNullable(status.getProperty(BITSTRING_STATUS_LIST_PREFIX, BITSTRING_STATUS_LIST_REFERENCE_LITERAL))
                 .map(obj -> (List<String>) obj)
                 .orElse(Collections.emptyList());
 
@@ -93,8 +93,10 @@ public class BitstringStatusListStatus {
 
     private static List<StatusMessage> extractStatusMessage(Object statusMessageObject, int statusSize) {
         if (statusMessageObject == null) return List.of();
-        //noinspection unchecked
-        var msg = (List<StatusMessage>) (statusMessageObject);
+        if (!(statusMessageObject instanceof List<?> entries)) {
+            throw new IllegalArgumentException("If present, statusMessage must be an array.");
+        }
+        var msg = entries.stream().map(BitstringStatusListStatus::toStatusMessage).toList();
 
         // explicitly check this, because statusSize = 1 and an empty message array would be acceptable
         if (statusSize > 1 && msg.isEmpty()) {
@@ -105,6 +107,19 @@ public class BitstringStatusListStatus {
         }
 
         return msg;
+    }
+
+    /**
+     * Status messages are either {@link StatusMessage} objects or, e.g. in JWT credentials, JSON objects.
+     */
+    private static StatusMessage toStatusMessage(Object entry) {
+        if (entry instanceof StatusMessage statusMessage) {
+            return statusMessage;
+        }
+        if (entry instanceof Map<?, ?> map && map.get("status") instanceof String status) {
+            return new StatusMessage(status, ofNullable(map.get("message")).map(Object::toString).orElse(null));
+        }
+        throw new IllegalArgumentException("Each statusMessage entry must be an object with a 'status' string property.");
     }
 
     private static Object getId(CredentialStatus status) {

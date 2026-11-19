@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
@@ -116,6 +117,25 @@ class BitstringStatusListRevocationServiceTest {
 
     @Nested
     public class CheckValidity {
+        @Test
+        void checkValidity_compactKeys_statusSizeGreaterThanOne_shouldFail() {
+            // a valid status list, in which the entry is not set: without the statusSize check the credential is accepted
+            var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(generateBitstring());
+            server.stubFor(get("/credentials/status/3").willReturn(ok(bitstringCredential)));
+
+            // JWT credentials carry the properties with their compact names
+            var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
+                    Map.of("statusPurpose", "revocation",
+                            "statusListIndex", REVOKED_INDEX,
+                            "statusSize", 2,
+                            "statusListCredential", "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
+
+            var result = revocationService.checkValidity(credential);
+
+            assertThat(result).isFailed().detail().contains("Unsupported statusSize");
+            server.verify(0, getRequestedFor(anyUrl()));
+        }
+
         @Test
         void checkValidity_revoked_notCached() {
             var bitstring = generateBitstring(REVOKED_INDEX, (byte) 0x2);
@@ -410,6 +430,43 @@ class BitstringStatusListRevocationServiceTest {
                     .build();
             assertThat(revocationService.getStatusPurpose(credential)).isSucceeded()
                     .isEqualTo("revocation");
+        }
+
+        @Test
+        void getStatusPurpose_statusSizeGreaterThanOne_shouldFail() {
+            var body = BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("revocation", generateBitstring());
+            server.stubFor(get("/credentials/status/3").willReturn(ok(body)));
+
+            var credential = TestFunctions.createCredentialBuilder()
+                    .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
+                            Map.of("statusPurpose", "revocation",
+                                    "statusListIndex", NOT_REVOKED_INDEX,
+                                    "statusSize", 2,
+                                    "statusListCredential", "http://localhost:%d/credentials/status/3".formatted(server.getPort()))))
+                    .build();
+
+            assertThat(revocationService.getStatusPurpose(credential)).isFailed()
+                    .detail().contains("Unsupported statusSize");
+            server.verify(0, getRequestedFor(anyUrl()));
+        }
+
+        @Test
+        void getStatusPurpose_singleStatusSet_message_compactKeys() {
+            var body = BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("message", generateBitstring(REVOKED_INDEX, 1));
+            server.stubFor(get("/credentials/status/3").willReturn(ok(body)));
+
+            // JWT credentials carry the properties with their compact names, and the status messages as JSON objects
+            var credential = TestFunctions.createCredentialBuilder()
+                    .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
+                            Map.of("statusPurpose", "message",
+                                    "statusListIndex", REVOKED_INDEX,
+                                    "statusSize", 1,
+                                    "statusMessage", List.of(Map.of("status", "0x0", "message", "accepted"), Map.of("status", "0x1", "message", "rejected")),
+                                    "statusListCredential", "http://localhost:%d/credentials/status/3".formatted(server.getPort()))))
+                    .build();
+
+            assertThat(revocationService.getStatusPurpose(credential)).isSucceeded()
+                    .isEqualTo("rejected");
         }
 
         @Test

@@ -60,6 +60,78 @@ class BitstringStatusListStatusTest {
     }
 
     @Test
+    void parse_compactKeys() {
+        // JWT credentials carry the properties with their compact names
+        var props = Map.of(
+                "statusPurpose", "message",
+                "statusListIndex", "237",
+                "statusListCredential", "https://example.com/credentials/status/3",
+                "statusMessage",
+                List.of(new StatusMessage("0x0", "foo"),
+                        new StatusMessage("0x1", "bar"),
+                        new StatusMessage("0x2", "qooz"),
+                        new StatusMessage("0x3", "qaz")),
+                "statusSize", "2",
+                "statusReference", List.of("ref1", "ref2")
+        );
+        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
+
+        var parsed = BitstringStatusListStatus.from(credentialStatus);
+        assertThat(parsed.getStatusListCredential()).isEqualTo("https://example.com/credentials/status/3");
+        assertThat(parsed.getStatusListIndex()).isEqualTo(237);
+        assertThat(parsed.getStatusListPurpose()).isEqualTo("message");
+        assertThat(parsed.getStatusSize()).isEqualTo(2);
+        assertThat(parsed.getStatusMessage()).hasSize(4);
+        assertThat(parsed.getStatusReference()).containsExactly("ref1", "ref2");
+    }
+
+    @Test
+    void parse_compactKeys_statusMessageAsJsonObjects() {
+        var props = Map.of(
+                "statusPurpose", "message",
+                "statusListIndex", "237",
+                "statusListCredential", "https://example.com/credentials/status/3",
+                "statusMessage", List.of(Map.of("status", "0x0", "message", "accepted"), Map.of("status", "0x1", "message", "rejected")),
+                "statusSize", "1"
+        );
+        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
+
+        var parsed = BitstringStatusListStatus.from(credentialStatus);
+        assertThat(parsed.getStatusMessage()).containsExactly(new StatusMessage("0x0", "accepted"), new StatusMessage("0x1", "rejected"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "not-an-array", "entry-without-status" })
+    void parse_compactKeys_invalidStatusMessage_shouldThrow(String kind) {
+        var statusMessage = kind.equals("not-an-array") ? "foo" : List.of(Map.of("message", "accepted"), Map.of("message", "rejected"));
+        var props = Map.of(
+                "statusPurpose", "message",
+                "statusListIndex", "237",
+                "statusListCredential", "https://example.com/credentials/status/3",
+                "statusMessage", statusMessage,
+                "statusSize", "1"
+        );
+        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
+
+        assertThatThrownBy(() -> BitstringStatusListStatus.from(credentialStatus)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void parse_compactKeys_statusMessageWithoutStatusSize_shouldThrow() {
+        var props = Map.of(
+                "statusPurpose", "message",
+                "statusListIndex", "237",
+                "statusListCredential", "https://example.com/credentials/status/3",
+                "statusMessage", List.of(new StatusMessage("0x0", "foo"), new StatusMessage("0x1", "bar"))
+        );
+        var credentialStatus = new CredentialStatus("https://example.com/credentials/status/3#94567", BitstringStatusListStatus.TYPE, props);
+
+        assertThatThrownBy(() -> BitstringStatusListStatus.from(credentialStatus))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("statusSize must be specified");
+    }
+
+    @Test
     void parse_sparselyPopulated() {
         var props = Map.of(
                 STATUS_LIST_PURPOSE, "revocation",
