@@ -22,14 +22,21 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import tools.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getResource;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 class HasValidSchemaTest {
 
@@ -378,6 +385,41 @@ class HasValidSchemaTest {
 
             var result = rule.apply(cred);
             assertThat(result).isSucceeded();
+        }
+    }
+
+    @Nested
+    class SchemaLoadingErrors {
+
+        @ParameterizedTest
+        @ValueSource(booleans = { true, false })
+        void validate_schemaHostUnreachable_shouldFailRetryable(boolean validateOnlySubject) {
+            var rule = new HasValidSchema(mapper, validateOnlySubject);
+            var cred = credential()
+                    .credentialSubject(subject().build())
+                    .credentialSchema(new CredentialSchema("http://localhost:%d/schema.json".formatted(getFreePort()), "JsonSchemaValidator2018"))
+                    .build();
+
+            var result = rule.apply(cred);
+
+            assertThat(result).isFailed().detail().startsWith("Cannot validate the credential against the schema");
+            assertThat(result.isRetryable()).isTrue();
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { true, false })
+        void validate_invalidSchema_shouldFail(boolean validateOnlySubject, @TempDir Path tempDir) throws IOException {
+            var schema = Files.writeString(tempDir.resolve("schema.json"), "not a schema");
+            var rule = new HasValidSchema(mapper, validateOnlySubject);
+            var cred = credential()
+                    .credentialSubject(subject().build())
+                    .credentialSchema(new CredentialSchema(schema.toUri().toString(), "JsonSchemaValidator2018"))
+                    .build();
+
+            var result = rule.apply(cred);
+
+            assertThat(result).isFailed().detail().startsWith("Cannot validate the credential against the schema");
+            assertThat(result.isRetryable()).isFalse();
         }
     }
 

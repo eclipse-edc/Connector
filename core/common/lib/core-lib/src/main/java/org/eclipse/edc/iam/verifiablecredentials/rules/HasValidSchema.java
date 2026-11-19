@@ -25,6 +25,8 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValida
 import org.eclipse.edc.spi.result.Result;
 import tools.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Objects;
 
@@ -53,12 +55,20 @@ public class HasValidSchema implements CredentialValidationRule {
             return Result.success();
         }
 
-        // for backward compatibility, previously just the subjects were validated
-        if (validateOnlySubject) {
-            return verifiableCredential.getCredentialSchema().stream().filter(Objects::nonNull).map(schema -> {
-                var schemaUrl = schema.id();
-                var jsonSchema = factory.getSchema(SchemaLocation.of(schemaUrl));
+        return verifiableCredential.getCredentialSchema().stream()
+                .filter(Objects::nonNull)
+                .map(schema -> validate(verifiableCredential, schema.id()))
+                .reduce(Result::merge)
+                .orElseGet(Result::success);
+    }
 
+    private Result<Void> validate(VerifiableCredential verifiableCredential, String schemaUrl) {
+        try {
+            // the factory does some caching internally, so there is no need to cache again
+            var jsonSchema = factory.getSchema(SchemaLocation.of(schemaUrl));
+
+            // for backward compatibility, previously just the subjects were validated
+            if (validateOnlySubject) {
                 // validate all subjects against the current schema
                 var validationMessages = verifiableCredential.getCredentialSubject().stream()
                         .map(jsonMapper::writeValueAsString)
@@ -66,22 +76,27 @@ public class HasValidSchema implements CredentialValidationRule {
                         .toList();
                 return validationMessages.isEmpty()
                         ? Result.success()
-                        : Result.<Void>failure("Error validating CredentialSubject against schema: " + validationMessages);
-
-            }).reduce(Result::merge).orElseGet(Result::success);
-        }
-
-        return verifiableCredential.getCredentialSchema().stream().filter(Objects::nonNull).map(schema -> {
-            var schemaUrl = schema.id();
-            // Returns the schema using the JsonSchemaFactory. The factory does some caching internally, so there is no need to cache again
-            var jsonSchema = factory.getSchema(SchemaLocation.of(schemaUrl));
+                        : Result.failure("Error validating CredentialSubject against schema: " + validationMessages);
+            }
 
             // validate entire VC against the current schema
             var validationMessages = jsonSchema.validate(jsonMapper.writeValueAsString(verifiableCredential), InputFormat.JSON);
             return validationMessages.isEmpty()
                     ? Result.success()
-                    : Result.<Void>failure("Error validating credential against schema: " + validationMessages); // ValidationMessage overwrites toString()
+                    : Result.failure("Error validating credential against schema: " + validationMessages); // ValidationMessage overwrites toString()
+        } catch (RuntimeException e) {
+            var message = "Cannot validate the credential against the schema '%s': %s".formatted(schemaUrl, e.getMessage());
+            // the schema could not be fetched now, a later attempt may succeed
+            return hasIoCause(e) ? Result.retryableFailure(message) : Result.failure(message);
+        }
+    }
 
-        }).reduce(Result::merge).orElseGet(Result::success);
+    private boolean hasIoCause(Throwable throwable) {
+        for (var cause = throwable; cause != null; cause = cause.getCause()) {
+            if (cause instanceof IOException || cause instanceof UncheckedIOException) {
+                return true;
+            }
+        }
+        return false;
     }
 }

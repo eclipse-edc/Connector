@@ -46,4 +46,12 @@ class SubJwkIsNullRuleTest {
                 .detail()
                 .isEqualTo("The 'sub_jwk' claim must not be present.");
     }
+
+    @Test
+    void subJwkIsJsonObject() {
+        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("sub_jwk", Map.of("kty", "OKP")).build(), Map.of()))
+                .isFailed()
+                .detail()
+                .isEqualTo("The 'sub_jwk' claim must not be present.");
+    }
 }

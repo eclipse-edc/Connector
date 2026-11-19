@@ -67,6 +67,10 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
         }
         var bitstring = compressedBitstring.getContent();
 
+        var indexCheck = checkIndex(bitstring, credentialStatus.getStatusListIndex());
+        if (indexCheck.failed()) {
+            return indexCheck.mapEmpty();
+        }
         var statusFlag = bitstring.get(credentialStatus.getStatusListIndex());
 
         var statusPurpose = credentialStatus.getStatusListPurpose();

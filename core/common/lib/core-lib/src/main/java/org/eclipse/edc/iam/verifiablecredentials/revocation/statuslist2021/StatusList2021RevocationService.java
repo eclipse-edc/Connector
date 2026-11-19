@@ -62,6 +62,10 @@ public class StatusList2021RevocationService extends BaseRevocationListService<S
             return bitStringResult.mapEmpty();
         }
         var bitString = bitStringResult.getContent();
+        var indexCheck = checkIndex(bitString, index);
+        if (indexCheck.failed()) {
+            return indexCheck.mapEmpty();
+        }
 
         // check that the value at index in the bitset is "1"
         if (bitString.get(index)) {
