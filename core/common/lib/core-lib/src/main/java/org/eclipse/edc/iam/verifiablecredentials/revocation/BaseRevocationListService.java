@@ -97,7 +97,7 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
 
         var res = credential.getCredentialStatus().stream()
                           .map(this::getCredentialStatus)
-                          .map(this::getStatusEntryValue)
+                          .map(status -> preliminaryChecks(status).compose(v -> getStatusEntryValue(status)))
                           .collect(Collectors.groupingBy(AbstractResult::succeeded));
 
         if (res.containsKey(false)) { //if any failed
