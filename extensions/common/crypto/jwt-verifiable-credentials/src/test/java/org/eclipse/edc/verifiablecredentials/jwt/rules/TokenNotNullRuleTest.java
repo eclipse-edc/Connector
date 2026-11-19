@@ -47,4 +47,12 @@ class TokenNotNullRuleTest {
                 .detail()
                 .isEqualTo("The 'token' claim is mandatory and must not be null.");
     }
+
+    @Test
+    void accessTokenClaimNotString() {
+        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("token", Map.of("foo", "bar")).build(), Map.of()))
+                .isFailed()
+                .detail()
+                .isEqualTo("The 'token' claim is mandatory and must not be null.");
+    }
 }

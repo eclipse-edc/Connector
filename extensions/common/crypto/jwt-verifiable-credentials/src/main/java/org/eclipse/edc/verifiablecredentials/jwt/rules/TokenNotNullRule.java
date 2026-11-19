@@ -32,8 +32,8 @@ public class TokenNotNullRule implements TokenValidationRule {
 
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
-        return StringUtils.isNullOrEmpty(toVerify.getStringClaim(PRESENTATION_TOKEN_CLAIM)) ?
-                Result.failure("The '%s' claim is mandatory and must not be null.".formatted(PRESENTATION_TOKEN_CLAIM)) :
-                Result.success();
+        return toVerify.getClaim(PRESENTATION_TOKEN_CLAIM) instanceof String token && !StringUtils.isNullOrEmpty(token) ?
+                Result.success() :
+                Result.failure("The '%s' claim is mandatory and must not be null.".formatted(PRESENTATION_TOKEN_CLAIM));
     }
 }

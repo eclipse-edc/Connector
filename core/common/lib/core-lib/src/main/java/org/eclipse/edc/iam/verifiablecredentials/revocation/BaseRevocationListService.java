@@ -23,6 +23,7 @@ import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.BitString;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
@@ -79,14 +80,7 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
 
     @Override
     public Result<Void> checkValidity(CredentialStatus credential) {
-        var credentialStatus = getCredentialStatus(credential);
-        var credentialIndex = getStatusIndex(credentialStatus);
-        return preliminaryChecks(credentialStatus)
-                       .compose(v -> validateStatusPurpose(credentialStatus))
-                       .compose(v -> getStatusEntryValue(credentialStatus))
-                       .compose(status -> status != null ?
-                                                  Result.failure("Credential status is '%s', status at index %d is '1'".formatted(status, credentialIndex)) :
-                                                  Result.success());
+        return parseCredentialStatus(credential).compose(this::checkStatus);
     }
 
     @Override
@@ -96,8 +90,8 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
         }
 
         var res = credential.getCredentialStatus().stream()
-                          .map(this::getCredentialStatus)
-                          .map(status -> preliminaryChecks(status).compose(v -> getStatusEntryValue(status)))
+                          .map(this::parseCredentialStatus)
+                          .map(parsed -> parsed.compose(status -> preliminaryChecks(status).compose(v -> getStatusEntryValue(status))))
                           .collect(Collectors.groupingBy(AbstractResult::succeeded));
 
         if (res.containsKey(false)) { //if any failed
@@ -109,6 +103,40 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
                            .map(AbstractResult::getContent).toList();
 
         return list.isEmpty() ? Result.success(null) : Result.success(String.join(", ", list));
+    }
+
+    private Result<Void> checkStatus(S credentialStatus) {
+        return preliminaryChecks(credentialStatus)
+                       .compose(v -> validateStatusPurpose(credentialStatus))
+                       .compose(v -> getStatusEntryValue(credentialStatus))
+                       .compose(status -> status != null ?
+                                                  Result.failure("Credential status is '%s', status at index %d is '1'".formatted(status, getStatusIndex(credentialStatus))) :
+                                                  Result.success());
+    }
+
+    /**
+     * Converts the credentialStatus object of the VC, reporting an invalid one as a failure.
+     */
+    private Result<S> parseCredentialStatus(CredentialStatus credentialStatus) {
+        try {
+            return Result.success(getCredentialStatus(credentialStatus));
+        } catch (IllegalArgumentException ex) {
+            return Result.failure("Invalid credentialStatus: %s".formatted(ex.getMessage()));
+        }
+    }
+
+    /**
+     * Checks that the status list contains the given index.
+     *
+     * @param bitString the status list
+     * @param index     the statusListIndex of the VC's credentialStatus object
+     * @return A failure if the index is outside the list
+     */
+    protected Result<Void> checkIndex(BitString bitString, int index) {
+        if (index < 0 || index >= bitString.length()) {
+            return Result.failure("The status list index %d is outside the status list (size %d)".formatted(index, bitString.length()));
+        }
+        return Result.success();
     }
 
     /**

@@ -19,8 +19,10 @@ import org.eclipse.edc.jwt.validation.jti.JtiValidationEntry;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreFailure;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +53,7 @@ public class JtiValidationRule implements TokenValidationRule {
         // the entry expires with the token, which is rejected afterwards anyway. Storing it fails if it exists, so that a
         // token that is presented several times at once, e.g. to several replicas, is only accepted once
         var expiration = toVerify.getInstantClaim(JwtRegisteredClaimNames.EXPIRATION_TIME);
-        var result = jtiValidationStore.storeEntry(new JtiValidationEntry(jti, expiration != null ? expiration.toEpochMilli() : null));
+        var result = storeEntry(new JtiValidationEntry(jti, expiration != null ? expiration.toEpochMilli() : null));
         if (result.succeeded()) {
             return Result.success();
         }
@@ -61,5 +63,14 @@ public class JtiValidationRule implements TokenValidationRule {
         monitor.warning("Failed to store the JWT id '%s': %s".formatted(jti, result.getFailureDetail()));
         // the token could not be checked, which says nothing about the token itself
         return Result.retryableFailure(result.getFailureDetail());
+    }
+
+    private StoreResult<Void> storeEntry(JtiValidationEntry entry) {
+        try {
+            return jtiValidationStore.storeEntry(entry);
+        } catch (EdcPersistenceException e) {
+            // e.g. the database is not reachable
+            return StoreResult.generalError(e.getMessage());
+        }
     }
 }

@@ -132,6 +132,34 @@ class StatusList2021RevocationServiceTest {
     }
 
     @Test
+    void checkValidity_invalidStatusListIndex_shouldFail() {
+        var credential = new CredentialStatus("test-id", "StatusList2021",
+                Map.of(STATUS_LIST_PURPOSE, "revocation",
+                        STATUS_LIST_INDEX, "not-a-number",
+                        STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort())));
+
+        var result = revocationService.checkValidity(credential);
+
+        assertThat(result).isFailed().detail().startsWith("Invalid credentialStatus");
+        assertThat(result.isRetryable()).isFalse();
+    }
+
+    @Test
+    void checkValidity_statusListIndexOutsideList_shouldFail() {
+        clientAndServer.stubFor(get("/credentials/status/3").willReturn(ok(STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_INTERMEDIATE)));
+
+        var credential = new CredentialStatus("test-id", "StatusList2021",
+                Map.of(STATUS_LIST_PURPOSE, "revocation",
+                        STATUS_LIST_INDEX, Integer.MAX_VALUE,
+                        STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort())));
+
+        var result = revocationService.checkValidity(credential);
+
+        assertThat(result).isFailed().detail().contains("outside the status list");
+        assertThat(result.isRetryable()).isFalse();
+    }
+
+    @Test
     void checkRevocation_whenCached_valid() {
         clientAndServer.stubFor(get("/credentials/status/3").willReturn(ok(STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_INTERMEDIATE)));
 

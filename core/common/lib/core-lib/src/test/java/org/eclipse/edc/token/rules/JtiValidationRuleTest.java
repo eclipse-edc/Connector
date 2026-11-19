@@ -17,6 +17,7 @@ package org.eclipse.edc.token.rules;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationEntry;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.junit.jupiter.api.Test;
 
@@ -78,6 +79,16 @@ class JtiValidationRuleTest {
         assertThat(result.isRetryable()).isTrue();
         assertThat(result).isFailed()
                 .detail().isEqualTo("foobar");
+    }
+
+    @Test
+    void checkRule_whenStoreThrows_shouldFailRetryable() {
+        when(store.storeEntry(any())).thenThrow(new EdcPersistenceException("database not reachable"));
+
+        var result = rule.checkRule(ClaimToken.Builder.newInstance().claim("jti", "test-id").build(), Map.of());
+        assertThat(result.isRetryable()).isTrue();
+        assertThat(result).isFailed()
+                .detail().isEqualTo("database not reachable");
     }
 
     @Test

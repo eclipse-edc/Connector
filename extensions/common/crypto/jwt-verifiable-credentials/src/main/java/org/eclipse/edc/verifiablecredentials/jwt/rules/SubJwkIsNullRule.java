@@ -31,7 +31,7 @@ import static org.eclipse.edc.spi.result.Result.success;
 public class SubJwkIsNullRule implements TokenValidationRule {
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
-        return toVerify.getStringClaim("sub_jwk") == null ?
+        return toVerify.getClaim("sub_jwk") == null ?
                 success() :
                 failure("The 'sub_jwk' claim must not be present.");
     }

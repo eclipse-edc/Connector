@@ -137,6 +137,32 @@ class BitstringStatusListRevocationServiceTest {
         }
 
         @Test
+        void checkValidity_invalidStatusListIndex_shouldFail() {
+            var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
+                    Map.of(STATUS_LIST_PURPOSE, "revocation",
+                            STATUS_LIST_INDEX, "not-a-number",
+                            STATUS_LIST_SIZE, 1,
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
+
+            var result = revocationService.checkValidity(credential);
+
+            assertThat(result).isFailed().detail().startsWith("Invalid credentialStatus");
+            assertThat(result.isRetryable()).isFalse();
+            server.verify(0, getRequestedFor(anyUrl()));
+        }
+
+        @Test
+        void checkValidity_statusListIndexOutsideList_shouldFail() {
+            var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(generateBitstring());
+            server.stubFor(get("/credentials/status/3").willReturn(ok(bitstringCredential)));
+
+            var result = revocationService.checkValidity(statusListEntry(1024 * 16));
+
+            assertThat(result).isFailed().detail().contains("outside the status list");
+            assertThat(result.isRetryable()).isFalse();
+        }
+
+        @Test
         void checkValidity_revoked_notCached() {
             var bitstring = generateBitstring(REVOKED_INDEX, (byte) 0x2);
             var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(bitstring);
@@ -414,6 +440,32 @@ class BitstringStatusListRevocationServiceTest {
             assertThat(revocationService.getStatusPurpose(credential)).isFailed()
                     .detail()
                     .startsWith("Failed to read status list credential");
+        }
+
+        @Test
+        void getStatusPurpose_invalidStatusListIndex_shouldFail() {
+            var credential = TestFunctions.createCredentialBuilder()
+                    .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
+                            Map.of(STATUS_LIST_PURPOSE, "revocation",
+                                    STATUS_LIST_INDEX, "not-a-number",
+                                    STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort()))))
+                    .build();
+
+            assertThat(revocationService.getStatusPurpose(credential)).isFailed()
+                    .detail().startsWith("Invalid credentialStatus");
+        }
+
+        @Test
+        void getStatusPurpose_statusListIndexOutsideList_shouldFail() {
+            var body = BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("revocation", generateBitstring());
+            server.stubFor(get("/credentials/status/3").willReturn(ok(body)));
+
+            var credential = TestFunctions.createCredentialBuilder()
+                    .credentialStatus(statusListEntry(-1))
+                    .build();
+
+            assertThat(revocationService.getStatusPurpose(credential)).isFailed()
+                    .detail().contains("outside the status list");
         }
 
         @Test
