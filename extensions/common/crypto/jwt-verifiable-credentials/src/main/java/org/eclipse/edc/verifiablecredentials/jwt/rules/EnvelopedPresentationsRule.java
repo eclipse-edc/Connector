@@ -55,7 +55,7 @@ public class EnvelopedPresentationsRule implements TokenValidationRule {
         }
 
         var results = new ArrayList<Result<Void>>();
-        for (var envelope : presentationEnvelope.split(";")) {
+        for (var envelope : presentationEnvelope.split(";", -1)) {
             if (!envelope.startsWith(ENVELOPED_PRESENTATION_CONTENT_TYPE + ",")) {
                 return Result.failure("Incorrect presentation envelope. Must start with '%s,' but it did not.".formatted(ENVELOPED_PRESENTATION_CONTENT_TYPE));
             }

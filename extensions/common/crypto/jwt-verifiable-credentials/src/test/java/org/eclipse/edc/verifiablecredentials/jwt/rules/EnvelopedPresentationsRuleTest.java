@@ -93,13 +93,23 @@ class EnvelopedPresentationsRuleTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "jwt1", "data:application/vc+jwt,jwt1", "data:application/vp+jwt;jwt1" })
+    @ValueSource(strings = { "jwt1", "data:application/vc+jwt,jwt1", "data:application/vp+jwt;jwt1", "", ";", ";;" })
     void shouldFail_whenEnvelopeHasIncorrectPrefix(String id) {
         var result = rule.checkRule(envelope(id), Map.of());
 
         assertThat(result).isFailed().detail()
                 .isEqualTo("Incorrect presentation envelope. Must start with 'data:application/vp+jwt,' but it did not.");
         verifyNoInteractions(presentationVerifier);
+    }
+
+    @Test
+    void shouldFail_whenEnvelopeHasTrailingSeparator() {
+        when(presentationVerifier.apply(any(), any())).thenReturn(Result.success());
+
+        var result = rule.checkRule(envelope(CONTENT_TYPE + "jwt1;"), Map.of());
+
+        assertThat(result).isFailed().detail()
+                .isEqualTo("Incorrect presentation envelope. Must start with 'data:application/vp+jwt,' but it did not.");
     }
 
     private ClaimToken envelope(String id) {
