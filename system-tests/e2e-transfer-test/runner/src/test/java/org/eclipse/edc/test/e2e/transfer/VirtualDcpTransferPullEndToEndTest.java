@@ -581,7 +581,6 @@ class VirtualDcpTransferPullEndToEndTest {
                     put("edc.iam.dcp.scopes.data-access.type", "POLICY");
                     put("edc.iam.dcp.scopes.data-access.value", "org.eclipse.dspace.dcp.vc.type:DataAccessCredential:read");
                     put("edc.iam.dcp.scopes.data-access.prefix.mapping", "https://w3id.org/example/credentials/DataAccessCredential");
-                    put("edc.negotiation.approval.enabled", "true");
                     put("edc.policy.monitor.period", "PT1S");
                 }
             });

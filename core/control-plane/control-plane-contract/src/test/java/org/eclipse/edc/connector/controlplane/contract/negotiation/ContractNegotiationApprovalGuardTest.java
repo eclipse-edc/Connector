@@ -43,6 +43,7 @@ import static org.junit.jupiter.params.provider.EnumSource.Mode.EXCLUDE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -84,6 +85,37 @@ class ContractNegotiationApprovalGuardTest {
         assertThat(captor.getValue().contractDefinition()).isNull();
         verify(assetIndex).findById("participantContextId", "asset-id");
         verify(contractDefinitionStore).findById("participantContextId", "definition-id");
+    }
+
+    @Test
+    void shouldNotLookUpAssetAndContractDefinition_whenNotNeededByEvaluation() {
+        when(policyEngine.evaluate(any(), any())).thenReturn(Result.success());
+
+        var result = guard.test(negotiation(PROVIDER, REQUESTED, Policy.Builder.newInstance().build()));
+
+        assertThat(result).isFalse();
+        verifyNoInteractions(assetIndex, contractDefinitionStore);
+    }
+
+    @Test
+    void shouldLookUpAssetAndContractDefinitionOnce_whenRequestedMultipleTimes() {
+        var asset = Asset.Builder.newInstance().id("asset-id").build();
+        var definition = ContractDefinition.Builder.newInstance().id("definition-id").accessPolicyId("access").contractPolicyId("contract").build();
+        when(assetIndex.findById("participantContextId", "asset-id")).thenReturn(asset);
+        when(contractDefinitionStore.findById("participantContextId", "definition-id")).thenReturn(definition);
+        when(policyEngine.evaluate(any(), any())).thenAnswer(invocation -> {
+            ApprovalContractNegotiationPolicyContext context = invocation.getArgument(1);
+            context.asset();
+            context.contractDefinition();
+            context.asset();
+            context.contractDefinition();
+            return Result.success();
+        });
+
+        guard.test(negotiation(PROVIDER, REQUESTED, Policy.Builder.newInstance().build()));
+
+        verify(assetIndex, times(1)).findById("participantContextId", "asset-id");
+        verify(contractDefinitionStore, times(1)).findById("participantContextId", "definition-id");
     }
 
     @Test

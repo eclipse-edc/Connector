@@ -120,7 +120,6 @@ class VirtualNegotiationApprovalEndToEndTest {
                 put("edc.iam.oauth2.issuer", "test-issuer");
                 put("web.http.protocol.virtual", "true");
                 put("edc.dataspace.enable.profiles.all", "true");
-                put("edc.negotiation.approval.enabled", "true");
             }
         });
     }
