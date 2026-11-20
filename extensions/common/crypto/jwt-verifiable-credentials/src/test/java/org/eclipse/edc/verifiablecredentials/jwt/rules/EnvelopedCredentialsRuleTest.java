@@ -122,13 +122,23 @@ class EnvelopedCredentialsRuleTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "jwt1", "data:application/vp+jwt,jwt1", "data:application/vc+jwt;jwt1" })
+    @ValueSource(strings = { "jwt1", "data:application/vp+jwt,jwt1", "data:application/vc+jwt;jwt1", "", ";", ";;" })
     void shouldFail_whenEnvelopeHasIncorrectPrefix(String envelope) {
         var result = rule.checkRule(token(List.of(envelopedCredential(envelope))), Map.of());
 
         assertThat(result).isFailed().detail()
                 .isEqualTo("Incorrect credential envelope. Must start with 'data:application/vc+jwt,' but it did not.");
         verifyNoInteractions(credentialVerifier);
+    }
+
+    @Test
+    void shouldFail_whenEnvelopeHasTrailingSeparator() {
+        when(credentialVerifier.apply(any())).thenReturn(Result.success());
+
+        var result = rule.checkRule(token(List.of(envelopedCredential(CONTENT_TYPE + "jwt1;"))), Map.of());
+
+        assertThat(result).isFailed().detail()
+                .isEqualTo("Incorrect credential envelope. Must start with 'data:application/vc+jwt,' but it did not.");
     }
 
     private ClaimToken token(List<Object> credentials) {

@@ -77,7 +77,7 @@ public class EnvelopedCredentialsRule implements TokenValidationRule {
      */
     private Result<Void> verifyCredentialEnvelope(String credentialEnvelope) {
         var results = new ArrayList<Result<Void>>();
-        for (var envelope : credentialEnvelope.split(";")) {
+        for (var envelope : credentialEnvelope.split(";", -1)) {
             if (!envelope.startsWith(ENVELOPED_CREDENTIAL_CONTENT_TYPE + ",")) {
                 return Result.failure("Incorrect credential envelope. Must start with '%s,' but it did not.".formatted(ENVELOPED_CREDENTIAL_CONTENT_TYPE));
             }
