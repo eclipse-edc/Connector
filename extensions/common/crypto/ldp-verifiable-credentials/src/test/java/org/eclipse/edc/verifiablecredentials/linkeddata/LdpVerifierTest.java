@@ -391,6 +391,26 @@ class LdpVerifierTest {
             }
 
             @Test
+            void verify_presentationExpected_documentIsAlsoCredential_shouldFail() throws JOSEException {
+                var vpKey = new ECKeyGenerator(Curve.P_384)
+                        .keyID("vp-sign-key")
+                        .generate();
+                var verificationMethod = methodResolver.publish(VP_HOLDER + "#key-1", vpKey);
+                var content = TestData.VP_CONTENT_TEMPLATE.formatted("")
+                        .replace("\"VerifiablePresentation\"", "\"VerifiablePresentation\", \"VerifiableCredential\"")
+                        .replace("\"holder\": \"did:web:test-issuer\",", """
+                                "holder": "did:web:test-issuer",
+                                "issuer": "did:web:test-issuer",
+                                "issuanceDate": "2024-01-01T00:00:00Z",
+                                "credentialSubject": { "id": "did:web:test-issuer" },
+                                """);
+                var rawVp = LdpCreationUtils.signDocument(content, vpKey, generateEmbeddedProof(verificationMethod), testDocLoader);
+
+                assertThat(ldpVerifier.verify(rawVp, context.toBuilder().presentationExpected(true).build())).isFailed()
+                        .detail().startsWith("Expected a presentation");
+            }
+
+            @Test
             void verify_credentialProofPurposeNotAssertionMethod() throws JOSEException {
                 var nameKey = new ECKeyGenerator(Curve.P_256)
                         .keyID("vc-sign-key1")

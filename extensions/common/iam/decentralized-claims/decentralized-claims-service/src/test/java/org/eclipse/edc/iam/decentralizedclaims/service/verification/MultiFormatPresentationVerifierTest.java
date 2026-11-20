@@ -452,7 +452,7 @@ class MultiFormatPresentationVerifierTest {
             var memberCredential = createMembershipCredential();
             var signedMemberCredential = LdpCreationUtils.signDocument(memberCredential, vcSigningKey, generateProofOptions(spoofedKey, MEMBERSHIP_CREDENTIAL_ISSUER), testDocLoader);
 
-            var vpContent = "%s, %s, \"%s\"".formatted(signedMemberCredential, signedNameCredential, vcJwt1);
+            var vpContent = VP_CONTENT_TEMPLATE.formatted("%s, %s, \"%s\"".formatted(signedMemberCredential, signedNameCredential, vcJwt1));
             var vpLdp = LdpCreationUtils.signDocument(vpContent, vpSigningKey, generateProofOptions(vpSigningKey, VP_HOLDER_ID), testDocLoader);
 
             assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpLdp, CredentialFormat.VC1_0_LD, null), MY_OWN_DID))
@@ -492,4 +492,26 @@ class MultiFormatPresentationVerifierTest {
 
     }
 
+    @Nested
+    class CredentialInsteadOfPresentation {
+
+        @DisplayName("a JWT-VC is not accepted as presentation")
+        @Test
+        void verify_jwtVc_fails() {
+            var vcJwt = JwtCreationUtils.createJwt(vcSigningKey, CENTRAL_ISSUER_DID, "degreeSub", VP_HOLDER_ID, Map.of("vc", TestData.VC_CONTENT_DEGREE_EXAMPLE));
+
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vcJwt, CredentialFormat.VC1_0_JWT, null), MY_OWN_DID))
+                    .isFailed().detail().isEqualTo("Expected a presentation, but the JWT contains a credential.");
+        }
+
+        @DisplayName("an LDP-VC is not accepted as presentation")
+        @Test
+        void verify_ldpVc_fails() {
+            var nameCredential = createNameCredential();
+            var signedNameCredential = LdpCreationUtils.signDocument(nameCredential, vcSigningKey, generateProofOptions(vcSigningKey, NAME_CREDENTIAL_ISSUER), testDocLoader);
+
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(signedNameCredential, CredentialFormat.VC1_0_LD, null), MY_OWN_DID))
+                    .isFailed().detail().startsWith("Expected a presentation, but the document is of type");
+        }
+    }
 }

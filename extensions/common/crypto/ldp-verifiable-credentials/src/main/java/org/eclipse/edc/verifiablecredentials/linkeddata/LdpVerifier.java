@@ -210,6 +210,9 @@ public class LdpVerifier implements CredentialVerifier {
     private Result<Void> verifyExpanded(JsonObject expanded, VerifierContext context, JsonStructure ldContext) throws VerificationError, DocumentError {
 
         if (isCredential(expanded)) {
+            if (context.isPresentationExpected()) {
+                return failure("Expected a presentation, but the document is of type %s".formatted(VcVocab.CREDENTIAL_TYPE.uri()));
+            }
             return verifyProofs(expanded, ldContext);
         }
 
