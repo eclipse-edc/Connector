@@ -131,6 +131,9 @@ public class JwtPresentationVerifier implements CredentialVerifier {
             var claims = claimToken.getClaims();
 
             if (isCredential(claims)) {
+                if (context.isPresentationExpected()) {
+                    return Result.failure("Expected a presentation, but the JWT contains a credential.");
+                }
                 var rules = tokenValidationRulesRegistry.getRules(Constants.JWT_VC_TOKEN_CONTEXT);
                 return TokenValidationRule.allOf(rules).checkRule(claimToken, additional);
             }

@@ -52,6 +52,7 @@ public class MultiFormatPresentationVerifier implements PresentationVerifier {
         var ctx = VerifierContext.Builder.newInstance()
                 .audience(audience)
                 .verifiers(verifiers.get())
+                .presentationExpected(true)
                 .build();
         return ctx.verify(container.rawVp());
     }

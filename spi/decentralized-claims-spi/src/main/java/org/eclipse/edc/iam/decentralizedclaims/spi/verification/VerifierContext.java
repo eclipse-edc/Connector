@@ -30,6 +30,7 @@ public class VerifierContext {
     private final List<CredentialVerifier> verifiers = new ArrayList<>();
     private String audience;
     private boolean credentialExpected;
+    private boolean presentationExpected;
 
     public Result<Void> verify(String rawInput) {
         return verifiers.stream().filter(cv -> cv.canHandle(rawInput))
@@ -51,11 +52,20 @@ public class VerifierContext {
         return credentialExpected;
     }
 
+    /**
+     * Whether the input must be a presentation, e.g. the top-level document of a presentation verification. A verifier
+     * must then reject a credential.
+     */
+    public boolean isPresentationExpected() {
+        return presentationExpected;
+    }
+
     public Builder toBuilder() {
         return new Builder()
                 .verifiers(verifiers)
                 .audience(audience)
-                .credentialExpected(credentialExpected);
+                .credentialExpected(credentialExpected)
+                .presentationExpected(presentationExpected);
     }
 
     public static class Builder {
@@ -84,8 +94,26 @@ public class VerifierContext {
             return this;
         }
 
+        /**
+         * Whether the input must be a credential, e.g. a document contained in a presentation. Setting it to {@code true}
+         * resets {@link #presentationExpected(boolean)}.
+         */
         public Builder credentialExpected(boolean credentialExpected) {
             this.context.credentialExpected = credentialExpected;
+            if (credentialExpected) {
+                this.context.presentationExpected = false;
+            }
+            return this;
+        }
+
+        /**
+         * Whether the input must be a presentation. Setting it to {@code true} resets {@link #credentialExpected(boolean)}.
+         */
+        public Builder presentationExpected(boolean presentationExpected) {
+            this.context.presentationExpected = presentationExpected;
+            if (presentationExpected) {
+                this.context.credentialExpected = false;
+            }
             return this;
         }
 
