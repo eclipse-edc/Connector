@@ -19,6 +19,7 @@ import okhttp3.Response;
 import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -86,5 +87,30 @@ public interface EdcHttpClient {
      * @return a new client instance with the dns server set.
      */
     EdcHttpClient withDns(String dnsServer);
+
+    /**
+     * Returns a new client instance whose calls must complete within the given time, including connecting, writing
+     * the request and reading the whole response. Each retry attempt gets its own call timeout.
+     * <p>
+     * Implementations should override this method: the default implementation returns the same client.
+     *
+     * @param callTimeout the maximum duration of a single call, a zero duration means no limit.
+     * @return a new client instance with the call timeout set.
+     */
+    default EdcHttpClient withCallTimeout(Duration callTimeout) {
+        return this;
+    }
+
+    /**
+     * Returns a new client instance that retries a failed call at most the given number of times.
+     * <p>
+     * Implementations should override this method: the default implementation returns the same client.
+     *
+     * @param maxRetries the maximum number of retries, 0 means no retry.
+     * @return a new client instance with the maximum number of retries set.
+     */
+    default EdcHttpClient withMaxRetries(int maxRetries) {
+        return this;
+    }
 
 }

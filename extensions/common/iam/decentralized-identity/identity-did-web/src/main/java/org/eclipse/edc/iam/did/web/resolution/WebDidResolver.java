@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.did.web.resolution;
 
 import okhttp3.Request;
 import okhttp3.Response;
+import org.eclipse.edc.http.client.ResponseBodies;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolver;
@@ -34,21 +35,40 @@ import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusNot2xxOr
  * Resolves a Web DID according to the Web DID specification (https://w3c-ccg.github.io/did-method-web).
  */
 public class WebDidResolver implements DidResolver {
+    public static final int DEFAULT_CALL_TIMEOUT_SECONDS = 5;
+    public static final int DEFAULT_MAX_RETRIES = 1;
+    public static final long DEFAULT_MAX_RESPONSE_BYTES = 1024 * 1024;
     private static final String DID_METHOD = "web";
 
     private final EdcHttpClient httpClient;
     private final ObjectMapper mapper;
     private final Monitor monitor;
     private final WebDidUrlResolver urlResolver;
+    private final long maxResponseBytes;
+
+    /**
+     * Creates a resolver that executes standard DNS lookups, accepting DID documents up to
+     * {@link #DEFAULT_MAX_RESPONSE_BYTES}.
+     */
+    public WebDidResolver(EdcHttpClient httpClient, boolean useHttpsScheme, ObjectMapper mapper, Monitor monitor) {
+        this(httpClient, useHttpsScheme, mapper, monitor, DEFAULT_MAX_RESPONSE_BYTES);
+    }
 
     /**
      * Creates a resolver that executes standard DNS lookups.
+     *
+     * @param httpClient       the http client, its timeouts and retries apply to the DID document requests.
+     * @param useHttpsScheme   whether the DID document URL uses {@code https}, otherwise {@code http}.
+     * @param mapper           the object mapper.
+     * @param monitor          the monitor.
+     * @param maxResponseBytes the maximum size of a DID document, in bytes.
      */
-    public WebDidResolver(EdcHttpClient httpClient, boolean useHttpsScheme, ObjectMapper mapper, Monitor monitor) {
+    public WebDidResolver(EdcHttpClient httpClient, boolean useHttpsScheme, ObjectMapper mapper, Monitor monitor, long maxResponseBytes) {
         this.httpClient = httpClient;
         this.urlResolver = new WebDidUrlResolver(useHttpsScheme);
         this.mapper = mapper;
         this.monitor = monitor;
+        this.maxResponseBytes = maxResponseBytes;
     }
 
     @Override
@@ -81,11 +101,16 @@ public class WebDidResolver implements DidResolver {
             if (body == null) {
                 return Result.failure("DID response contained an empty body: " + didKey);
             }
-            var didDocument = mapper.readValue(body.string(), DidDocument.class);
+            var content = ResponseBodies.readUtf8(body, maxResponseBytes);
+            if (content.failed()) {
+                return Result.failure("Error resolving DID %s: %s".formatted(didKey, content.getFailureDetail()));
+            }
+            var didDocument = mapper.readValue(content.getContent(), DidDocument.class);
             return Result.success(didDocument);
         } catch (IOException e) {
+            // the body could not be read (e.g. the call timed out), the DID may be resolved later
             monitor.severe("Error resolving DID: " + didKey, e);
-            return Result.failure("Error resolving DID: " + e.getMessage());
+            return Result.retryableFailure("Error resolving DID: " + e.getMessage());
         }
     }
 }

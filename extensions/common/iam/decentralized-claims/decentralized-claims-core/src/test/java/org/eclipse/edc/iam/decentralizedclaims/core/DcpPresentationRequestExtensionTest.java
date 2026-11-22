@@ -31,10 +31,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.time.Duration;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.decentralizedclaims.core.DcpPresentationRequestExtension.DCP_CLIENT_CONTEXT;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -47,6 +50,7 @@ class DcpPresentationRequestExtensionTest {
     private static final String DCP_08_PROPERTY  = "edc.dcp.v08.forced";
 
     private final TypeTransformerRegistry transformerRegistry = mock();
+    private final EdcHttpClient httpClient = mock();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
@@ -54,7 +58,9 @@ class DcpPresentationRequestExtensionTest {
         context.registerService(DidResolverRegistry.class, mock());
         context.registerService(TypeTransformerRegistry.class, transformerRegistry);
         context.registerService(TypeManager.class, mock());
-        context.registerService(EdcHttpClient.class, mock());
+        context.registerService(EdcHttpClient.class, httpClient);
+        when(httpClient.withCallTimeout(any())).thenReturn(httpClient);
+        when(httpClient.withMaxRetries(anyInt())).thenReturn(httpClient);
         context.registerService(JsonLd.class, mock());
 
         var config = ConfigFactory.fromMap(Map.of(
@@ -78,5 +84,26 @@ class DcpPresentationRequestExtensionTest {
         assertThat(service).isNotNull().isInstanceOf(DefaultCredentialServiceClient.class);
         verify(transformerRegistry, times(1)).forContext(DCP_CLIENT_CONTEXT);
         verify(transformerRegistry, times(1)).register(isA(JsonObjectToPresentationResponseMessageTransformer.class));
+    }
+
+    @Test
+    void verifyCredentialServiceClient_defaultLimits(ServiceExtensionContext context, ObjectFactory objectFactory) {
+        objectFactory.constructInstance(DcpPresentationRequestExtension.class).credentialServiceClient(context);
+
+        verify(httpClient).withCallTimeout(Duration.ofSeconds(DefaultCredentialServiceClient.DEFAULT_CALL_TIMEOUT_SECONDS));
+        verify(httpClient).withMaxRetries(DefaultCredentialServiceClient.DEFAULT_MAX_RETRIES);
+    }
+
+    @Test
+    void verifyCredentialServiceClient_configuredLimits(ServiceExtensionContext context, ObjectFactory objectFactory) {
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
+                DCP_08_PROPERTY, "false",
+                "edc.iam.credentialservice.timeout.call", "3",
+                "edc.iam.credentialservice.retries.max", "2")));
+
+        objectFactory.constructInstance(DcpPresentationRequestExtension.class).credentialServiceClient(context);
+
+        verify(httpClient).withCallTimeout(Duration.ofSeconds(3));
+        verify(httpClient).withMaxRetries(2);
     }
 }

@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -110,4 +111,16 @@ public class EdcHttpClientImpl implements EdcHttpClient {
         return new EdcHttpClientImpl(okHttpClient.newBuilder().dns(dns).build(), retryPolicy, monitor);
     }
 
+
+    @Override
+    public EdcHttpClient withCallTimeout(Duration callTimeout) {
+        // the derived OkHttpClient shares the connection pool, the dispatcher and the interceptors with this one
+        return new EdcHttpClientImpl(okHttpClient.newBuilder().callTimeout(callTimeout).build(), retryPolicy, monitor);
+    }
+
+    @Override
+    public EdcHttpClient withMaxRetries(int maxRetries) {
+        var policy = RetryPolicy.builder(retryPolicy.getConfig()).withMaxRetries(maxRetries).build();
+        return new EdcHttpClientImpl(okHttpClient, policy, monitor);
+    }
 }
