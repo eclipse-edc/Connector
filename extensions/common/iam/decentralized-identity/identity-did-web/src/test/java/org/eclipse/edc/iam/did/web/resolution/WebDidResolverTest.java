@@ -18,6 +18,10 @@ import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import okio.Buffer;
+import okio.Okio;
+import okio.Source;
+import okio.Timeout;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -109,6 +113,45 @@ class WebDidResolverTest {
 
         assertThat(result.failed()).isTrue();
         assertThat(calls).hasValue(1);
+    }
+
+    @Test
+    void verifyResolve_whenDocumentExceedsMaxSize_shouldFail() {
+        var resolver = new WebDidResolver(testHttpClient(chain -> response(chain, 200, didDocument())), true, new ObjectMapper(), mock(Monitor.class), 10);
+
+        var result = resolver.resolve("did:web:foo.com:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.isRetryable()).isFalse();
+        assertThat(result.getFailureDetail()).contains("exceeds the maximum size of 10 bytes");
+    }
+
+    @Test
+    void verifyResolve_whenBodyCannotBeRead_shouldFailRetryable() {
+        var failingSource = new Source() {
+            @Override
+            public long read(@NotNull Buffer sink, long byteCount) throws IOException {
+                throw new IOException("timeout");
+            }
+
+            @NotNull
+            @Override
+            public Timeout timeout() {
+                return Timeout.NONE;
+            }
+
+            @Override
+            public void close() {
+            }
+        };
+        var resolver = createResolver(chain -> new Response.Builder()
+                .body(ResponseBody.create(Okio.buffer(failingSource), MediaType.get("application/json"), -1))
+                .protocol(HTTP_1_1).request(chain.request()).code(200).message("ok").build());
+
+        var result = resolver.resolve("did:web:foo.com:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.isRetryable()).isTrue();
     }
 
     private Response response(Interceptor.Chain chain, int code, String body) {

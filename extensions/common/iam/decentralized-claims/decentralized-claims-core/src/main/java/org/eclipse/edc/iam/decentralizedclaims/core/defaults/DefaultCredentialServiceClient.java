@@ -20,6 +20,7 @@ import jakarta.json.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.eclipse.edc.http.client.ResponseBodies;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.decentralizedclaims.spi.CredentialServiceClient;
 import org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationQueryMessage;
@@ -51,6 +52,9 @@ import static org.eclipse.edc.spi.result.Result.success;
 
 public class DefaultCredentialServiceClient implements CredentialServiceClient {
     public static final String PRESENTATION_ENDPOINT = "/presentations/query";
+    public static final String DEFAULT_CALL_TIMEOUT = "PT10S";
+    public static final int DEFAULT_MAX_RETRIES = 0;
+    public static final long DEFAULT_MAX_RESPONSE_BYTES = 10 * 1024 * 1024;
     private final EdcHttpClient httpClient;
     private final JsonBuilderFactory jsonFactory;
     private final TypeManager typeManager;
@@ -59,9 +63,22 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
     private final JsonLd jsonLd;
     private final Monitor monitor;
     private final String dcpContextUrl;
+    private final long maxResponseBytes;
 
     public DefaultCredentialServiceClient(EdcHttpClient httpClient, JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext, TypeTransformerRegistry transformerRegistry,
                                           JsonLd jsonLd, Monitor monitor, String dcpContextUrl) {
+        this(httpClient, jsonFactory, typeManager, typeContext, transformerRegistry, jsonLd, monitor, dcpContextUrl, DEFAULT_MAX_RESPONSE_BYTES);
+    }
+
+    /**
+     * Creates the client.
+     *
+     * @param httpClient       the http client, its timeouts and retries apply to the presentation queries.
+     * @param maxResponseBytes the maximum size of a presentation response, in bytes.
+     */
+    public DefaultCredentialServiceClient(EdcHttpClient httpClient, JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext, TypeTransformerRegistry transformerRegistry,
+                                          JsonLd jsonLd, Monitor monitor, String dcpContextUrl, long maxResponseBytes) {
+        this.maxResponseBytes = maxResponseBytes;
         this.httpClient = httpClient;
         this.jsonFactory = jsonFactory;
         this.typeManager = typeManager;
@@ -88,7 +105,11 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
         var url = credentialServiceBaseUrl + PRESENTATION_ENDPOINT;
         try (var response = httpClient.execute(createRequest(selfIssuedTokenJwt, query, url))) {
 
-            var body = response.body().string();
+            var bodyResult = ResponseBodies.readUtf8(response.body(), maxResponseBytes);
+            if (bodyResult.failed()) {
+                return failure("Presentation Query failed: %s".formatted(bodyResult.getFailureDetail()));
+            }
+            var body = bodyResult.getContent();
 
             if (response.isSuccessful()) {
                 var presentationResponse = typeManager.getMapper(typeContext).readValue(body, JsonObject.class);

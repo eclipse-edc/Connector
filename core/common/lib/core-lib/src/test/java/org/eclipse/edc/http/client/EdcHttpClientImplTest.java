@@ -31,6 +31,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +44,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.serviceUnavailable;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.github.tomakehurst.wiremock.http.Fault.CONNECTION_RESET_BY_PEER;
 import static com.github.tomakehurst.wiremock.http.Fault.RANDOM_DATA_THEN_CLOSE;
@@ -321,6 +324,99 @@ class EdcHttpClientImplTest {
         }
     }
 
+
+    @Nested
+    class Limits {
+
+        private final RetryPolicy<Response> fiveRetries = RetryPolicy.<Response>builder()
+                .withMaxRetries(5).withBackoff(10, 20, ChronoUnit.MILLIS).build();
+        private final RetryPolicy<Response> noRetries = RetryPolicy.<Response>builder().withMaxRetries(0).build();
+
+        @Test
+        void withCallTimeout_shouldEndSlowResponse() {
+            var client = clientWith(noRetries);
+            // the body is sent in small chunks, so the read timeout never fires
+            server.stubFor(get(anyUrl()).willReturn(okJson("{\"message\": \"data\"}").withChunkedDribbleDelay(10, 1500)));
+
+            var start = System.nanoTime();
+            var result = client.withCallTimeout(Duration.ofMillis(300)).execute(request(), handleResponse());
+
+            assertThat(result.failed()).isTrue();
+            assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(Duration.ofMillis(1500));
+        }
+
+        @Test
+        void withCallTimeout_shouldEndCallToUnresponsiveServer() {
+            var client = clientWith(noRetries);
+            server.stubFor(get(anyUrl()).willReturn(ok().withFixedDelay(1500)));
+
+            var start = System.nanoTime();
+            var result = client.withCallTimeout(Duration.ofMillis(300)).execute(request(), handleResponse());
+
+            assertThat(result.failed()).isTrue();
+            assertThat(result.isRetryable()).isTrue();
+            assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(Duration.ofMillis(1500));
+        }
+
+        @Test
+        void withCallTimeout_shouldNotChangeOriginalClient() {
+            var client = clientWith(noRetries);
+            server.stubFor(get(anyUrl()).willReturn(okJson("{\"message\": \"data\"}").withChunkedDribbleDelay(5, 600)));
+
+            client.withCallTimeout(Duration.ofMillis(100));
+            var result = client.execute(request(), handleResponse());
+
+            assertThat(result).matches(Result::succeeded).extracting(Result::getContent).isEqualTo("data");
+        }
+
+        @Test
+        void withMaxRetries_shouldLimitRetriesOnServerError() {
+            var client = clientWith(fiveRetries).withMaxRetries(1);
+            server.stubFor(get(anyUrl()).willReturn(serviceUnavailable()));
+
+            var result = client.execute(request(), List.of(retryWhenStatusNot2xxOr4xx()), handleResponse());
+
+            assertThat(result.failed()).isTrue();
+            server.verify(2, getRequestedFor(anyUrl()));
+        }
+
+        @Test
+        void withMaxRetries_shouldLimitRetriesOnTimeout() {
+            var client = clientWith(fiveRetries).withCallTimeout(Duration.ofMillis(100)).withMaxRetries(1);
+            server.stubFor(get(anyUrl()).willReturn(ok().withFixedDelay(1000)));
+
+            var result = client.execute(request(), handleResponse());
+
+            assertThat(result.failed()).isTrue();
+            server.verify(2, getRequestedFor(anyUrl()));
+        }
+
+        @Test
+        void withMaxRetries_zero_shouldNotRetry() {
+            var client = clientWith(fiveRetries).withCallTimeout(Duration.ofMillis(100)).withMaxRetries(0);
+            server.stubFor(get(anyUrl()).willReturn(ok().withFixedDelay(1000)));
+
+            var result = client.execute(request(), handleResponse());
+
+            assertThat(result.failed()).isTrue();
+            server.verify(1, getRequestedFor(anyUrl()));
+        }
+
+        @Test
+        void withMaxRetries_shouldNotChangeOriginalClient() {
+            var client = clientWith(fiveRetries);
+            server.stubFor(get(anyUrl()).willReturn(serviceUnavailable()));
+
+            client.withMaxRetries(0);
+            client.execute(request(), List.of(retryWhenStatusNot2xxOr4xx()), handleResponse());
+
+            server.verify(6, getRequestedFor(anyUrl()));
+        }
+
+        private Request request() {
+            return new Request.Builder().url("http://localhost:" + server.getPort()).build();
+        }
+    }
 
     @NotNull
     private Function<Response, Result<String>> handleResponse() {

@@ -69,6 +69,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class DefaultCredentialServiceClientTest {
@@ -105,6 +106,22 @@ class DefaultCredentialServiceClientTest {
                 typeManager, "test", transformerRegistry, jsonLdMock, mock(), DSPACE_DCP_V_1_0_CONTEXT);
 
         when(typeManager.getMapper("test")).thenReturn(JsonMapperFactory.defaultJsonMapper());
+    }
+
+    @Test
+    void requestPresentation_whenResponseExceedsMaxSize_shouldFail() throws IOException {
+        var jsonLdMock = mock(JsonLd.class);
+        var limitedClient = new DefaultCredentialServiceClient(httpClientMock, Json.createBuilderFactory(Map.of()),
+                typeManager, "test", transformerRegistry, jsonLdMock, mock(), DSPACE_DCP_V_1_0_CONTEXT, 10);
+        when(httpClientMock.execute(any()))
+                .thenReturn(response(200, getResourceFileContentAsString("single_ldp-vp.json")));
+
+        var result = limitedClient.requestPresentation(CS_URL, "foo", List.of("customScope"));
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.isRetryable()).isFalse();
+        assertThat(result.getFailureDetail()).contains("exceeds the maximum size of 10 bytes");
+        verifyNoInteractions(jsonLdMock);
     }
 
     @Test

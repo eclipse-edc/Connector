@@ -25,6 +25,8 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.util.string.StringUtils;
 
+import java.time.Duration;
+
 
 /**
  * Initializes support for resolving Web DIDs.
@@ -45,6 +47,28 @@ public class WebDidExtension implements ServiceExtension {
      */
     @Setting
     private static final String USE_HTTPS_SCHEME = "edc.iam.did.web.use.https";
+    // DID documents are resolved while an incoming request is being verified: a slow or unresponsive host must not hold
+    // the request for long. The verification fails as retryable, so the counter-party can send the request again.
+    @Setting(
+            key = "edc.iam.did.web.timeout.call",
+            description = "Maximum duration of a single DID document request, including connecting and reading the response, in ISO-8601 duration format",
+            defaultValue = WebDidResolver.DEFAULT_CALL_TIMEOUT)
+    private Duration callTimeout;
+
+    @Setting(
+            key = "edc.iam.did.web.retries.max",
+            description = "Maximum number of retries of a failed DID document request (connection failure or server error)",
+            defaultValue = WebDidResolver.DEFAULT_MAX_RETRIES + "",
+            min = 0)
+    private int maxRetries;
+
+    @Setting(
+            key = "edc.iam.did.web.response.size.max",
+            description = "Maximum size of a DID document, in bytes",
+            defaultValue = WebDidResolver.DEFAULT_MAX_RESPONSE_BYTES + "",
+            min = 1)
+    private long maxResponseBytes;
+
     @Inject
     private DidResolverRegistry resolverRegistry;
 
@@ -67,7 +91,7 @@ public class WebDidExtension implements ServiceExtension {
 
         var httpClient = getHttpClient(context);
 
-        var resolver = new WebDidResolver(httpClient, useHttpsScheme, mapper, monitor);
+        var resolver = new WebDidResolver(httpClient, useHttpsScheme, mapper, monitor, maxResponseBytes);
 
         resolverRegistry.register(resolver);
     }
@@ -75,12 +99,9 @@ public class WebDidExtension implements ServiceExtension {
     private EdcHttpClient getHttpClient(ServiceExtensionContext context) {
         var dnsServer = context.getSetting(DNS_OVER_HTTPS, null);
 
-        if (StringUtils.isNullOrEmpty(dnsServer)) {
-            return httpClient;
-        } else {
-            // use DNS over HTTPS for name lookups
-            return httpClient.withDns(dnsServer);
-        }
+        // use DNS over HTTPS for name lookups if configured
+        var client = StringUtils.isNullOrEmpty(dnsServer) ? httpClient : httpClient.withDns(dnsServer);
+        return client.withCallTimeout(callTimeout).withMaxRetries(maxRetries);
     }
 
 }
