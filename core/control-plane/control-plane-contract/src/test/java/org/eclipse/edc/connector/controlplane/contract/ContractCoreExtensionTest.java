@@ -30,13 +30,10 @@ import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
@@ -65,25 +62,13 @@ class ContractCoreExtensionTest {
     }
 
     @Test
-    void shouldRegisterApprovalGuard_whenEnabled(ServiceExtensionContext context, ObjectFactory objectFactory) {
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("edc.negotiation.approval.enabled", "true")));
+    void shouldRegisterApprovalGuard(ServiceExtensionContext context, ObjectFactory objectFactory) {
         var extension = objectFactory.constructInstance(ContractCoreExtension.class);
 
         extension.initialize(context);
 
         var registry = context.getService(ContractNegotiationPendingGuardRegistry.class);
         assertThat(registry.test(requestedProviderNegotiation())).isTrue();
-    }
-
-    @Test
-    void shouldNotRegisterApprovalGuard_byDefault(ServiceExtensionContext context, ObjectFactory objectFactory) {
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of()));
-        var extension = objectFactory.constructInstance(ContractCoreExtension.class);
-
-        extension.initialize(context);
-
-        var registry = context.getService(ContractNegotiationPendingGuardRegistry.class);
-        assertThat(registry.test(requestedProviderNegotiation())).isFalse();
     }
 
     private ContractNegotiation requestedProviderNegotiation() {

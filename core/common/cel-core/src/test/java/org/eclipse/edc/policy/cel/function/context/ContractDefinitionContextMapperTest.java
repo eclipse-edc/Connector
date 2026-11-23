@@ -43,7 +43,7 @@ class ContractDefinitionContextMapperTest {
                 .privateProperty("private-key", "private-value")
                 .assetsSelector(List.of(Criterion.criterion("id", "=", "asset-id")))
                 .build();
-        var context = new ApprovalContractNegotiationPolicyContext("pc", agent, null, definition);
+        var context = new ApprovalContractNegotiationPolicyContext("pc", agent, () -> null, () -> definition);
 
         var result = mapper.mapContext(context);
 
@@ -59,7 +59,7 @@ class ContractDefinitionContextMapperTest {
 
     @Test
     void mapContext_shouldBeEmpty_whenNoContractDefinition() {
-        var context = new ApprovalContractNegotiationPolicyContext("pc", agent, null, null);
+        var context = new ApprovalContractNegotiationPolicyContext("pc", agent, () -> null, () -> null);
 
         var result = mapper.mapContext(context);
 

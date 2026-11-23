@@ -81,13 +81,13 @@ class ContractNegotiationEndToEndTest {
         protected static String noConstraintPolicyId;
 
         /**
-         * Provider configuration that enables the manual approval and registers a participant callback for the negotiations held for it.
+         * Provider configuration that registers a participant callback for the negotiations held for it.
          */
         protected static Config providerCallbacksConfig() {
             var callbacks = """
                     [{"uri": "http://localhost:%d/callbacks", "events": ["contract.negotiation.held"], "transactional": false}]
                     """.formatted(CALLBACK_PORT);
-            return ConfigFactory.fromMap(Map.of("edc.callbacks", callbacks, "edc.negotiation.approval.enabled", "true"));
+            return ConfigFactory.fromMap(Map.of("edc.callbacks", callbacks));
         }
 
         @BeforeAll

@@ -48,7 +48,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -75,10 +74,6 @@ public class ContractCoreExtension implements ServiceExtension {
 
     @Configuration(context = "edc.negotiation")
     private StateMachineConfiguration stateMachineConfiguration;
-
-    @Setting(description = "Enables the manual approval of provider contract negotiations, driven by the contract policy evaluation in the 'approval.contract.negotiation' scope",
-            key = "edc.negotiation.approval.enabled", defaultValue = "false")
-    private boolean approvalEnabled;
 
     @Inject
     private AssetIndex assetIndex;
@@ -148,9 +143,7 @@ public class ContractCoreExtension implements ServiceExtension {
         observable.registerListener(new ContractNegotiationEventListener(eventRouter));
 
         var pendingGuardRegistry = new ContractNegotiationPendingGuardRegistryImpl();
-        if (approvalEnabled) {
-            pendingGuardRegistry.register(new ContractNegotiationApprovalGuard(policyEngine, assetIndex, contractDefinitionStore, monitor));
-        }
+        pendingGuardRegistry.register(new ContractNegotiationApprovalGuard(policyEngine, assetIndex, contractDefinitionStore, monitor));
         context.registerService(ContractNegotiationPendingGuardRegistry.class, pendingGuardRegistry);
     }
 }

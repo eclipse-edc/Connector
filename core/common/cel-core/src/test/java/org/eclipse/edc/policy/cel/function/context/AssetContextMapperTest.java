@@ -39,7 +39,7 @@ class AssetContextMapperTest {
                 .property("key", "value")
                 .privateProperty("private-key", "private-value")
                 .build();
-        var context = new ApprovalContractNegotiationPolicyContext("pc", agent, asset, null);
+        var context = new ApprovalContractNegotiationPolicyContext("pc", agent, () -> asset, () -> null);
 
         var result = mapper.mapContext(context);
 
@@ -53,7 +53,7 @@ class AssetContextMapperTest {
 
     @Test
     void mapContext_shouldBeEmpty_whenNoAsset() {
-        var context = new ApprovalContractNegotiationPolicyContext("pc", agent, null, null);
+        var context = new ApprovalContractNegotiationPolicyContext("pc", agent, () -> null, () -> null);
 
         var result = mapper.mapContext(context);
 
