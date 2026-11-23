@@ -54,10 +54,9 @@ public class DcpPresentationRequestExtension implements ServiceExtension {
     // the request again.
     @Setting(
             key = "edc.iam.credentialservice.timeout.call",
-            description = "Maximum duration of a presentation query to a Credential Service, in seconds, including connecting and reading the response",
-            defaultValue = DefaultCredentialServiceClient.DEFAULT_CALL_TIMEOUT_SECONDS + "",
-            min = 1)
-    private int callTimeoutSeconds;
+            description = "Maximum duration of a presentation query to a Credential Service, including connecting and reading the response, in ISO-8601 duration format",
+            defaultValue = DefaultCredentialServiceClient.DEFAULT_CALL_TIMEOUT)
+    private Duration callTimeout;
 
     @Setting(
             key = "edc.iam.credentialservice.retries.max",
@@ -97,7 +96,7 @@ public class DcpPresentationRequestExtension implements ServiceExtension {
         var clientTypeTransformerRegistry = typeTransformerRegistry.forContext(DCP_CLIENT_CONTEXT);
         clientTypeTransformerRegistry.register(new JsonObjectToPresentationResponseMessageTransformer(typeManager, JSON_LD, DSPACE_DCP_NAMESPACE_V_1_0));
 
-        var client = httpClient.withCallTimeout(Duration.ofSeconds(callTimeoutSeconds)).withMaxRetries(maxRetries);
+        var client = httpClient.withCallTimeout(callTimeout).withMaxRetries(maxRetries);
         return new DefaultCredentialServiceClient(client, Json.createBuilderFactory(Map.of()),
                 typeManager, JSON_LD, clientTypeTransformerRegistry, jsonLd, context.getMonitor(), DSPACE_DCP_V_1_0_CONTEXT, maxResponseBytes);
     }

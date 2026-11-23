@@ -52,7 +52,7 @@ import static org.eclipse.edc.spi.result.Result.success;
 
 public class DefaultCredentialServiceClient implements CredentialServiceClient {
     public static final String PRESENTATION_ENDPOINT = "/presentations/query";
-    public static final int DEFAULT_CALL_TIMEOUT_SECONDS = 10;
+    public static final String DEFAULT_CALL_TIMEOUT = "PT10S";
     public static final int DEFAULT_MAX_RETRIES = 0;
     public static final long DEFAULT_MAX_RESPONSE_BYTES = 10 * 1024 * 1024;
     private final EdcHttpClient httpClient;

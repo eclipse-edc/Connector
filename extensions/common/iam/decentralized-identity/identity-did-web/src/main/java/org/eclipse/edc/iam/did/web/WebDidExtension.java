@@ -51,10 +51,9 @@ public class WebDidExtension implements ServiceExtension {
     // the request for long. The verification fails as retryable, so the counter-party can send the request again.
     @Setting(
             key = "edc.iam.did.web.timeout.call",
-            description = "Maximum duration of a single DID document request, in seconds, including connecting and reading the response",
-            defaultValue = WebDidResolver.DEFAULT_CALL_TIMEOUT_SECONDS + "",
-            min = 1)
-    private int callTimeoutSeconds;
+            description = "Maximum duration of a single DID document request, including connecting and reading the response, in ISO-8601 duration format",
+            defaultValue = WebDidResolver.DEFAULT_CALL_TIMEOUT)
+    private Duration callTimeout;
 
     @Setting(
             key = "edc.iam.did.web.retries.max",
@@ -102,7 +101,7 @@ public class WebDidExtension implements ServiceExtension {
 
         // use DNS over HTTPS for name lookups if configured
         var client = StringUtils.isNullOrEmpty(dnsServer) ? httpClient : httpClient.withDns(dnsServer);
-        return client.withCallTimeout(Duration.ofSeconds(callTimeoutSeconds)).withMaxRetries(maxRetries);
+        return client.withCallTimeout(callTimeout).withMaxRetries(maxRetries);
     }
 
 }

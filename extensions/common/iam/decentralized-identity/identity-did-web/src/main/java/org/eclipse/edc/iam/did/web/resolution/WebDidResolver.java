@@ -35,7 +35,7 @@ import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusNot2xxOr
  * Resolves a Web DID according to the Web DID specification (https://w3c-ccg.github.io/did-method-web).
  */
 public class WebDidResolver implements DidResolver {
-    public static final int DEFAULT_CALL_TIMEOUT_SECONDS = 5;
+    public static final String DEFAULT_CALL_TIMEOUT = "PT5S";
     public static final int DEFAULT_MAX_RETRIES = 1;
     public static final long DEFAULT_MAX_RESPONSE_BYTES = 1024 * 1024;
     private static final String DID_METHOD = "web";

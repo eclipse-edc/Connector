@@ -90,7 +90,7 @@ class DcpPresentationRequestExtensionTest {
     void verifyCredentialServiceClient_defaultLimits(ServiceExtensionContext context, ObjectFactory objectFactory) {
         objectFactory.constructInstance(DcpPresentationRequestExtension.class).credentialServiceClient(context);
 
-        verify(httpClient).withCallTimeout(Duration.ofSeconds(DefaultCredentialServiceClient.DEFAULT_CALL_TIMEOUT_SECONDS));
+        verify(httpClient).withCallTimeout(Duration.parse(DefaultCredentialServiceClient.DEFAULT_CALL_TIMEOUT));
         verify(httpClient).withMaxRetries(DefaultCredentialServiceClient.DEFAULT_MAX_RETRIES);
     }
 
@@ -98,7 +98,7 @@ class DcpPresentationRequestExtensionTest {
     void verifyCredentialServiceClient_configuredLimits(ServiceExtensionContext context, ObjectFactory objectFactory) {
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
                 DCP_08_PROPERTY, "false",
-                "edc.iam.credentialservice.timeout.call", "3",
+                "edc.iam.credentialservice.timeout.call", "PT3S",
                 "edc.iam.credentialservice.retries.max", "2")));
 
         objectFactory.constructInstance(DcpPresentationRequestExtension.class).credentialServiceClient(context);

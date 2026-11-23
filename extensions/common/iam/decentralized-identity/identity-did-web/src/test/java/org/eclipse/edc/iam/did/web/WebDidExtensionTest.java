@@ -55,7 +55,7 @@ class WebDidExtensionTest {
     void initialize_shouldApplyDefaultLimits(ServiceExtensionContext context, ObjectFactory objectFactory) {
         objectFactory.constructInstance(WebDidExtension.class).initialize(context);
 
-        verify(httpClient).withCallTimeout(Duration.ofSeconds(WebDidResolver.DEFAULT_CALL_TIMEOUT_SECONDS));
+        verify(httpClient).withCallTimeout(Duration.parse(WebDidResolver.DEFAULT_CALL_TIMEOUT));
         verify(httpClient).withMaxRetries(WebDidResolver.DEFAULT_MAX_RETRIES);
         verify(resolverRegistry).register(isA(WebDidResolver.class));
     }
@@ -63,7 +63,7 @@ class WebDidExtensionTest {
     @Test
     void initialize_shouldApplyConfiguredLimits(ServiceExtensionContext context, ObjectFactory objectFactory) {
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
-                "edc.iam.did.web.timeout.call", "3",
+                "edc.iam.did.web.timeout.call", "PT3S",
                 "edc.iam.did.web.retries.max", "0")));
 
         objectFactory.constructInstance(WebDidExtension.class).initialize(context);
@@ -83,7 +83,7 @@ class WebDidExtensionTest {
 
         objectFactory.constructInstance(WebDidExtension.class).initialize(context);
 
-        verify(dnsClient).withCallTimeout(Duration.ofSeconds(WebDidResolver.DEFAULT_CALL_TIMEOUT_SECONDS));
+        verify(dnsClient).withCallTimeout(Duration.parse(WebDidResolver.DEFAULT_CALL_TIMEOUT));
         verify(dnsClient).withMaxRetries(WebDidResolver.DEFAULT_MAX_RETRIES);
     }
 }
