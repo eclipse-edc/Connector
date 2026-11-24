@@ -37,7 +37,7 @@ import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
 import org.eclipse.edc.token.TokenValidationServiceImpl;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.rules.HasSubjectRule;
-import org.eclipse.edc.token.rules.JtiValidationRule;
+import org.eclipse.edc.token.rules.JtiUnusedValidationRule;
 import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
@@ -149,7 +149,7 @@ class DcpCoreExtensionTest {
                 SubJwkIsNullRule.class,
                 ExpirationIssuedAtValidationRule.class,
                 TokenNotNullRule.class,
-                JtiValidationRule.class,
+                JtiUnusedValidationRule.class,
                 NotBeforeValidationRule.class);
 
         var extension = objectFactory.constructInstance(DcpCoreExtension.class);
@@ -170,7 +170,7 @@ class DcpCoreExtensionTest {
                 SubJwkIsNullRule.class,
                 ExpirationIssuedAtValidationRule.class,
                 TokenNotNullRule.class,
-                // JtiValidationRule.class, should not be present when jti validation is disabled
+                // JtiUnusedValidationRule.class, should not be present when jti validation is disabled
                 NotBeforeValidationRule.class);
 
         var extension = objectFactory.constructInstance(DcpCoreExtension.class);

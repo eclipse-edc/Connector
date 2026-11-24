@@ -46,14 +46,17 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.rules.HasSubjectRule;
+import org.eclipse.edc.token.rules.JtiUnusedValidationRule;
 import org.eclipse.edc.token.rules.JtiValidationRule;
 import org.eclipse.edc.token.rules.NotBeforeValidationRule;
+import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
@@ -206,7 +209,9 @@ public class DcpCoreExtension implements ServiceExtension {
         rulesRegistry.addRule(JWT_VP_TOKEN_CONTEXT, new NotBeforeValidationRule(clock, 5, true));
 
         if (activateJtiValidation) {
-            rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new JtiValidationRule(jtiValidationStore, context.getMonitor()));
+            // the JTI is only checked here, and recorded once the whole verification succeeded (see createIdentityService),
+            // so that a request whose verification could not be completed can be retried with the same token
+            rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new JtiUnusedValidationRule(jtiValidationStore, context.getMonitor()));
         }
 
         try {
@@ -263,8 +268,12 @@ public class DcpCoreExtension implements ServiceExtension {
 
         var credentialValidationService = new VerifiableCredentialValidationServiceImpl(createPresentationVerifier(context), rules, matchAnyIssuerType);
 
+        TokenValidationRule verifiedTokenRule = activateJtiValidation ?
+                new JtiValidationRule(jtiValidationStore, context.getMonitor()) :
+                (toVerify, additional) -> Result.success();
+
         return new DcpIdentityService(secureTokenService, didConfigProvider, validationAction,
-                presentationRequestService, claimTokenFunction, credentialValidationService);
+                presentationRequestService, claimTokenFunction, credentialValidationService, verifiedTokenRule);
     }
 
     @Provider
