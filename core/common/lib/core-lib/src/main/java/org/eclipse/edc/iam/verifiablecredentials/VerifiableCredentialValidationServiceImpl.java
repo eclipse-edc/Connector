@@ -53,29 +53,33 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
 
     private Result<Void> validatePresentation(String audience, VerifiablePresentationContainer verifiablePresentation, DataspaceProfileContext dataspaceProfileContext) {
         var credentials = verifiablePresentation.presentation().getCredentials();
-        // verify, that the VP and all VPs are cryptographically OK
-        var presentationIssuer = verifiablePresentation.presentation().getHolder();
-        return presentationVerifier.verifyPresentation(verifiablePresentation, audience)
-                .compose(u -> validateVerifiableCredentials(credentials, presentationIssuer, dataspaceProfileContext));
+        var presentationHolder = verifiablePresentation.presentation().getHolder();
+        var trustRule = trustRule(presentationHolder, dataspaceProfileContext);
+        var baseRule = combine(baseRules);
+
+        // issuer trust and subject binding are checked first, on the parsed credentials: verifying the presentation
+        // resolves the keys of every credential issuer, and the base rules may fetch remote resources referenced by the
+        // credential (e.g. status lists, schemas), which is not needed for credentials that are not accepted anyway
+        return validateVerifiableCredentials(credentials, trustRule)
+                .compose(u -> presentationVerifier.verifyPresentation(verifiablePresentation, audience))
+                .compose(u -> validateVerifiableCredentials(credentials, baseRule));
     }
 
-    @NotNull
-    private Result<Void> validateVerifiableCredentials(List<VerifiableCredential> credentials, @Nullable String presentationHolder, DataspaceProfileContext dataspaceProfileContext) {
-        // issuer trust and subject binding are checked first: the base rules may fetch remote resources referenced by the credential
-        // (e.g. status lists, schemas), which must not happen for credentials of untrusted issuers
+    private CredentialValidationRule trustRule(@Nullable String presentationHolder, DataspaceProfileContext dataspaceProfileContext) {
         var trustRules = new ArrayList<CredentialValidationRule>();
         trustRules.add(new HasValidIssuer(dataspaceProfileContext));
 
         if (presentationHolder != null) {
             trustRules.add(new HasValidSubjectIds(presentationHolder));
         }
+        return combine(trustRules);
+    }
 
-        var trustRule = combine(trustRules);
-        var baseRule = combine(baseRules);
-
+    @NotNull
+    private Result<Void> validateVerifiableCredentials(List<VerifiableCredential> credentials, CredentialValidationRule rule) {
         return credentials
                 .stream()
-                .map(c -> trustRule.apply(c).compose(v -> baseRule.apply(c)))
+                .map(rule::apply)
                 .reduce(Result::merge)
                 .orElseGet(Result::success);
     }

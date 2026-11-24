@@ -35,7 +35,6 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions.createCredentialBuilder;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions.createPresentationBuilder;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions.createPresentationContainer;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,9 +53,62 @@ class VerifiableCredentialValidationServiceImplTest {
     @Test
     void cryptographicError() {
         when(verifier.verifyPresentation(any(), any())).thenReturn(Result.failure("Cryptographic error"));
-        var presentations = List.of(createPresentationContainer());
+        var presentations = List.of(trustedPresentation());
         var result = validationService.validate(presentations, EXPECTED_AUDIENCE, createProfile());
         assertThat(result).isFailed().detail().isEqualTo("Cryptographic error");
+    }
+
+    @Test
+    void verify_untrustedIssuer_shouldNotVerifyPresentation() {
+        var presentation = createPresentationBuilder()
+                .holder(CONSUMER_DID)
+                .type("VerifiablePresentation")
+                .credentials(List.of(createCredentialBuilder()
+                        .issuer(new Issuer("did:web:untrusted", Map.of()))
+                        .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                                .id(CONSUMER_DID)
+                                .claim("some-claim", "some-val")
+                                .build()))
+                        .build()))
+                .build();
+        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
+
+        var result = validationService.validate(List.of(vpContainer), EXPECTED_AUDIENCE, createProfile());
+
+        assertThat(result).isFailed().detail().contains("not supported for issuer 'did:web:untrusted'");
+        verifyNoInteractions(verifier);
+    }
+
+    @Test
+    void verify_invalidSubjectId_shouldNotVerifyPresentation() {
+        var presentation = createPresentationBuilder()
+                .holder(CONSUMER_DID)
+                .type("VerifiablePresentation")
+                .credentials(List.of(createCredentialBuilder()
+                        .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                                .id("invalid-subject-id")
+                                .claim("some-claim", "some-val")
+                                .build()))
+                        .build()))
+                .build();
+        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
+
+        var result = validationService.validate(List.of(vpContainer), EXPECTED_AUDIENCE, createProfile());
+
+        assertThat(result).isFailed().detail().contains("Not all credential subject IDs match the expected subject ID");
+        verifyNoInteractions(verifier);
+    }
+
+    @Test
+    void verify_cryptographicError_shouldNotApplyBaseRules() {
+        CredentialValidationRule baseRule = mock();
+        var service = new VerifiableCredentialValidationServiceImpl(verifier, List.of(baseRule));
+        when(verifier.verifyPresentation(any(), any())).thenReturn(Result.failure("Cryptographic error"));
+
+        var result = service.validate(List.of(trustedPresentation()), EXPECTED_AUDIENCE, createProfile());
+
+        assertThat(result).isFailed().detail().isEqualTo("Cryptographic error");
+        verifyNoInteractions(baseRule);
     }
 
     @Test
