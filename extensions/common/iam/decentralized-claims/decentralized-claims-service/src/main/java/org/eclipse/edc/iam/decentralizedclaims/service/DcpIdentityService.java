@@ -29,6 +29,7 @@ import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.util.string.StringUtils;
 
 import java.util.Collection;
@@ -65,6 +66,7 @@ public class DcpIdentityService implements IdentityService {
     private final PresentationRequestService presentationRequestService;
     private final ClaimTokenCreatorFunction claimTokenCreatorFunction;
     private final VerifiableCredentialValidationService verifiableCredentialValidationService;
+    private final TokenValidationRule verifiedTokenRule;
 
     /**
      * Constructs a new instance of the {@link DcpIdentityService}.
@@ -77,12 +79,32 @@ public class DcpIdentityService implements IdentityService {
                               PresentationRequestService presentationRequestService,
                               ClaimTokenCreatorFunction claimTokenCreatorFunction,
                               VerifiableCredentialValidationService verifiableCredentialValidationService) {
+        this(secureTokenService, didResolver, tokenValidationAction, presentationRequestService, claimTokenCreatorFunction,
+                verifiableCredentialValidationService, (toVerify, additional) -> success());
+    }
+
+    /**
+     * Constructs a new instance of the {@link DcpIdentityService}.
+     *
+     * @param secureTokenService Instance of an STS, which can create SI tokens
+     * @param didResolver        Function that resolves the DID for a given participant context id
+     * @param verifiedTokenRule  Rule applied to the self-issued token once the whole verification succeeded, e.g. to
+     *                           record its JTI. A token whose verification could not be completed is not recorded, so
+     *                           it can be presented again.
+     */
+    public DcpIdentityService(SecureTokenService secureTokenService, Function<String, String> didResolver,
+                              TokenValidationAction tokenValidationAction,
+                              PresentationRequestService presentationRequestService,
+                              ClaimTokenCreatorFunction claimTokenCreatorFunction,
+                              VerifiableCredentialValidationService verifiableCredentialValidationService,
+                              TokenValidationRule verifiedTokenRule) {
         this.secureTokenService = secureTokenService;
         this.didResolver = didResolver;
         this.tokenValidationAction = tokenValidationAction;
         this.presentationRequestService = presentationRequestService;
         this.claimTokenCreatorFunction = claimTokenCreatorFunction;
         this.verifiableCredentialValidationService = verifiableCredentialValidationService;
+        this.verifiedTokenRule = verifiedTokenRule;
     }
 
     @Override
@@ -157,7 +179,8 @@ public class DcpIdentityService implements IdentityService {
                             .flatMap(p -> p.presentation().getCredentials().stream())
                             .toList();
                     return claimTokenCreatorFunction.apply(credentials);
-                });
+                })
+                .compose(verifiedClaims -> verifiedTokenRule.checkRule(claimToken, null).map(u -> verifiedClaims));
     }
 
     /**

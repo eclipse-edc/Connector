@@ -31,6 +31,9 @@ import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.InMemoryJtiValidationStore;
+import org.eclipse.edc.token.rules.JtiValidationRule;
+import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -436,5 +439,127 @@ class DcpIdentityServiceTest {
         }
     }
 
+    @Nested
+    class VerifiedTokenRule {
 
+        private static final String JTI = "test-jti";
+        private final TokenValidationRule verifiedTokenRule = mock();
+        private final DcpIdentityService serviceWithRule = new DcpIdentityService(mockedSts, (it) -> EXPECTED_OWN_DID, actionMock,
+                presentationRequestServiceMock, vcs -> Result.success(ClaimToken.Builder.newInstance().claim("vc", vcs).build()),
+                credentialValidationServiceMock, verifiedTokenRule);
+
+        @BeforeEach
+        void setup() {
+            var jwt = TestFunctions.createToken(new JWTClaimsSet.Builder().claim("scope", "foo-scope").build());
+            when(actionMock.validate(any(), any())).thenReturn(success(ClaimToken.Builder.newInstance()
+                    .claim("iss", CONSUMER_DID)
+                    .claim("jti", JTI)
+                    .claim(PRESENTATION_TOKEN_CLAIM, jwt.getToken()).build()));
+            when(verifiedTokenRule.checkRule(any(), any())).thenReturn(success());
+        }
+
+        @Test
+        void shouldApplyRuleToSelfIssuedToken_whenVerificationSucceeds() {
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class))).thenReturn(success(List.of(validPresentation())));
+
+            var result = serviceWithRule.verifyJwtToken(PARTICIPANT_CONTEXT_ID, TestFunctions.createToken(), verificationContext());
+
+            assertThat(result).isSucceeded().satisfies(ct -> assertThat(ct.getListClaim("vc")).hasSize(1));
+            verify(verifiedTokenRule).checkRule(argThat(ct -> JTI.equals(ct.getStringClaim("jti"))), any());
+        }
+
+        @Test
+        void shouldNotApplyRule_whenTokenValidationFails() {
+            when(actionMock.validate(any(), any())).thenReturn(failure("invalid token"));
+
+            var result = serviceWithRule.verifyJwtToken(PARTICIPANT_CONTEXT_ID, TestFunctions.createToken(), verificationContext());
+
+            assertThat(result).isFailed();
+            verifyNoInteractions(verifiedTokenRule);
+        }
+
+        @Test
+        void shouldNotApplyRule_whenPresentationCouldNotBeObtained() {
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class)))
+                    .thenReturn(Result.retryableFailure("credential service not reachable"));
+
+            var result = serviceWithRule.verifyJwtToken(PARTICIPANT_CONTEXT_ID, TestFunctions.createToken(), verificationContext());
+
+            assertThat(result.isRetryable()).isTrue();
+            verifyNoInteractions(verifiedTokenRule);
+        }
+
+        @Test
+        void shouldNotApplyRule_whenCredentialValidationFails() {
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class))).thenReturn(success(List.of(validPresentation())));
+            when(credentialValidationServiceMock.validate(anyList(), anyString(), any())).thenReturn(Result.retryableFailure("status list not reachable"));
+
+            var result = serviceWithRule.verifyJwtToken(PARTICIPANT_CONTEXT_ID, TestFunctions.createToken(), verificationContext());
+
+            assertThat(result.isRetryable()).isTrue();
+            verifyNoInteractions(verifiedTokenRule);
+        }
+
+        @Test
+        void shouldFail_whenRuleFails() {
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class))).thenReturn(success(List.of(validPresentation())));
+            when(verifiedTokenRule.checkRule(any(), any())).thenReturn(failure("already used"));
+
+            var result = serviceWithRule.verifyJwtToken(PARTICIPANT_CONTEXT_ID, TestFunctions.createToken(), verificationContext());
+
+            assertThat(result).isFailed().detail().isEqualTo("already used");
+            assertThat(result.isRetryable()).isFalse();
+        }
+
+        @Test
+        void shouldBeRetryable_whenRuleFailsRetryable() {
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class))).thenReturn(success(List.of(validPresentation())));
+            when(verifiedTokenRule.checkRule(any(), any())).thenReturn(Result.retryableFailure("database not reachable"));
+
+            var result = serviceWithRule.verifyJwtToken(PARTICIPANT_CONTEXT_ID, TestFunctions.createToken(), verificationContext());
+
+            assertThat(result.isRetryable()).isTrue();
+        }
+
+        @Test
+        void shouldAcceptRetry_whenFirstVerificationCouldNotBeCompleted() {
+            var store = new InMemoryJtiValidationStore();
+            var service = new DcpIdentityService(mockedSts, (it) -> EXPECTED_OWN_DID, actionMock,
+                    presentationRequestServiceMock, vcs -> Result.success(ClaimToken.Builder.newInstance().claim("vc", vcs).build()),
+                    credentialValidationServiceMock, new JtiValidationRule(store, mock()));
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class)))
+                    .thenReturn(Result.retryableFailure("credential service not reachable"))
+                    .thenReturn(success(List.of(validPresentation())));
+            // every attempt is a new request carrying the same token
+            var token = TestFunctions.createToken().getToken();
+
+            var first = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, tokenRepresentation(token), verificationContext());
+            assertThat(first.isRetryable()).isTrue();
+
+            var retry = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, tokenRepresentation(token), verificationContext());
+            assertThat(retry).isSucceeded();
+
+            var replay = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, tokenRepresentation(token), verificationContext());
+            assertThat(replay).isFailed().detail().isEqualTo("The JWT id '%s' was already used.".formatted(JTI));
+            assertThat(replay.isRetryable()).isFalse();
+        }
+
+        private TokenRepresentation tokenRepresentation(String token) {
+            return TokenRepresentation.Builder.newInstance().token(token).build();
+        }
+
+        private VerifiablePresentationContainer validPresentation() {
+            var presentation = createPresentationBuilder()
+                    .holder(CONSUMER_DID)
+                    .type("VerifiablePresentation")
+                    .credentials(List.of(createCredentialBuilder()
+                            .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                                    .id(CONSUMER_DID)
+                                    .claim("some-claim", "some-val")
+                                    .build()))
+                            .build()))
+                    .build();
+            return new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
+        }
+    }
 }
