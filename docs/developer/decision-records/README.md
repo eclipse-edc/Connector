@@ -109,3 +109,4 @@
 - [2026-10-14 Stateful Entity Versioning](2026-10-14-stateful-entity-versioning)
 - [2026-10-19 Request Scope Extractor](2026-10-19-request-scope-extractor)
 - [2026-10-20 NATS Subscriber Worker Pool](2026-10-20-nats-subscriber-worker-pool)
+- [2026-11-24 Conditional Dependency Resolution](2026-11-24-conditional-dependency-resolution)
