@@ -350,6 +350,42 @@ class VerifiableCredentialValidationServiceImplTest {
         assertThat(result.isRetryable()).isFalse();
     }
 
+    @Test
+    void verify_issuerSupportsNotAllTypes_shouldFail() {
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
+
+        var result = validationService.validate(List.of(presentationWithTypes("type1", "type2")), EXPECTED_AUDIENCE, createProfile("type1"));
+
+        assertThat(result).isFailed().detail().contains("(unsupported: [type2])");
+        verifyNoInteractions(verifier);
+    }
+
+    @Test
+    void verify_issuerSupportsNotAllTypes_matchAnyIssuerType_shouldSucceed() {
+        var service = new VerifiableCredentialValidationServiceImpl(verifier, emptyList(), true);
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
+
+        var result = service.validate(List.of(presentationWithTypes("type1", "type2")), EXPECTED_AUDIENCE, createProfile("type1"));
+
+        assertThat(result).isSucceeded();
+    }
+
+    private VerifiablePresentationContainer presentationWithTypes(String... types) {
+        var credential = createCredentialBuilder()
+                .types(List.of(types))
+                .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                        .id(CONSUMER_DID)
+                        .claim("some-claim", "some-val")
+                        .build()))
+                .build();
+        var presentation = createPresentationBuilder()
+                .holder(CONSUMER_DID)
+                .type("VerifiablePresentation")
+                .credentials(List.of(credential))
+                .build();
+        return new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
+    }
+
     private VerifiablePresentationContainer trustedPresentation() {
         var credential = createCredentialBuilder()
                 .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
@@ -366,7 +402,11 @@ class VerifiableCredentialValidationServiceImplTest {
     }
 
     private DataspaceProfileContext createProfile() {
-        var trustedIssuer = TrustedIssuer.Builder.newInstance().id("http://test.issuer").supportedTypes(List.of("*")).build();
+        return createProfile("*");
+    }
+
+    private DataspaceProfileContext createProfile(String... supportedTypes) {
+        var trustedIssuer = TrustedIssuer.Builder.newInstance().id("http://test.issuer").supportedTypes(List.of(supportedTypes)).build();
         return new DataspaceProfileContext("any", new ProtocolVersion("any", "any", "any"), mock(), mock(),
                 new JsonLdNamespace("https://example.org/ns/"), List.of(), List.of(trustedIssuer));
     }
