@@ -4889,6 +4889,135 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v4/secrets:
+    put:
+      tags:
+      - Secret v4
+      description: "Updates a secret with the given ID if it exists. If the secret\
+        \ is not found, no further action is taken. "
+      operationId: updateSecretV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/secret-schema"
+      responses:
+        "204":
+          description: Secret was updated successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: "Secret could not be updated, because it does not exist."
+    post:
+      tags:
+      - Secret v4
+      description: Creates a new secret.
+      operationId: createSecretV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/secret-schema"
+      responses:
+        "200":
+          description: Secret was created successfully. Returns the secret Id and
+            created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: "Could not create secret, because a secret with that ID already\
+            \ exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4/secrets/{id}:
+    get:
+      tags:
+      - Secret v4
+      description: Gets a secret with the given ID
+      operationId: getSecretV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The secret
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/secret-schema"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A secret with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    delete:
+      tags:
+      - Secret v4
+      description: Removes a secret with the given ID if possible.
+      operationId: removeSecretV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Secret was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A secret with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v5/participants/{participantContextId}/transferprocesses:
     post:
       tags:
@@ -7157,6 +7286,24 @@ components:
           type: array
           items:
             type: string
+    secret-schema:
+      title: SecretSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/Secret"
+    Secret:
+      required:
+      - '@context'
+      - '@type'
+      - value
+      type: object
+      properties:
+        '@context':
+          $ref: "#/components/schemas/context-schema"
+        '@type':
+          type: string
+        value:
+          type: string
     transfer-request-schema:
       title: TransferRequestSchema
       type: object
