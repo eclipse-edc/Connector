@@ -122,6 +122,14 @@ public class DcpCoreExtension implements ServiceExtension {
     )
     private boolean validateOnlyCredentialSubject;
 
+    @Setting(
+            key = "edc.iam.vc.validation.issuer.types.match-any",
+            description = "If true, a credential is accepted when any of its types is supported by its trusted issuer. " +
+                    "If false (default), the trusted issuer must support every type of the credential, except the base 'VerifiableCredential' type.",
+            defaultValue = "false"
+    )
+    private boolean matchAnyIssuerType;
+
     @Inject
     private SecureTokenService secureTokenService;
     @Inject
@@ -253,7 +261,7 @@ public class DcpCoreExtension implements ServiceExtension {
                 new HasValidSchema(typeManager.getMapper(), validateOnlyCredentialSubject)
         );
 
-        var credentialValidationService = new VerifiableCredentialValidationServiceImpl(createPresentationVerifier(context), rules);
+        var credentialValidationService = new VerifiableCredentialValidationServiceImpl(createPresentationVerifier(context), rules, matchAnyIssuerType);
 
         return new DcpIdentityService(secureTokenService, didConfigProvider, validationAction,
                 presentationRequestService, claimTokenFunction, credentialValidationService);

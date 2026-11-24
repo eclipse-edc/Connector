@@ -35,10 +35,24 @@ import static org.eclipse.edc.spi.result.Result.success;
 public class VerifiableCredentialValidationServiceImpl implements VerifiableCredentialValidationService {
     private final PresentationVerifier presentationVerifier;
     private final List<CredentialValidationRule> baseRules;
+    private final boolean matchAnyIssuerType;
 
     public VerifiableCredentialValidationServiceImpl(PresentationVerifier presentationVerifier, List<CredentialValidationRule> rules) {
+        this(presentationVerifier, rules, false);
+    }
+
+    /**
+     * Constructor for {@link VerifiableCredentialValidationServiceImpl}.
+     *
+     * @param presentationVerifier the verifier of presentations and the credentials they contain.
+     * @param rules                the rules applied to every credential after verification.
+     * @param matchAnyIssuerType   if true, a credential is accepted when any of its types is supported by its trusted issuer,
+     *                             otherwise the issuer must support every type of the credential (see {@link HasValidIssuer}).
+     */
+    public VerifiableCredentialValidationServiceImpl(PresentationVerifier presentationVerifier, List<CredentialValidationRule> rules, boolean matchAnyIssuerType) {
         this.presentationVerifier = presentationVerifier;
         this.baseRules = rules;
+        this.matchAnyIssuerType = matchAnyIssuerType;
     }
 
     @Override
@@ -67,7 +81,7 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
 
     private CredentialValidationRule trustRule(@Nullable String presentationHolder, DataspaceProfileContext dataspaceProfileContext) {
         var trustRules = new ArrayList<CredentialValidationRule>();
-        trustRules.add(new HasValidIssuer(dataspaceProfileContext));
+        trustRules.add(new HasValidIssuer(dataspaceProfileContext, matchAnyIssuerType));
 
         if (presentationHolder != null) {
             trustRules.add(new HasValidSubjectIds(presentationHolder));
