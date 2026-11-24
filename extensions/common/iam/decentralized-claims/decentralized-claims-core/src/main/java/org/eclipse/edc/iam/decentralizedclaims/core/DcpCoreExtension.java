@@ -51,6 +51,7 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.token.rules.ClaimIsPresentRule;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.rules.HasSubjectRule;
 import org.eclipse.edc.token.rules.JtiUnusedValidationRule;
@@ -74,6 +75,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLIST_2021_URL;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.JWT_ID;
 import static org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigValidators.notBlank;
 import static org.eclipse.edc.participantcontext.spi.config.validation.ParticipantConfigValidators.startsWith;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
@@ -108,6 +111,14 @@ public class DcpCoreExtension implements ServiceExtension {
             description = "Activate or deactivate JTI validation",
             defaultValue = "true")
     private boolean activateJtiValidation;
+
+    // no hyphens in the key, so that it can be set as an environment variable (EDC_IAM_ACCESSTOKEN_CLAIMS_REQUIRED)
+    @Setting(
+            key = "edc.iam.accesstoken.claims.required",
+            description = "If true (default), self-issued ID tokens without a 'jti' or 'iat' claim are rejected, as required by the DCP specification. " +
+                    "Set to false to accept them from counter-parties whose token issuer does not set these claims.",
+            defaultValue = "true")
+    private boolean requireJtiAndIat;
 
     @Setting(
             key = "edc.iam.presentation.binding.required",
@@ -199,6 +210,11 @@ public class DcpCoreExtension implements ServiceExtension {
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, 5, false));
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new TokenNotNullRule());
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new NotBeforeValidationRule(clock, 4, true));
+        if (requireJtiAndIat) {
+            // both claims are mandatory in a self-issued ID token. Without a 'jti', a token would not be checked for replays
+            rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new ClaimIsPresentRule(JWT_ID));
+            rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new ClaimIsPresentRule(ISSUED_AT));
+        }
 
         // add all rules for validating VerifiableCredential JWTs
         rulesRegistry.addRule(JWT_VC_TOKEN_CONTEXT, new HasSubjectRule());

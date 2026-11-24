@@ -49,6 +49,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.PARTICIPANT_DID;
@@ -124,7 +125,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
     void verify(ServiceExtensionContext context, DcpCoreExtension extension) throws JOSEException {
         extension.initialize(context);
         var key = generateEcKey(CONSUMER_DID_KEY);
-        var claims = new JWTClaimsSet.Builder()
+        var claims = baseClaims()
                 .issuer(CONSUMER_DID)
                 .subject(CONSUMER_DID)
                 .audience(EXPECTED_AUDIENCE)
@@ -141,7 +142,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
     void verify_whenKeyNotInCapabilityInvocation(ServiceExtensionContext context, DcpCoreExtension extension) throws JOSEException {
         extension.initialize(context);
         var key = generateEcKey(CONSUMER_DID_KEY);
-        var claims = new JWTClaimsSet.Builder()
+        var claims = baseClaims()
                 .issuer(CONSUMER_DID)
                 .subject(CONSUMER_DID)
                 .audience(EXPECTED_AUDIENCE)
@@ -164,7 +165,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
         extension.initialize(context);
 
         var key = generateEcKey(CONSUMER_DID_KEY);
-        var claims = new JWTClaimsSet.Builder()
+        var claims = baseClaims()
                 .issuer("wrongIssuer")
                 .subject("wrongIssuer")
                 .audience(EXPECTED_AUDIENCE)
@@ -183,7 +184,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
         extension.initialize(context);
 
         var key = generateEcKey("did:web:issuer#key");
-        var claims = new JWTClaimsSet.Builder()
+        var claims = baseClaims()
                 .issuer("did:web:issuer")
                 .subject("wrongIssuer")
                 .audience(EXPECTED_AUDIENCE)
@@ -202,7 +203,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
         extension.initialize(context);
 
         var key = generateEcKey(CONSUMER_DID_KEY);
-        var claims = new JWTClaimsSet.Builder()
+        var claims = baseClaims()
                 .issuer(CONSUMER_DID)
                 .subject(CONSUMER_DID)
                 .audience("unexpectedAudience")
@@ -221,7 +222,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
         extension.initialize(context);
 
         var key = generateEcKey(CONSUMER_DID_KEY);
-        var claims = new JWTClaimsSet.Builder()
+        var claims = baseClaims()
                 .issuer(CONSUMER_DID)
                 .subject(CONSUMER_DID)
                 .audience(EXPECTED_AUDIENCE)
@@ -239,7 +240,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
         extension.initialize(context);
 
         var key = generateEcKey(CONSUMER_DID_KEY);
-        var claims = new JWTClaimsSet.Builder()
+        var claims = baseClaims()
                 .issuer(CONSUMER_DID)
                 .subject(CONSUMER_DID)
                 .audience(EXPECTED_AUDIENCE)
@@ -256,7 +257,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
         extension.initialize(context);
 
         var key = generateEcKey(CONSUMER_DID_KEY);
-        var claims = new JWTClaimsSet.Builder()
+        var claims = baseClaims()
                 .issuer(CONSUMER_DID)
                 .subject(CONSUMER_DID)
                 .audience(EXPECTED_AUDIENCE)
@@ -271,4 +272,52 @@ public class SelfIssueIdTokenValidationActionComponentTest {
                 .isEqualTo("The 'sub_jwk' claim must not be present.");
     }
 
+    @Test
+    void verify_whenMissingJti(ServiceExtensionContext context, DcpCoreExtension extension) throws JOSEException {
+        extension.initialize(context);
+
+        var key = generateEcKey(CONSUMER_DID_KEY);
+        var claims = new JWTClaimsSet.Builder()
+                .issuer(CONSUMER_DID)
+                .subject(CONSUMER_DID)
+                .audience(EXPECTED_AUDIENCE)
+                .issueTime(new Date())
+                .expirationTime(Date.from(Instant.now().plusSeconds(10)))
+                .claim("token", "accessToken")
+                .build();
+
+        when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
+        var token = createToken(claims, key);
+        assertThat(verifier.validate(PARTICIPANT_CONTEXT_ID, token)).isFailed().detail()
+                .isEqualTo("Required claim 'jti' not present on the token");
+    }
+
+    @Test
+    void verify_whenMissingIssuedAt(ServiceExtensionContext context, DcpCoreExtension extension) throws JOSEException {
+        extension.initialize(context);
+
+        var key = generateEcKey(CONSUMER_DID_KEY);
+        var claims = new JWTClaimsSet.Builder()
+                .issuer(CONSUMER_DID)
+                .subject(CONSUMER_DID)
+                .audience(EXPECTED_AUDIENCE)
+                .jwtID(UUID.randomUUID().toString())
+                .expirationTime(Date.from(Instant.now().plusSeconds(10)))
+                .claim("token", "accessToken")
+                .build();
+
+        when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
+        var token = createToken(claims, key);
+        assertThat(verifier.validate(PARTICIPANT_CONTEXT_ID, token)).isFailed().detail()
+                .isEqualTo("Required claim 'iat' not present on the token");
+    }
+
+    /**
+     * Claims that every self-issued ID token must have, and that the tests don't vary.
+     */
+    private JWTClaimsSet.Builder baseClaims() {
+        return new JWTClaimsSet.Builder()
+                .jwtID(UUID.randomUUID().toString())
+                .issueTime(new Date());
+    }
 }
