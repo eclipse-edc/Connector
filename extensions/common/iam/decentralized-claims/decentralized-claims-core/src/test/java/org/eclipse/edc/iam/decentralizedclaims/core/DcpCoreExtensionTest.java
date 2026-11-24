@@ -35,6 +35,7 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
 import org.eclipse.edc.token.TokenValidationServiceImpl;
+import org.eclipse.edc.token.rules.ClaimIsPresentRule;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.rules.HasSubjectRule;
 import org.eclipse.edc.token.rules.JtiUnusedValidationRule;
@@ -150,13 +151,38 @@ class DcpCoreExtensionTest {
                 ExpirationIssuedAtValidationRule.class,
                 TokenNotNullRule.class,
                 JtiUnusedValidationRule.class,
-                NotBeforeValidationRule.class);
+                NotBeforeValidationRule.class,
+                ClaimIsPresentRule.class,
+                ClaimIsPresentRule.class);
 
         var extension = objectFactory.constructInstance(DcpCoreExtension.class);
         extension.initialize(context);
         assertThat(rulesRegistry.getRules(DCP_SELF_ISSUED_TOKEN_CONTEXT))
                 .extracting(TokenValidationRule::getClass)
                 .containsExactlyInAnyOrderElementsOf(expectedRules);
+    }
+
+    @Test
+    void verifyCorrectRules_requiredClaims(TestExtensionContext context, ObjectFactory objectFactory) {
+        var extension = objectFactory.constructInstance(DcpCoreExtension.class);
+        extension.initialize(context);
+
+        assertThat(rulesRegistry.getRules(DCP_SELF_ISSUED_TOKEN_CONTEXT))
+                .filteredOn(ClaimIsPresentRule.class::isInstance)
+                .map(rule -> ((ClaimIsPresentRule) rule).claim())
+                .containsExactlyInAnyOrder("jti", "iat");
+    }
+
+    @Test
+    void verifyCorrectRules_claimsNotRequired(TestExtensionContext context, ObjectFactory objectFactory) {
+        var newConfig = new HashMap<>(context.getConfig().getEntries());
+        newConfig.put("edc.iam.accesstoken.claims.required", "false");
+        context.setConfig(ConfigFactory.fromMap(newConfig));
+
+        var extension = objectFactory.constructInstance(DcpCoreExtension.class);
+        extension.initialize(context);
+
+        assertThat(rulesRegistry.getRules(DCP_SELF_ISSUED_TOKEN_CONTEXT)).noneMatch(ClaimIsPresentRule.class::isInstance);
     }
 
     @Test
@@ -171,7 +197,10 @@ class DcpCoreExtensionTest {
                 ExpirationIssuedAtValidationRule.class,
                 TokenNotNullRule.class,
                 // JtiUnusedValidationRule.class, should not be present when jti validation is disabled
-                NotBeforeValidationRule.class);
+                NotBeforeValidationRule.class,
+                // the jti and iat claims are still required
+                ClaimIsPresentRule.class,
+                ClaimIsPresentRule.class);
 
         var extension = objectFactory.constructInstance(DcpCoreExtension.class);
         extension.initialize(context);
