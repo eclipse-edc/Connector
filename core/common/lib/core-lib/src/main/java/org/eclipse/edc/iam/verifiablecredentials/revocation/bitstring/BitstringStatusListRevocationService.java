@@ -36,10 +36,25 @@ import static org.eclipse.edc.spi.result.Result.success;
  */
 public class BitstringStatusListRevocationService extends BaseRevocationListService<BitstringStatusListCredential, BitstringStatusListStatus> {
 
+    /**
+     * The minimum number of entries of a status list required by the specification, unless an ecosystem specification
+     * sets a different lower bound.
+     */
+    public static final int DEFAULT_MINIMUM_NUMBER_OF_ENTRIES = 131_072;
+
+    private final int minimumNumberOfEntries;
+
     public BitstringStatusListRevocationService(ObjectMapper mapper, long cacheValidity, Collection<String> acceptedContentTypes,
                                                 EdcHttpClient httpClient, TokenValidationService tokenValidationService,
                                                 DidPublicKeyResolver didPublicKeyResolver) {
+        this(mapper, cacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver, DEFAULT_MINIMUM_NUMBER_OF_ENTRIES);
+    }
+
+    public BitstringStatusListRevocationService(ObjectMapper mapper, long cacheValidity, Collection<String> acceptedContentTypes,
+                                                EdcHttpClient httpClient, TokenValidationService tokenValidationService,
+                                                DidPublicKeyResolver didPublicKeyResolver, int minimumNumberOfEntries) {
         super(mapper, cacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver, BitstringStatusListCredential.class);
+        this.minimumNumberOfEntries = minimumNumberOfEntries;
     }
 
     @Override
@@ -66,6 +81,12 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
             return compressedBitstring.mapEmpty();
         }
         var bitstring = compressedBitstring.getContent();
+
+        // the specification requires a minimum number of entries, so that a credential's status can't be told apart easily
+        var numberOfEntries = bitstring.length() / credentialStatus.getStatusSize();
+        if (numberOfEntries < minimumNumberOfEntries) {
+            return Result.failure("The status list has %d entries, fewer than the minimum of %d".formatted(numberOfEntries, minimumNumberOfEntries));
+        }
 
         var indexCheck = checkIndex(bitstring, credentialStatus.getStatusListIndex());
         if (indexCheck.failed()) {

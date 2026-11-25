@@ -53,6 +53,15 @@ public class RevocationServiceRegistryExtension implements ServiceExtension {
             description = "A comma-separated list of accepted content types of the revocation list credential.",
             defaultValue = "*/*")
     private String contentTypes;
+    // no hyphens in the key, so that it can be set as an environment variable
+    @Setting(
+            key = "edc.iam.credential.revocation.bitstring.entries.min",
+            description = "Minimum number of entries of a Bitstring status list, shorter lists are rejected. The W3C Bitstring Status List " +
+                    "specification requires " + BitstringStatusListRevocationService.DEFAULT_MINIMUM_NUMBER_OF_ENTRIES +
+                    " unless an ecosystem specification sets a different lower bound.",
+            defaultValue = BitstringStatusListRevocationService.DEFAULT_MINIMUM_NUMBER_OF_ENTRIES + "",
+            min = 1)
+    private int bitstringMinimumEntries;
     @Setting(
             key = "edc.iam.credential.revocation.unknowntypes.ignore",
             description = "If true, a credentialStatus whose type has no registered revocation service is not checked and the credential is " +
@@ -86,7 +95,7 @@ public class RevocationServiceRegistryExtension implements ServiceExtension {
         revocationServiceRegistry.addService(STATUSLIST_2021_PREFIX + StatusList2021Status.TYPE, statusList2021Service);
 
         var bitstringStatusListService = new BitstringStatusListRevocationService(typeManager.getMapper(),
-                revocationCacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver);
+                revocationCacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver, bitstringMinimumEntries);
         revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, bitstringStatusListService);
         revocationServiceRegistry.addService(BITSTRING_STATUS_LIST_PREFIX + BitstringStatusListStatus.TYPE, bitstringStatusListService);
         return revocationServiceRegistry;
