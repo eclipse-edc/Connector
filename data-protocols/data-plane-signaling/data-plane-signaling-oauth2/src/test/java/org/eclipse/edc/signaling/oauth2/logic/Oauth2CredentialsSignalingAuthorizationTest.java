@@ -38,6 +38,8 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.security.PublicKey;
 import java.util.List;
@@ -51,9 +53,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -306,6 +310,31 @@ class Oauth2CredentialsSignalingAuthorizationTest {
 
     private Map<String, Object> jwksMap(JWK... keys) {
         return Map.of("keys", java.util.Arrays.stream(keys).map(JWK::toJSONObject).toList());
+    }
+
+    @Nested
+    class Validate {
+
+        @Test
+        void shouldSucceedAndWarn_whenNoKeys() {
+            var profile = new AuthorizationProfile("oauth2_client_credentials", Map.of("clientId", "client"));
+
+            var result = authorization.validate("dp-id", profile);
+
+            assertThat(result.succeeded()).isTrue();
+            verify(monitor).warning(contains("signature of its tokens is not verified"));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"jwks", "jwksUri"})
+        void shouldSucceedWithoutWarning_whenKeysConfigured(String keyProperty) {
+            var profile = new AuthorizationProfile("oauth2_client_credentials", Map.of(keyProperty, "keys"));
+
+            var result = authorization.validate("dp-id", profile);
+
+            assertThat(result.succeeded()).isTrue();
+            verify(monitor, never()).warning(anyString());
+        }
     }
 
 }

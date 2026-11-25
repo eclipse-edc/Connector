@@ -157,6 +157,21 @@ public class Oauth2CredentialsSignalingAuthorization implements SignalingAuthori
                 .map(token -> new Header("Authorization", "Bearer " + token.getToken()));
     }
 
+    /**
+     * Accepts every profile. A profile without {@code jwks} or {@code jwksUri} is allowed by the Data Plane Signaling
+     * authorization profiles, but the signature of the incoming tokens is then not verified, so a warning is logged.
+     */
+    @Override
+    public Result<Void> validate(String dataPlaneId, AuthorizationProfile authorizationProfile) {
+        var properties = authorizationProfile.properties() != null ? authorizationProfile.properties() : Map.<String, Object>of();
+        if (properties.get("jwks") == null && properties.get("jwksUri") == null) {
+            monitor.warning(("Data plane %s is registered with an '%s' authorization profile without 'jwks' or 'jwksUri': the signature " +
+                    "of its tokens is not verified, so the signaling API must only be reachable by trusted clients")
+                    .formatted(dataPlaneId, getType()));
+        }
+        return Result.success();
+    }
+
     private Result<PublicKeyResolver> buildPublicKeyResolver(Map<String, Object> properties) {
         var jwksUri = (String) properties.get("jwksUri");
         if (jwksUri != null) {

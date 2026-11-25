@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.Authorizati
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.signaling.domain.DataPlaneRegistrationMessage;
+import org.eclipse.edc.signaling.logic.authorization.AuthorizationProfileValidator;
 
 import java.util.Map;
 
@@ -39,17 +40,18 @@ public class DataPlaneRegistrationApiV4Controller implements DataPlaneRegistrati
 
     private final DataPlaneSelectorService dataPlaneSelectorService;
     private final SingleParticipantContextSupplier participantContextSupplier;
+    private final AuthorizationProfileValidator authorizationProfileValidator;
 
-    public DataPlaneRegistrationApiV4Controller(DataPlaneSelectorService dataPlaneSelectorService, SingleParticipantContextSupplier participantContextSupplier) {
+    public DataPlaneRegistrationApiV4Controller(DataPlaneSelectorService dataPlaneSelectorService, SingleParticipantContextSupplier participantContextSupplier,
+                                                AuthorizationProfileValidator authorizationProfileValidator) {
         this.dataPlaneSelectorService = dataPlaneSelectorService;
         this.participantContextSupplier = participantContextSupplier;
+        this.authorizationProfileValidator = authorizationProfileValidator;
     }
 
     @PUT
     @Override
     public Response register(DataPlaneRegistrationMessage registration) {
-        toAuthorizationProfile(registration.authorization());
-
         participantContextSupplier.get().map(participantContext -> DataPlaneInstance.Builder.newInstance()
                         .id(registration.dataplaneId())
                         .url(registration.endpoint())
@@ -58,7 +60,8 @@ public class DataPlaneRegistrationApiV4Controller implements DataPlaneRegistrati
                         .participantContextId(participantContext.getId())
                         .labels(registration.labels())
                         .build())
-                .compose(dataPlaneSelectorService::register)
+                .compose(instance -> authorizationProfileValidator.validate(instance)
+                        .compose(v -> dataPlaneSelectorService.register(instance)))
                 .orElseThrow(it -> mapToException(it, DataPlaneInstance.class, registration.dataplaneId()));
 
         return Response.ok().build();

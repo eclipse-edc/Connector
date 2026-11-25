@@ -47,4 +47,16 @@ public interface SignalingAuthorization {
      * @return a successful {@link Result} containing the {@link Header} to attach, or a failed result
      */
     Result<Header> evaluate(AuthorizationProfile authorizationProfile);
+
+    /**
+     * Validates the authorization profile of a Data Plane instance that is being registered. A failure rejects the
+     * registration. Implementations may log a warning for a profile that is valid but weakens the authorization.
+     *
+     * @param dataPlaneId          the id of the Data Plane instance
+     * @param authorizationProfile the authorization profile of the Data Plane instance
+     * @return a successful {@link Result} if the profile can be used, a failed result describing the problem otherwise
+     */
+    default Result<Void> validate(String dataPlaneId, AuthorizationProfile authorizationProfile) {
+        return Result.success();
+    }
 }

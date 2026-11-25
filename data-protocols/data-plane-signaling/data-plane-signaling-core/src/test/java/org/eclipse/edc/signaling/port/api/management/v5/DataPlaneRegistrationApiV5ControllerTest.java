@@ -18,6 +18,7 @@ import io.restassured.http.ContentType;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
 import org.eclipse.edc.connector.controlplane.dataplane.spi.DataPlaneSelectorService;
 import org.eclipse.edc.signaling.domain.DataPlaneRegistrationMessage;
+import org.eclipse.edc.signaling.logic.authorization.AuthorizationProfileValidator;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,7 @@ import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,16 +40,19 @@ class DataPlaneRegistrationApiV5ControllerTest extends RestControllerTestBase {
 
     protected final AuthorizationService authorizationService = mock();
     private final DataPlaneSelectorService dataPlaneSelectorService = mock();
+    private final AuthorizationProfileValidator authorizationProfileValidator = mock();
     private final String participantContextId = "test-participant-context-id";
 
     @Override
     protected Object controller() {
-        return new org.eclipse.edc.signaling.port.api.management.v5.DataPlaneRegistrationApiV5Controller(dataPlaneSelectorService, authorizationService);
+        return new org.eclipse.edc.signaling.port.api.management.v5.DataPlaneRegistrationApiV5Controller(dataPlaneSelectorService, authorizationService,
+                authorizationProfileValidator);
     }
 
     @BeforeEach
     public void setup() {
         when(authorizationService.authorize(any(), any(), any(), any())).thenReturn(ServiceResult.success());
+        when(authorizationProfileValidator.validate(any())).thenReturn(ServiceResult.success());
     }
 
     @Nested
@@ -129,6 +134,24 @@ class DataPlaneRegistrationApiV5ControllerTest extends RestControllerTestBase {
                     .then()
                     .log().ifValidationFails()
                     .statusCode(409);
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenAuthorizationProfileInvalid() {
+            when(authorizationProfileValidator.validate(any())).thenReturn(ServiceResult.badRequest("invalid profile"));
+            var message = new DataPlaneRegistrationMessage("dp-id", "http://dataplane/endpoint", Set.of(), Set.of(),
+                    Map.of("type", "unknown"));
+
+            given()
+                    .port(port)
+                    .contentType(ContentType.JSON)
+                    .body(message)
+                    .put("/v5/participants/test-participant-context-id/dataplanes")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(400);
+
+            verify(dataPlaneSelectorService, never()).register(any());
         }
     }
 
