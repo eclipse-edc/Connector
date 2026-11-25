@@ -9,8 +9,8 @@ extension that is not loaded behaves as if it were not on the classpath.
 ## Rationale
 
 In order to publish usable all-in-one distributions of EDC components, those distributions must contain all major
-features available in EDC today. These are most notably SQL persistence and the task-based state machine, which uses
-NATS for message passing.
+features available in EDC today. These are most notably SQL persistence, the HashiCorp Vault and the task-based state
+machine, which uses NATS for message passing.
 
 The distribution (i.e. a Docker image) would therefore have all those Java modules on the classpath, but only load
 those selected by configuration. The capabilities of a runtime would then be dictated by configuration rather than by
@@ -97,19 +97,24 @@ On startup, the runtime logs the value of every feature key and the extensions t
 
 ### Initial features
 
-Two features are introduced initially:
+Three features serve as example here:
 
 | Feature key                | Feature value | Extensions                                                                  | `loadAsDefault` |
 |----------------------------|---------------|-----------------------------------------------------------------------------|-----------------|
 | `edc.feature.persistence`  | `postgres`    | the SQL store extensions and the SQL infrastructure extensions              | `false`         |
+| `edc.feature.vault`        | `hashicorp`   | the extensions of the `vault-hashicorp` module                              | `false`         |
 | `edc.feature.statemachine` | `polling`     | `TransferManagerExtension`, `ContractManagerExtension`                      | `true`          |
 | `edc.feature.statemachine` | `task`        | the task core, the task executors, the NATS task publishers and subscribers | `false`         |
+
+_this list may not be exhaustive, more features may land._
 
 The SQL infrastructure extensions are the ones that only serve the SQL stores: SQL core, schema bootstrapper, lease and
 connection pool.
 
-`edc.feature.persistence` has no value for the in-memory stores: they are default providers, so they are used whenever
-no SQL extension is loaded.
+`edc.feature.persistence` and `edc.feature.vault` have no value for the in-memory implementations: the in-memory stores
+and the in-memory vault are default providers, so they are used whenever no SQL extension, or no HashiCorp Vault
+extension respectively, is loaded. The vault is a feature of its own, but a runtime that uses the in-memory stores
+will typically use the in-memory vault as well.
 
 For `edc.feature.statemachine`, not loading the task-based state machine is only useful if the polling-based one takes
 over, and vice versa. The feature is named after the mechanism rather than after NATS, because NATS is only the
@@ -119,6 +124,8 @@ Note that:
 
 - `SqlTaskStoreExtension` is only bound to `edc.feature.persistence`. With `edc.feature.persistence=postgres` and
   `edc.feature.statemachine=polling` it is loaded but unused.
+- The HashiCorp Vault extensions are the only provider of the `SignatureService`. Without them, the signature-backed
+  STS is not registered.
 - `NatsNkeyAuthExtension` is not bound to a feature. It has no effect unless `edc.nats.auth.nkey.seed.path` is
   configured.
 - Publishing events to NATS (`NatsPublishingExtension`) is independent of the state machine and is not covered by
@@ -131,6 +138,8 @@ longer true for them, which is a breaking change:
 
 - A runtime that contains the SQL modules must set `edc.feature.persistence=postgres`. Without it, the runtime starts
   with in-memory stores and does not report an error, because every store has an in-memory default.
+- A runtime that contains the HashiCorp Vault module must set `edc.feature.vault=hashicorp`. Without it, the runtime
+  starts with the in-memory vault and only logs the existing warning about it.
 - A runtime that uses the task-based state machine must set `edc.feature.statemachine=task`. Without it, the task
   extensions are not loaded. If the polling-based managers are not on the classpath either, the runtime starts, but no
   state machine is processed.
