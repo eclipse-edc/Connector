@@ -30,6 +30,7 @@ import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.Authorizati
 import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.signaling.domain.DataPlaneRegistrationMessage;
+import org.eclipse.edc.signaling.logic.authorization.AuthorizationProfileValidator;
 
 import java.util.Map;
 
@@ -43,10 +44,13 @@ public class DataPlaneRegistrationApiV5Controller implements DataPlaneRegistrati
 
     private final DataPlaneSelectorService dataPlaneSelectorService;
     private final AuthorizationService authorizationService;
+    private final AuthorizationProfileValidator authorizationProfileValidator;
 
-    public DataPlaneRegistrationApiV5Controller(DataPlaneSelectorService dataPlaneSelectorService, AuthorizationService authorizationService) {
+    public DataPlaneRegistrationApiV5Controller(DataPlaneSelectorService dataPlaneSelectorService, AuthorizationService authorizationService,
+                                                AuthorizationProfileValidator authorizationProfileValidator) {
         this.dataPlaneSelectorService = dataPlaneSelectorService;
         this.authorizationService = authorizationService;
+        this.authorizationProfileValidator = authorizationProfileValidator;
     }
 
     @PUT
@@ -68,7 +72,8 @@ public class DataPlaneRegistrationApiV5Controller implements DataPlaneRegistrati
                 .labels(registration.labels())
                 .build();
 
-        dataPlaneSelectorService.register(dataplaneInstance)
+        authorizationProfileValidator.validate(dataplaneInstance)
+                .compose(v -> dataPlaneSelectorService.register(dataplaneInstance))
                 .orElseThrow(exceptionMapper(DataPlaneInstance.class, registration.dataplaneId()));
 
         return Response.ok().build();

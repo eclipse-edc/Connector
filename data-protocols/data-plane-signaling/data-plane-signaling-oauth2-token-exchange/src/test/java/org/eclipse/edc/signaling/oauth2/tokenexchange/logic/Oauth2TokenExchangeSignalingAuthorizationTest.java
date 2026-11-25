@@ -363,4 +363,31 @@ class Oauth2TokenExchangeSignalingAuthorizationTest {
             return captor.getValue();
         }
     }
+
+    @Nested
+    class Validate {
+
+        @Test
+        void shouldSucceed_whenProfileComplete() {
+            assertThat(authorization().validate("dp-id", profile()).succeeded()).isTrue();
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"jwksUri", "issuer", "tokenExchangeEndpoint", "resource"})
+        void shouldFail_whenMandatoryPropertyMissing(String property) {
+            var result = authorization().validate("dp-id", profile(prop(property, null)));
+
+            assertThat(result.failed()).isTrue();
+            assertThat(result.getFailureDetail()).contains("Mandatory property '%s' is missing".formatted(property));
+        }
+
+        @Test
+        void shouldFail_whenInlineJwks() {
+            var result = authorization().validate("dp-id", profile(prop("jwks", Map.of("keys", List.of()))));
+
+            assertThat(result.failed()).isTrue();
+            assertThat(result.getFailureDetail()).contains("Inline 'jwks' is not permitted");
+        }
+    }
+
 }

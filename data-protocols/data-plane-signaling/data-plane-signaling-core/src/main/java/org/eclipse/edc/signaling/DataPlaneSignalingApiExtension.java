@@ -23,6 +23,7 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.signaling.logic.authorization.AuthorizationProfileValidator;
 import org.eclipse.edc.signaling.port.api.management.DataPlaneRegistrationApiV4Controller;
 import org.eclipse.edc.signaling.port.api.management.v5.DataPlaneRegistrationApiV5Controller;
 import org.eclipse.edc.signaling.port.api.signaling.DataPlaneTransferApiController;
@@ -91,14 +92,18 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
         typeTransformerRegistry.register(new DataFlowStatusMessageToDataFlowResponseTransformer());
         typeTransformerRegistry.register(new DspDataAddressToDataAddressTransformer());
 
+        var authorizationProfileValidator = new AuthorizationProfileValidator(signalingAuthorizationRegistry);
+
         // if running in single participant mode, the DataPlaneRegistrationApiV4Controller will be registered
         if (participantContextSupplier != null) {
-            webService.registerResource(ApiContext.MANAGEMENT, new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService, participantContextSupplier));
+            webService.registerResource(ApiContext.MANAGEMENT, new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService, participantContextSupplier,
+                    authorizationProfileValidator));
         } else {
             // if multi participants mode the authorization service should be present
             if (authorizationService != null) {
                 authorizationService.addLookupFunction(DataPlaneInstance.class, this::findDataPlaneInstance);
-                webService.registerResource(ApiContext.MANAGEMENT, new DataPlaneRegistrationApiV5Controller(dataPlaneSelectorService, authorizationService));
+                webService.registerResource(ApiContext.MANAGEMENT, new DataPlaneRegistrationApiV5Controller(dataPlaneSelectorService, authorizationService,
+                        authorizationProfileValidator));
             } else {
                 throw new EdcException("Missing AuthorizationService which is required when running in multi participant mode.");
             }

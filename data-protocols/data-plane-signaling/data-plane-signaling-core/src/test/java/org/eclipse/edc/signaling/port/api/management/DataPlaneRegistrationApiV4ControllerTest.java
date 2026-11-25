@@ -19,8 +19,10 @@ import org.eclipse.edc.connector.controlplane.dataplane.spi.DataPlaneSelectorSer
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.signaling.domain.DataPlaneRegistrationMessage;
+import org.eclipse.edc.signaling.logic.authorization.AuthorizationProfileValidator;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -31,19 +33,26 @@ import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
 
     private final DataPlaneSelectorService dataPlaneSelectorService = mock();
+    private final AuthorizationProfileValidator authorizationProfileValidator = mock();
 
     private final SingleParticipantContextSupplier participantContextSupplier = () ->
             ServiceResult.success(ParticipantContext.Builder.newInstance().id("participant-context-id").identity("identity").build());
 
     @Override
     protected Object controller() {
-        return new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService, participantContextSupplier);
+        return new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService, participantContextSupplier, authorizationProfileValidator);
+    }
+
+    @BeforeEach
+    void setUp() {
+        when(authorizationProfileValidator.validate(any())).thenReturn(ServiceResult.success());
     }
 
     @Nested
@@ -107,6 +116,24 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
                     .then()
                     .log().ifValidationFails()
                     .statusCode(409);
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenAuthorizationProfileInvalid() {
+            when(authorizationProfileValidator.validate(any())).thenReturn(ServiceResult.badRequest("invalid profile"));
+            var message = new DataPlaneRegistrationMessage("dp-id", "http://dataplane/endpoint", Set.of(), Set.of(),
+                    Map.of("type", "unknown"));
+
+            given()
+                    .port(port)
+                    .contentType(ContentType.JSON)
+                    .body(message)
+                    .put("/v4/dataplanes")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(400);
+
+            verify(dataPlaneSelectorService, never()).register(any());
         }
     }
 

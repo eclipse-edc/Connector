@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.CLIENT_ID;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
@@ -231,6 +232,25 @@ public class Oauth2TokenExchangeSignalingAuthorization implements SignalingAutho
         } catch (Exception e) {
             return Result.failure("Cannot create PublicKeyResolver for '" + jwksUri + "'. " + e.getMessage());
         }
+    }
+
+    /**
+     * Rejects a profile that can't be used for inbound and outbound calls: inline {@code jwks} are not permitted, and
+     * {@code jwksUri}, {@code issuer}, {@code tokenExchangeEndpoint} and {@code resource} are required.
+     */
+    @Override
+    public Result<Void> validate(String dataPlaneId, AuthorizationProfile authorizationProfile) {
+        var properties = authorizationProfile.properties() != null ? authorizationProfile.properties() : Map.<String, Object>of();
+        if (properties.get(JWKS) != null) {
+            return Result.failure("Inline '%s' is not permitted by the '%s' authorization profile, use '%s' instead"
+                    .formatted(JWKS, TYPE, JWKS_URI));
+        }
+        var missing = Stream.of(JWKS_URI, ISSUER, TOKEN_EXCHANGE_ENDPOINT, RESOURCE)
+                .map(key -> mandatory(properties, key))
+                .filter(Result::failed)
+                .map(Result::getFailureDetail)
+                .toList();
+        return missing.isEmpty() ? Result.success() : Result.failure(missing);
     }
 
     private Result<String> mandatory(Map<String, Object> properties, String key) {
