@@ -109,7 +109,11 @@ class BitstringStatusListRevocationServiceTest {
     }
 
     private String generateBitstring(int index, long value) {
-        var bitstring = BitString.Builder.newInstance().size(1024 * 16).build();
+        return generateBitstring(16 * 1024 * 8, index, value);
+    }
+
+    private String generateBitstring(int size, int index, long value) {
+        var bitstring = BitString.Builder.newInstance().size(size).build();
         bitstring.set(index, value != 0);
 
         return BitString.Writer.newInstance().encoder(Base64.getUrlEncoder().withoutPadding()).writeMultibase(bitstring).getContent();
@@ -156,10 +160,42 @@ class BitstringStatusListRevocationServiceTest {
             var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(generateBitstring());
             server.stubFor(get("/credentials/status/3").willReturn(ok(bitstringCredential)));
 
-            var result = revocationService.checkValidity(statusListEntry(1024 * 16));
+            var result = revocationService.checkValidity(statusListEntry(16 * 1024 * 8));
 
             assertThat(result).isFailed().detail().contains("outside the status list");
             assertThat(result.isRetryable()).isFalse();
+        }
+
+        @Test
+        void checkValidity_statusListShorterThanMinimum_shouldFail() {
+            var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE
+                    .formatted(generateBitstring(16 * 1024, 0, 0));
+            server.stubFor(get("/credentials/status/3").willReturn(ok(bitstringCredential)));
+
+            var result = revocationService.checkValidity(statusListEntry(0));
+
+            assertThat(result).isFailed().detail().isEqualTo("The status list has 16384 entries, fewer than the minimum of 131072");
+            assertThat(result.isRetryable()).isFalse();
+        }
+
+        @Test
+        void checkValidity_statusListWithMinimumLength_shouldSucceed() {
+            var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE
+                    .formatted(generateBitstring(BitstringStatusListRevocationService.DEFAULT_MINIMUM_NUMBER_OF_ENTRIES, 0, 0));
+            server.stubFor(get("/credentials/status/3").willReturn(ok(bitstringCredential)));
+
+            assertThat(revocationService.checkValidity(statusListEntry(0))).isSucceeded();
+        }
+
+        @Test
+        void checkValidity_statusListShorterThanDefault_withLowerMinimum_shouldSucceed() {
+            var service = new BitstringStatusListRevocationService(mapper, 5 * 60 * 1000, singleton("application/json"),
+                    new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock()), tokenValidationService, didPublicKeyResolver, 16 * 1024);
+            var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE
+                    .formatted(generateBitstring(16 * 1024, 0, 0));
+            server.stubFor(get("/credentials/status/3").willReturn(ok(bitstringCredential)));
+
+            assertThat(service.checkValidity(statusListEntry(0))).isSucceeded();
         }
 
         @Test
@@ -466,6 +502,19 @@ class BitstringStatusListRevocationServiceTest {
 
             assertThat(revocationService.getStatusPurpose(credential)).isFailed()
                     .detail().contains("outside the status list");
+        }
+
+        @Test
+        void getStatusPurpose_statusListShorterThanMinimum_shouldFail() {
+            var body = BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("revocation", generateBitstring(16 * 1024, 0, 0));
+            server.stubFor(get("/credentials/status/3").willReturn(ok(body)));
+
+            var credential = TestFunctions.createCredentialBuilder()
+                    .credentialStatus(statusListEntry(0))
+                    .build();
+
+            assertThat(revocationService.getStatusPurpose(credential)).isFailed()
+                    .detail().contains("fewer than the minimum");
         }
 
         @Test
