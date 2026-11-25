@@ -688,6 +688,36 @@ class TransferProcessProtocolServiceImplTest {
         }
 
         @Test
+        void shouldReturnUnavailable_whenConsumerIsStillStartingUp() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            // the consumer accepted the start, but has not notified its data plane yet
+            var transferProcess = transferProcessBuilder().id(UUID.randomUUID().toString()).state(STARTUP_REQUESTED.code()).type(CONSUMER).build();
+            var message = TransferCompletionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .build();
+            var agreement = contractAgreement();
+
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+
+            var result = service.notifyCompleted(participantContext, message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAVAILABLE);
+            assertThat(transferProcess.getState()).isEqualTo(STARTUP_REQUESTED.code());
+            verify(store, never()).save(any());
+            verify(store).breakLease(transferProcess);
+            verifyNoInteractions(listener);
+        }
+
+        @Test
         void shouldReturnBadRequest_whenCounterPartyUnauthorized() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
@@ -1231,6 +1261,38 @@ class TransferProcessProtocolServiceImplTest {
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAVAILABLE);
             assertThat(transferProcess.getState()).isEqualTo(STARTING.code());
+            verify(store, never()).save(any());
+            verify(store).breakLease(transferProcess);
+            verifyNoInteractions(listener);
+        }
+
+        @Test
+        void shouldReturnUnavailable_whenConsumerIsStillStartingUp() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            // the consumer accepted the start, but has not notified its data plane yet
+            var transferProcess = transferProcessBuilder().id(UUID.randomUUID().toString()).state(STARTUP_REQUESTED.code()).type(CONSUMER).build();
+            var agreement = contractAgreement();
+            var message = TransferSuspensionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .code("TestCode")
+                    .reason("TestReason")
+                    .build();
+
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById(any())).thenReturn(transferProcess);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(eq("participantContextId"), any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+
+            var result = service.notifySuspended(participantContext, message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAVAILABLE);
+            assertThat(transferProcess.getState()).isEqualTo(STARTUP_REQUESTED.code());
             verify(store, never()).save(any());
             verify(store).breakLease(transferProcess);
             verifyNoInteractions(listener);
