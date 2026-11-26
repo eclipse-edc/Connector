@@ -42,9 +42,14 @@ import tools.jackson.databind.json.JsonMapper;
 import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_CONFIG;
 import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
-@Extension(value = HashicorpVaultExtension.NAME)
+@Extension(value = HashicorpVaultExtension.NAME, featureKey = HashicorpVaultExtension.FEATURE_KEY, featureValue = HashicorpVaultExtension.FEATURE_VALUE)
 public class HashicorpVaultExtension implements ServiceExtension {
     public static final String NAME = "Hashicorp Vault";
+    /**
+     * The feature key the HashiCorp Vault extensions are bound to. They are only loaded if it is set to {@link #FEATURE_VALUE}.
+     */
+    public static final String FEATURE_KEY = "edc.feature.vault";
+    public static final String FEATURE_VALUE = "hashicorp";
     public static final ObjectMapper MAPPER = JsonMapper.builder().configure(FAIL_ON_UNKNOWN_PROPERTIES, false).build();
 
     @Inject

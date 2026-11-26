@@ -11,6 +11,19 @@ creating secrets the EDC should consume.
 
 ---
 
+## Enabling the extension
+
+The extensions of this module are bound to the `edc.feature.vault` feature and are only loaded if it is set to
+`hashicorp`:
+
+```properties
+edc.feature.vault=hashicorp
+```
+
+If the feature key is not set, the extensions are not loaded, even if the module is on the classpath, and the runtime
+falls back to the in-memory vault. Since this module is the only provider of the `SignatureService`, the
+signature-backed STS is not available either in that case.
+
 ## Configuration
 
 | Key                                                  | Description                                                                                                      | Mandatory | Default          |
