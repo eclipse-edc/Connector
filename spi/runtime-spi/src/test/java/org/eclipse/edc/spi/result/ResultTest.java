@@ -24,7 +24,6 @@ import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -135,7 +134,8 @@ class ResultTest {
 
         Result<Void> mapped = result.mapEmpty();
 
-        assertThat(mapped).isSucceeded().isNull();
+        assertThat(mapped.succeeded()).isTrue();
+        assertThat(mapped.getContent()).isNull();
     }
 
     @Test
@@ -144,7 +144,8 @@ class ResultTest {
 
         Result<String> mapped = result.mapEmpty();
 
-        assertThat(mapped).isFailed().detail().isEqualTo("foobar");
+        assertThat(mapped.failed()).isTrue();
+        assertThat(mapped.getFailureDetail()).isEqualTo("foobar");
     }
 
     @Test
@@ -212,18 +213,21 @@ class ResultTest {
                 ? Result.success("the content was good")
                 : Result.failure("the content was not good");
 
-        assertThat(Result.success("right content").compose(mappingFunction)).isSucceeded()
-                .isEqualTo("the content was good");
+        var succeeded = Result.success("right content").compose(mappingFunction);
+        assertThat(succeeded.succeeded()).isTrue();
+        assertThat(succeeded.getContent()).isEqualTo("the content was good");
 
-        assertThat(Result.success("not right content").compose(mappingFunction)).isFailed()
-                .extracting(Failure::getMessages).asList().contains("the content was not good");
+        var failed = Result.success("not right content").compose(mappingFunction);
+        assertThat(failed.failed()).isTrue();
+        assertThat(failed.getFailureMessages()).contains("the content was not good");
     }
 
     @Test
     void compose_doNothingIfFailed() {
         var result = Result.failure("error").compose(it -> Result.success());
 
-        assertThat(result).isFailed().extracting(Failure::getMessages).asList().contains("error");
+        assertThat(result.failed()).isTrue();
+        assertThat(result.getFailureMessages()).contains("error");
     }
 
     @Test
@@ -232,8 +236,13 @@ class ResultTest {
         Function<Failure, Result<String>> successfulRecoverFunction = f -> Result.success("ok");
         Function<Failure, Result<String>> failingRecoverFunction = f -> Result.failure("error");
 
-        assertThat(failedResult.recover(successfulRecoverFunction)).isSucceeded().isEqualTo("ok");
-        assertThat(failedResult.recover(failingRecoverFunction)).isFailed().extracting(Failure::getMessages).asList().contains("error");
+        var recovered = failedResult.recover(successfulRecoverFunction);
+        assertThat(recovered.succeeded()).isTrue();
+        assertThat(recovered.getContent()).isEqualTo("ok");
+
+        var notRecovered = failedResult.recover(failingRecoverFunction);
+        assertThat(notRecovered.failed()).isTrue();
+        assertThat(notRecovered.getFailureMessages()).contains("error");
     }
 
     @Test
@@ -241,14 +250,15 @@ class ResultTest {
         var succeededResult = Result.success("ok");
         Function<Failure, Result<String>> failingRecoverFunction = f -> Result.failure("error");
 
-        assertThat(succeededResult.recover(failingRecoverFunction)).isSucceeded();
+        assertThat(succeededResult.recover(failingRecoverFunction).succeeded()).isTrue();
     }
 
     @Test
     void ofThrowable_success() {
 
         var result = Result.ofThrowable(String::new);
-        assertThat(result).isSucceeded().isEqualTo("");
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent()).isEqualTo("");
     }
 
     @Test
@@ -257,7 +267,8 @@ class ResultTest {
         var result = Result.ofThrowable(() -> {
             throw new EdcException("Exception");
         });
-        assertThat(result).isFailed().detail().contains("Exception");
+        assertThat(result.failed()).isTrue();
+        assertThat(result.getFailureDetail()).contains("Exception");
     }
 
     @Test
@@ -271,7 +282,7 @@ class ResultTest {
         var result = results.stream().collect(Result.collector());
 
         assertThat(result.getFailure()).isNull();
-        assertThat(result).isSucceeded();
+        assertThat(result.succeeded()).isTrue();
         assertThat(result.getContent()).contains("success1", "success2", "success3");
     }
 
@@ -286,7 +297,8 @@ class ResultTest {
         var result = results.stream().collect(Result.collector());
 
         assertThat(result.getContent()).isNull();
-        assertThat(result).isFailed().detail().contains("fail1");
+        assertThat(result.failed()).isTrue();
+        assertThat(result.getFailureDetail()).contains("fail1");
     }
 
     @Test
@@ -301,7 +313,8 @@ class ResultTest {
         var result = results.stream().collect(Result.collector());
 
         assertThat(result.getContent()).isNull();
-        assertThat(result).isFailed().messages().contains("fail1", "fail2");
+        assertThat(result.failed()).isTrue();
+        assertThat(result.getFailureMessages()).contains("fail1", "fail2");
     }
 
     @Test

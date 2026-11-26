@@ -25,8 +25,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.util.Optional.ofNullable;
-import static org.eclipse.edc.boot.BootServicesExtension.COMPONENT_ID;
-import static org.eclipse.edc.boot.BootServicesExtension.RUNTIME_ID;
 
 /**
  * Base service extension context.
@@ -34,10 +32,13 @@ import static org.eclipse.edc.boot.BootServicesExtension.RUNTIME_ID;
  */
 public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
+    public static final String RUNTIME_ID = "edc.runtime.id";
+    public static final String COMPONENT_ID = "edc.component.id";
 
     private final Map<Class<?>, Object> services = new HashMap<>();
     private final Config config;
     private boolean isReadOnly = false;
+    private volatile boolean ready = false;
     private String runtimeId;
     private String componentId;
 
@@ -55,6 +56,16 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     @Override
     public void freeze() {
         isReadOnly = true;
+    }
+
+    @Override
+    public void markReady() {
+        ready = true;
+    }
+
+    @Override
+    public boolean isReady() {
+        return ready;
     }
 
     @Override

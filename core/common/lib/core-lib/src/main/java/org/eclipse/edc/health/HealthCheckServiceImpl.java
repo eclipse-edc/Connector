@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.boot.health;
+package org.eclipse.edc.health;
 
 import org.eclipse.edc.spi.system.health.HealthCheckResult;
 import org.eclipse.edc.spi.system.health.HealthCheckService;

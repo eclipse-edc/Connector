@@ -15,8 +15,6 @@
 
 package org.eclipse.edc.boot.system;
 
-import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.api.OpenTelemetry;
 import org.eclipse.edc.boot.monitor.MultiplexingMonitor;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
@@ -25,15 +23,10 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.MonitorExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ServiceLoader;
 import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.eclipse.edc.spi.monitor.ConsoleMonitor.NO_COLOR_PROG_ARG;
@@ -44,19 +37,6 @@ public class ExtensionLoader {
 
     public ExtensionLoader(ServiceLocator serviceLocator) {
         this.serviceLocator = serviceLocator;
-    }
-
-    public static @NotNull Telemetry loadTelemetry() {
-        var loader = ServiceLoader.load(OpenTelemetry.class);
-        var openTelemetries = loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList());
-        return new Telemetry(selectOpenTelemetryImpl(openTelemetries));
-    }
-
-    static @NotNull Supplier<OpenTelemetry> selectOpenTelemetryImpl(List<OpenTelemetry> openTelemetries) {
-        if (openTelemetries.size() > 1) {
-            throw new IllegalStateException(String.format("Found %s OpenTelemetry implementations. Please provide only one OpenTelemetry service provider.", openTelemetries.size()));
-        }
-        return openTelemetries.isEmpty() ? GlobalOpenTelemetry::get : () -> openTelemetries.get(0);
     }
 
     /**

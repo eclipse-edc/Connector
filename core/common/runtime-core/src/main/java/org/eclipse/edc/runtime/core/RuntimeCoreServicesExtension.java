@@ -15,10 +15,13 @@
 package org.eclipse.edc.runtime.core;
 
 import dev.failsafe.RetryPolicy;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import org.eclipse.edc.encryption.EncryptionAlgorithmRegistry;
 import org.eclipse.edc.encryption.EncryptionAlgorithmRegistryImpl;
+import org.eclipse.edc.health.HealthCheckServiceImpl;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
@@ -37,13 +40,20 @@ import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
+import org.eclipse.edc.spi.system.health.HealthCheckResult;
+import org.eclipse.edc.spi.system.health.HealthCheckService;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
+import java.util.List;
+import java.util.ServiceLoader;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
 import static org.eclipse.edc.runtime.core.RuntimeDefaultCoreServicesExtension.NAME;
 
@@ -60,6 +70,12 @@ public class RuntimeCoreServicesExtension implements ServiceExtension {
             warnOnMissingConfig = true
     )
     public String hostname;
+
+    @Setting(description = "Configures the runtime id. This should be fully or partly randomized, and need not be stable across restarts. It is recommended to leave this value blank.", defaultValue = "<random UUID>")
+    public static final String RUNTIME_ID = "edc.runtime.id";
+
+    @Setting(description = "Configures this component's ID. This should be a unique, stable and deterministic identifier.", defaultValue = "<random UUID>")
+    public static final String COMPONENT_ID = "edc.component.id";
 
     @Inject
     private OkHttpClient okHttpClient;
@@ -118,6 +134,29 @@ public class RuntimeCoreServicesExtension implements ServiceExtension {
     @Provider
     public ApiVersionService apiVersionService() {
         return new ApiVersionServiceImpl(typeManager);
+    }
+
+    @Provider
+    public Telemetry telemetry() {
+        var openTelemetries = ServiceLoader.load(OpenTelemetry.class).stream().map(ServiceLoader.Provider::get).toList();
+        return new Telemetry(selectOpenTelemetryImpl(openTelemetries));
+    }
+
+    @Provider
+    public HealthCheckService healthCheckService(ServiceExtensionContext context) {
+        var healthCheckService = new HealthCheckServiceImpl();
+        healthCheckService.addStartupStatusProvider(() -> HealthCheckResult.Builder.newInstance()
+                .component("BaseRuntime")
+                .success(context.isReady(), "Runtime is not ready yet")
+                .build());
+        return healthCheckService;
+    }
+
+    static @NotNull Supplier<OpenTelemetry> selectOpenTelemetryImpl(List<OpenTelemetry> openTelemetries) {
+        if (openTelemetries.size() > 1) {
+            throw new IllegalStateException(String.format("Found %s OpenTelemetry implementations. Please provide only one OpenTelemetry service provider.", openTelemetries.size()));
+        }
+        return openTelemetries.isEmpty() ? GlobalOpenTelemetry::get : () -> openTelemetries.get(0);
     }
 
 }

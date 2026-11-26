@@ -16,7 +16,6 @@ package org.eclipse.edc.sql.pool.commons;
 
 import org.assertj.core.api.ThrowingConsumer;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
-import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.spi.EdcException;
@@ -25,6 +24,7 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.ConnectionFactory;
 import org.eclipse.edc.sql.datasource.ConnectionPoolDataSource;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
+import org.eclipse.edc.vault.InMemoryVault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

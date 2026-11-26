@@ -15,8 +15,6 @@
 
 package org.eclipse.edc.boot.system;
 
-import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.api.OpenTelemetry;
 import org.eclipse.edc.boot.monitor.MultiplexingMonitor;
 import org.eclipse.edc.boot.system.injection.InjectionContainer;
 import org.eclipse.edc.boot.system.testextensions.AlternativeFeatureExtension;
@@ -33,7 +31,6 @@ import org.eclipse.edc.spi.system.MonitorExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -52,8 +49,6 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.spi.monitor.ConsoleMonitor.LEVEL_PROG_ARG;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
@@ -66,12 +61,6 @@ class ExtensionLoaderTest {
     private final ServiceLocator serviceLocator = mock();
     private final ServiceExtensionContext context = mock();
     private final ExtensionLoader loader = new ExtensionLoader(serviceLocator);
-
-    @BeforeAll
-    public static void setup() {
-        // mock default open telemetry
-        GlobalOpenTelemetry.set(mock(OpenTelemetry.class));
-    }
 
     @Nested
     class LoadMonitor {
@@ -125,32 +114,6 @@ class ExtensionLoaderTest {
                     .hasMessageContaining(expectedMessage);
 
         }
-    }
-
-    @Test
-    void selectOpenTelemetryImpl_whenNoOpenTelemetry() {
-        var openTelemetry = ExtensionLoader.selectOpenTelemetryImpl(emptyList());
-
-        assertThat(openTelemetry.get()).isEqualTo(GlobalOpenTelemetry.get());
-    }
-
-    @Test
-    void selectOpenTelemetryImpl_whenSingleOpenTelemetry() {
-        var customOpenTelemetry = mock(OpenTelemetry.class);
-
-        var openTelemetry = ExtensionLoader.selectOpenTelemetryImpl(List.of(customOpenTelemetry));
-
-        assertThat(openTelemetry.get()).isSameAs(customOpenTelemetry);
-    }
-
-    @Test
-    void selectOpenTelemetryImpl_whenSeveralOpenTelemetry() {
-        var customOpenTelemetry1 = mock(OpenTelemetry.class);
-        var customOpenTelemetry2 = mock(OpenTelemetry.class);
-
-        Exception thrown = assertThrows(IllegalStateException.class,
-                () -> ExtensionLoader.selectOpenTelemetryImpl(List.of(customOpenTelemetry1, customOpenTelemetry2)));
-        assertEquals(thrown.getMessage(), "Found 2 OpenTelemetry implementations. Please provide only one OpenTelemetry service provider.");
     }
 
     @Test

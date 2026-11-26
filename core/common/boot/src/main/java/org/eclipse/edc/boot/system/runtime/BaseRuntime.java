@@ -31,13 +31,10 @@ import org.eclipse.edc.spi.system.MonitorExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.spi.system.health.HealthCheckResult;
-import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import static java.lang.Runtime.getRuntime;
@@ -107,12 +104,6 @@ public class BaseRuntime {
 
             if (addShutdownHook) {
                 getRuntime().addShutdownHook(new Thread(this::shutdown));
-            }
-
-            if (context.hasService(HealthCheckService.class)) {
-                var startupStatusRef = new AtomicReference<>(HealthCheckResult.Builder.newInstance().component("BaseRuntime").success().build());
-                var healthCheckService = context.getService(HealthCheckService.class);
-                healthCheckService.addStartupStatusProvider(startupStatusRef::get);
             }
 
         } catch (Throwable e) {

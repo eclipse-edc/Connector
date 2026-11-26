@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.spi.result;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +49,6 @@ public abstract class AbstractResult<T, F extends Failure, R extends AbstractRes
         return failure;
     }
 
-    @JsonIgnore
     public List<String> getFailureMessages() {
         return failure == null ? List.of() : failure.getMessages();
     }
@@ -68,7 +66,6 @@ public abstract class AbstractResult<T, F extends Failure, R extends AbstractRes
      *
      * @return a string that contains all the failure messages.
      */
-    @JsonIgnore
     public String getFailureDetail() {
         return failure == null ? null : failure.getFailureDetail();
     }

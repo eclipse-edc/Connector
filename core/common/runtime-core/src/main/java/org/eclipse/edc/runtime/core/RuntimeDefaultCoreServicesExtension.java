@@ -18,6 +18,7 @@ import dev.failsafe.RetryPolicy;
 import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.json.JacksonTypeManager;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.core.http.OkHttpClientConfiguration;
 import org.eclipse.edc.runtime.core.http.OkHttpClientFactory;
 import org.eclipse.edc.runtime.core.retry.RetryPolicyConfiguration;
@@ -26,6 +27,8 @@ import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -33,6 +36,9 @@ import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.datasource.spi.DefaultDataSourceRegistry;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.eclipse.edc.vault.InMemoryVault;
+
+import java.time.Clock;
 
 import static org.eclipse.edc.runtime.core.RuntimeDefaultCoreServicesExtension.NAME;
 
@@ -51,6 +57,9 @@ public class RuntimeDefaultCoreServicesExtension implements ServiceExtension {
      */
     @Inject(required = false)
     private EventListener okHttpEventListener;
+
+    @Inject(required = false)
+    private SingleParticipantContextSupplier singleParticipantContextSupplier;
 
     @Override
     public String name() {
@@ -83,5 +92,21 @@ public class RuntimeDefaultCoreServicesExtension implements ServiceExtension {
     public TypeManager typeManager() {
         return new JacksonTypeManager();
     }
-    
+
+    @Provider
+    public Clock clock() {
+        return Clock.systemUTC();
+    }
+
+    @Provider(isDefault = true)
+    public ExecutorInstrumentation defaultInstrumentation() {
+        return ExecutorInstrumentation.noop();
+    }
+
+    @Provider(isDefault = true)
+    public Vault createInmemVault(ServiceExtensionContext context) {
+        context.getMonitor().warning("Using the InMemoryVault is not suitable for production scenarios and should be replaced with an actual Vault!");
+        return new InMemoryVault(context.getMonitor(), singleParticipantContextSupplier);
+    }
+
 }

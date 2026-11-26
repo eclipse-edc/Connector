@@ -27,12 +27,13 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -78,14 +79,26 @@ public class BaseRuntimeTest {
     }
 
     @Test
-    void shouldSetStartupCheckProvider_whenHealthCheckServiceIsRegistered() {
-        var healthCheckService = mock(HealthCheckService.class);
-        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean()))
-                .thenReturn(mutableListOf(extensionThatRegisters(HealthCheckService.class, healthCheckService)));
+    void shouldMarkContextReady_onlyAfterAllExtensionsStarted() {
+        var contextRef = new AtomicReference<ServiceExtensionContext>();
+        var readyDuringStart = new AtomicBoolean(true);
+        var extension = new ServiceExtension() {
+            @Override
+            public void initialize(ServiceExtensionContext context) {
+                contextRef.set(context);
+            }
+
+            @Override
+            public void start() {
+                readyDuringStart.set(contextRef.get().isReady());
+            }
+        };
+        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(extension));
 
         runtime.boot(true);
 
-        verify(healthCheckService).addStartupStatusProvider(any());
+        assertThat(readyDuringStart).isFalse();
+        assertThat(contextRef.get().isReady()).isTrue();
     }
 
     @Test

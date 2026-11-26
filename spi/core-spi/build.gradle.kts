@@ -19,6 +19,7 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:runtime-spi"))
     api(libs.edc.runtime.metamodel)
     api(libs.failsafe.core)
     api(libs.bundles.jackson)
