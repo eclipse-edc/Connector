@@ -138,7 +138,7 @@ public class BaseRuntimeTest {
         runtime.boot(true);
 
         assertThat(dependent.getTestObject().getDescription()).isEqualTo("alternative");
-        verify(monitor).info(contains("skipped extensions: " + DefaultFeatureExtension.NAME));
+        verify(monitor).debug(contains("skipped extensions: " + DefaultFeatureExtension.NAME));
     }
 
     @Test
