@@ -28,6 +28,8 @@ creating secrets the EDC should consume.
 | edc.vault.hashicorp.health.check.standby.ok          | Specifies if a vault in standby is healthy. This is useful when Vault is behind a non-configurable load balancer |           | `false`          |
 | edc.vault.hashicorp.api.secret.path                  | Path to the [secret api](https://www.vaultproject.io/api-docs/secret/kv/kv-v1)                                   |           | `/v1/secret`     |
 | edc.vault.hashicorp.api.health.check.path            | Path to the [health api](https://www.vaultproject.io/api-docs/system/health)                                     |           | `/v1/sys/health` |
+| edc.vault.hashicorp.folder                           | Folder of the default partition's secrets, inside the secret path                                                |           |                  |
+| edc.vault.hashicorp.allowfallback                    | Serve participant contexts without their own vault configuration from the default partition (see [Vault partitions](#vault-partitions)) |           | `true`           |
 
 (*) Exactly one authentication mechanism must be configured: either a static `edc.vault.hashicorp.token`, or token
 exchange (`edc.vault.hashicorp.auth.tokenexchange.url`). Both may be combined, in which case the static token is used for
@@ -44,6 +46,40 @@ The extension supports two ways of obtaining a Vault token:
   (`v1/auth/jwt/login`, role `edc.vault.hashicorp.auth.jwt.role`). For named vault partitions the participant context id
   is used as the exchange `resource`, so the issued Vault token is scoped to that participant. The resulting Vault token
   is cached until shortly before it expires.
+
+## Vault partitions
+
+In a runtime that hosts several participant contexts, each participant context can have its own vault partition. Its
+settings are the `edc.vault.hashicorp.config` private entry of the participant context configuration, a JSON object:
+
+```json
+{
+  "config": {
+    "vaultUrl": "https://vault.example.com",
+    "secretPath": "v1/participants",
+    "folderPath": "participant-1"
+  }
+}
+```
+
+The secrets of that participant context are then stored under `<secretPath>/data/<folderPath>/`. A participant context
+without `edc.vault.hashicorp.config` uses the default partition, which is configured by the runtime settings above,
+unless `edc.vault.hashicorp.allowfallback` is `false`: its vault operations then fail.
+
+### Isolation between partitions
+
+The `folderPath` of a partition only tells the connector where to read and write its secrets. What a partition can
+actually reach is decided by Vault, through the policies of the token the connector authenticates with. To isolate the
+participant contexts from each other and from the runtime:
+
+- configure token exchange (see [Authentication](#authentication)), so that each named partition authenticates with a
+  token issued for its participant context, and attach policies to the JWT auth role (`edc.vault.hashicorp.auth.jwt.role`)
+  that only allow the participant's own folder;
+- set `edc.vault.hashicorp.allowfallback=false`, so that a participant context without its own vault configuration is
+  not served from the default partition.
+
+With static token authentication only, all partitions use the same token, so each of them can reach every secret that
+token can read.
 
 ## Health Check
 
