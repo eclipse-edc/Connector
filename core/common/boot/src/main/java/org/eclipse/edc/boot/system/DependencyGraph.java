@@ -69,30 +69,21 @@ public class DependencyGraph {
      * <em>Dependent</em> extensions (i.e. those who <em>express</em> a dependency) are sorted first, providing extensions (i.e. those
      * who <em>provide</em> a dependency) are sorted last.
      * <p>
-     * Extensions that are bound to a feature that is not selected by the configuration are removed before the graph is
-     * built, see {@link FeatureFilter}.
-     * <p>
-     * This factory method does not throw any exception except a {@link CyclicDependencyException} and an
-     * {@link org.eclipse.edc.spi.EdcException} if a feature is configured with an unknown value, please check
-     * {@link DependencyGraph#isValid()} if the graph is valid.
+     * This factory method does not throw any exception except a {@link CyclicDependencyException}, please check {@link DependencyGraph#isValid()} if the graph is valid.
      *
      * @param context    An instance of the (fully-initialized) {@link ServiceExtensionContext} which is used to resolve services and configuration.
      * @param extensions A list of {@link ServiceExtension} instances that were picked up by the {@link ServiceLocator}
      * @return A list of {@link InjectionContainer}s that are sorted topologically according to their dependencies.
      * @throws CyclicDependencyException when there is a dependency cycle
-     * @throws org.eclipse.edc.spi.EdcException when a feature key is configured with a value that no extension declares
      * @see TopologicalSort
      * @see InjectionContainer
      */
     public static DependencyGraph of(ServiceExtensionContext context, List<ServiceExtension> extensions) {
         var injectionPointScanner = new InjectionPointScanner();
 
-        // extensions bound to a feature that is not selected behave as if they were not on the classpath
-        var loadedExtensions = FeatureFilter.filter(context, extensions);
-
         Map<Class<?>, ServiceProvider> defaultServiceProviders = new HashMap<>();
         Map<Class<?>, List<InjectionContainer<ServiceExtension>>> dependencyMap = new HashMap<>();
-        var injectionContainers = loadedExtensions.stream()
+        var injectionContainers = extensions.stream()
                 .map(it -> new InjectionContainer<>(it, new HashSet<>(), new ArrayList<>()))
                 .peek(injectionContainer -> {
                     getProvidedFeatures(injectionContainer.getInjectionTarget())

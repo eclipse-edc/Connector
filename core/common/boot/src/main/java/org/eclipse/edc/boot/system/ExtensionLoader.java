@@ -83,11 +83,15 @@ public class ExtensionLoader {
     }
 
     /**
-     * Loads and orders the service extensions.
+     * Loads, filters and orders the service extensions. Extensions that are bound to a feature that is not selected by
+     * the configuration are removed before the dependency graph is built, see {@link FeatureFilter}.
+     *
+     * @throws EdcException if a feature key is configured with a value that no extension declares.
      */
     public DependencyGraph buildDependencyGraph(ServiceExtensionContext context) {
-        var serviceExtensions = loadExtensions(ServiceExtension.class, true);
-        return DependencyGraph.of(context, serviceExtensions);
+        var allExtensions = loadExtensions(ServiceExtension.class, true);
+        var featureBoundExtensions = FeatureFilter.filter(context, allExtensions);
+        return DependencyGraph.of(context, featureBoundExtensions);
     }
 
     /**

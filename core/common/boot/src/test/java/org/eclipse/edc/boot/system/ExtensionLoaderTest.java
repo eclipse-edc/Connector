@@ -19,6 +19,9 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import org.eclipse.edc.boot.monitor.MultiplexingMonitor;
 import org.eclipse.edc.boot.system.injection.InjectionContainer;
+import org.eclipse.edc.boot.system.testextensions.AlternativeFeatureExtension;
+import org.eclipse.edc.boot.system.testextensions.DefaultFeatureExtension;
+import org.eclipse.edc.boot.system.testextensions.RequiredDependentExtension;
 import org.eclipse.edc.boot.util.CyclicDependencyException;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -29,6 +32,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.MonitorExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -41,6 +45,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -248,6 +253,35 @@ class ExtensionLoaderTest {
         var services = loader.buildDependencyGraph(context).getInjectionContainers();
         assertThat(services).extracting(InjectionContainer::getInjectionTarget).containsExactly(providingExtension, depending);
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("Extensions bound to a feature that is not selected are removed before the graph is built")
+    void buildDependencyGraph_shouldFilterByFeature() {
+        var dependent = new RequiredDependentExtension();
+        var alternative = new AlternativeFeatureExtension();
+        ServiceExtensionContext featureContext = mock();
+        when(featureContext.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(DefaultFeatureExtension.FEATURE_KEY, "alternative")));
+        when(featureContext.getMonitor()).thenReturn(mock());
+        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean()))
+                .thenReturn(mutableListOf(dependent, new DefaultFeatureExtension(), alternative));
+
+        var graph = loader.buildDependencyGraph(featureContext);
+
+        assertThat(graph.isValid()).isTrue();
+        assertThat(graph.getExtensions()).containsExactly(alternative, dependent);
+    }
+
+    @Test
+    @DisplayName("A service provided only by an extension that is not loaded is unsatisfied")
+    void buildDependencyGraph_providerNotLoaded_shouldBeInvalid() {
+        ServiceExtensionContext featureContext = mock();
+        when(featureContext.getConfig()).thenReturn(ConfigFactory.empty());
+        when(featureContext.getMonitor()).thenReturn(mock());
+        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean()))
+                .thenReturn(mutableListOf(new RequiredDependentExtension(), new AlternativeFeatureExtension()));
+
+        assertThat(loader.buildDependencyGraph(featureContext).isValid()).isFalse();
     }
 
     @Test
