@@ -16,16 +16,25 @@
 package org.eclipse.edc.boot.system.runtime;
 
 import org.eclipse.edc.boot.system.ServiceLocator;
+import org.eclipse.edc.boot.system.testextensions.AlternativeFeatureExtension;
+import org.eclipse.edc.boot.system.testextensions.DefaultFeatureExtension;
+import org.eclipse.edc.boot.system.testextensions.RequiredDependentExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ConfigurationExtension;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.boot.system.TestFunctions.mutableListOf;
@@ -116,6 +125,41 @@ public class BaseRuntimeTest {
 
         verify(monitor).severe(contains("is required by"));
         verify(monitor, never()).info(contains(" ready"));
+    }
+
+    @Test
+    void shouldLoadOnlyExtensionsOfSelectedFeature() {
+        var dependent = new RequiredDependentExtension();
+        when(serviceLocator.loadImplementors(ConfigurationExtension.class, false))
+                .thenReturn(List.of(configurationExtension(Map.of(DefaultFeatureExtension.FEATURE_KEY, "alternative"))));
+        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean()))
+                .thenReturn(mutableListOf(dependent, new DefaultFeatureExtension(), new AlternativeFeatureExtension()));
+
+        runtime.boot(true);
+
+        assertThat(dependent.getTestObject().getDescription()).isEqualTo("alternative");
+        verify(monitor).info(contains("skipped extensions: " + DefaultFeatureExtension.NAME));
+    }
+
+    @Test
+    void shouldFailBoot_whenFeatureValueUnknown() {
+        when(serviceLocator.loadImplementors(ConfigurationExtension.class, false))
+                .thenReturn(List.of(configurationExtension(Map.of(DefaultFeatureExtension.FEATURE_KEY, "unknown"))));
+        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean()))
+                .thenReturn(mutableListOf(new DefaultFeatureExtension(), new AlternativeFeatureExtension()));
+
+        assertThatThrownBy(() -> runtime.boot(true))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining(DefaultFeatureExtension.FEATURE_KEY);
+    }
+
+    private ConfigurationExtension configurationExtension(Map<String, String> settings) {
+        return new ConfigurationExtension() {
+            @Override
+            public Config getConfig() {
+                return ConfigFactory.fromMap(settings);
+            }
+        };
     }
 
     @NotNull
