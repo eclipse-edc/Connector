@@ -29,8 +29,10 @@ import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import static org.eclipse.edc.connector.store.sql.participantcontext.config.SqlParticipantContextConfigStoreExtension.NAME;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.FEATURE_KEY;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.POSTGRES;
 
-@Extension(value = NAME)
+@Extension(value = NAME, featureKey = FEATURE_KEY, featureValue = POSTGRES)
 public class SqlParticipantContextConfigStoreExtension implements ServiceExtension {
     public static final String NAME = "ParticipantContextConfig SQL Store Extension";
 

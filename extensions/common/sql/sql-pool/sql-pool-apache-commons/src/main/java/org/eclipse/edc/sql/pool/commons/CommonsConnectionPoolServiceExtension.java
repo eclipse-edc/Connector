@@ -40,8 +40,10 @@ import java.util.function.Supplier;
 import javax.sql.DataSource;
 
 import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.FEATURE_KEY;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.POSTGRES;
 
-@Extension(value = CommonsConnectionPoolServiceExtension.NAME)
+@Extension(value = CommonsConnectionPoolServiceExtension.NAME, featureKey = FEATURE_KEY, featureValue = POSTGRES)
 public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
 
     public static final String NAME = "Commons Connection Pool";

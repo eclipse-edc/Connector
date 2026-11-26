@@ -29,10 +29,13 @@ import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import static org.eclipse.edc.sql.SqlPersistenceFeature.FEATURE_KEY;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.POSTGRES;
+
 /**
  * Provides an SQL-backed implementation of {@link DcpScopeStore}.
  */
-@Extension(value = SqlDcpScopeStoreExtension.NAME)
+@Extension(value = SqlDcpScopeStoreExtension.NAME, featureKey = FEATURE_KEY, featureValue = POSTGRES)
 public class SqlDcpScopeStoreExtension implements ServiceExtension {
 
     public static final String NAME = "Sql DCP Scope Store";

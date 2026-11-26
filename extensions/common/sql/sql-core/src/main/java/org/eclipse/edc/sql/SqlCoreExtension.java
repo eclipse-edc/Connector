@@ -24,9 +24,11 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import static org.eclipse.edc.sql.SqlPersistenceFeature.FEATURE_KEY;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.POSTGRES;
 import static org.eclipse.edc.sql.SqlQueryExecutorConfiguration.DEFAULT_EDC_SQL_FETCH_SIZE;
 
-@Extension(value = SqlCoreExtension.NAME)
+@Extension(value = SqlCoreExtension.NAME, featureKey = FEATURE_KEY, featureValue = POSTGRES)
 public class SqlCoreExtension implements ServiceExtension {
 
     public static final String NAME = "SQL Core";

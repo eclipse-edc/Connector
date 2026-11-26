@@ -29,8 +29,11 @@ import org.eclipse.edc.validator.registration.spi.store.SchemaValidatorRegistrat
 import org.eclipse.edc.validator.registration.store.sql.schema.SchemaValidatorRegistrationStoreStatements;
 import org.eclipse.edc.validator.registration.store.sql.schema.postgres.PostgresDialectStatements;
 
+import static org.eclipse.edc.sql.SqlPersistenceFeature.FEATURE_KEY;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.POSTGRES;
+
 @Provides(SchemaValidatorRegistrationStore.class)
-@Extension("SQL schema validator registration store")
+@Extension(value = "SQL schema validator registration store", featureKey = FEATURE_KEY, featureValue = POSTGRES)
 public class SqlSchemaValidatorRegistrationStoreExtension implements ServiceExtension {
 
     @Setting(description = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE, key = "edc.sql.store.schemavalidation.datasource")

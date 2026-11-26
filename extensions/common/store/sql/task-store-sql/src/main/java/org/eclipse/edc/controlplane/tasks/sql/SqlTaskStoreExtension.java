@@ -29,8 +29,10 @@ import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import static org.eclipse.edc.controlplane.tasks.sql.SqlTaskStoreExtension.NAME;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.FEATURE_KEY;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.POSTGRES;
 
-@Extension(NAME)
+@Extension(value = NAME, featureKey = FEATURE_KEY, featureValue = POSTGRES)
 public class SqlTaskStoreExtension implements ServiceExtension {
 
     public static final String NAME = "Tasks SQL Store Extension";

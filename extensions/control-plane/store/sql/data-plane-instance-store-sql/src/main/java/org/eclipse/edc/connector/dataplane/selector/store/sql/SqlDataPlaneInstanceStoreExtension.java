@@ -30,11 +30,14 @@ import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import static org.eclipse.edc.sql.SqlPersistenceFeature.FEATURE_KEY;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.POSTGRES;
+
 /**
  * Extensions that expose an implementation of {@link DataPlaneInstanceStore} that uses SQL as backend storage
  */
 @Provides(DataPlaneInstanceStore.class)
-@Extension(value = SqlDataPlaneInstanceStoreExtension.NAME)
+@Extension(value = SqlDataPlaneInstanceStoreExtension.NAME, featureKey = FEATURE_KEY, featureValue = POSTGRES)
 public class SqlDataPlaneInstanceStoreExtension implements ServiceExtension {
     public static final String NAME = "Sql Data Plane Instance Store";
 
