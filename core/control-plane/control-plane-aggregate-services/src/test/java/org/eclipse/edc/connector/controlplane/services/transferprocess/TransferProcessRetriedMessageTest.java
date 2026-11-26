@@ -24,11 +24,13 @@ import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolToke
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
 import org.eclipse.edc.connector.controlplane.transfer.processors.TransferProcessorsImpl;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -62,6 +64,9 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING_REQUESTED;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentMatchers.any;
@@ -103,6 +108,8 @@ class TransferProcessRetriedMessageTest {
         PolicyArchive policyArchive = mock();
         when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().assigner("provider").assignee("consumer").build());
 
+        DataFlowController dataFlowController = mock();
+        when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
         ProtocolRemoteMessageDispatcher dispatcher = mock();
         when(dispatcher.dispatch(any(), any(), any())).thenAnswer(i -> deliver(i.getArgument(2)));
 
@@ -110,7 +117,7 @@ class TransferProcessRetriedMessageTest {
                 tokenValidator, new TransferProcessObservableImpl(), mock(), mock(), mock(), mock());
         var retryProcessFactory = new EntityRetryProcessFactory(mock(), Clock.systemUTC(),
                 new EntityRetryProcessConfiguration(1, () -> new ExponentialWaitStrategy(0L)));
-        providerProcessors = new TransferProcessorsImpl(policyArchive, retryProcessFactory, mock(), dataAddressStore,
+        providerProcessors = new TransferProcessorsImpl(policyArchive, retryProcessFactory, dataFlowController, dataAddressStore,
                 new TransferProcessObservableImpl(), store, mock(), mock(), mock(), dispatcher);
 
         store.save(transferProcess(CONSUMER_PID, PROVIDER_PID, CONSUMER, STARTED.code(), consumer.getId()));
@@ -166,6 +173,64 @@ class TransferProcessRetriedMessageTest {
         assertThat(store.findById(consumerPid).stateAsString()).isEqualTo(STARTUP_REQUESTED.name());
     }
 
+    @Test
+    void shouldComplete_whenCompletionArrivesWhileTheConsumerIsStartingUp() {
+        var consumerPid = "startup-consumerPid";
+        var providerPid = "startup-providerPid";
+        // the consumer accepted the start, but has not notified its data plane yet, when the provider completes
+        store.save(transferProcess(consumerPid, providerPid, CONSUMER, STARTUP_REQUESTED.code(), consumer.getId()));
+        store.save(transferProcess(providerPid, consumerPid, PROVIDER, COMPLETING.code(), "provider-context"));
+
+        providerProcessors.processCompleting(store.findById(providerPid)).join();
+
+        // the consumer answers that it isn't ready yet: the provider keeps on completing instead of terminating
+        assertThat(store.findById(providerPid).stateAsString()).describedAs("provider error: %s", store.findById(providerPid).getErrorDetail()).isEqualTo(COMPLETING.name());
+        assertThat(store.findById(consumerPid).stateAsString()).isEqualTo(STARTUP_REQUESTED.name());
+
+        // then the consumer finishes its start-up
+        transitionStarted(consumerPid);
+
+        // and the provider's next attempt is accepted
+        providerProcessors.processCompleting(store.findById(providerPid)).join();
+
+        assertThat(store.findById(providerPid).stateAsString())
+                .describedAs("provider error: %s", store.findById(providerPid).getErrorDetail())
+                .isEqualTo(COMPLETED.name());
+        assertThat(store.findById(consumerPid).stateAsString()).isEqualTo(COMPLETING_REQUESTED.name());
+    }
+
+    @Test
+    void shouldSuspend_whenSuspensionArrivesWhileTheConsumerIsStartingUp() {
+        var consumerPid = "startup-consumerPid";
+        var providerPid = "startup-providerPid";
+        // the consumer accepted the start, but has not notified its data plane yet, when the provider suspends
+        store.save(transferProcess(consumerPid, providerPid, CONSUMER, STARTUP_REQUESTED.code(), consumer.getId()));
+        store.save(transferProcess(providerPid, consumerPid, PROVIDER, SUSPENDING.code(), "provider-context"));
+
+        providerProcessors.processSuspending(store.findById(providerPid)).join();
+
+        // the consumer answers that it isn't ready yet: the provider keeps on suspending instead of terminating
+        assertThat(store.findById(providerPid).stateAsString()).describedAs("provider error: %s", store.findById(providerPid).getErrorDetail()).isEqualTo(SUSPENDING.name());
+        assertThat(store.findById(consumerPid).stateAsString()).isEqualTo(STARTUP_REQUESTED.name());
+
+        // then the consumer finishes its start-up
+        transitionStarted(consumerPid);
+
+        // and the provider's next attempt is accepted
+        providerProcessors.processSuspending(store.findById(providerPid)).join();
+
+        assertThat(store.findById(providerPid).stateAsString())
+                .describedAs("provider error: %s", store.findById(providerPid).getErrorDetail())
+                .isEqualTo(SUSPENDED.name());
+        assertThat(store.findById(consumerPid).stateAsString()).isEqualTo(SUSPENDING_REQUESTED.name());
+    }
+
+    private void transitionStarted(String transferProcessId) {
+        var transferProcess = store.findById(transferProcessId);
+        transferProcess.transitionStarted();
+        store.save(transferProcess);
+    }
+
     /**
      * Delivers the provider's messages to the consumer's protocol service, and maps its failures like
      * {@code DspHttpRemoteMessageDispatcherImpl} maps the HTTP status codes the counter-party answers with.
@@ -179,6 +244,8 @@ class TransferProcessRetriedMessageTest {
             result = consumerService.notifyCompleted(consumer, completion, token());
         } else if (message instanceof TransferStartMessage start) {
             result = consumerService.notifyStarted(consumer, start, token());
+        } else if (message instanceof TransferSuspensionMessage suspension) {
+            result = consumerService.notifySuspended(consumer, suspension, token());
         } else {
             throw new IllegalArgumentException("unexpected message " + message.getClass().getSimpleName());
         }
