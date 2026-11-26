@@ -24,9 +24,11 @@ import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProviderFacto
 import tools.jackson.databind.json.JsonMapper;
 
 import static java.util.Objects.requireNonNull;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.FEATURE_KEY;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.FEATURE_VALUE;
 import static tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 
-@Extension(value = HashicorpVaultAuthenticationExtension.NAME)
+@Extension(value = HashicorpVaultAuthenticationExtension.NAME, featureKey = FEATURE_KEY, featureValue = FEATURE_VALUE)
 public class HashicorpVaultAuthenticationExtension implements ServiceExtension {
 
     public static final String NAME = "Hashicorp Vault Authentication";

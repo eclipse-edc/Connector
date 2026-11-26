@@ -25,9 +25,11 @@ import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
 
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.FEATURE_KEY;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension.FEATURE_VALUE;
 
 @Requires(HealthCheckService.class)
-@Extension(value = HashicorpVaultHealthExtension.NAME)
+@Extension(value = HashicorpVaultHealthExtension.NAME, featureKey = FEATURE_KEY, featureValue = FEATURE_VALUE)
 public class HashicorpVaultHealthExtension implements ServiceExtension {
 
     public static final String NAME = "Hashicorp Vault Health";

@@ -69,6 +69,7 @@ public class VaultEndToEndExtension implements BeforeAllCallback, AfterAllCallba
 
     public Config configFor() {
         Map<String, String> settings = Map.of(
+                "edc.feature.vault", "hashicorp",
                 "edc.vault.hashicorp.url", getVaultUrl(),
                 "edc.vault.hashicorp.token", TOKEN
         );
