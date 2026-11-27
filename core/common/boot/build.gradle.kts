@@ -20,7 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:runtime-spi"))
 
-    testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:junit-base"))
 }
 
 

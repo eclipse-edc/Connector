@@ -25,7 +25,6 @@ dependencies {
     api(libs.bundles.jackson)
     api(libs.jackson.annotations)
     api(libs.jackson.databind)
-    api(libs.jetbrains.annotations)
     api(libs.okhttp)
     api(libs.failsafe.okhttp)
     api(libs.jakarta.rsApi)
