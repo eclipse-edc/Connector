@@ -19,6 +19,7 @@ import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.spi.telemetry.ObservabilityFeature;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;
@@ -35,6 +36,7 @@ public abstract class BaseTelemetryEndToEndTest {
 
     private static final Supplier<Config> CONFIGURATION_PROVIDER = () -> ConfigFactory.fromMap(Map.ofEntries(
             entry("edc.participant.id", "test-participant"),
+            entry(ObservabilityFeature.FEATURE_KEY, ObservabilityFeature.ENABLED),
             entry("web.http.path", "/"),
             entry("web.http.port", String.valueOf(DEFAULT_PORT)),
             entry("web.http.protocol.path", "/protocol"),

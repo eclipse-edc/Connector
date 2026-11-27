@@ -30,8 +30,11 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
+import static org.eclipse.edc.spi.telemetry.ObservabilityFeature.ENABLED;
+import static org.eclipse.edc.spi.telemetry.ObservabilityFeature.FEATURE_KEY;
+
 @Provides({ EventListener.class, ExecutorInstrumentation.class, MeterRegistry.class })
-@Extension(value = MicrometerExtension.NAME)
+@Extension(value = MicrometerExtension.NAME, featureKey = FEATURE_KEY, featureValue = ENABLED)
 public class MicrometerExtension implements ServiceExtension {
 
     @Setting

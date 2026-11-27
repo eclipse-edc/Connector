@@ -38,6 +38,10 @@ dependencies {
 
     // edc.feature.events=nats
     api(project(":extensions:common:events:events-nats"))
+
+    // edc.feature.observability=true selects the Micrometer metrics. The OpenTelemetry monitor of this BOM is not bound
+    // to a feature: it does not emit anything unless an OpenTelemetry SDK or the OpenTelemetry Java agent is present
+    api(project(":dist:bom:controlplane-feature-observability-bom"))
 }
 
 edcBuild {

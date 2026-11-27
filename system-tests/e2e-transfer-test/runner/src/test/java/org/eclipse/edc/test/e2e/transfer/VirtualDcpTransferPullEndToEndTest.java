@@ -590,7 +590,8 @@ class VirtualDcpTransferPullEndToEndTest {
 
     /**
      * Runs the tests against the all-in-one BOM with every feature selected: the task-based state machine on NATS, the
-     * SQL stores, the HashiCorp Vault and the NATS event publishing.
+     * SQL stores, the HashiCorp Vault, the NATS event publishing and metrics. Only the NKey authentication is not
+     * selected, because the NATS server of these tests does not require it.
      */
     @Nested
     @PostgresqlIntegrationTest
@@ -650,6 +651,7 @@ class VirtualDcpTransferPullEndToEndTest {
                 .configurationProvider(NATS_EXTENSION::configFor)
                 .configurationProvider(VAULT_END_TO_END_EXTENSION::configFor)
                 .configurationProvider(AllInOne::natsEventsConfiguration)
+                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.feature.observability", "true")))
                 .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .paramProvider(ManagementApiClientV5.class, (ctx) -> ManagementApiClientV5.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
                 .paramProvider(Participants.class, (ctx) -> participants(ctx, CREDENTIAL_SERVICE))

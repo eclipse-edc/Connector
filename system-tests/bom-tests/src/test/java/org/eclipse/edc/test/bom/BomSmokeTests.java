@@ -27,7 +27,9 @@ import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.SignatureService;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.spi.telemetry.ObservabilityFeature;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.junit.jupiter.api.AfterAll;
@@ -181,7 +183,7 @@ public class BomSmokeTests {
 
     /**
      * The all-in-one BOM with every feature enabled: SQL persistence, the HashiCorp Vault, the task-based state machine on
-     * NATS, NATS event publishing and NKey authentication of the NATS connections.
+     * NATS, NATS event publishing, NKey authentication of the NATS connections and metrics.
      */
     @Nested
     @EndToEndTest
@@ -237,6 +239,8 @@ public class BomSmokeTests {
 
                                     put("edc.feature.nats.auth", "nkey");
                                     put("edc.nats.auth.nkey.seed.path", nkeySeedFile.toString());
+
+                                    put(ObservabilityFeature.FEATURE_KEY, ObservabilityFeature.ENABLED);
                                 }})
                         )
         );
@@ -294,6 +298,9 @@ public class BomSmokeTests {
             assertThat(runtime.getService(Options.class)).isNotNull();
             // event publishing and the task-based state machine created their streams
             assertThat(natsStreams()).contains(EVENTS_STREAM, "cn-stream", "tp-stream");
+            // observability: the Micrometer extension replaces the default executor instrumentation. Micrometer itself
+            // must not be on the classpath of this test, otherwise its classes are not loaded by the runtime's classloader
+            assertThat(runtime.getService(ExecutorInstrumentation.class).getClass().getSimpleName()).contains("Micrometer");
         }
 
         private List<String> natsStreams() {
@@ -351,6 +358,8 @@ public class BomSmokeTests {
             assertThatThrownBy(() -> runtime.getService(QueryExecutor.class)).isInstanceOf(EdcException.class);
             assertThatThrownBy(() -> runtime.getService(SignatureService.class)).isInstanceOf(EdcException.class);
             assertThatThrownBy(() -> runtime.getService(Options.class)).isInstanceOf(EdcException.class);
+            // no metrics
+            assertThat(runtime.getService(ExecutorInstrumentation.class).getClass().getSimpleName()).doesNotContain("Micrometer");
         }
     }
 
