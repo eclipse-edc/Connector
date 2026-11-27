@@ -149,13 +149,17 @@ not on the distribution. In particular, a test that is meant to run against Post
 `edc.feature.persistence=postgres` runs against the in-memory stores and may still pass. Extensions that are not bound
 to a feature, including all downstream extensions, are not affected.
 
-In order to make this backwards compatible, the `loadAsDefault` attribute must reflect the current behaviour, so it is
-`true` for `edc.feature.statemachine=task`. That way, it's more of an explicit opt-out than an opt-in.
+The `loadAsDefault` attribute cannot make these bindings backwards compatible:
 
-This does not apply to `edc.feature.persistence` and `edc.feature.vault`: they have no value for the in-memory
-implementations, so with `loadAsDefault=true` the SQL extensions, or the HashiCorp Vault extensions respectively, could
-not be opted out of, which is required for an all-in-one distribution. Their `loadAsDefault` is therefore `false`, as
-listed in the table above.
+- `edc.feature.persistence` and `edc.feature.vault` have no value for the in-memory implementations, so with
+  `loadAsDefault=true` the SQL extensions, or the HashiCorp Vault extensions respectively, could not be opted out of,
+  which is required for an all-in-one distribution.
+- `edc.feature.statemachine` has two values, but only one of them can be the default: if both were loaded by default,
+  an all-in-one distribution that does not configure the feature key would run both state machines. The default is
+  `polling`, because it does not require additional infrastructure. Leaving the feature key out is therefore the same
+  as setting it to `polling`.
+
+The values of `loadAsDefault` are therefore the ones listed in the table above.
 
 ### Affected components
 

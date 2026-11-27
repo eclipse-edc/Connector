@@ -18,6 +18,7 @@ import io.nats.client.Options;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
 import org.eclipse.edc.controlplane.tasks.TaskService;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
@@ -32,7 +33,13 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
 
+import static org.eclipse.edc.controlplane.StateMachineFeature.FEATURE_KEY;
+import static org.eclipse.edc.controlplane.StateMachineFeature.TASK;
+
+@Extension(value = NatsContractNegotiationSubscriberExtension.NAME, featureKey = FEATURE_KEY, featureValue = TASK)
 public class NatsContractNegotiationSubscriberExtension implements ServiceExtension {
+
+    public static final String NAME = "NATS Contract Negotiation Task Subscriber Extension";
 
     @Configuration
     private NatsSubscriberConfig subscriberConfig;

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
+import org.eclipse.edc.controlplane.StateMachineFeature;
 import org.eclipse.edc.junit.utils.Endpoints;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -62,6 +63,9 @@ public interface Runtimes {
 
         static Config config() {
             return ConfigFactory.fromMap(Map.of(
+                    // the virtual control plane only contains the task-based state machine, which is not loaded by default.
+                    // Runtimes without any state machine extension ignore the key.
+                    StateMachineFeature.FEATURE_KEY, StateMachineFeature.TASK,
                     "edc.participant.id", "anonymous",
                     "web.http.protocol.virtual", "true",
                     "edc.dataspace.enable.profiles.all", "true")

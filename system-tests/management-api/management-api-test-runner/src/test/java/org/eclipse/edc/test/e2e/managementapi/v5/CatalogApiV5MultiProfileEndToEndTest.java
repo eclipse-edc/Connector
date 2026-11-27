@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractD
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.controlplane.StateMachineFeature;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
@@ -269,6 +270,7 @@ public class CatalogApiV5MultiProfileEndToEndTest {
                             "edc.dataspace.profiles.dsp2025_2.jsonld.context.urls", "https://w3id.org/dspace/2025/1/context.jsonld"
             ));
             config.put("web.http.protocol.virtual", "true");
+            config.put(StateMachineFeature.FEATURE_KEY, StateMachineFeature.TASK);
             return ConfigFactory.fromMap(config);
         }
     }

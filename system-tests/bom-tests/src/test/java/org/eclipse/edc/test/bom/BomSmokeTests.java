@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.test.bom;
 
+import org.eclipse.edc.controlplane.StateMachineFeature;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
@@ -121,6 +122,8 @@ public class BomSmokeTests {
                                     put("edc.iam.oauth2.jwks.url", "https://example.com/jwks");
                                     put("edc.iam.oauth2.issuer", "test-issuer");
                                     put("web.http.protocol.virtual", "true");
+                                    // this BOM only contains the task-based state machine, which is not loaded by default
+                                    put(StateMachineFeature.FEATURE_KEY, StateMachineFeature.TASK);
                                 }})
                         )
         );

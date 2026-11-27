@@ -18,6 +18,7 @@ import io.nats.client.JetStream;
 import io.nats.client.JetStreamManagement;
 import io.nats.client.Nats;
 import io.nats.client.api.StorageType;
+import org.eclipse.edc.controlplane.StateMachineFeature;
 import org.eclipse.edc.nats.NatsFunctions;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -123,6 +124,7 @@ public class NatsEndToEndExtension implements BeforeAllCallback, AfterAllCallbac
 
     public Config configFor() {
         Map<String, String> settings = Map.of(
+                StateMachineFeature.FEATURE_KEY, StateMachineFeature.TASK,
                 "edc.nats.cn.subscriber.url", getNatsUrl(),
                 "edc.nats.cn.subscriber.autocreate", "true",
                 "edc.nats.cn.publisher.url", getNatsUrl(),

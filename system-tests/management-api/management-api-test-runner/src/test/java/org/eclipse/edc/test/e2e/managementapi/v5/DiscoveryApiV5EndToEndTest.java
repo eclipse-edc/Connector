@@ -17,6 +17,7 @@ package org.eclipse.edc.test.e2e.managementapi.v5;
 import jakarta.json.JsonArray;
 import org.eclipse.edc.api.authentication.OauthServer;
 import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
+import org.eclipse.edc.controlplane.StateMachineFeature;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
@@ -207,6 +208,7 @@ public class DiscoveryApiV5EndToEndTest {
                             "edc.dataspace.profiles.dsp2025_2.jsonld.context.urls", "https://w3id.org/dspace/2025/1/context.jsonld"
             ));
             config.put("web.http.protocol.virtual", "true");
+            config.put(StateMachineFeature.FEATURE_KEY, StateMachineFeature.TASK);
             return ConfigFactory.fromMap(config);
         }
     }

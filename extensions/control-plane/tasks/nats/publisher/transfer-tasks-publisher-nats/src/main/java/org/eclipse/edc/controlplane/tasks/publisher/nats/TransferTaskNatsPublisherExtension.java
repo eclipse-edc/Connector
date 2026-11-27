@@ -21,6 +21,7 @@ import org.eclipse.edc.controlplane.tasks.TaskObservable;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.eclipse.edc.nats.tasks.publisher.NatsTaskPublisher;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
@@ -31,7 +32,13 @@ import org.eclipse.edc.spi.types.TypeManager;
 
 import java.time.Clock;
 
+import static org.eclipse.edc.controlplane.StateMachineFeature.FEATURE_KEY;
+import static org.eclipse.edc.controlplane.StateMachineFeature.TASK;
+
+@Extension(value = TransferTaskNatsPublisherExtension.NAME, featureKey = FEATURE_KEY, featureValue = TASK)
 public class TransferTaskNatsPublisherExtension implements ServiceExtension {
+
+    public static final String NAME = "NATS Transfer Task Publisher Extension";
 
     @Inject
     private TypeManager typeManager;
