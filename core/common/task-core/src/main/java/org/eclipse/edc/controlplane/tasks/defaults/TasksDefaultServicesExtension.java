@@ -21,10 +21,12 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
+import static org.eclipse.edc.controlplane.StateMachineFeature.FEATURE_KEY;
+import static org.eclipse.edc.controlplane.StateMachineFeature.TASK;
 import static org.eclipse.edc.controlplane.tasks.defaults.TasksDefaultServicesExtension.NAME;
 
 
-@Extension(NAME)
+@Extension(value = NAME, featureKey = FEATURE_KEY, featureValue = TASK)
 public class TasksDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Tasks Default Services";

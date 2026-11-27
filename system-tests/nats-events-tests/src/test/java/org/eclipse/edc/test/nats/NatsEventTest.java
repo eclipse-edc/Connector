@@ -73,6 +73,7 @@ public class NatsEventTest {
                                 put("edc.participant.did", "did:web:someone");
 
                                 // nats-specific config
+                                put("edc.feature.events", "nats");
                                 put("edc.events.nats.url", "nats://localhost:" + nats.getMappedPort(4222));
                                 put("edc.events.nats.stream", STREAM_NAME);
                                 put("edc.events.nats.stream.create", "true");

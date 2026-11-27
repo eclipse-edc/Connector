@@ -38,8 +38,11 @@ import org.eclipse.edc.statemachine.StateMachineLivenessProvider;
 
 import java.time.Clock;
 
+import static org.eclipse.edc.controlplane.StateMachineFeature.FEATURE_KEY;
+import static org.eclipse.edc.controlplane.StateMachineFeature.POLLING;
+
 @Provides({ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class})
-@Extension(value = ContractManagerExtension.NAME)
+@Extension(value = ContractManagerExtension.NAME, featureKey = FEATURE_KEY, featureValue = POLLING, loadAsDefault = true)
 public class ContractManagerExtension implements ServiceExtension {
 
     public static final String NAME = "Contract Manager";

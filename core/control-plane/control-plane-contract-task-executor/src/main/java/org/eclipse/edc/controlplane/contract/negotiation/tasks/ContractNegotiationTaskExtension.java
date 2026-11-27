@@ -34,9 +34,11 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
 
+import static org.eclipse.edc.controlplane.StateMachineFeature.FEATURE_KEY;
+import static org.eclipse.edc.controlplane.StateMachineFeature.TASK;
 import static org.eclipse.edc.controlplane.contract.negotiation.tasks.ContractNegotiationTaskExtension.NAME;
 
-@Extension(NAME)
+@Extension(value = NAME, featureKey = FEATURE_KEY, featureValue = TASK)
 public class ContractNegotiationTaskExtension implements ServiceExtension {
 
     public static final String NAME = "Contract Negotiation Task Extension";
