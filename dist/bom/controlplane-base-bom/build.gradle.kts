@@ -21,7 +21,7 @@ dependencies {
     api(project(":spi:core-spi"))
 
     // core dependencies
-    api(project(":core:common:boot"))
+    api(libs.edc.boot)
     api(project(":core:common:connector-core"))
     api(project(":core:common:runtime-core"))
     api(project(":core:common:token-core"))

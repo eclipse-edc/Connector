@@ -23,7 +23,7 @@ dependencies {
     implementation(project(":core:common:lib:core-lib"))
     implementation(libs.jsonschema)
 
-    testImplementation(project(":core:common:junit-base"))
+    testImplementation(libs.edc.junit.base)
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":spi:core-spi")))
 }

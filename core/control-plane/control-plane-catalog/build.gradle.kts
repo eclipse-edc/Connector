@@ -21,7 +21,7 @@ dependencies {
     api(project(":spi:control-plane-spi"))
 
     implementation(project(":spi:core-spi"))
-    testImplementation(project(":core:common:junit-base"))
+    testImplementation(libs.edc.junit.base)
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:common:lib:core-lib"))

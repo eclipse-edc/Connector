@@ -22,7 +22,7 @@ dependencies {
     implementation(project(":core:control-plane:lib:control-plane-lib"))
     testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(testFixtures(project(":spi:control-plane-spi")))
-    testImplementation(project(":core:common:junit-base"))
+    testImplementation(libs.edc.junit.base)
 
 }
 

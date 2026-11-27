@@ -21,11 +21,11 @@ plugins {
 dependencies {
     api(project(":spi:core-spi"))
 
-    testImplementation(project(":core:common:junit-base"))
+    testImplementation(libs.edc.junit.base)
     testImplementation(project(":core:common:lib:core-lib"))
 
     testFixturesApi(project(":core:common:junit"))
-    testFixturesImplementation(project(":core:common:junit-base"))
+    testFixturesImplementation(libs.edc.junit.base)
     testFixturesImplementation(testFixtures(project(":core:common:junit")))
     testFixturesImplementation(libs.awaitility)
 }
