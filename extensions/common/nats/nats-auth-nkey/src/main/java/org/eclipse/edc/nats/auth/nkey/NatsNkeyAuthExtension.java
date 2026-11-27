@@ -41,16 +41,25 @@ import static org.eclipse.edc.nats.auth.nkey.NatsNkeyAuthExtension.NAME;
  * <p>
  * The resulting {@link Options} are registered as a service and picked up by the NATS event publisher and the task
  * publisher/subscriber extensions, which copy them via {@link Options.Builder#Builder(Options)} and set their own
- * server URL. When no seed is configured, no service is registered and connections are made without credentials.
+ * server URL.
+ * <p>
+ * The extension is bound to the {@link #FEATURE_KEY} feature and is only loaded if it is set to {@link #FEATURE_VALUE}.
+ * Otherwise, no service is registered and connections are made without credentials. Once the extension is loaded, the
+ * path to the seed file is mandatory.
  */
-@Extension(value = NAME)
+@Extension(value = NAME, featureKey = NatsNkeyAuthExtension.FEATURE_KEY, featureValue = NatsNkeyAuthExtension.FEATURE_VALUE)
 @Provides(Options.class)
 public class NatsNkeyAuthExtension implements ServiceExtension {
     public static final String NAME = "NATS NKey Authentication Extension";
+    /**
+     * The feature key this extension is bound to. It is only loaded if the key is set to {@link #FEATURE_VALUE}.
+     */
+    public static final String FEATURE_KEY = "edc.feature.nats.auth";
+    public static final String FEATURE_VALUE = "nkey";
 
     static final String SEED_PATH_KEY = "edc.nats.auth.nkey.seed.path";
 
-    @Setting(key = SEED_PATH_KEY, required = false, description = "Path to a file containing the NKey seed used to authenticate NATS connections. When not set, connections are made without credentials.")
+    @Setting(key = SEED_PATH_KEY, description = "Path to a file containing the NKey seed used to authenticate NATS connections.")
     private String seedPath;
 
     @Inject
@@ -63,11 +72,6 @@ public class NatsNkeyAuthExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        if (seedPath == null) {
-            monitor.info("'%s' is not configured, NATS connections will not present credentials".formatted(SEED_PATH_KEY));
-            return;
-        }
-
         char[] seed;
         try {
             seed = Files.readString(Path.of(seedPath)).trim().toCharArray();

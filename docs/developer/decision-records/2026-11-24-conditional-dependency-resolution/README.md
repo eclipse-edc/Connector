@@ -106,6 +106,7 @@ The following features serve as example here:
 | `edc.feature.statemachine` | `polling`     | `TransferManagerExtension`, `ContractManagerExtension`                      | `true`          |
 | `edc.feature.statemachine` | `task`        | the task core, the task executors, the NATS task publishers and subscribers | `false`         |
 | `edc.feature.events`       | `nats`        | `NatsPublishingExtension`                                                   | `false`         |
+| `edc.feature.nats.auth`    | `nkey`        | `NatsNkeyAuthExtension`                                                     | `false`         |
 
 _this list may not be exhaustive, more features may land._
 
@@ -127,8 +128,10 @@ Note that:
   `edc.feature.statemachine=polling` it is loaded but unused.
 - The HashiCorp Vault extensions are the only provider of the `SignatureService`. Without them, the signature-backed
   STS is not registered.
-- `NatsNkeyAuthExtension` is not bound to a feature. It has no effect unless `edc.nats.auth.nkey.seed.path` is
-  configured.
+- `NatsNkeyAuthExtension` contributes the credentials for all NATS connections, those of the task-based state machine
+  as well as those of the event publishing. It is therefore bound to neither of their features, but to a feature of
+  its own, `edc.feature.nats.auth`. Once it is loaded, `edc.nats.auth.nkey.seed.path` is mandatory: a missing seed
+  path fails the startup, instead of connecting without credentials.
 - Publishing events to NATS (`NatsPublishingExtension`) is independent of the state machine and is therefore not
   covered by `edc.feature.statemachine`. It is a feature of its own, `edc.feature.events`, so that either of the two
   can be used without the other. Event publishers that are not bound to a feature are not affected by it.
@@ -147,6 +150,8 @@ longer true for them, which is a breaking change:
   state machine is processed.
 - A runtime that publishes events to NATS must set `edc.feature.events=nats`. Without it, the runtime starts, but no
   events are published to NATS.
+- A runtime that authenticates its NATS connections with an NKey must set `edc.feature.nats.auth=nkey`. Without it,
+  the connections are made without credentials and are refused by a NATS server that requires authentication.
 
 This also applies to custom-built runtimes and to test runtimes, because the feature is declared on the extension and
 not on the distribution. In particular, a test that is meant to run against Postgres but does not set
@@ -155,8 +160,9 @@ to a feature, including all downstream extensions, are not affected.
 
 The `loadAsDefault` attribute cannot make these bindings backwards compatible:
 
-- `edc.feature.persistence`, `edc.feature.vault` and `edc.feature.events` only have a single value: the in-memory
-  stores and the in-memory vault are default providers, and not publishing events to NATS requires no extension. With
+- `edc.feature.persistence`, `edc.feature.vault`, `edc.feature.events` and `edc.feature.nats.auth` only have a single
+  value, because their alternative requires no extension: the in-memory stores and the in-memory vault are default
+  providers, events are simply not published to NATS, and NATS connections are made without credentials. With
   `loadAsDefault=true` the extensions bound to these features could not be opted out of, which is required for an
   all-in-one distribution.
 - `edc.feature.statemachine` has two values, but only one of them can be the default: if both were loaded by default,

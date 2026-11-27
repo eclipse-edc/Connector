@@ -16,6 +16,7 @@ package org.eclipse.edc.nats.auth.nkey;
 
 import io.nats.client.NKey;
 import io.nats.client.Options;
+import org.eclipse.edc.boot.system.injection.EdcInjectionException;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
@@ -35,10 +36,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -46,13 +44,11 @@ import static org.mockito.Mockito.when;
 class NatsNkeyAuthExtensionTest {
 
     @Test
-    void initialize_noSeedConfigured_doesNotRegisterOptions(ServiceExtensionContext context, ObjectFactory factory) {
+    void noSeedConfigured_throws(ServiceExtensionContext context, ObjectFactory factory) {
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of()));
 
-        var ext = factory.constructInstance(NatsNkeyAuthExtension.class);
-        assertThatNoException().isThrownBy(() -> ext.initialize(context));
-
-        verify(context, never()).registerService(eq(Options.class), any());
+        assertThatExceptionOfType(EdcInjectionException.class)
+                .isThrownBy(() -> factory.constructInstance(NatsNkeyAuthExtension.class));
     }
 
     @Test
