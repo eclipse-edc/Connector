@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.spi.system.health;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Failure;
@@ -27,6 +28,7 @@ import java.util.Objects;
 /**
  * Represents the result of one single health check, like a heartbeat to a database or to a messaging service.
  */
+@JsonIgnoreProperties({ "failureMessages", "failureDetail" })
 public class HealthCheckResult extends AbstractResult<Boolean, Failure, HealthCheckResult> {
     private String component;
 

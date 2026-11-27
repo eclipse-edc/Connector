@@ -22,7 +22,6 @@ dependencies {
     api(project(":spi:core-spi"))
 
     implementation(project(":core:control-plane:lib:control-plane-lib"))
-    implementation(project(":core:common:boot"))
     implementation(project(":core:common:participant-context-core"))
     implementation(project(":core:common:participant-context-connector-core"))
     implementation(project(":core:common:participant-context-config-core"))

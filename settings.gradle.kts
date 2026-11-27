@@ -232,6 +232,7 @@ include(":extensions:policy-monitor:store:sql:policy-monitor-store-sql")
 
 // extension points for a connector ----------------------------------------------------------------
 include(":spi:core-spi")
+include(":spi:runtime-spi")
 include(":spi:control-plane-spi")
 include(":spi:decentralized-claims-spi")
 include(":core:common:junit-base")

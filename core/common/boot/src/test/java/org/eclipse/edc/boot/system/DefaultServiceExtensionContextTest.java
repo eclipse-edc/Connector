@@ -29,8 +29,8 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.boot.BootServicesExtension.COMPONENT_ID;
-import static org.eclipse.edc.boot.BootServicesExtension.RUNTIME_ID;
+import static org.eclipse.edc.boot.system.DefaultServiceExtensionContext.COMPONENT_ID;
+import static org.eclipse.edc.boot.system.DefaultServiceExtensionContext.RUNTIME_ID;
 import static org.mockito.Mockito.mock;
 
 class DefaultServiceExtensionContextTest {

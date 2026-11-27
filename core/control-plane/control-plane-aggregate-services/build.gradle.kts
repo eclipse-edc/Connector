@@ -36,6 +36,7 @@ dependencies {
     testImplementation(project(":core:control-plane:control-plane-transfer"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(project(":core:common:junit"))
+    testImplementation(testFixtures(project(":spi:core-spi")))
     testImplementation(libs.awaitility)
 }
 

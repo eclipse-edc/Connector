@@ -74,6 +74,8 @@ public class ExtensionLifecycleManager {
             monitor.debug("Started " + target.name());
         }
 
+        context.markReady();
+
         monitor.info(containers.size() + " service extensions started");
     }
 

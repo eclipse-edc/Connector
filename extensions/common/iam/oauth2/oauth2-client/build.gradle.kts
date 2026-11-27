@@ -19,7 +19,7 @@ plugins {
 dependencies {
     api(project(":spi:core-spi"))
 
-    testImplementation(project(":core:common:lib:core-lib"))
+    testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":core:common:lib:core-lib")))
     testImplementation(libs.wiremock)
 }

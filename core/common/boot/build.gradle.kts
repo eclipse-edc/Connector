@@ -18,14 +18,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:core-spi"))
-    api(project(":spi:control-plane-spi"))
+    api(project(":spi:runtime-spi"))
 
-    implementation(project(":core:common:lib:core-lib"))
-
-    implementation(libs.opentelemetry.api)
-
-    testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:junit-base"))
 }
 
 

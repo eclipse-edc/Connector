@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.boot.vault;
+package org.eclipse.edc.vault;
 
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextSupplier;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;

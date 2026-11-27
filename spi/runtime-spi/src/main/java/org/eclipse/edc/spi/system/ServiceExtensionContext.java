@@ -33,6 +33,22 @@ public interface ServiceExtensionContext extends SettingResolver {
     }
 
     /**
+     * Marks the context as ready, meaning that all the extensions have been successfully started.
+     */
+    default void markReady() {
+
+    }
+
+    /**
+     * Tells whether all the extensions have been successfully started.
+     *
+     * @return true if the runtime is ready, false otherwise.
+     */
+    default boolean isReady() {
+        return false;
+    }
+
+    /**
      * Return the id of the runtime. A runtime is a physical process. If {@code edc.runtime.id} is not configured, a random UUID is used.
      * <br/><em>It is recommended to leave this configuration blank..</em>
      *

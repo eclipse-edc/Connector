@@ -21,6 +21,8 @@ dependencies {
 
     implementation(project(":core:common:lib:core-lib"))
 
+    implementation(libs.opentelemetry.api)
+
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
     testImplementation(libs.wiremock)

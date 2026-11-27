@@ -19,9 +19,11 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:core-spi"))
+    api(project(":spi:runtime-spi"))
+    api(project(":core:common:boot"))
 
     implementation(libs.assertj)
+    implementation(libs.mockito.core)
     implementation(libs.testcontainers.junit)
 }
 
