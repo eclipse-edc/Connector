@@ -16,6 +16,7 @@ package org.eclipse.edc.sql.testfixtures;
 
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.sql.SqlPersistenceFeature;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -76,6 +77,7 @@ public class PostgresqlEndToEndExtension implements BeforeAllCallback, AfterAllC
      */
     public Config configFor(String databaseName) {
         var settings = Map.of(
+                SqlPersistenceFeature.FEATURE_KEY, SqlPersistenceFeature.POSTGRES,
                 "edc.datasource.default.url", "jdbc:postgresql://%s:%d/%s"
                         .formatted(postgres.getHost(), postgres.getMappedPort(POSTGRESQL_PORT), databaseName),
                 "edc.datasource.default.user", postgres.getUsername(),

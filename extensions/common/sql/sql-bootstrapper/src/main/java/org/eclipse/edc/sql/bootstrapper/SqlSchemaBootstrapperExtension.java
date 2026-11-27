@@ -25,9 +25,11 @@ import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import static org.eclipse.edc.sql.SqlPersistenceFeature.FEATURE_KEY;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.POSTGRES;
 import static org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapperExtension.NAME;
 
-@Extension(value = NAME, categories = { "sql", "persistence", "storage" })
+@Extension(value = NAME, categories = { "sql", "persistence", "storage" }, featureKey = FEATURE_KEY, featureValue = POSTGRES)
 public class SqlSchemaBootstrapperExtension implements ServiceExtension {
     public static final String NAME = "SQL Schema Bootstrapper Extension";
     public static final String SCHEMA_AUTOCREATE_PROPERTY = "edc.sql.schema.autocreate";

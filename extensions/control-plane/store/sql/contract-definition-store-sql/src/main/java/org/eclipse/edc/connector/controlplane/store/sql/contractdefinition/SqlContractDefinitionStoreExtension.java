@@ -31,8 +31,11 @@ import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import static org.eclipse.edc.sql.SqlPersistenceFeature.FEATURE_KEY;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.POSTGRES;
+
 @Provides({ ContractDefinitionStore.class })
-@Extension(value = "SQL contract definition store")
+@Extension(value = "SQL contract definition store", featureKey = FEATURE_KEY, featureValue = POSTGRES)
 public class SqlContractDefinitionStoreExtension implements ServiceExtension {
 
 

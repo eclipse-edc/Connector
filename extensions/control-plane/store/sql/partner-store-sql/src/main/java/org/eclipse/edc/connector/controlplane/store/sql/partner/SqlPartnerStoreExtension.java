@@ -31,8 +31,10 @@ import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import static org.eclipse.edc.connector.controlplane.store.sql.partner.SqlPartnerStoreExtension.NAME;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.FEATURE_KEY;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.POSTGRES;
 
-@Extension(value = NAME)
+@Extension(value = NAME, featureKey = FEATURE_KEY, featureValue = POSTGRES)
 public class SqlPartnerStoreExtension implements ServiceExtension {
 
     public static final String NAME = "Partner and Partner Group SQL Store Extension";

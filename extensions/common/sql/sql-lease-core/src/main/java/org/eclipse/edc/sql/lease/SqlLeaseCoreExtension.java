@@ -26,13 +26,16 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
 
+import static org.eclipse.edc.sql.SqlPersistenceFeature.FEATURE_KEY;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.POSTGRES;
+
 /**
  * Provides the default {@link SqlLeaseContextBuilderProvider}, which stores leases in the {@code edc_lease} table.
  *
  * @deprecated the lease is now stored on the entity row (see {@code org.eclipse.edc.sql.lease.StatefulEntityStatements}), this will be removed in a future release.
  */
 @Deprecated(since = "1.0.0")
-@Extension(value = SqlLeaseCoreExtension.NAME)
+@Extension(value = SqlLeaseCoreExtension.NAME, featureKey = FEATURE_KEY, featureValue = POSTGRES)
 public class SqlLeaseCoreExtension implements ServiceExtension {
 
     public static final String NAME = "SQL Lease Core";

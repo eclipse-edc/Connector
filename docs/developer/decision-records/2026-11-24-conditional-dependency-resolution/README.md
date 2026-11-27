@@ -150,8 +150,12 @@ not on the distribution. In particular, a test that is meant to run against Post
 to a feature, including all downstream extensions, are not affected.
 
 In order to make this backwards compatible, the `loadAsDefault` attribute must reflect the current behaviour, so it is
-`true` for `edc.feature.persistence=postgres` and for `edc.feature.statemachine=task`. That way, it's more of an
-explicit opt-out than an opt-in.
+`true` for `edc.feature.statemachine=task`. That way, it's more of an explicit opt-out than an opt-in.
+
+This does not apply to `edc.feature.persistence` and `edc.feature.vault`: they have no value for the in-memory
+implementations, so with `loadAsDefault=true` the SQL extensions, or the HashiCorp Vault extensions respectively, could
+not be opted out of, which is required for an all-in-one distribution. Their `loadAsDefault` is therefore `false`, as
+listed in the table above.
 
 ### Affected components
 

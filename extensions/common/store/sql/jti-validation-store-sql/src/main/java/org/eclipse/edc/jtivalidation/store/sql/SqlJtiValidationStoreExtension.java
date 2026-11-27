@@ -30,8 +30,11 @@ import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import static org.eclipse.edc.sql.SqlPersistenceFeature.FEATURE_KEY;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.POSTGRES;
+
 @Provides({ JtiValidationStore.class })
-@Extension(value = "SQL JTI Validation store")
+@Extension(value = "SQL JTI Validation store", featureKey = FEATURE_KEY, featureValue = POSTGRES)
 public class SqlJtiValidationStoreExtension implements ServiceExtension {
 
     @Setting(description = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE, key = "edc.sql.store.jti.datasource")

@@ -33,8 +33,11 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import java.time.Clock;
 import java.time.Duration;
 
+import static org.eclipse.edc.sql.SqlPersistenceFeature.FEATURE_KEY;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.POSTGRES;
+
 @Provides(TransferProcessStore.class)
-@Extension(value = "SQL transfer process store")
+@Extension(value = "SQL transfer process store", featureKey = FEATURE_KEY, featureValue = POSTGRES)
 public class SqlTransferProcessStoreExtension implements ServiceExtension {
 
     @Setting(description = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE, key = "edc.sql.store.transferprocess.datasource")

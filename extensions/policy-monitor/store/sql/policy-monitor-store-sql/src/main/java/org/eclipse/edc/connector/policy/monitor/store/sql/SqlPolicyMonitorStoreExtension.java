@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.policy.monitor.store.sql;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.connector.policy.monitor.store.sql.schema.PolicyMonitorStatements;
 import org.eclipse.edc.connector.policy.monitor.store.sql.schema.PostgresPolicyMonitorStatements;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -31,6 +32,10 @@ import org.eclipse.edc.transaction.spi.TransactionContext;
 import java.time.Clock;
 import java.time.Duration;
 
+import static org.eclipse.edc.sql.SqlPersistenceFeature.FEATURE_KEY;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.POSTGRES;
+
+@Extension(value = "SQL policy monitor store", featureKey = FEATURE_KEY, featureValue = POSTGRES)
 public class SqlPolicyMonitorStoreExtension implements ServiceExtension {
 
     @Setting(description = "The datasource to be used", defaultValue = DataSourceRegistry.DEFAULT_DATASOURCE, key = "edc.sql.store.policy-monitor.datasource")

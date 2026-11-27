@@ -30,9 +30,11 @@ import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import static org.eclipse.edc.policy.cel.store.sql.SqlCelExpressionStoreExtension.NAME;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.FEATURE_KEY;
+import static org.eclipse.edc.sql.SqlPersistenceFeature.POSTGRES;
 
 
-@Extension(value = NAME)
+@Extension(value = NAME, featureKey = FEATURE_KEY, featureValue = POSTGRES)
 public class SqlCelExpressionStoreExtension implements ServiceExtension {
     public static final String NAME = "Cel Expressions SQL Store Extension";
 
