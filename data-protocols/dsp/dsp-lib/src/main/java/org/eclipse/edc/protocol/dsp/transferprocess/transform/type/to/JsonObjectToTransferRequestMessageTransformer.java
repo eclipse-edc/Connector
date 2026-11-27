@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.controlplane.DataAddress;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
+import org.eclipse.edc.protocol.dsp.transform.DspMessageIdentifier;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +40,7 @@ public class JsonObjectToTransferRequestMessageTransformer extends NamespacedJso
     @Override
     public @Nullable TransferRequestMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
         var builder = TransferRequestMessage.Builder.newInstance();
+        builder.id(DspMessageIdentifier.of(messageObject, this::forNamespace));
 
         if (!transformMandatoryString(messageObject.get(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM)), builder::consumerPid, context)) {
             context.problem()

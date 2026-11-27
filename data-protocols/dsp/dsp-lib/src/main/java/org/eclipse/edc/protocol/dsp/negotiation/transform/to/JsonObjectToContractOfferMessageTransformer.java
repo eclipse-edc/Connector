@@ -21,6 +21,7 @@ import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
+import org.eclipse.edc.protocol.dsp.transform.DspMessageIdentifier;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,6 +46,7 @@ public class JsonObjectToContractOfferMessageTransformer extends NamespacedJsonL
     @Override
     public @Nullable ContractOfferMessage transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var builder = ContractOfferMessage.Builder.newInstance();
+        builder.id(DspMessageIdentifier.of(jsonObject, this::forNamespace));
         if (!transformMandatoryString(jsonObject.get(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM)), builder::providerPid, context)) {
             reportMissingProperty(forNamespace(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM), forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), context);
             return null;

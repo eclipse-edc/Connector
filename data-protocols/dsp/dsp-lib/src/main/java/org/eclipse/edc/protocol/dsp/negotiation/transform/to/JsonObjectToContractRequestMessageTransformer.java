@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractO
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.dsp.transform.DspMessageIdentifier;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,6 +44,7 @@ public class JsonObjectToContractRequestMessageTransformer extends NamespacedJso
     @Override
     public @Nullable ContractRequestMessage transform(@NotNull JsonObject requestObject, @NotNull TransformerContext context) {
         var builder = ContractRequestMessage.Builder.newInstance();
+        builder.id(DspMessageIdentifier.of(requestObject, this::forNamespace));
 
         if (!transformMandatoryString(requestObject.get(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM)), builder::consumerPid, context)) {
             context.problem()

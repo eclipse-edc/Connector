@@ -18,6 +18,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
+import org.eclipse.edc.protocol.dsp.transform.DspMessageIdentifier;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +36,7 @@ public class JsonObjectToTransferCompletionMessageTransformer extends Namespaced
     @Override
     public @Nullable TransferCompletionMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
         var builder = TransferCompletionMessage.Builder.newInstance();
+        builder.id(DspMessageIdentifier.of(messageObject, this::forNamespace));
 
         if (!transformMandatoryString(messageObject.get(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM)), builder::consumerPid, context)) {
             context.problem()

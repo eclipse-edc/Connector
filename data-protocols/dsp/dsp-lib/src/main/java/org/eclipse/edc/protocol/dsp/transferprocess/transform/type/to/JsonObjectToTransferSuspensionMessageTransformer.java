@@ -20,6 +20,7 @@ import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
+import org.eclipse.edc.protocol.dsp.transform.DspMessageIdentifier;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -51,6 +52,7 @@ public class JsonObjectToTransferSuspensionMessageTransformer extends Namespaced
     @Override
     public @Nullable TransferSuspensionMessage transform(@NotNull JsonObject messageObject, @NotNull TransformerContext context) {
         var builder = TransferSuspensionMessage.Builder.newInstance();
+        builder.id(DspMessageIdentifier.of(messageObject, this::forNamespace));
 
         if (!transformMandatoryString(messageObject.get(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM)), builder::consumerPid, context)) {
             context.problem()

@@ -23,6 +23,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
@@ -56,6 +57,37 @@ class JsonObjectToTransferCompletionMessageTransformerTest {
         assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
 
         verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void shouldKeepMessageId_whenUrnUuid() {
+        var messageId = "urn:uuid:3f0a6a31-5c3b-4f52-9a2e-2b1f0c7d9e11";
+        var json = Json.createObjectBuilder()
+                .add(ID, messageId)
+                .add(TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "consumerPid")
+                .build();
+
+        var result = transformer.transform(TestJsonLd.expand(json), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(messageId);
+    }
+
+    @Test
+    void shouldGenerateMessageId_whenIdIsNotUrnUuid() {
+        var json = Json.createObjectBuilder()
+                .add(ID, "3f0a6a31-5c3b-4f52-9a2e-2b1f0c7d9e11")
+                .add(TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "consumerPid")
+                .build();
+
+        var result = transformer.transform(TestJsonLd.expand(json), context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).startsWith("urn:uuid:").doesNotContain("3f0a6a31-5c3b-4f52-9a2e-2b1f0c7d9e11");
     }
 
     @Test

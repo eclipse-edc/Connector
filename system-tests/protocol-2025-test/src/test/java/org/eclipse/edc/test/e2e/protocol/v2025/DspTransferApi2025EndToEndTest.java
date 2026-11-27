@@ -15,6 +15,8 @@
 
 package org.eclipse.edc.test.e2e.protocol.v2025;
 
+import io.restassured.response.ValidatableResponse;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -36,14 +38,23 @@ import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_CONTEXT_2025_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_ERROR_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_PROCESS_TERM;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -161,6 +172,68 @@ public class DspTransferApi2025EndToEndTest {
                 .body("reason[0]", equalTo("Unauthorized."))
                 .body("'@context'", equalTo(context));
 
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(ProtocolVersionContextProvider.class)
+    void shouldAcknowledgeRetriedMessage_whenItCarriesTheSameUrnUuidId(String basePath, List<String> context) {
+        var consumerPid = startedConsumerTransferProcess();
+        var completion = completionMessage(consumerPid, "urn:uuid:" + UUID.randomUUID());
+
+        // the first delivery completes the transfer process, the retry is recognized and acknowledged
+        postCompletion(basePath, consumerPid, completion).statusCode(200);
+        postCompletion(basePath, consumerPid, completion).statusCode(200);
+
+        assertThat(runtime.getService(TransferProcessStore.class).findById(consumerPid).getState()).isEqualTo(COMPLETING_REQUESTED.code());
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(ProtocolVersionContextProvider.class)
+    void shouldRejectRetriedMessage_whenItCarriesNoUrnUuidId(String basePath, List<String> context) {
+        var consumerPid = startedConsumerTransferProcess();
+        var completion = completionMessage(consumerPid, UUID.randomUUID().toString());
+
+        // without a message identifier the retry can't be told apart from a new message, which is not valid anymore
+        postCompletion(basePath, consumerPid, completion).statusCode(200);
+        postCompletion(basePath, consumerPid, completion).statusCode(400);
+    }
+
+    private String startedConsumerTransferProcess() {
+        var consumerPid = UUID.randomUUID().toString();
+        var contractId = UUID.randomUUID().toString();
+        var transfer = TransferProcess.Builder.newInstance()
+                .id(consumerPid)
+                .correlationId("providerPid")
+                .type(CONSUMER)
+                .contractId(contractId)
+                .state(STARTED.code())
+                .participantContextId("anonymous")
+                .build();
+        runtime.getService(TransferProcessStore.class).save(transfer);
+        runtime.getService(ContractNegotiationStore.class).save(createNegotiationWithAgreement(contractId));
+        return consumerPid;
+    }
+
+    private JsonObject completionMessage(String consumerPid, String messageId) {
+        return createObjectBuilder()
+                .add(CONTEXT, createArrayBuilder().add(DSPACE_CONTEXT_2025_1))
+                .add(ID, messageId)
+                .add(TYPE, DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_TERM)
+                .add(DSPACE_PROPERTY_CONSUMER_PID_TERM, consumerPid)
+                .add(DSPACE_PROPERTY_PROVIDER_PID_TERM, "providerPid")
+                .build();
+    }
+
+    private ValidatableResponse postCompletion(String basePath, String consumerPid, JsonObject message) {
+        return given()
+                .port(PROTOCOL_PORT)
+                .basePath("/protocol")
+                .contentType(JSON)
+                .body(message)
+                .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
+                .post(basePath + "/transfers/" + consumerPid + "/completion")
+                .then()
+                .log().ifValidationFails();
     }
 
     private ContractNegotiation createNegotiationWithAgreement(String contractId) {
