@@ -41,9 +41,14 @@ import java.time.Duration;
 
 import static org.eclipse.edc.event.nats.NatsPublishingExtension.NAME;
 
-@Extension(value = NAME)
+@Extension(value = NAME, featureKey = NatsPublishingExtension.FEATURE_KEY, featureValue = NatsPublishingExtension.FEATURE_VALUE)
 public class NatsPublishingExtension implements ServiceExtension {
     public static final String NAME = "NATS Event Publishing Extension";
+    /**
+     * The feature key this extension is bound to. It is only loaded if the key is set to {@link #FEATURE_VALUE}.
+     */
+    public static final String FEATURE_KEY = "edc.feature.events";
+    public static final String FEATURE_VALUE = "nats";
     // NATS error code for stream name in use
     private static final int ERR_STREAM_NAME_IN_USE = 10058;
 

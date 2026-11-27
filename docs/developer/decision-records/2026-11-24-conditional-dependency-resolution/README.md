@@ -97,7 +97,7 @@ On startup, the runtime logs the value of every feature key and the extensions t
 
 ### Initial features
 
-Three features serve as example here:
+The following features serve as example here:
 
 | Feature key                | Feature value | Extensions                                                                  | `loadAsDefault` |
 |----------------------------|---------------|-----------------------------------------------------------------------------|-----------------|
@@ -105,6 +105,7 @@ Three features serve as example here:
 | `edc.feature.vault`        | `hashicorp`   | the extensions of the `vault-hashicorp` module                              | `false`         |
 | `edc.feature.statemachine` | `polling`     | `TransferManagerExtension`, `ContractManagerExtension`                      | `true`          |
 | `edc.feature.statemachine` | `task`        | the task core, the task executors, the NATS task publishers and subscribers | `false`         |
+| `edc.feature.events`       | `nats`        | `NatsPublishingExtension`                                                   | `false`         |
 
 _this list may not be exhaustive, more features may land._
 
@@ -128,8 +129,9 @@ Note that:
   STS is not registered.
 - `NatsNkeyAuthExtension` is not bound to a feature. It has no effect unless `edc.nats.auth.nkey.seed.path` is
   configured.
-- Publishing events to NATS (`NatsPublishingExtension`) is independent of the state machine and is not covered by
-  `edc.feature.statemachine`. Should it become part of a distribution, it receives its own feature.
+- Publishing events to NATS (`NatsPublishingExtension`) is independent of the state machine and is therefore not
+  covered by `edc.feature.statemachine`. It is a feature of its own, `edc.feature.events`, so that either of the two
+  can be used without the other. Event publishers that are not bound to a feature are not affected by it.
 
 ### Compatibility
 
@@ -143,6 +145,8 @@ longer true for them, which is a breaking change:
 - A runtime that uses the task-based state machine must set `edc.feature.statemachine=task`. Without it, the task
   extensions are not loaded. If the polling-based managers are not on the classpath either, the runtime starts, but no
   state machine is processed.
+- A runtime that publishes events to NATS must set `edc.feature.events=nats`. Without it, the runtime starts, but no
+  events are published to NATS.
 
 This also applies to custom-built runtimes and to test runtimes, because the feature is declared on the extension and
 not on the distribution. In particular, a test that is meant to run against Postgres but does not set
@@ -151,9 +155,10 @@ to a feature, including all downstream extensions, are not affected.
 
 The `loadAsDefault` attribute cannot make these bindings backwards compatible:
 
-- `edc.feature.persistence` and `edc.feature.vault` have no value for the in-memory implementations, so with
-  `loadAsDefault=true` the SQL extensions, or the HashiCorp Vault extensions respectively, could not be opted out of,
-  which is required for an all-in-one distribution.
+- `edc.feature.persistence`, `edc.feature.vault` and `edc.feature.events` only have a single value: the in-memory
+  stores and the in-memory vault are default providers, and not publishing events to NATS requires no extension. With
+  `loadAsDefault=true` the extensions bound to these features could not be opted out of, which is required for an
+  all-in-one distribution.
 - `edc.feature.statemachine` has two values, but only one of them can be the default: if both were loaded by default,
   an all-in-one distribution that does not configure the feature key would run both state machines. The default is
   `polling`, because it does not require additional infrastructure. Leaving the feature key out is therefore the same
