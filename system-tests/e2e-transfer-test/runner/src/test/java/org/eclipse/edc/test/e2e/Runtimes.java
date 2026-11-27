@@ -63,6 +63,11 @@ public interface Runtimes {
                 ":dist:bom:controlplane-virtual-feature-dcp-bom",
         };
 
+        // virtual control plane with all features on the classpath, selected through the "edc.feature.*" configuration
+        String[] ALL_IN_ONE_MODULES = new String[]{
+                ":dist:bom:controlplane-all-in-one",
+        };
+
         Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()
                 .endpoint("management", () -> URI.create("http://localhost:" + getFreePort() + "/management"))
                 .endpoint("signaling", () -> URI.create("http://localhost:" + getFreePort() + "/signaling"))

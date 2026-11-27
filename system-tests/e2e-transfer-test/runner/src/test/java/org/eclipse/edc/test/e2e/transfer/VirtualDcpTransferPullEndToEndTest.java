@@ -36,6 +36,7 @@ import org.eclipse.edc.iam.decentralizedclaims.spi.credentialservice.CredentialS
 import org.eclipse.edc.iam.decentralizedclaims.spi.credentialservice.CredentialServiceEndToEndExtension;
 import org.eclipse.edc.iam.decentralizedclaims.spi.issuerservice.IssuerService;
 import org.eclipse.edc.iam.decentralizedclaims.spi.issuerservice.IssuerServiceEndToEndExtension;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.annotations.Runtime;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
@@ -115,6 +116,21 @@ class VirtualDcpTransferPullEndToEndTest {
                 "edc.iam.sts.signature.keyname", keyName,
                 "edc.iam.sts.signature.kid", kid
         ));
+    }
+
+    private static Config runtimeConfiguration() {
+        return ConfigFactory.fromMap(new HashMap<>() {
+            {
+                put("edc.iam.dcp.scopes.membership.id", "membership-scope");
+                put("edc.iam.dcp.scopes.membership.type", "DEFAULT");
+                put("edc.iam.dcp.scopes.membership.value", "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read");
+                put("edc.iam.dcp.scopes.data-access.id", "data-access-scope");
+                put("edc.iam.dcp.scopes.data-access.type", "POLICY");
+                put("edc.iam.dcp.scopes.data-access.value", "org.eclipse.dspace.dcp.vc.type:DataAccessCredential:read");
+                put("edc.iam.dcp.scopes.data-access.prefix.mapping", "https://w3id.org/example/credentials/DataAccessCredential");
+                put("edc.policy.monitor.period", "PT1S");
+            }
+        });
     }
 
     @SuppressWarnings("JUnitMalformedDeclaration")
@@ -536,7 +552,7 @@ class VirtualDcpTransferPullEndToEndTest {
                 .modules(Runtimes.ControlPlane.VIRTUAL_NATS_MODULES)
                 .modules(":extensions:common:vault:vault-hashicorp")
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
-                .configurationProvider(PostgresDcp::runtimeConfiguration)
+                .configurationProvider(VirtualDcpTransferPullEndToEndTest::runtimeConfiguration)
                 .configurationProvider(() -> ConfigFactory.fromMap(Map.ofEntries(
                         entry("edc.iam.did.web.use.https", "false"),
                         entry("edc.iam.trustedissuer.issuer.id", ISSUER_SERVICE.getIssuerService().getDid()),
@@ -570,21 +586,184 @@ class VirtualDcpTransferPullEndToEndTest {
                 .configurationProvider(() -> Runtimes.SignalingDataPlane.config(OAUTH_SERVER.jwksUri()))
                 .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
+    }
 
-        private static Config runtimeConfiguration() {
-            return ConfigFactory.fromMap(new HashMap<>() {
-                {
-                    put("edc.iam.dcp.scopes.membership.id", "membership-scope");
-                    put("edc.iam.dcp.scopes.membership.type", "DEFAULT");
-                    put("edc.iam.dcp.scopes.membership.value", "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read");
-                    put("edc.iam.dcp.scopes.data-access.id", "data-access-scope");
-                    put("edc.iam.dcp.scopes.data-access.type", "POLICY");
-                    put("edc.iam.dcp.scopes.data-access.value", "org.eclipse.dspace.dcp.vc.type:DataAccessCredential:read");
-                    put("edc.iam.dcp.scopes.data-access.prefix.mapping", "https://w3id.org/example/credentials/DataAccessCredential");
-                    put("edc.policy.monitor.period", "PT1S");
-                }
-            });
+    /**
+     * Runs the tests against the all-in-one BOM with every feature selected: the task-based state machine on NATS, the
+     * SQL stores, the HashiCorp Vault and the NATS event publishing.
+     */
+    @Nested
+    @PostgresqlIntegrationTest
+    class AllInOne extends DcpTransferPullEndToEndTestBase {
+
+        private static final String EVENTS_STREAM = "all-in-one-events";
+
+        @RegisterExtension
+        @Order(0)
+        static final IssuerServiceEndToEndExtension ISSUER_SERVICE = new IssuerServiceEndToEndExtension();
+
+        @RegisterExtension
+        @Order(0)
+        static final CredentialServiceEndToEndExtension CREDENTIAL_SERVICE = new CredentialServiceEndToEndExtension();
+
+        @RegisterExtension
+        @Order(0)
+        static final Oauth2Extension OAUTH_SERVER = new Oauth2Extension();
+
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
+
+        @Order(0)
+        @RegisterExtension
+        static final NatsEndToEndExtension NATS_EXTENSION = new NatsEndToEndExtension();
+
+        @Order(0)
+        @RegisterExtension
+        static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension();
+
+        @Order(0)
+        @RegisterExtension
+        static final VaultEndToEndExtension VAULT_END_TO_END_EXTENSION = new VaultEndToEndExtension();
+
+        @Order(1)
+        @RegisterExtension
+        static final BeforeAllCallback SETUP = context -> {
+            POSTGRESQL_EXTENSION.createDatabase(Runtimes.ControlPlane.NAME.toLowerCase());
+        };
+
+        @Order(2)
+        @RegisterExtension
+        static final RuntimeExtension CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.ALL_IN_ONE_MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(VirtualDcpTransferPullEndToEndTest::runtimeConfiguration)
+                .configurationProvider(() -> ConfigFactory.fromMap(Map.ofEntries(
+                        entry("edc.iam.did.web.use.https", "false"),
+                        entry("edc.iam.trustedissuer.issuer.id", ISSUER_SERVICE.getIssuerService().getDid()),
+                        entry("edc.iam.trustedissuer.issuer.supportedtypes", "[\"*\"]")
+                )))
+                .configurationProvider(VirtualTransferEndToEndTest::config)
+                // each of these selects its feature: persistence, state machine and vault
+                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
+                .configurationProvider(NATS_EXTENSION::configFor)
+                .configurationProvider(VAULT_END_TO_END_EXTENSION::configFor)
+                .configurationProvider(AllInOne::natsEventsConfiguration)
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
+                .paramProvider(ManagementApiClientV5.class, (ctx) -> ManagementApiClientV5.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
+                .paramProvider(Participants.class, (ctx) -> participants(ctx, CREDENTIAL_SERVICE))
+                .build();
+
+        @RegisterExtension
+        @Order(1)
+        static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_DP)
+                .modules(Runtimes.SignalingDataPlane.MODULES)
+                .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.SignalingDataPlane.config(OAUTH_SERVER.jwksUri()))
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
+                .build();
+
+        @RegisterExtension
+        @Order(1)
+        static final RuntimeExtension CONSUMER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_DP)
+                .modules(Runtimes.SignalingDataPlane.MODULES)
+                .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.SignalingDataPlane.config(OAUTH_SERVER.jwksUri()))
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
+                .build();
+
+        private static Config natsEventsConfiguration() {
+            return ConfigFactory.fromMap(Map.of(
+                    "edc.feature.events", "nats",
+                    "edc.events.nats.url", NATS_EXTENSION.getNatsUrl(),
+                    "edc.events.nats.stream", EVENTS_STREAM
+            ));
         }
+
+        @Test
+        void shouldPublishEventsToNats(ManagementApiClientV5 connectorClient, Participants participants) {
+            var consumerName = "consumer-" + UUID.randomUUID();
+            NATS_EXTENSION.createConsumer(EVENTS_STREAM, consumerName);
+
+            // creating an asset, a policy and a contract definition emits events
+            setup(connectorClient, participants.provider());
+
+            await().atMost(Duration.ofSeconds(30))
+                    .ignoreExceptions()
+                    .untilAsserted(() -> assertThat(NATS_EXTENSION.nextMessage(EVENTS_STREAM, consumerName)).isNotEmpty());
+        }
+    }
+
+    /**
+     * Runs the tests against the all-in-one BOM without selecting a state machine or a persistence, so that the
+     * polling-based state machine and the in-memory stores are used. The HashiCorp Vault is selected nevertheless, because
+     * the signature-backed STS that these tests use requires it.
+     */
+    @Nested
+    @EndToEndTest
+    class AllInOneDefaults extends DcpTransferPullEndToEndTestBase {
+
+        @RegisterExtension
+        @Order(0)
+        static final IssuerServiceEndToEndExtension ISSUER_SERVICE = new IssuerServiceEndToEndExtension();
+
+        @RegisterExtension
+        @Order(0)
+        static final CredentialServiceEndToEndExtension CREDENTIAL_SERVICE = new CredentialServiceEndToEndExtension();
+
+        @RegisterExtension
+        @Order(0)
+        static final Oauth2Extension OAUTH_SERVER = new Oauth2Extension();
+
+        @Order(0)
+        @RegisterExtension
+        static final OauthServerEndToEndExtension AUTH_SERVER_EXTENSION = OauthServerEndToEndExtension.Builder.newInstance().build();
+
+        @Order(0)
+        @RegisterExtension
+        static final VaultEndToEndExtension VAULT_END_TO_END_EXTENSION = new VaultEndToEndExtension();
+
+        @Order(2)
+        @RegisterExtension
+        static final RuntimeExtension CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.ALL_IN_ONE_MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(VirtualDcpTransferPullEndToEndTest::runtimeConfiguration)
+                .configurationProvider(() -> ConfigFactory.fromMap(Map.ofEntries(
+                        entry("edc.iam.did.web.use.https", "false"),
+                        entry("edc.iam.trustedissuer.issuer.id", ISSUER_SERVICE.getIssuerService().getDid()),
+                        entry("edc.iam.trustedissuer.issuer.supportedtypes", "[\"*\"]")
+                )))
+                .configurationProvider(VirtualTransferEndToEndTest::config)
+                .configurationProvider(VAULT_END_TO_END_EXTENSION::configFor)
+                .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
+                .paramProvider(ManagementApiClientV5.class, (ctx) -> ManagementApiClientV5.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
+                .paramProvider(Participants.class, (ctx) -> participants(ctx, CREDENTIAL_SERVICE))
+                .build();
+
+        @RegisterExtension
+        @Order(1)
+        static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_DP)
+                .modules(Runtimes.SignalingDataPlane.MODULES)
+                .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.SignalingDataPlane.config(OAUTH_SERVER.jwksUri()))
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
+                .build();
+
+        @RegisterExtension
+        @Order(1)
+        static final RuntimeExtension CONSUMER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_DP)
+                .modules(Runtimes.SignalingDataPlane.MODULES)
+                .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.SignalingDataPlane.config(OAUTH_SERVER.jwksUri()))
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
+                .build();
     }
 
 }
