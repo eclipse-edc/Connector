@@ -67,6 +67,8 @@ The following rules apply:
 - If a feature key that at least one extension on the classpath is bound to is configured with a value that none of
   them declares, the runtime fails to start. This catches misspelled values, which would otherwise silently select the
   default.
+- A feature whose value is `true` is a switch. It can be configured with `false` as well, which is not an unknown
+  value: the extensions that are bound to the feature are not loaded.
 - An extension is bound to at most one feature.
 
 The feature keys are evaluated once, at boot time, against the runtime configuration (configuration extensions,
@@ -99,14 +101,15 @@ On startup, the runtime logs the value of every feature key and the extensions t
 
 The following features serve as example here:
 
-| Feature key                | Feature value | Extensions                                                                  | `loadAsDefault` |
-|----------------------------|---------------|-----------------------------------------------------------------------------|-----------------|
-| `edc.feature.persistence`  | `postgres`    | the SQL store extensions and the SQL infrastructure extensions              | `false`         |
-| `edc.feature.vault`        | `hashicorp`   | the extensions of the `vault-hashicorp` module                              | `false`         |
-| `edc.feature.statemachine` | `polling`     | `TransferManagerExtension`, `ContractManagerExtension`                      | `true`          |
-| `edc.feature.statemachine` | `task`        | the task core, the task executors, the NATS task publishers and subscribers | `false`         |
-| `edc.feature.events`       | `nats`        | `NatsPublishingExtension`                                                   | `false`         |
-| `edc.feature.nats.auth`    | `nkey`        | `NatsNkeyAuthExtension`                                                     | `false`         |
+| Feature key                 | Feature value | Extensions                                                                  | `loadAsDefault` |
+|-----------------------------|---------------|-----------------------------------------------------------------------------|-----------------|
+| `edc.feature.persistence`   | `postgres`    | the SQL store extensions and the SQL infrastructure extensions              | `false`         |
+| `edc.feature.vault`         | `hashicorp`   | the extensions of the `vault-hashicorp` module                              | `false`         |
+| `edc.feature.statemachine`  | `polling`     | `TransferManagerExtension`, `ContractManagerExtension`                      | `true`          |
+| `edc.feature.statemachine`  | `task`        | the task core, the task executors, the NATS task publishers and subscribers | `false`         |
+| `edc.feature.events`        | `nats`        | `NatsPublishingExtension`                                                   | `false`         |
+| `edc.feature.nats.auth`     | `nkey`        | `NatsNkeyAuthExtension`                                                     | `false`         |
+| `edc.feature.observability` | `true`        | the Micrometer extensions: core, Jetty and Jersey metrics                   | `false`         |
 
 _this list may not be exhaustive, more features may land._
 
@@ -135,6 +138,11 @@ Note that:
 - Publishing events to NATS (`NatsPublishingExtension`) is independent of the state machine and is therefore not
   covered by `edc.feature.statemachine`. It is a feature of its own, `edc.feature.events`, so that either of the two
   can be used without the other. Event publishers that are not bound to a feature are not affected by it.
+- `edc.feature.observability` is a switch rather than a selection: its only value is `true`. Setting it to `false`
+  has the same effect as leaving the key out.
+- The OpenTelemetry monitor (`OtelMonitorExtension`) is not bound to a feature. It is a monitor extension, and monitor
+  extensions are loaded before the configuration. It does not emit anything unless an OpenTelemetry SDK or the
+  OpenTelemetry Java agent is present, so it can be part of a distribution without being selected.
 
 ### Compatibility
 
@@ -152,6 +160,8 @@ longer true for them, which is a breaking change:
   events are published to NATS.
 - A runtime that authenticates its NATS connections with an NKey must set `edc.feature.nats.auth=nkey`. Without it,
   the connections are made without credentials and are refused by a NATS server that requires authentication.
+- A runtime that contains the Micrometer extensions must set `edc.feature.observability=true`. Without it, no metrics
+  are recorded.
 
 This also applies to custom-built runtimes and to test runtimes, because the feature is declared on the extension and
 not on the distribution. In particular, a test that is meant to run against Postgres but does not set
@@ -160,11 +170,10 @@ to a feature, including all downstream extensions, are not affected.
 
 The `loadAsDefault` attribute cannot make these bindings backwards compatible:
 
-- `edc.feature.persistence`, `edc.feature.vault`, `edc.feature.events` and `edc.feature.nats.auth` only have a single
-  value, because their alternative requires no extension: the in-memory stores and the in-memory vault are default
-  providers, events are simply not published to NATS, and NATS connections are made without credentials. With
-  `loadAsDefault=true` the extensions bound to these features could not be opted out of, which is required for an
-  all-in-one distribution.
+- All features except `edc.feature.statemachine` only have a single value, because their alternative requires no
+  extension: the in-memory stores and the in-memory vault are default providers, events are simply not published to
+  NATS, NATS connections are made without credentials and no metrics are recorded. With `loadAsDefault=true` the
+  extensions bound to these features could not be opted out of, which is required for an all-in-one distribution.
 - `edc.feature.statemachine` has two values, but only one of them can be the default: if both were loaded by default,
   an all-in-one distribution that does not configure the feature key would run both state machines. The default is
   `polling`, because it does not require additional infrastructure. On a runtime that contains the polling-based

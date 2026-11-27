@@ -23,11 +23,14 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.jetty.JettyService;
 
+import static org.eclipse.edc.spi.telemetry.ObservabilityFeature.ENABLED;
+import static org.eclipse.edc.spi.telemetry.ObservabilityFeature.FEATURE_KEY;
+
 /**
  * An extension that registers Micrometer {@link JettyConnectionMetrics} into Jetty to
  * provide server metrics.
  */
-@Extension(value = JettyMicrometerExtension.NAME)
+@Extension(value = JettyMicrometerExtension.NAME, featureKey = FEATURE_KEY, featureValue = ENABLED)
 public class JettyMicrometerExtension implements ServiceExtension {
 
     @Setting

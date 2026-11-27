@@ -19,6 +19,11 @@ plugins {
 dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:core-lib"))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
+    testImplementation(libs.nats)
+    testImplementation(libs.testcontainers.junit)
+    testImplementation(libs.testcontainers.postgres)
+    testImplementation(libs.testcontainers.vault)
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)
     testImplementation(libs.wiremock) {

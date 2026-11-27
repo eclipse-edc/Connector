@@ -16,6 +16,7 @@ package org.eclipse.edc.boot.system;
 
 import org.eclipse.edc.boot.system.testextensions.AlternativeFeatureExtension;
 import org.eclipse.edc.boot.system.testextensions.DefaultFeatureExtension;
+import org.eclipse.edc.boot.system.testextensions.SwitchFeatureExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -97,6 +98,37 @@ class FeatureFilterTest {
                 .isInstanceOf(EdcException.class)
                 .hasMessageContaining(DefaultFeatureExtension.FEATURE_KEY)
                 .hasMessageContaining("unknown");
+    }
+
+    @Test
+    void switchFeature_setToTrue_shouldLoad() {
+        var switchExtension = new SwitchFeatureExtension();
+
+        var loaded = FeatureFilter.filter(context(Map.of(SwitchFeatureExtension.FEATURE_KEY, "true")), mutableListOf(switchExtension));
+
+        assertThat(loaded).containsExactly(switchExtension);
+    }
+
+    @Test
+    void switchFeature_setToFalse_shouldNotLoad_likeNotSet() {
+        var unbound = new AnnotatedUnboundExtension();
+
+        var loadedWhenFalse = FeatureFilter.filter(context(Map.of(SwitchFeatureExtension.FEATURE_KEY, "false")),
+                mutableListOf(unbound, new SwitchFeatureExtension()));
+        var loadedWhenNotSet = FeatureFilter.filter(context(Map.of()), mutableListOf(unbound, new SwitchFeatureExtension()));
+
+        assertThat(loadedWhenFalse).containsExactly(unbound);
+        assertThat(loadedWhenNotSet).containsExactly(unbound);
+    }
+
+    @Test
+    void featureThatIsNoSwitch_setToFalse_shouldThrow() {
+        var context = context(Map.of(DefaultFeatureExtension.FEATURE_KEY, "false"));
+        var extensions = mutableListOf(new DefaultFeatureExtension(), new AlternativeFeatureExtension());
+
+        assertThatThrownBy(() -> FeatureFilter.filter(context, extensions))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining(DefaultFeatureExtension.FEATURE_KEY);
     }
 
     @Test

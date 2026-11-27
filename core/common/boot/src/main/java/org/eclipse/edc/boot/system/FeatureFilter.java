@@ -36,9 +36,14 @@ import static java.util.stream.Collectors.toCollection;
  *     <li>an extension that is bound to a feature is loaded if the feature key is configured with exactly its {@link Extension#featureValue()}</li>
  *     <li>if the feature key is not configured, the extension is loaded only if {@link Extension#loadAsDefault()} is {@code true}</li>
  *     <li>if a feature key is configured with a value that no extension on the classpath declares, an {@link EdcException} is thrown</li>
+ *     <li>a feature whose value is {@code true} is a switch: it can be configured with {@code false} as well, in which
+ *     case the extensions that are bound to it are not loaded</li>
  * </ul>
  */
 class FeatureFilter {
+
+    private static final String SWITCH_ON = Boolean.TRUE.toString();
+    private static final String SWITCH_OFF = Boolean.FALSE.toString();
 
     private FeatureFilter() {
     }
@@ -69,7 +74,7 @@ class FeatureFilter {
         var selectedValues = new LinkedHashMap<String, String>();
         boundExtensions.forEach((featureKey, bound) -> {
             var value = config.getString(featureKey, null);
-            if (value != null && bound.stream().noneMatch(ext -> value.equals(isBoundByFeatureOrNull(ext).featureValue()))) {
+            if (value != null && !declaresValue(bound, value) && !isSwitchedOff(bound, value)) {
                 var knownValues = bound.stream().map(ext -> isBoundByFeatureOrNull(ext).featureValue()).collect(toCollection(TreeSet::new));
                 throw new EdcException("Feature '%s' is configured with value '%s', but no extension declares this value. Known values: %s"
                         .formatted(featureKey, value, knownValues));
@@ -107,6 +112,18 @@ class FeatureFilter {
                     : "skipped extensions: " + String.join(", ", skippedExtensions);
             monitor.debug("Feature '%s': %s, %s".formatted(featureKey, valueDescription, skippedDescription));
         });
+    }
+
+    private static boolean declaresValue(List<ServiceExtension> extensions, String value) {
+        return extensions.stream().anyMatch(extension -> value.equals(isBoundByFeatureOrNull(extension).featureValue()));
+    }
+
+    /**
+     * A feature whose value is {@code true} is a switch. Configuring it with {@code false} is not an unknown value, it
+     * means that the extensions bound to the feature are not loaded.
+     */
+    private static boolean isSwitchedOff(List<ServiceExtension> extensions, String value) {
+        return SWITCH_OFF.equals(value) && declaresValue(extensions, SWITCH_ON);
     }
 
     /**

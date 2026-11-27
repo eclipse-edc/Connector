@@ -18,6 +18,7 @@ package org.eclipse.edc.web.jersey.micrometer;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.jersey.server.DefaultJerseyTagsProvider;
 import io.micrometer.core.instrument.binder.jersey.server.MetricsApplicationEventListener;
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -32,13 +33,17 @@ import java.util.List;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toSet;
+import static org.eclipse.edc.spi.telemetry.ObservabilityFeature.ENABLED;
+import static org.eclipse.edc.spi.telemetry.ObservabilityFeature.FEATURE_KEY;
 
 /**
  * An extension that register a Micrometer {@link MetricsApplicationEventListener} into Jersey to
  * provide metrics and request timings, for the API contexts configured in {@link #JERSEY_METRICS_CONTEXTS}.
  */
+@Extension(value = JerseyMicrometerExtension.NAME, featureKey = FEATURE_KEY, featureValue = ENABLED)
 public class JerseyMicrometerExtension implements ServiceExtension {
 
+    public static final String NAME = "Jersey Micrometer Metrics";
     static final String ALL_CONTEXTS = "*";
     private static final String DEFAULT_CONTEXT = "default";
 
@@ -65,7 +70,7 @@ public class JerseyMicrometerExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "Jersey Micrometer Metrics";
+        return NAME;
     }
 
     @Override
