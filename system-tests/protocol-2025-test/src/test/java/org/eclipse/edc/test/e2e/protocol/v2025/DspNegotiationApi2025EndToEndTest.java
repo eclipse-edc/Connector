@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.test.e2e.protocol.v2025;
 
+import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
@@ -34,6 +35,8 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -44,8 +47,10 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIB
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 
@@ -189,6 +194,76 @@ public class DspNegotiationApi2025EndToEndTest {
                 .body("code", equalTo("400"))
                 .body("reason[0]", equalTo("Bad request."))
                 .body("'@context'", equalTo(context));
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(ProtocolVersionContextProvider.class)
+    void shouldProcessRetriedOfferOnce_whenItCarriesTheSameUrnUuidId(String basePath, List<String> context) {
+        var consumerPid = requestedConsumerNegotiation();
+        var offer = offerMessage(context, consumerPid, "urn:uuid:" + UUID.randomUUID());
+
+        postOffer(basePath, consumerPid, offer);
+        postOffer(basePath, consumerPid, offer);
+
+        // the retry is recognized and acknowledged, without adding the offer a second time
+        assertThat(runtime.getService(ContractNegotiationStore.class).findById(consumerPid).getContractOffers()).hasSize(2);
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(ProtocolVersionContextProvider.class)
+    void shouldProcessRetriedOfferAgain_whenItCarriesNoUrnUuidId(String basePath, List<String> context) {
+        var consumerPid = requestedConsumerNegotiation();
+        var offer = offerMessage(context, consumerPid, UUID.randomUUID().toString());
+
+        postOffer(basePath, consumerPid, offer);
+        postOffer(basePath, consumerPid, offer);
+
+        // without a message identifier the retry can't be told apart from a new offer
+        assertThat(runtime.getService(ContractNegotiationStore.class).findById(consumerPid).getContractOffers()).hasSize(3);
+    }
+
+    private String requestedConsumerNegotiation() {
+        var consumerPid = UUID.randomUUID().toString();
+        var negotiation = ContractNegotiation.Builder.newInstance()
+                .id(consumerPid).correlationId("providerPid").type(CONSUMER)
+                .counterPartyId("any").counterPartyAddress("any").protocol("any").state(REQUESTED.code())
+                .participantContextId("anonymous")
+                .contractOffer(ContractOffer.Builder.newInstance()
+                        .id(UUID.randomUUID().toString()).assetId("assetId")
+                        .policy(Policy.Builder.newInstance().build())
+                        .build())
+                .build();
+        runtime.getService(ContractNegotiationStore.class).save(negotiation);
+        return consumerPid;
+    }
+
+    private JsonObject offerMessage(List<String> context, String consumerPid, String messageId) {
+        return createObjectBuilder()
+                .add(CONTEXT, createArrayBuilder(context))
+                .add(ID, messageId)
+                .add(TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM)
+                .add(DSPACE_PROPERTY_CONSUMER_PID_TERM, consumerPid)
+                .add(DSPACE_PROPERTY_PROVIDER_PID_TERM, "providerPid")
+                .add(DSPACE_PROPERTY_OFFER_TERM, createObjectBuilder()
+                        .add("@type", ODRL_POLICY_TYPE_OFFER)
+                        .add(ID, "offerId")
+                        .add(ODRL_TARGET_ATTRIBUTE, createObjectBuilder().add(ID, "assetId"))
+                        .add(ODRL_ASSIGNER_ATTRIBUTE, createObjectBuilder().add(ID, "any"))
+                        .build())
+                .build();
+    }
+
+    private void postOffer(String basePath, String consumerPid, JsonObject message) {
+        given()
+                .port(PROTOCOL_PORT)
+                .basePath("/protocol")
+                .contentType(JSON)
+                .body(message)
+                .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
+                .post(basePath + "/negotiations/" + consumerPid + "/offers")
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200);
     }
 
 }

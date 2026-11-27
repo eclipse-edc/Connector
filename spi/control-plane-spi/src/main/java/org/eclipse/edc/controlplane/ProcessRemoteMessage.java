@@ -46,7 +46,8 @@ public abstract class ProcessRemoteMessage extends ProtocolRemoteMessage {
     }
 
     /**
-     * Returns the unique message id.
+     * Returns the unique message id. A message gets a {@code urn:uuid:} id unless one is set, and a message that is sent
+     * again keeps the id of its first delivery, so that the counter-party can recognize it.
      *
      * @return the id;
      */
@@ -136,7 +137,7 @@ public abstract class ProcessRemoteMessage extends ProtocolRemoteMessage {
         @Override
         public M build() {
             if (message.id == null) {
-                message.id = randomUUID().toString();
+                message.id = "urn:uuid:" + randomUUID();
             }
             return super.build();
         }

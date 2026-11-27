@@ -18,6 +18,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jsonld.spi.transformer.NamespacedJsonLdToModelTransformer;
+import org.eclipse.edc.protocol.dsp.transform.DspMessageIdentifier;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +40,7 @@ public class JsonObjectToContractAgreementVerificationMessageTransformer extends
     @Override
     public @Nullable ContractAgreementVerificationMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = ContractAgreementVerificationMessage.Builder.newInstance();
+        builder.id(DspMessageIdentifier.of(object, this::forNamespace));
         if (!transformMandatoryString(object.get(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM)), builder::consumerPid, context)) {
             context.problem()
                     .missingProperty()
