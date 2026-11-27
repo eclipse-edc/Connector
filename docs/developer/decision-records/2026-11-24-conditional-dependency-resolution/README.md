@@ -167,17 +167,19 @@ The `loadAsDefault` attribute cannot make these bindings backwards compatible:
   all-in-one distribution.
 - `edc.feature.statemachine` has two values, but only one of them can be the default: if both were loaded by default,
   an all-in-one distribution that does not configure the feature key would run both state machines. The default is
-  `polling`, because it does not require additional infrastructure. Leaving the feature key out is therefore the same
-  as setting it to `polling`.
+  `polling`, because it does not require additional infrastructure. On a runtime that contains the polling-based
+  managers, leaving the feature key out is therefore the same as setting it to `polling`. On a runtime that only
+  contains the task-based state machine, leaving it out loads no state machine, and setting it to `polling` fails the
+  startup, because no extension on the classpath declares that value.
 
 The values of `loadAsDefault` are therefore the ones listed in the table above.
 
 ### Affected components
 
-- Runtime-Metamodel: the new attributes of the `@Extension` annotation.
+- Runtime-Metamodel: the new attributes of the `@Extension` annotation, and the autodoc processor, which should
+  include the feature of an extension in the generated manifest.
 - Connector: evaluation of the features in the `boot` module, binding of the extensions listed above, and the
   all-in-one BOMs.
-- GradlePlugins: the autodoc processor should include the feature of an extension in the generated manifest.
 
 ### Follow-up
 
