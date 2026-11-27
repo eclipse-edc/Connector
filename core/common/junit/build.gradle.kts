@@ -19,10 +19,10 @@ plugins {
 }
 
 dependencies {
-    api(project(":core:common:junit-base"))
+    api(libs.edc.junit.base)
 
-    api(project(":spi:runtime-spi"))
-    api(project(":core:common:boot"))
+    api(libs.edc.runtime.spi)
+    api(libs.edc.boot)
     api(project(":core:common:lib:core-lib"))
 
     implementation(libs.mockito.core)

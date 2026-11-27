@@ -20,7 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:control-plane-spi"))
 
-    testImplementation(project(":core:common:junit-base"))
+    testImplementation(libs.edc.junit.base)
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":spi:control-plane-spi")))
 

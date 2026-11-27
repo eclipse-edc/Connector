@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:runtime-spi"))
+    api(libs.edc.runtime.spi)
     api(libs.failsafe.core)
     api(libs.bundles.jackson)
     api(libs.jackson.annotations)
@@ -39,11 +39,11 @@ dependencies {
     implementation(libs.parsson)
     implementation(libs.jakarta.annotation)
 
-    testImplementation(project(":core:common:junit-base"))
+    testImplementation(libs.edc.junit.base)
     testImplementation(project(":core:common:lib:core-lib"))
 
     testFixturesImplementation(project(":core:common:junit"))
-    testFixturesImplementation(project(":core:common:junit-base"))
+    testFixturesImplementation(libs.edc.junit.base)
     testFixturesImplementation(libs.nimbus.jwt)
 }
 

@@ -21,7 +21,7 @@ dependencies {
     api(project(":spi:core-spi"))
     implementation(project(":spi:core-spi"))
 
-    testImplementation(project(":core:common:junit-base"));
+    testImplementation(libs.edc.junit.base);
 
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
 }

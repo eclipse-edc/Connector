@@ -19,7 +19,7 @@ plugins {
 dependencies {
 
     api(project(":core:catalog-crawler:catalog-crawler-core"))
-    api(project(":core:common:boot"))
+    api(libs.edc.boot)
     api(project(":core:common:connector-core"))
     api(project(":core:common:lib:core-lib"))
     api(project(":core:common:participant-context-config-core"))
