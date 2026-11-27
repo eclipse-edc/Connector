@@ -67,6 +67,8 @@ The following rules apply:
 - If a feature key that at least one extension on the classpath is bound to is configured with a value that none of
   them declares, the runtime fails to start. This catches misspelled values, which would otherwise silently select the
   default.
+- A feature whose value is `true` is a switch. It can be configured with `false` as well, which is not an unknown
+  value: the extensions that are bound to the feature are not loaded.
 - An extension is bound to at most one feature.
 
 The feature keys are evaluated once, at boot time, against the runtime configuration (configuration extensions,
@@ -136,9 +138,8 @@ Note that:
 - Publishing events to NATS (`NatsPublishingExtension`) is independent of the state machine and is therefore not
   covered by `edc.feature.statemachine`. It is a feature of its own, `edc.feature.events`, so that either of the two
   can be used without the other. Event publishers that are not bound to a feature are not affected by it.
-- `edc.feature.observability` is a switch rather than a selection: its only value is `true`. It is switched off by
-  leaving the key out. Any other value, including `false`, is rejected at startup like every value that no extension
-  declares.
+- `edc.feature.observability` is a switch rather than a selection: its only value is `true`. Setting it to `false`
+  has the same effect as leaving the key out.
 - The OpenTelemetry monitor (`OtelMonitorExtension`) is not bound to a feature. It is a monitor extension, and monitor
   extensions are loaded before the configuration. It does not emit anything unless an OpenTelemetry SDK or the
   OpenTelemetry Java agent is present, so it can be part of a distribution without being selected.
