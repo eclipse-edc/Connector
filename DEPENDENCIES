@@ -223,7 +223,10 @@ maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-system/1.0.2, Apache-2.0, ap
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-tck/1.0.2, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-transfer-process/1.0.2, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.edc/autodoc-processor/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.edc
+maven/mavencentral/org.eclipse.edc/boot/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.edc
+maven/mavencentral/org.eclipse.edc/junit-base/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.edc/runtime-metamodel/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.edc
+maven/mavencentral/org.eclipse.edc/runtime-spi/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.jetty.ee10/jetty-ee10-bom/12.0.30, EPL-2.0 OR Apache-2.0, approved, rt.jetty
 maven/mavencentral/org.eclipse.jetty.ee10/jetty-ee10-servlet/12.0.30, EPL-2.0 OR Apache-2.0, approved, rt.jetty
 maven/mavencentral/org.eclipse.jetty.ee10/jetty-ee10-servlet/12.1.15, EPL-2.0 OR Apache-2.0, approved, rt.jetty
