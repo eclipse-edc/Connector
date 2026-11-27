@@ -21,11 +21,10 @@ plugins {
 dependencies {
     api(project(":core:common:junit-base"))
 
-    api(project(":spi:core-spi"))
+    api(project(":spi:runtime-spi"))
     api(project(":core:common:boot"))
     api(project(":core:common:lib:core-lib"))
 
-    implementation(libs.okhttp)
     implementation(libs.mockito.core)
     implementation(libs.junit.jupiter.api)
     implementation(libs.testcontainers.junit)
